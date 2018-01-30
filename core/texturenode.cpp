@@ -149,9 +149,10 @@ QDomElement TextureNode::saveAsXML(QDomDocument targetdoc)
       retXmlNode.appendChild(settingsnode);
       QMapIterator<QString, QVariant> settingsiterator(settings);
       while (settingsiterator.hasNext()) {
+         settingsiterator.next();
          QDomElement settingnode = targetdoc.createElement("setting");
-         QString key = settingsiterator.peekNext().key();
-         QVariant value = settingsiterator.peekNext().value();
+         QString key = settingsiterator.key();
+         QVariant value = settingsiterator.value();
          settingnode.setAttribute("id", key);
          settingnode.setAttribute("type", value.typeName());
          if (value.type() == QVariant::Type::Color) {
@@ -160,7 +161,6 @@ QDomElement TextureNode::saveAsXML(QDomDocument targetdoc)
             settingnode.setAttribute("value", value.toString());
          }
          settingsnode.appendChild(settingnode);
-         settingsiterator.next();
       }
    }
    if (!sources.empty()) {
@@ -168,13 +168,13 @@ QDomElement TextureNode::saveAsXML(QDomDocument targetdoc)
       retXmlNode.appendChild(sourcesnode);
       QMapIterator<int, int> sourcesiterator(sources);
       while (sourcesiterator.hasNext()) {
-         if (sourcesiterator.peekNext().value() > 0) {
+         sourcesiterator.next();
+         if (sourcesiterator.value() > 0) {
             QDomElement sourcenode = targetdoc.createElement("source");
-            sourcenode.setAttribute("slot", sourcesiterator.peekNext().key());
-            sourcenode.setAttribute("source", sourcesiterator.peekNext().value());
+            sourcenode.setAttribute("slot", sourcesiterator.key());
+            sourcenode.setAttribute("source", sourcesiterator.value());
             sourcesnode.appendChild(sourcenode);
          }
-         sourcesiterator.next();
       }
    }
    return retXmlNode;

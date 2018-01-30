@@ -139,9 +139,9 @@ void NodeSettingsWidget::saveSettings()
    TextureNodeSettings nodeSettings = texNode->getSettings();
    QMapIterator<QString, QWidget*> settingElementIterator(settingElements);
    while (settingElementIterator.hasNext()) {
-      QString settingsId = settingElementIterator.peekNext().key();
-      QWidget* settingsWidget = settingElementIterator.peekNext().value();
       settingElementIterator.next();
+      QString settingsId = settingElementIterator.key();
+      QWidget* settingsWidget = settingElementIterator.value();
       QString settingsNewValueString;
       QPushButton* settingsWidgetPushButton = dynamic_cast<QPushButton*>(settingsWidget);
       QLineEdit* settingsWidgetLineEdit = dynamic_cast<QLineEdit*>(settingsWidget);
@@ -304,9 +304,8 @@ void NodeSettingsWidget::generatorUpdated()
    QListIterator<TextureGeneratorSetting> settingsIterator(settingsvalues);
 
    while (settingsIterator.hasNext()) {
-      QString settingsId = settings.key(settingsIterator.peekNext());
-      TextureGeneratorSetting currSetting = settingsIterator.peekNext();
-      settingsIterator.next();
+      TextureGeneratorSetting currSetting = settingsIterator.next();
+      QString settingsId = settings.key(currSetting);
       QLabel* newLabel = new QLabel(currSetting.name.append(":"));
       QWidget* newWidget;
       switch (currSetting.defaultvalue.type()) {
@@ -442,9 +441,9 @@ void NodeSettingsWidget::settingsUpdated()
 
    QMapIterator<QString, QWidget*> settingElementIterator(settingElements);
    while (settingElementIterator.hasNext()) {
-      QString settingsId = settingElementIterator.peekNext().key();
-      QWidget* settingsWidget = settingElementIterator.peekNext().value();
       settingElementIterator.next();
+      QString settingsId = settingElementIterator.key();
+      QWidget* settingsWidget = settingElementIterator.value();
 
       QVariant value;
       if (texNode->getSettings().contains(settingsId)) {

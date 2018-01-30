@@ -217,7 +217,7 @@ bool MainWindow::saveFile(bool newFileName)
    QByteArray sceneFile = project->saveAsXML().toString(3).toLatin1();
    outputFile.write(sceneFile);
    outputFile.close();
-#ifdef Q_OS_MAC 
+#ifdef Q_OS_MAC
    setWindowTitle(QFileInfo(outputFile).fileName());
 #else
    setWindowTitle(QString("%1 - ProceduralTextureMaker").arg(QFileInfo(outputFile).fileName()));

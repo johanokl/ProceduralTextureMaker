@@ -209,15 +209,15 @@ QDomDocument TextureProject::saveAsXML(bool includegenerators)
          xmlGenerators.appendChild(generatorNode);
          QMapIterator<QString, TextureGeneratorSetting> settingsiterator(generator->getSettings());
          while (settingsiterator.hasNext()) {
+            settingsiterator.next();
             QDomElement settingnode = xmldoc.createElement("generatorsetting");
-            TextureGeneratorSetting value = settingsiterator.peekNext().value();
-            settingnode.setAttribute("id", settingsiterator.peekNext().key());
+            TextureGeneratorSetting value = settingsiterator.value();
+            settingnode.setAttribute("id", settingsiterator.key());
             settingnode.setAttribute("type", value.defaultvalue.typeName());
             settingnode.setAttribute("default", value.defaultvalue.toString());
             settingnode.setAttribute("name", value.name);
             settingnode.setAttribute("description", value.description);
             generatorNode.appendChild(settingnode);
-            settingsiterator.next();
          }
       }
    }
