@@ -38,6 +38,7 @@
 #include "generators/setchannels.h"
 #include "generators/mirror.h"
 #include "generators/boxblur.h"
+#include "generators/whirl.h"
 #include "generators/gaussianblur.h"
 #include "generators/sineplasma.h"
 #include "generators/gradient.h"
@@ -95,6 +96,7 @@ MainWindow::MainWindow(TexGenApplication* parent)
    project->addGenerator(new CircleTextureGenerator());
    project->addGenerator(new PerlinNoiseTextureGenerator());
    project->addGenerator(new BlendingTextureGenerator());
+   project->addGenerator(new WhirlTextureGenerator());
    project->addGenerator(new SetChannelsTextureGenerator());
    project->addGenerator(new GreyscaleTextureGenerator());
    project->addGenerator(new SquareTextureGenerator());
