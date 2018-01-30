@@ -18,12 +18,14 @@ PerlinNoiseTextureGenerator::PerlinNoiseTextureGenerator()
    colorsetting.description = "Color of the circle";
    colorsetting.order = 1;
    configurables.insert("color", colorsetting);
+
    TextureGeneratorSetting numOctaves;
    numOctaves.defaultvalue = QVariant((int) 5);
    numOctaves.name = "Octaves";
    numOctaves.description = "Number of octaves";
    numOctaves.order = 2;
    configurables.insert("numoctaves", numOctaves);
+
    TextureGeneratorSetting persistence;
    persistence.defaultvalue = QVariant((double) 0.5);
    persistence.name = "Persistence";

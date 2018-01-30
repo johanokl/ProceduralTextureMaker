@@ -68,8 +68,8 @@ void CircleTextureGenerator::generate(QSize size,
       return;
    }
    QColor color = configurables.value("color").defaultvalue.value<QColor>();
-   double innerRadius = configurables.value("innerradius").defaultvalue.toDouble() / 200.0;
-   double outerRadius = configurables.value("outerradius").defaultvalue.toDouble() / 200.0;
+   double innerRadius = configurables.value("innerradius").defaultvalue.toDouble() * size.width() / 200.0;
+   double outerRadius = configurables.value("outerradius").defaultvalue.toDouble() * size.width() / 200.0;
    int offsetLeft = configurables.value("offsetleft").defaultvalue.toDouble() * size.width() / 100;
    int offsetTop = configurables.value("offsettop").defaultvalue.toDouble() * size.height() / 100;
    if (settings != NULL) {
@@ -77,10 +77,10 @@ void CircleTextureGenerator::generate(QSize size,
          color = settings->value("color").value<QColor>();
       }
       if (settings->contains("innerradius")) {
-         innerRadius = settings->value("innerradius").toDouble() / 200.0;
+         innerRadius = settings->value("innerradius").toDouble() * size.height() / 200.0;
       }
       if (settings->contains("outerradius")) {
-         outerRadius = settings->value("outerradius").toDouble() / 200.0;
+         outerRadius = settings->value("outerradius").toDouble() * size.height() / 200.0;
       }
       if (settings->contains("offsetleft")) {
          offsetLeft = settings->value("offsetleft").toDouble() * size.width() / 100;
@@ -99,10 +99,10 @@ void CircleTextureGenerator::generate(QSize size,
       for (int x = 0; x < size.width(); x++) {
          if (((pow(abs(size.width() / 2 - x + offsetLeft), 2)
                + pow(abs(size.height() / 2 - y + offsetTop), 2))
-              >= (pow(size.height() * innerRadius, 2))) &&
+              >= (pow(innerRadius, 2))) &&
              ((pow(abs(size.width() / 2 - x + offsetLeft), 2)
                + pow(abs(size.height() / 2 - y + offsetTop), 2))
-              <= (pow((size.height()) * outerRadius, 2)))) {
+              <= (pow(outerRadius, 2)))) {
             destimage[y * size.width() + x] = filler;
          }
       }

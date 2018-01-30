@@ -21,6 +21,7 @@ GaussianBlurTextureGenerator::GaussianBlurTextureGenerator()
    neighbourssetting.max = QVariant((int) 30);
    neighbourssetting.order = 1;
    configurables.insert("numneighbours", neighbourssetting);
+
    TextureGeneratorSetting weightsetting;
    weightsetting.defaultvalue = QVariant((double) 1);
    weightsetting.name = "Weight";

@@ -33,18 +33,21 @@ SetChannelsTextureGenerator::SetChannelsTextureGenerator()
    channelRed.defaultindex = 2;
    channelRed.defaultvalue = QVariant(channels);
    configurables.insert("channelRed", channelRed);
+
    TextureGeneratorSetting channelGreen;
    channelGreen.name = "Source for green";
    channelGreen.order = 1;
    channelGreen.defaultindex = 3;
    channelGreen.defaultvalue = QVariant(channels);
    configurables.insert("channelGreen", channelGreen);
+
    TextureGeneratorSetting channelBlue;
    channelBlue.name = "Source for blue";
    channelBlue.order = 2;
    channelBlue.defaultindex = 4;
    channelBlue.defaultvalue = QVariant(channels);
    configurables.insert("channelBlue", channelBlue);
+
    TextureGeneratorSetting channelAlpha;
    channelAlpha.name = "Source for alpha";
    channelAlpha.order = 3;

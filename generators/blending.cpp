@@ -23,13 +23,12 @@ BlendingTextureGenerator::BlendingTextureGenerator()
    modes.append("Lighten");
    modes.append("Screen");
    modes.append("Linear Dodge (Add)");
-   // modes.append("Overlay");
-   // modes.append("Soft Light");
 
    TextureGeneratorSetting mode;
    mode.name = "Mode";
    mode.description = "How to blend";
    mode.defaultvalue = QVariant(modes);
+   mode.order = 1;
    configurables.insert("mode", mode);
 
    QStringList ordering;
@@ -39,6 +38,7 @@ BlendingTextureGenerator::BlendingTextureGenerator()
    order.name = "Order";
    order.description = "";
    order.defaultvalue = QVariant(ordering);
+   order.order = 2;
    configurables.insert("order", order);
 
    TextureGeneratorSetting blendingAlpha;
@@ -47,6 +47,7 @@ BlendingTextureGenerator::BlendingTextureGenerator()
    blendingAlpha.min = 0;
    blendingAlpha.max = 100;
    blendingAlpha.description = "Alpha value of the blending (0-100)";
+   blendingAlpha.order = 3;
    configurables.insert("alpha", blendingAlpha);
 }
 
@@ -123,10 +124,6 @@ void BlendingTextureGenerator::generate(QSize size, TexturePixel* destimage,
       blendMode = BlendModes::Screen;
    } else if (mode == "Linear Dodge (Add)") {
       blendMode = BlendModes::LinearDodgeAdd;
-   } else if (mode == "Overlay") {
-      blendMode = BlendModes::Overlay;
-   } else if (mode == "Soft Light") {
-      blendMode = BlendModes::SoftLight;
    }
    TexturePixel* originSource = NULL;
    TexturePixel* addSource = NULL;
