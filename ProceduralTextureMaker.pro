@@ -51,6 +51,7 @@ SOURCES = main.cpp \
     generators/gradient.cpp \
     generators/empty.cpp \
     generators/javascript.cpp \
+    generators/lines.cpp \
     generators/whirl.cpp
 
 
@@ -94,6 +95,7 @@ HEADERS += core/texturenode.h \
     generators/mirror.h \
     generators/gradient.h \
     generators/javascript.h \
+    generators/lines.h \
     generators/whirl.h
 
 TARGET = "ProceduralTextureMaker"

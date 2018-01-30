@@ -35,6 +35,7 @@
 #include "generators/circle.h"
 #include "generators/perlinnoise.h"
 #include "generators/blending.h"
+#include "generators/lines.h"
 #include "generators/setchannels.h"
 #include "generators/mirror.h"
 #include "generators/boxblur.h"
@@ -100,6 +101,7 @@ MainWindow::MainWindow(TexGenApplication* parent)
    project->addGenerator(new SetChannelsTextureGenerator());
    project->addGenerator(new GreyscaleTextureGenerator());
    project->addGenerator(new SquareTextureGenerator());
+   project->addGenerator(new LinesTextureGenerator());
    project->addGenerator(new GradientTextureGenerator());
    project->addGenerator(new StarTextureGenerator());
    project->addGenerator(new TransformTextureGenerator());
