@@ -338,7 +338,7 @@ TextureNodePtr TextureProject::newNode(int id, TextureGenerator* generator)
  */
 void TextureProject::addGenerator(TextureGenerator* gen)
 {
-   if (gen && !generators.values().contains(gen)) {
+   if (gen && !generators.contains(gen->getName())) {
       generators.insert(gen->getName(), gen);
       emit generatorAdded(gen);
    }

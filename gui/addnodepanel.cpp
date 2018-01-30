@@ -136,11 +136,18 @@ void AddNodePanel::addGenerator(TextureGenerator* generator)
    if (widgets.contains(generator)) {
       return;
    }
-   AddNodeButton* newButton = new AddNodeButton(this, generator->getName());
+   QString generatorName = generator->getName();
+   QMapIterator<TextureGenerator*, QWidget*> widgetsIterator(widgets);
+   while (widgetsIterator.hasNext()) {
+      if (widgetsIterator.next().key()->getName() == generatorName) {
+         return;
+      }
+   }
+   AddNodeButton* newButton = new AddNodeButton(this, generatorName);
    widgets.insert(generator, newButton);
    newButton->setFixedSize(100, 60);
    newButton->setSizePolicy(QSizePolicy::Maximum, QSizePolicy::Preferred);
-   int hash = qHash(generator->getName());
+   int hash = qHash(generatorName);
    QColor buttonColor(((hash & 0xFF0000) >> 16), ((hash & 0x00FF00) >> 8), (hash & 0x0000FF));
    QString fontColor("#ffffff");
    if ((buttonColor.red() * 0.299 + buttonColor.green() * 0.587 + buttonColor.blue() * 0.114) > 170) {
@@ -162,6 +169,6 @@ void AddNodePanel::addGenerator(TextureGenerator* generator)
    int numButtons = destLayout->count();
    int row = numButtons / 2;
    int column = numButtons % 2;
-   newButton->setText(generator->getName());
+   newButton->setText(generatorName);
    destLayout->addWidget(newButton, row, column);
 }
