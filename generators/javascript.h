@@ -74,6 +74,7 @@ private:
    QString scriptContent;
    bool valid;
    int numSlots;
+   bool separateColorChannels;
    mutable QReadWriteLock mutex;
 };
 

@@ -58,6 +58,7 @@ JsTexGen::JsTexGen(QString jsContent) {
    description = "";
    scriptContent = jsContent;
    numSlots = 0;
+   separateColorChannels = false;
 
    QScriptEngine jsEngine;
    jsEngine.globalObject().setProperty("name", "");
@@ -131,6 +132,9 @@ JsTexGen::JsTexGen(QString jsContent) {
    if (!jsEngine.globalObject().property("numSlots").isUndefined()) {
       numSlots = jsEngine.globalObject().property("numSlots").toInt32();
    }
+   if (!jsEngine.globalObject().property("separateColorChannels").isUndefined()) {
+      separateColorChannels = jsEngine.globalObject().property("separateColorChannels").toBool();
+   }
    jsEngine.collectGarbage();
    valid = true;
 }
@@ -172,16 +176,17 @@ void JsTexGen::generate(QSize size, TexturePixel* destimage,
    QVariantMap col;
    // Create JSON object with all the setting values.
    while (listIterator.hasNext()) {
-      QVariant newVal = settings->value(listIterator.peekNext());
+      QString settingsName = listIterator.next();
+      QVariant newVal = settings->value(settingsName);
       switch (newVal.type()) {
       case QVariant::Type::Int:
-         settingsJson.insert(listIterator.peekNext(), newVal.toInt());
+         settingsJson.insert(settingsName, newVal.toInt());
          break;
       case QVariant::Type::Double:
-         settingsJson.insert(listIterator.peekNext(), newVal.toDouble());
+         settingsJson.insert(settingsName, newVal.toDouble());
          break;
       case QVariant::Type::String:
-         settingsJson.insert(listIterator.peekNext(), newVal.toString());
+         settingsJson.insert(settingsName, newVal.toString());
       case QVariant::Type::Color:
          color = newVal.value<QColor>();
          col.clear();
@@ -189,12 +194,11 @@ void JsTexGen::generate(QSize size, TexturePixel* destimage,
          col.insert("g", color.green());
          col.insert("b", color.blue());
          col.insert("a", color.alpha());
-         settingsJson.insert(listIterator.peekNext(), settingsJson.fromVariantMap(col));
+         settingsJson.insert(settingsName, settingsJson.fromVariantMap(col));
          break;
       default:
          break;
       }
-      listIterator.next();
    }
    settingsJson.insert("imagewidth", size.width());
    settingsJson.insert("imageheight", size.height());
@@ -205,20 +209,32 @@ void JsTexGen::generate(QSize size, TexturePixel* destimage,
    QScriptValueList args;
    args << settingsJsonStr;
 
+   int arraySize = imageSize;
+   if (separateColorChannels) {
+      arraySize *= 4;
+   }
+
    // Add all source images.
    QMapIterator<int, TextureImagePtr> sourceIterator(sourceimages);
    while (sourceIterator.hasNext()) {
       sourceIterator.next();
-      TexturePixel* dataptr = sourceIterator.value()->getData();
-      QScriptValue srcArray = jsEngine.newArray(imageSize);
-      for (int i = 0; i < imageSize; i++) {
-         srcArray.setProperty(i, dataptr[i].toRGBA());
+      QScriptValue srcArray = jsEngine.newArray(arraySize);
+      if (separateColorChannels) {
+         uint8_t* dataptr = (uint8_t*) sourceIterator.value()->getData();
+         for (int i = 0; i < arraySize; i++) {
+            srcArray.setProperty(i, dataptr[i]);
+         }
+      } else {
+         TexturePixel* dataptr = sourceIterator.value()->getData();
+         for (int i = 0; i < arraySize; i++) {
+            srcArray.setProperty(i, dataptr[i].toRGBA());
+         }
       }
       args << srcArray;
    }
 
-   QScriptValue retArray = jsEngine.newArray(imageSize);
-   for (int i = 0; i < imageSize; i++) {
+   QScriptValue retArray = jsEngine.newArray(arraySize);
+   for (int i = 0; i < arraySize; i++) {
       retArray.setProperty(i, 0);
    }
    jsEngine.globalObject().setProperty("dest", retArray);
@@ -238,14 +254,18 @@ void JsTexGen::generate(QSize size, TexturePixel* destimage,
       mutex.unlock();
       return;
    }
+   unsigned char* dstchar = (unsigned char*) destimage;
    if (retVal.property("image").isString()) {
       QString imgStr = retVal.property("image").toString();
       QJsonArray imgArray = QJsonDocument::fromJson(imgStr.toUtf8()).array();
-      unsigned char* dstchar = (unsigned char*) destimage;
       int arraySize = qMin(imageSize * (int) sizeof(TexturePixel), imgArray.size());
       memset(destimage, 0, imageSize * sizeof(TexturePixel));
       for (int i = 0; i < arraySize; i++) {
          dstchar[i] = (unsigned char) imgArray[i].toInt(0);
+      }
+   } else if (separateColorChannels) {
+      for (int i = 0; i < arraySize; i++) {
+         dstchar[i] = (unsigned char) retArray.property(i).toUInt16();
       }
    } else {
       for (int i = 0; i < imageSize; i++) {
