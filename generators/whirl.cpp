@@ -25,7 +25,7 @@ WhirlTextureGenerator::WhirlTextureGenerator()
    TextureGeneratorSetting strength;
    strength.name = "Strength";
    strength.defaultvalue = QVariant((double) 40);
-   strength.min = QVariant((double) 0);
+   strength.min = QVariant((double) -500);
    strength.max = QVariant((double) 500);
    strength.order = 2;
    configurables.insert("strength", strength);
@@ -39,7 +39,7 @@ WhirlTextureGenerator::WhirlTextureGenerator()
    configurables.insert("offsetleft", offsetleft);
 
    TextureGeneratorSetting offsettop;
-   offsettop.name = "Offset top:";
+   offsettop.name = "Offset top";
    offsettop.defaultvalue = QVariant((double) 0);
    offsettop.min = QVariant((double) -100);
    offsettop.max = QVariant((double) 100);
@@ -57,7 +57,7 @@ void WhirlTextureGenerator::generate(QSize size,
       return;
    }
    double radius = configurables.value("radius").defaultvalue.toDouble() * size.width() / 100;
-   double strength = configurables.value("strength").defaultvalue.toDouble() / 100;
+   double strength = configurables.value("strength").defaultvalue.toDouble() / 80;
    double offsetleft = configurables.value("offsetleft").defaultvalue.toDouble() * size.width() / 100;
    double offsettop = configurables.value("offsettop").defaultvalue.toDouble() * size.height() / 100;
    if (settings != NULL) {
@@ -65,7 +65,7 @@ void WhirlTextureGenerator::generate(QSize size,
          radius = settings->value("radius").toDouble() * size.width() / 100;
       }
       if (settings->contains("strength")) {
-         strength = settings->value("strength").toDouble() / 100;
+         strength = settings->value("strength").toDouble() / 80;
       }
       if (settings->contains("offsetleft")) {
          offsetleft = settings->value("offsetleft").toDouble() * size.width() / 100;
@@ -92,8 +92,8 @@ void WhirlTextureGenerator::generate(QSize size,
             distortion = (radius - distortion) * (radius - distortion) / radius;
          }
          double angle = 2 * M_PI * distortion / (radius / strength);
-         int xpos = ((x - centerx) * cos(angle)) - ((y - centerx) * sin(angle)) + centerx;
-         int ypos = ((y - centery) * cos(angle)) + ((x - centery) * sin(angle)) + centery;
+         int xpos = ((x - centerx) * cos(angle)) - ((y - centery) * sin(angle)) + centerx;
+         int ypos = ((y - centery) * cos(angle)) + ((x - centerx) * sin(angle)) + centery;
          xpos = xpos > size.height() ? xpos % size.height() :
                                        (xpos < 0 ? xpos + size.width() : xpos);
          ypos = ypos > size.height() ? ypos % size.height() :
