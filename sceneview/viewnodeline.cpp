@@ -100,10 +100,10 @@ QRectF ViewNodeLine::boundingRect() const
 void ViewNodeLine::setHighlighted(bool highlighted)
 {
    if (highlighted) {
-      setWidth(12);
+      setWidth(6);
       setColor(Qt::darkGreen);
    } else {
-      setWidth(10);
+      setWidth(5);
       setColor(Qt::black);
    }
 }
@@ -271,7 +271,7 @@ void ViewNodeLine::paint(QPainter* painter, const QStyleOptionGraphicsItem*, QWi
    myPen.setColor(tmpColor);
 
    if (isSelected()) {
-      painter->setPen(QPen(Qt::blue, 20, Qt::SolidLine));
+      painter->setPen(QPen(Qt::blue, 10, Qt::SolidLine));
       QLineF myLine = line();
       myLine.translate(0, 4.0);
       painter->drawLine(myLine);

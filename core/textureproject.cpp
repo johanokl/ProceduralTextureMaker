@@ -32,7 +32,7 @@ TextureProject::TextureProject()
    newIdCounter = 0;
    emptygenerator = TextureGeneratorPtr(new EmptyGenerator());
    modified = false;
-   thumbnailSize = QSize(500, 500);
+   thumbnailSize = QSize(250, 250);
    startRenderThread(getThumbnailSize());
 }
 

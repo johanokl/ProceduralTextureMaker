@@ -410,7 +410,7 @@ void ViewNodeItem::paint(QPainter* painter, const QStyleOptionGraphicsItem*, QWi
    painter->setBrush(Qt::NoBrush);
 
    painter->setFont(QFont("Helvetica", 12));
-   painter->drawText(QRect(0, 0, thumbnailSize.width(), 35), titleString);
+   painter->drawText(QRect(0, 15, thumbnailSize.width(), 35), titleString);
    painter->setCompositionMode(QPainter::CompositionMode_SourceOver);
    painter->drawPixmap(0, 40, pixmap);
 

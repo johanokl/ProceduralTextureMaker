@@ -365,7 +365,7 @@ void ViewNodeScene::startLineDrawing(int nodeId)
    lineDrawing = true;
    lineItem = new ViewNodeLine(this, nodeId, -1, -1);
    lineItem->setColor(Qt::blue);
-   lineItem->setWidth(20);
+   lineItem->setWidth(10);
    startLineNode = nodeId;
    getItem(nodeId)->showConnectable(true);
 }

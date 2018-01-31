@@ -42,7 +42,7 @@ void SettingsManager::setPreviewSize(QSize size)
 QSize SettingsManager::getThumbnailSize()
 {
    QSettings settings;
-   return settings.value("thumbnailsize", QSize(500, 500)).toSize();
+   return settings.value("thumbnailsize", QSize(250, 250)).toSize();
 }
 
 /**
