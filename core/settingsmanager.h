@@ -31,11 +31,13 @@ public:
    bool getJSTextureGeneratorsEnabled();
    QColor getBackgroundColor();
    int getBackgroundBrush();
+   int getDefaultZoom();
 
 signals:
    void settingsUpdated();
 
 public slots:
+   void setDefaultZoom(int);
    void setPreviewSize(QSize);
    void setThumbnailSize(QSize);
    void setBackgroundColor(QColor);

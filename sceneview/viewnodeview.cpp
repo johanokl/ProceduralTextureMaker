@@ -16,14 +16,16 @@
 
 /**
  * @brief ViewNodeView::ViewNodeView
+ * @param defaultzoom Zoom factor in percentage, 100 is 1:1.
  */
-ViewNodeView::ViewNodeView()
+ViewNodeView::ViewNodeView(int defaultzoom)
 {
    setMouseTracking(true);
    // The mouse wheel scroll factor
-   zoomFactor = 1.0015;
+   scrollZoomFactor = 1.0015;
    setDragMode(QGraphicsView::ScrollHandDrag);
-   scale(0.33, 0.33);
+   defaultZoomFactor = (double) defaultzoom / 100;
+   scale(defaultZoomFactor, defaultZoomFactor);
 }
 
 /**
@@ -31,6 +33,28 @@ ViewNodeView::ViewNodeView()
  */
 ViewNodeView::~ViewNodeView()
 {
+}
+
+/**
+ * @brief ViewNodeView::setDefaultZoom
+ * @param zoom Zoom factor in percentage, 100 is 1:1.
+ */
+void ViewNodeView::setDefaultZoom(int zoom)
+{
+   defaultZoomFactor = (double) zoom / 100;
+}
+
+/**
+ * @brief ViewNodeView::resetZoom
+ * Resets to the default zoom, 100%.
+ */
+void ViewNodeView::resetZoom()
+{
+   const ViewportAnchor anchor = transformationAnchor();
+   setTransformationAnchor(QGraphicsView::AnchorViewCenter);
+   resetTransform();
+   scale(defaultZoomFactor, defaultZoomFactor);
+   setTransformationAnchor(anchor);
 }
 
 /**
@@ -48,7 +72,7 @@ void ViewNodeView::wheelEvent(QWheelEvent* event) {
       const ViewportAnchor anchor = transformationAnchor();
       setTransformationAnchor(QGraphicsView::AnchorUnderMouse);
       double angle = wheel_event->angleDelta().y();
-      double factor = qPow(zoomFactor, angle);
+      double factor = qPow(scrollZoomFactor, angle);
       scale(factor, factor);
       setTransformationAnchor(anchor);
    }

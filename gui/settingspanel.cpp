@@ -53,18 +53,18 @@ SettingsPanel::SettingsPanel(MainWindow *parent, SettingsManager* settingsmanage
    contentsLayout->addWidget(sceneviewWidget);
 
    QLabel* thumbnailWidthLabel = new QLabel("Thumbnail width:");
-   thumbnailWidthSlider = new QSpinBox(this);
-   thumbnailWidthSlider->setMinimum(50);
-   thumbnailWidthSlider->setMaximum(2000);
+   thumbnailWidthSpinbox = new QSpinBox(this);
+   thumbnailWidthSpinbox->setMinimum(50);
+   thumbnailWidthSpinbox->setMaximum(2000);
    sceneviewLayout->addWidget(thumbnailWidthLabel, 0, 0);
-   sceneviewLayout->addWidget(thumbnailWidthSlider, 0, 1);
+   sceneviewLayout->addWidget(thumbnailWidthSpinbox, 0, 1);
 
    QLabel* thumbnailHeightLabel = new QLabel("Thumbnail height:");
-   thumbnailHeightSlider = new QSpinBox(this);
-   thumbnailHeightSlider->setMinimum(50);
-   thumbnailHeightSlider->setMaximum(2000);
+   thumbnailHeightSpinbox = new QSpinBox(this);
+   thumbnailHeightSpinbox->setMinimum(50);
+   thumbnailHeightSpinbox->setMaximum(2000);
    sceneviewLayout->addWidget(thumbnailHeightLabel, 1, 0);
-   sceneviewLayout->addWidget(thumbnailHeightSlider, 1, 1);
+   sceneviewLayout->addWidget(thumbnailHeightSpinbox, 1, 1);
 
    QLabel* backgroundColorLabel = new QLabel("Background color:");
    backgroundColorButton = new QPushButton("");
@@ -95,6 +95,13 @@ SettingsPanel::SettingsPanel(MainWindow *parent, SettingsManager* settingsmanage
    sceneviewLayout->addWidget(backgroundBrushLabel, 3, 0);
    sceneviewLayout->addWidget(backgroundBrushCombobox, 3, 1);
 
+   QLabel* defaultZoomLabel = new QLabel("Zoom:");
+   defaultZoomSpinbox = new QSpinBox(this);
+   defaultZoomSpinbox->setMinimum(5);
+   defaultZoomSpinbox->setMaximum(300);
+   sceneviewLayout->addWidget(defaultZoomLabel, 4, 0);
+   sceneviewLayout->addWidget(defaultZoomSpinbox, 4, 1);
+
    QGroupBox* exportWidget = new QGroupBox("Exporting");
    QGridLayout* exportLayout = new QGridLayout;
    exportWidget->setLayout(exportLayout);
@@ -102,18 +109,18 @@ SettingsPanel::SettingsPanel(MainWindow *parent, SettingsManager* settingsmanage
    contentsLayout->addWidget(exportWidget);
 
    QLabel* exportImageWidthLabel = new QLabel("Image width:");
-   exportImageWidthSlider = new QSpinBox(this);
-   exportImageWidthSlider->setMinimum(50);
-   exportImageWidthSlider->setMaximum(2000);
+   exportImageWidthSpinbox = new QSpinBox(this);
+   exportImageWidthSpinbox->setMinimum(50);
+   exportImageWidthSpinbox->setMaximum(2000);
    exportLayout->addWidget(exportImageWidthLabel, 0, 0);
-   exportLayout->addWidget(exportImageWidthSlider, 0, 1);
+   exportLayout->addWidget(exportImageWidthSpinbox, 0, 1);
 
    QLabel* exportImageHeightLabel = new QLabel("Image height:");
-   exportImageHeightSlider = new QSpinBox(this);
-   exportImageHeightSlider->setMinimum(50);
-   exportImageHeightSlider->setMaximum(2000);
+   exportImageHeightSpinbox = new QSpinBox(this);
+   exportImageHeightSpinbox->setMinimum(50);
+   exportImageHeightSpinbox->setMaximum(2000);
    exportLayout->addWidget(exportImageHeightLabel, 1, 0);
-   exportLayout->addWidget(exportImageHeightSlider, 1, 1);
+   exportLayout->addWidget(exportImageHeightSpinbox, 1, 1);
 
    QGroupBox* generatorsWidget = new QGroupBox("Generators");
    QGridLayout* generatorsLayout = new QGridLayout;
@@ -208,10 +215,11 @@ void SettingsPanel::settingsUpdated()
 {
    if (!blockSlot) {
       jsGeneratorPathEdit->setText(settingsmanager->getJSTextureGeneratorsPath());
-      exportImageWidthSlider->setValue(settingsmanager->getPreviewSize().width());
-      exportImageHeightSlider->setValue(settingsmanager->getPreviewSize().height());
-      thumbnailWidthSlider->setValue(settingsmanager->getThumbnailSize().width());
-      thumbnailHeightSlider->setValue(settingsmanager->getThumbnailSize().height());
+      exportImageWidthSpinbox->setValue(settingsmanager->getPreviewSize().width());
+      exportImageHeightSpinbox->setValue(settingsmanager->getPreviewSize().height());
+      thumbnailWidthSpinbox->setValue(settingsmanager->getThumbnailSize().width());
+      thumbnailHeightSpinbox->setValue(settingsmanager->getThumbnailSize().height());
+      defaultZoomSpinbox->setValue(settingsmanager->getDefaultZoom());
       jsGeneratorEnabledCheckbox->setChecked(settingsmanager->getJSTextureGeneratorsEnabled());
       styleColorButton(backgroundColorButton, settingsmanager->getBackgroundColor());
       int index = backgroundBrushCombobox->findData(settingsmanager->getBackgroundBrush());
@@ -227,10 +235,11 @@ void SettingsPanel::settingsUpdated()
 void SettingsPanel::saveSettings()
 {
    blockSlot = true;
-   settingsmanager->setPreviewSize(QSize(exportImageWidthSlider->value(), exportImageHeightSlider->value()));
+   settingsmanager->setPreviewSize(QSize(exportImageWidthSpinbox->value(), exportImageHeightSpinbox->value()));
    settingsmanager->setJSTextureGeneratorsPath(jsGeneratorPathEdit->text());
    settingsmanager->setJSTextureGeneratorsEnabled(jsGeneratorEnabledCheckbox->isChecked());
-   settingsmanager->setThumbnailSize(QSize(thumbnailWidthSlider->value(), thumbnailHeightSlider->value()));
+   settingsmanager->setThumbnailSize(QSize(thumbnailWidthSpinbox->value(), thumbnailHeightSpinbox->value()));
+   settingsmanager->setDefaultZoom(defaultZoomSpinbox->value());
    settingsmanager->setBackgroundColor(QColor(backgroundColorButton->text()));
    settingsmanager->setBackgroundBrush(backgroundBrushCombobox->currentData().toInt());
    blockSlot = false;

@@ -19,6 +19,7 @@
 #include "core/texturenode.h"
 #include "core/settingsmanager.h"
 #include "sceneview/viewnodescene.h"
+#include "sceneview/viewnodeview.h"
 #include "sceneview/viewnodeitem.h"
 #include "sceneview/viewnodeline.h"
 #include "generators/texturegenerator.h"
@@ -317,6 +318,13 @@ void ViewNodeScene::settingsUpdated(void)
          brushStyle = Qt::SolidPattern;
       }
       setBackgroundBrush(QBrush(backgroundColor, brushStyle));
+      QListIterator<QGraphicsView*> viewsIterator(views());
+      while (viewsIterator.hasNext()) {
+         ViewNodeView* view = dynamic_cast<ViewNodeView*>(viewsIterator.next());
+         if (view) {
+            view->setDefaultZoom(project->getSettingsManager()->getDefaultZoom());
+         }
+      }
       update();
    }
 }

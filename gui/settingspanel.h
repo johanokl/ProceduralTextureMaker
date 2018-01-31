@@ -51,10 +51,11 @@ private:
    QScrollArea* area;
    QWidget* contents;
 
-   QSpinBox* thumbnailWidthSlider;
-   QSpinBox* thumbnailHeightSlider;
-   QSpinBox* exportImageWidthSlider;
-   QSpinBox* exportImageHeightSlider;
+   QSpinBox* thumbnailWidthSpinbox;
+   QSpinBox* thumbnailHeightSpinbox;
+   QSpinBox* exportImageWidthSpinbox;
+   QSpinBox* exportImageHeightSpinbox;
+   QSpinBox* defaultZoomSpinbox;
    QLineEdit* jsGeneratorPathEdit;
    QCheckBox* jsGeneratorEnabledCheckbox;
    QPushButton* backgroundColorButton;

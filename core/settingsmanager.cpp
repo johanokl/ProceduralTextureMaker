@@ -60,6 +60,30 @@ void SettingsManager::setThumbnailSize(QSize size)
 }
 
 /**
+ * @brief SettingsManager::getDefaultZoom
+ * @return Default zoom factor for the scene view. 100 if not set.
+ */
+int SettingsManager::getDefaultZoom()
+{
+   QSettings settings;
+   return settings.value("defaultzoom", 100).toInt();
+}
+
+/**
+ * @brief SettingsManager::setDefaultZoom
+ * @param zoomfactor Default zoom factor in percentage.
+ */
+void SettingsManager::setDefaultZoom(int zoomfactor)
+{
+   if (zoomfactor != getDefaultZoom()) {
+      QSettings settings;
+      settings.setValue("defaultzoom", zoomfactor);
+      settings.sync();
+      emit settingsUpdated();
+   }
+}
+
+/**
  * @brief SettingsManager::getJSTextureGeneratorsPath
  * @return Absolute path to the JS textures.
  */

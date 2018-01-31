@@ -23,14 +23,19 @@ class ViewNodeScene;
 class ViewNodeView : public QGraphicsView
 {
 public:
-   ViewNodeView();
+   ViewNodeView(int defaultZoom = 100);
    virtual ~ViewNodeView();
+
+public slots:
+   void resetZoom();
+   void setDefaultZoom(int zoom);
 
 protected:
    void wheelEvent(QWheelEvent* event) override;
 
 private:
-   double zoomFactor;
+   double scrollZoomFactor;
+   double defaultZoomFactor;
 };
 
 #endif // VIEWNODEVIEW_H
