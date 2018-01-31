@@ -355,8 +355,8 @@ JSTexGenManager::JSTexGenManager(TextureProject *project)
    QObject::connect(filefinderthread, SIGNAL(finished()), filefinderthread, SLOT(deleteLater()));
    connect(project->getSettingsManager(), SIGNAL(settingsUpdated(void)),
            this, SLOT(settingsUpdated(void)));
-   connect(this, SIGNAL(generatorAdded(TextureGenerator*)),
-           project, SLOT(addGenerator(TextureGenerator*)));
+   connect(this, SIGNAL(generatorAdded(TextureGeneratorPtr)),
+           project, SLOT(addGenerator(TextureGeneratorPtr)));
    settingsUpdated();
 }
 
@@ -376,7 +376,7 @@ JSTexGenManager::~JSTexGenManager()
  */
 void JSTexGenManager::addGenerator(JsTexGen* generator)
 {
-   emit generatorAdded(generator);
+   emit generatorAdded(TextureGeneratorPtr(generator));
 }
 
 /**

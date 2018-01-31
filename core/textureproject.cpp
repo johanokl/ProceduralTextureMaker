@@ -30,7 +30,7 @@ TextureProject::TextureProject()
    nodes.clear();
    generators.clear();
    newIdCounter = 0;
-   emptygenerator = new EmptyGenerator();
+   emptygenerator = TextureGeneratorPtr(new EmptyGenerator());
    modified = false;
    thumbnailSize = QSize(500, 500);
    startRenderThread(getThumbnailSize());
@@ -201,9 +201,9 @@ QDomDocument TextureProject::saveAsXML(bool includegenerators)
    if (includegenerators) {
       QDomElement xmlGenerators = xmldoc.createElement("Generators");
       rootNode.appendChild(xmlGenerators);
-      QMapIterator<QString, TextureGenerator*> generatoriterator(generators);
+      QMapIterator<QString, TextureGeneratorPtr> generatoriterator(generators);
       while (generatoriterator.hasNext()) {
-         TextureGenerator* generator = generatoriterator.next().value();
+         TextureGeneratorPtr generator = generatoriterator.next().value();
          QDomElement generatorNode = xmldoc.createElement("generator");
          generatorNode.setAttribute("name", generator->getName());
          xmlGenerators.appendChild(generatorNode);
@@ -300,7 +300,7 @@ TextureNodePtr TextureProject::getNode(int id) const
  * @param generator The node's texture generator, must be defined.
  * @return Creates a new node and inserts it into the scene graph.
  */
-TextureNodePtr TextureProject::newNode(int id, TextureGenerator* generator)
+TextureNodePtr TextureProject::newNode(int id, TextureGeneratorPtr generator)
 {
    nodesmutex.lockForRead();
    if (nodes.contains(id)) {
@@ -336,7 +336,7 @@ TextureNodePtr TextureProject::newNode(int id, TextureGenerator* generator)
  * Adds a TextureGenerator from the project's list.
  * No copying is done by this function.
  */
-void TextureProject::addGenerator(TextureGenerator* gen)
+void TextureProject::addGenerator(TextureGeneratorPtr gen)
 {
    if (gen && !generators.contains(gen->getName())) {
       generators.insert(gen->getName(), gen);
@@ -351,7 +351,7 @@ void TextureProject::addGenerator(TextureGenerator* gen)
  * Removes a TextureGenerator from the project's list.
  * Must be the same reference that was added.
  */
-void TextureProject::removeGenerator(TextureGenerator* gen)
+void TextureProject::removeGenerator(TextureGeneratorPtr gen)
 {
    if (gen && generators.values().contains(gen)) {
       generators.remove(gen->getName());
@@ -367,7 +367,7 @@ void TextureProject::removeGenerator(TextureGenerator* gen)
  * Searches and returns a TextureGenerator based on its full name.
  * NULL is returned if it hasn't been added to the project.
  */
-TextureGenerator* TextureProject::getGenerator(QString name)
+TextureGeneratorPtr TextureProject::getGenerator(QString name)
 {
    if (name == "Blur") {
       name = "Box blur";

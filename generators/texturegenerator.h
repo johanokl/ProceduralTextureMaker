@@ -39,4 +39,11 @@ public:
    virtual QString getDescription() const = 0;
 };
 
+/**
+ * @brief TextureGeneratorPtr
+ *
+ * Thread-safe smart pointer for TextureGenerator
+ */
+typedef QSharedPointer<TextureGenerator> TextureGeneratorPtr;
+
 #endif // TEXTUREGENERATOR_H

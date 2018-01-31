@@ -108,8 +108,8 @@ AddNodePanel::AddNodePanel(TextureProject* project)
    spacerWidget->setVisible(true);
    contentsLayout->addWidget(spacerWidget);
 
-   connect(project, SIGNAL(generatorAdded(TextureGenerator*)), this, SLOT(addGenerator(TextureGenerator*)));
-   connect(project, SIGNAL(generatorRemoved(TextureGenerator*)), this, SLOT(removeGenerator(TextureGenerator*)));
+   connect(project, SIGNAL(generatorAdded(TextureGeneratorPtr)), this, SLOT(addGenerator(TextureGeneratorPtr)));
+   connect(project, SIGNAL(generatorRemoved(TextureGeneratorPtr)), this, SLOT(removeGenerator(TextureGeneratorPtr)));
 }
 
 /**
@@ -117,7 +117,7 @@ AddNodePanel::AddNodePanel(TextureProject* project)
  * @param generator
  * Removes a button.
  */
-void AddNodePanel::removeGenerator(TextureGenerator* generator)
+void AddNodePanel::removeGenerator(TextureGeneratorPtr generator)
 {
    if (widgets.contains(generator)) {
       delete widgets.value(generator);
@@ -131,13 +131,13 @@ void AddNodePanel::removeGenerator(TextureGenerator* generator)
  * Slot called when a generator has been added. Creates a new draggable
  * button and adds it to the generator types's widget group.
  */
-void AddNodePanel::addGenerator(TextureGenerator* generator)
+void AddNodePanel::addGenerator(TextureGeneratorPtr generator)
 {
    if (widgets.contains(generator)) {
       return;
    }
    QString generatorName = generator->getName();
-   QMapIterator<TextureGenerator*, QWidget*> widgetsIterator(widgets);
+   QMapIterator<TextureGeneratorPtr, QWidget*> widgetsIterator(widgets);
    while (widgetsIterator.hasNext()) {
       if (widgetsIterator.next().key()->getName() == generatorName) {
          return;

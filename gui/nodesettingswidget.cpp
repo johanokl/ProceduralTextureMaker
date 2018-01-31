@@ -268,7 +268,7 @@ bool operator==(const TextureGeneratorSetting& lhs, const TextureGeneratorSettin
  */
 void NodeSettingsWidget::generatorUpdated()
 {
-   TextureGenerator* generator = texNode->getGenerator();
+   TextureGeneratorPtr generator = texNode->getGenerator();
    generatorNameLabel->setText(generator->getName());
 
    if (generator->getNumSourceSlots() > 0) {

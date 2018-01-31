@@ -40,20 +40,20 @@ public:
    TextureNodePtr getNode(int id) const;
    bool findLoops();
    void removeNode(int id);
-   TextureNodePtr newNode(int id = 0, TextureGenerator* generator = NULL);
+   TextureNodePtr newNode(int id = 0, TextureGeneratorPtr generator = NULL);
    void clear();
    bool isModified();
    int getNumNodes();
-   TextureGenerator* getGenerator(QString name);
-   QMap<QString, TextureGenerator*> getGenerators() { return generators; }
+   TextureGeneratorPtr getGenerator(QString name);
+   QMap<QString, TextureGeneratorPtr> getGenerators() { return generators; }
    QSize getThumbnailSize() { return thumbnailSize; }
    QSize getPreviewSize() { return previewSize; }
    void setSettingsManager(SettingsManager* manager);
    SettingsManager* getSettingsManager() { return settingsManager; }
 
 public slots:
-   void addGenerator(TextureGenerator* gen);
-   void removeGenerator(TextureGenerator* gen);
+   void addGenerator(TextureGeneratorPtr gen);
+   void removeGenerator(TextureGeneratorPtr gen);
    void notifyNodesConnected(int sourceId, int receiverId, int slot);
    void notifyNodesDisconnected(int sourceId, int receiverId, int slot);
    void notifyImageUpdated(int id);
@@ -71,21 +71,21 @@ signals:
    void imageUpdated(int);
    void imageAvailable(int id, QSize size);
    void nameUpdated(QString);
-   void generatorAdded(TextureGenerator*);
-   void generatorRemoved(TextureGenerator*);
+   void generatorAdded(TextureGeneratorPtr);
+   void generatorRemoved(TextureGeneratorPtr);
 
 private:
-   TextureGenerator* getEmptyGenerator() { return emptygenerator; }
+   TextureGeneratorPtr getEmptyGenerator() { return emptygenerator; }
    void startRenderThread(QSize renderSize, QThread::Priority = QThread::NormalPriority);
    void stopRenderThread(QSize renderSize);
    int getNewId();
 
    QString name;
    int newIdCounter;
-   TextureGenerator* emptygenerator;
+   TextureGeneratorPtr emptygenerator;
    QMap<QString, TextureRenderThread*> renderThreads;
    QMap<int, TextureNodePtr> nodes;
-   QMap<QString, TextureGenerator*> generators;
+   QMap<QString, TextureGeneratorPtr> generators;
    bool modified;
    mutable QReadWriteLock nodesmutex;
 

@@ -10,13 +10,13 @@
 
 #include <QWidget>
 #include <QMap>
+#include "generators/texturegenerator.h"
 
 class TextureProject;
 class QGridLayout;
 class QVBoxLayout;
 class QGroupBox;
 class QScrollArea;
-class TextureGenerator;
 
 /**
  * @brief The AddNodePanel class
@@ -36,11 +36,11 @@ public:
    virtual ~AddNodePanel() {}
 
 public slots:
-   void addGenerator(TextureGenerator*);
-   void removeGenerator(TextureGenerator*);
+   void addGenerator(TextureGeneratorPtr);
+   void removeGenerator(TextureGeneratorPtr);
 
 private:
-   QMap<TextureGenerator*, QWidget*> widgets;
+   QMap<TextureGeneratorPtr, QWidget*> widgets;
    TextureProject* project;
    QGroupBox* combinersWidget;
    QGroupBox* filtersWidget;

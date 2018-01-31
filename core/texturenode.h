@@ -19,8 +19,8 @@
 #include <QReadWriteLock>
 #include "global.h"
 #include "textureimage.h"
+#include "generators/texturegenerator.h"
 
-class TextureGenerator;
 class TextureProject;
 class TextureNode;
 
@@ -53,8 +53,8 @@ public:
    QString getName() const { return name; }
    void setName(QString name);
    bool setGenerator(QString name);
-   bool setGenerator(TextureGenerator* gen);
-   TextureGenerator* getGenerator() const { return gen; }
+   bool setGenerator(TextureGeneratorPtr gen);
+   TextureGeneratorPtr getGenerator() const { return gen; }
    QString getGeneratorName() const;
    int getNumSourceSlots() const;
    int getNumReceivers() const { return receivers.size(); }
@@ -83,7 +83,7 @@ signals:
    void nodesDisconnected(int sourceId, int receiverId, int slot);
 
 private:
-   TextureNode(TextureProject* project, TextureGenerator* generator, int id);
+   TextureNode(TextureProject* project, TextureGeneratorPtr generator, int id);
    void loadFromXML(QDomNode xmlnode, const QMap<int, int> idMapping = QMap<int, int>());
    QDomElement saveAsXML(QDomDocument targetdoc);
    bool findLoop(QList<int> visited) const;
@@ -97,7 +97,7 @@ private:
    QSet<int> receivers;
    TextureNodeSettings settings;
 
-   TextureGenerator* gen;
+   TextureGeneratorPtr gen;
    TextureProject* project;
 
    // Contains all the generated images

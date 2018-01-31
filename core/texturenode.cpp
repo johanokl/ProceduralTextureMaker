@@ -24,7 +24,7 @@
  *
  * Private constructor. To be called from TextureProject only.
  */
-TextureNode::TextureNode(TextureProject* project, TextureGenerator* gen, int id)
+TextureNode::TextureNode(TextureProject* project, TextureGeneratorPtr gen, int id)
 {
    qRegisterMetaType<TextureNodePtr>("TextureNodePtr");
    name = QString("Node %1").arg(id);
@@ -430,7 +430,7 @@ TextureImagePtr TextureNode::getImage(QSize size)
  * texture generator singleton instance, no data besides the default settings
  * is copied.
  */
-bool TextureNode::setGenerator(TextureGenerator* newgenerator)
+bool TextureNode::setGenerator(TextureGeneratorPtr newgenerator)
 {
    if (newgenerator == NULL) {
       newgenerator = project->getEmptyGenerator();

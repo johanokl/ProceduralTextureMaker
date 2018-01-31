@@ -35,8 +35,8 @@ public slots:
    void settingsUpdated(void);
 
 signals:
-   void generatorAdded(TextureGenerator*);
-   void generatorRemoved(TextureGenerator*);
+   void generatorAdded(TextureGeneratorPtr);
+   void generatorRemoved(TextureGeneratorPtr);
    void scanDirectory(QString);
 
 private:

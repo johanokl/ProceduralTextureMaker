@@ -460,10 +460,10 @@ void ViewNodeScene::contextMenuEvent(QGraphicsSceneContextMenuEvent* event)
    QMenu* generatorMenu = menu.addMenu("&Generators");
    QMenu* combinerMenu = menu.addMenu("&Combiners");
    // Mapping from chosen menu action to new texture generator
-   QMap<QAction*, TextureGenerator*> actions;
-   QMapIterator<QString, TextureGenerator*> generatorsIterator(project->getGenerators());
+   QMap<QAction*, TextureGeneratorPtr> actions;
+   QMapIterator<QString, TextureGeneratorPtr> generatorsIterator(project->getGenerators());
    while (generatorsIterator.hasNext()) {
-      TextureGenerator* currGenerator = generatorsIterator.next().value();
+      TextureGeneratorPtr currGenerator = generatorsIterator.next().value();
       QMenu* menuToBeUsed;
       switch (currGenerator->getType()) {
       case TextureGenerator::Type::Combiner:
