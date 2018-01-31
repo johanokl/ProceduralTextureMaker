@@ -23,7 +23,7 @@ public:
                          QMap<int, TextureImagePtr> sourceimages,
                          TextureNodeSettings* settings) const;
    virtual int getNumSourceSlots() const { return 1; }
-   virtual QString getName() const { return QString("NormalMap"); }
+   virtual QString getName() const { return QString("Normal-map"); }
    virtual const TextureGeneratorSettings& getSettings() const { return configurables; }
    virtual QString getDescription() const { return QString("Blurs the source image."); }
    virtual TextureGenerator::Type getType() const { return TextureGenerator::Type::Filter; }

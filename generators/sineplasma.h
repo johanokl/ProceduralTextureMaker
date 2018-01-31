@@ -23,7 +23,7 @@ public:
                          QMap<int, TextureImagePtr> sourceimages,
                          TextureNodeSettings* settings) const;
    virtual int getNumSourceSlots() const { return 1; }
-   virtual QString getName() const { return QString("SinePlasma"); }
+   virtual QString getName() const { return QString("Sine plasma"); }
    virtual const TextureGeneratorSettings& getSettings()  const { return configurables; }
    virtual QString getDescription() const { return QString("Repeating sine plasma."); }
    virtual TextureGenerator::Type getType() const { return TextureGenerator::Type::Generator; }

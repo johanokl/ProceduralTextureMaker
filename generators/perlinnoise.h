@@ -24,7 +24,7 @@ public:
                          TextureNodeSettings* settings) const;
    virtual const TextureGeneratorSettings& getSettings() const { return configurables; }
    virtual int getNumSourceSlots() const { return 1; }
-   virtual QString getName() const { return "PerlinNoise"; }
+   virtual QString getName() const { return "Perlin noise"; }
    virtual QString getDescription() const { return QString("Basic Perlin Noise"); }
    virtual TextureGenerator::Type getType() const { return TextureGenerator::Type::Generator; }
 
