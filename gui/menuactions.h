@@ -85,6 +85,7 @@ private:
    QAction* pasteAct;
    QAction* helpAct;
    QAction* aboutAct;
+   QAction* resetZoomAct;
    QAction* resetSceneAct;
    QAction* displayAddNodePanelAct;
    QAction* displayPreviewPanelAct;

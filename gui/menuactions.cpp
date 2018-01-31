@@ -88,6 +88,8 @@ MenuActions::MenuActions(MainWindow* parent)
 
    resetSceneAct = new QAction("Reset scene view", parent);
    connect(resetSceneAct, SIGNAL(triggered()), parent, SLOT(reloadSceneView()));
+   resetZoomAct = new QAction("Reset zoom", parent);
+   connect(resetZoomAct, SIGNAL(triggered()), parent, SLOT(resetViewZoom()));
 
    toggleAddNodePanelAct = new QAction("Toggle add nodes panel", this);
    connect(toggleAddNodePanelAct, SIGNAL(triggered()), this, SLOT(toggleAddNodePanel()));
@@ -126,6 +128,7 @@ MenuActions::MenuActions(MainWindow* parent)
    helpMenu = parent->menuBar()->addMenu("&Help");
 
    viewMenu->addAction(resetSceneAct);
+   viewMenu->addAction(resetZoomAct);
    viewMenu->addSeparator();
    viewMenu->addAction(displayAddNodePanelAct);
    viewMenu->addAction(displayToolbarsAct);

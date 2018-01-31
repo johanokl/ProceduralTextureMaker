@@ -84,7 +84,7 @@ MainWindow::MainWindow(TexGenApplication* parent)
    previewwidget->hide();
    settingspanel->hide();
 
-   view = new ViewNodeView();
+   view = new ViewNodeView(settingsManager->getDefaultZoom());
    view->show();
    scene = createScene();
 
@@ -353,7 +353,6 @@ ViewNodeScene* MainWindow::createScene(ViewNodeScene* source)
 
 /**
  * @brief MainWindow::reloadSceneView
- *
  * Replaces the old node scene with a new one with the same content.
  */
 void MainWindow::reloadSceneView()
@@ -361,6 +360,15 @@ void MainWindow::reloadSceneView()
    ViewNodeScene* oldscene = scene;
    scene = createScene(oldscene);
    oldscene->deleteLater();
+}
+
+/**
+ * @brief MainWindow::resetViewZoom
+ * Reset the view zoom factor to default.
+ */
+void MainWindow::resetViewZoom()
+{
+   view->resetZoom();
 }
 
 /**

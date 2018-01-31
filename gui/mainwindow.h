@@ -65,6 +65,7 @@ public slots:
    void saveImage();
    void reloadSceneView();
    void moveToFront();
+   void resetViewZoom();
 
 private:
    void drawScene();
