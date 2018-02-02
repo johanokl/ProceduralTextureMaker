@@ -123,25 +123,13 @@ void SetChannelsTextureGenerator::generate(QSize size, TexturePixel* destimage,
                                            QMap<int, TextureImagePtr> sourceimages,
                                            TextureNodeSettings* settings) const
 {
-   if (!destimage || !size.isValid()) {
+   if (!settings || !destimage || !size.isValid()) {
       return;
    }
-   QString channelRedStr = configurables["channelRed"].defaultvalue.toStringList().at(configurables["channelRed"].defaultindex);
-   if (settings->contains("channelRed") && !settings->value("channelRed").toString().isEmpty()) {
-      channelRedStr = settings->value("channelRed").toString();
-   }
-   QString channelGreenStr = configurables["channelGreen"].defaultvalue.toStringList().at(configurables["channelGreen"].defaultindex);
-   if (settings->contains("channelGreen") && !settings->value("channelGreen").toString().isEmpty()) {
-      channelGreenStr = settings->value("channelGreen").toString();
-   }
-   QString channelBlueStr = configurables["channelBlue"].defaultvalue.toStringList().at(configurables["channelBlue"].defaultindex);
-   if (settings->contains("channelBlue") && !settings->value("channelBlue").toString().isEmpty()) {
-      channelBlueStr = settings->value("channelBlue").toString();
-   }
-   QString channelAlphaStr = configurables["channelAlpha"].defaultvalue.toStringList().at(configurables["channelAlpha"].defaultindex);
-   if (settings->contains("channelAlpha") && !settings->value("channelAlpha").toString().isEmpty()) {
-      channelAlphaStr = settings->value("channelAlpha").toString();
-   }
+   QString channelRedStr = settings->value("channelRed").toString();
+   QString channelGreenStr = settings->value("channelGreen").toString();
+   QString channelBlueStr = settings->value("channelBlue").toString();
+   QString channelAlphaStr = settings->value("channelAlpha").toString();
 
    Channels channelRed = getChannelFromName(channelRedStr);
    Channels channelGreen = getChannelFromName(channelGreenStr);

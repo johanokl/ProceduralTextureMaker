@@ -70,27 +70,15 @@ void PerlinNoiseTextureGenerator::generate(QSize size, TexturePixel* destimage,
                                            QMap<int, TextureImagePtr> sourceimages,
                                            TextureNodeSettings* settings) const
 {
-   if (!destimage || !size.isValid()) {
+   if (!settings || !destimage || !size.isValid()) {
       return;
    }
+
+   QColor color = settings->value("color").value<QColor>();
+   int numOctaves = settings->value("numoctaves").toInt();
+   double persistence = settings->value("persistence").toDouble();
+
    double zoom = 75;
-
-   QColor color = configurables.value("color").defaultvalue.value<QColor>();
-   int numOctaves = configurables.value("numoctaves").defaultvalue.toInt();
-   double persistence = configurables.value("persistence").defaultvalue.toDouble();
-
-   if (settings != NULL) {
-      if (settings->contains("color")) {
-         color = settings->value("color").value<QColor>();
-      }
-      if (settings->contains("numoctaves")) {
-         numOctaves = settings->value("numoctaves").toInt();
-      }
-      if (settings->contains("persistence")) {
-         persistence = settings->value("persistence").toDouble();
-      }
-   }
-
    bool blend = false;
    TexturePixel* sourceImg = NULL;
    if (sourceimages.contains(0)) {

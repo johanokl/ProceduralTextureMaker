@@ -29,13 +29,10 @@ void BoxBlurTextureGenerator::generate(QSize size,
                              QMap<int, TextureImagePtr> sourceimages,
                              TextureNodeSettings* settings) const
 {
-   if (!destimage || !size.isValid()) {
+   if (!settings || !destimage || !size.isValid()) {
       return;
    }
-   int numNeightbours = configurables["numneighbours"].defaultvalue.toInt();
-   if (settings != NULL && settings->contains("numneighbours")) {
-      numNeightbours = settings->value("numneighbours").toInt();
-   }
+   int numNeightbours = settings->value("numneighbours").toInt();
    if (!sourceimages.contains(0)) {
       memset(destimage, 0, size.width() * size.height() * sizeof(TexturePixel));
       return;

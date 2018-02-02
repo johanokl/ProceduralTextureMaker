@@ -53,31 +53,18 @@ void WhirlTextureGenerator::generate(QSize size,
                                      QMap<int, TextureImagePtr> sourceimages,
                                      TextureNodeSettings* settings) const
 {
-   if (!destimage || !size.isValid()) {
+   if (!settings || !destimage || !size.isValid()) {
       return;
-   }
-   double radius = configurables.value("radius").defaultvalue.toDouble() * size.width() / 100;
-   double strength = configurables.value("strength").defaultvalue.toDouble() / 80;
-   double offsetleft = configurables.value("offsetleft").defaultvalue.toDouble() * size.width() / 100;
-   double offsettop = configurables.value("offsettop").defaultvalue.toDouble() * size.height() / 100;
-   if (settings != NULL) {
-      if (settings->contains("radius")) {
-         radius = settings->value("radius").toDouble() * size.width() / 100;
-      }
-      if (settings->contains("strength")) {
-         strength = settings->value("strength").toDouble() / 80;
-      }
-      if (settings->contains("offsetleft")) {
-         offsetleft = settings->value("offsetleft").toDouble() * size.width() / 100;
-      }
-      if (settings->contains("offsettop")) {
-         offsettop = settings->value("offsettop").toDouble() * size.height() / 100;
-      }
    }
    if (!sourceimages.contains(0)) {
       memset(destimage, 0, size.width() * size.height() * sizeof(TexturePixel));
       return;
    }
+
+   double radius = settings->value("radius").toDouble() * size.width() / 100;
+   double strength = settings->value("strength").toDouble() / 80;
+   double offsetleft = settings->value("offsetleft").toDouble() * size.width() / 100;
+   double offsettop = settings->value("offsettop").toDouble() * size.height() / 100;
 
    TexturePixel* source = sourceimages.value(0)->getData();
    int centerx = size.width() / 2 + offsetleft;

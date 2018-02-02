@@ -36,28 +36,19 @@ void ModifyAlphaTextureGenerator::generate(QSize size, TexturePixel* destimage,
                                            QMap<int, TextureImagePtr> sourceimages,
                                            TextureNodeSettings* settings) const
 {
-   if (!destimage || !size.isValid()) {
+   if (!settings || !destimage || !size.isValid()) {
       return;
    }
-   QString mode = configurables["mode"].defaultvalue.toString();
-   double levelFactor = configurables["level"].defaultvalue.toDouble() / 100;
-   int levelAbsolute = qMin(configurables["level"].defaultvalue.toInt(), 255);
-   const int numpixels = size.width() * size.height();
-
-   if (settings != NULL) {
-      if (settings->contains("mode")) {
-         mode = settings->value("mode").toString();
-      }
-      if (settings->contains("level")) {
-         levelFactor = settings->value("level").toDouble()  / 100;
-         levelAbsolute = qMin(settings->value("level").toInt(), 255);
-      }
-   }
+   int numpixels = size.width() * size.height();
    if (!sourceimages.contains(0)) {
       memset(destimage, 0, numpixels * sizeof(TexturePixel));
       return;
    }
    memcpy(destimage, sourceimages.value(0)->getData(), numpixels * sizeof(TexturePixel));
+
+   QString mode = settings->value("mode").toString();
+   double levelFactor = settings->value("level").toDouble()  / 100;
+   int levelAbsolute = qMin(settings->value("level").toInt(), 255);
 
    for (int i = 0; i < numpixels; i++) {
       if (mode == "Add") {

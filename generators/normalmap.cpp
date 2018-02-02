@@ -34,14 +34,11 @@ void NormalMapTextureGenerator::generate(QSize size,
                                          QMap<int, TextureImagePtr> sourceimages,
                                          TextureNodeSettings* settings) const
 {
-   if (!destimage || !size.isValid()) {
+   if (!settings || !destimage || !size.isValid()) {
       return;
    }
+   QString direction = settings->value("direction").toString();
 
-   QString direction = configurables["direction"].defaultvalue.toStringList().takeFirst();
-   if (settings->contains("direction") && !settings->value("direction").toString().isEmpty()) {
-      direction = settings->value("direction").toString();
-   }
    memset(destimage, 255, size.width() * size.height() * sizeof(TexturePixel));
 
    if (!sourceimages.contains(0)) {

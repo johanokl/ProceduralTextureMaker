@@ -108,53 +108,20 @@ void TransformTextureGenerator::generate(QSize size,
                                          QMap<int, TextureImagePtr> sourceimages,
                                          TextureNodeSettings* settings) const
 {
-   if (!destimage || !size.isValid()) {
+   if (!settings || !destimage || !size.isValid()) {
       return;
    }
-   double scaleX = configurables["xscale"].defaultvalue.toDouble() / 100;
-   double scaleY = configurables["yscale"].defaultvalue.toDouble() / 100;
-   double rotation = configurables["rotation"].defaultvalue.toDouble();
-   int offsetLeft = configurables["offsetleft"].defaultvalue.toDouble() * size.width() / 100;
-   int offsetTop = configurables["offsettop"].defaultvalue.toDouble() * size.height() / 100;
-   int firstXtiles = configurables["firstXtiles"].defaultvalue.toInt();
-   int firstYtiles = configurables["firstYtiles"].defaultvalue.toInt();
-   int secondXtiles = configurables["secondXtiles"].defaultvalue.toInt();
-   int secondYtiles = configurables["secondYtiles"].defaultvalue.toInt();
-   QColor backgroundcolor = configurables["backgroundcolor"].defaultvalue.value<QColor>();
 
-
-   if (settings != NULL) {
-      if (settings->contains("xscale")) {
-         scaleX = settings->value("xscale").toDouble() / 100;
-      }
-      if (settings->contains("yscale")) {
-         scaleY = settings->value("yscale").toDouble() / 100;
-      }
-      if (settings->contains("rotation")) {
-         rotation = settings->value("rotation").toDouble();
-      }
-      if (settings->contains("offsetleft")) {
-         offsetLeft = settings->value("offsetleft").toDouble() * size.width() / 100;
-      }
-      if (settings->contains("offsettop")) {
-         offsetTop = settings->value("offsettop").toDouble() * size.height() / 100;
-      }
-      if (settings->contains("firstXtiles")) {
-         firstXtiles = settings->value("firstXtiles").toInt();
-      }
-      if (settings->contains("firstYtiles")) {
-         firstYtiles = settings->value("firstYtiles").toInt();
-      }
-      if (settings->contains("secondXtiles")) {
-         secondXtiles = settings->value("secondXtiles").toInt();
-      }
-      if (settings->contains("secondYtiles")) {
-         secondYtiles = settings->value("secondYtiles").toInt();
-      }
-      if (settings->contains("backgroundcolor")) {
-         backgroundcolor = settings->value("backgroundcolor").value<QColor>();
-      }
-   }
+   double scaleX = settings->value("xscale").toDouble() / 100;
+   double scaleY = settings->value("yscale").toDouble() / 100;
+   double rotation = settings->value("rotation").toDouble();
+   int offsetLeft = settings->value("offsetleft").toDouble() * size.width() / 100;
+   int offsetTop = settings->value("offsettop").toDouble() * size.height() / 100;
+   int firstXtiles = settings->value("firstXtiles").toInt();
+   int firstYtiles = settings->value("firstYtiles").toInt();
+   int secondXtiles = settings->value("secondXtiles").toInt();
+   int secondYtiles = settings->value("secondYtiles").toInt();
+   QColor backgroundcolor = settings->value("backgroundcolor").value<QColor>();
 
    QImage tempimage(size.width(), size.height(), QImage::Format_ARGB32);
 

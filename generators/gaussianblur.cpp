@@ -67,19 +67,12 @@ void GaussianBlurTextureGenerator::generate(QSize size,
                                             QMap<int, TextureImagePtr> sourceimages,
                                             TextureNodeSettings* settings) const
 {
-   if (!destimage || !size.isValid()) {
+   if (!settings || !destimage || !size.isValid()) {
       return;
    }
-   int numNeightbours = configurables["numneighbours"].defaultvalue.toInt();
-   float inWeight = configurables["weight"].defaultvalue.toFloat();
-   if (settings != NULL) {
-      if (settings->contains("numneighbours")) {
-         numNeightbours = settings->value("numneighbours").toInt();
-      }
-      if (settings->contains("weight")) {
-         inWeight = settings->value("weight").toFloat();
-      }
-   }
+   int numNeightbours = settings->value("numneighbours").toInt();
+   float inWeight = settings->value("weight").toFloat();
+
    memset(destimage, 0, size.width() * size.height() * sizeof(TexturePixel));
 
    if (!sourceimages.contains(0)) {

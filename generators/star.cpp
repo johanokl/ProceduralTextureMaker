@@ -119,56 +119,22 @@ void StarTextureGenerator::generate(QSize size,
                                     QMap<int, TextureImagePtr> sourceimages,
                                     TextureNodeSettings* settings) const
 {
-   if (!destimage || !size.isValid()) {
+   if (!settings || !destimage || !size.isValid()) {
       return;
    }
-   QColor color = configurables["color"].defaultvalue.value<QColor>();
-   double shapeWidth = configurables["width"].defaultvalue.toDouble() * size.width() / 100;
-   double shapeHeight = configurables["height"].defaultvalue.toDouble() * size.height() / 100;
-   double rotation = configurables["rotation"].defaultvalue.toDouble();
-   int offsetLeft = configurables["offsetleft"].defaultvalue.toDouble() * size.width() / 100;
-   int offsetTop = configurables["offsettop"].defaultvalue.toDouble() * size.height() / 100;
-   double arms = configurables["numarms"].defaultvalue.toDouble();
-   double innerRadius = configurables["innerradius"].defaultvalue.toDouble() / 100;
-   double outerRadius = configurables["outerradius"].defaultvalue.toDouble() / 100;
-   double cutoutInnerRadius = configurables["cutoutinnerradius"].defaultvalue.toDouble() / 100;
-   double cutoutOuterRadius = configurables["cutoutouterradius"].defaultvalue.toDouble() / 100;
 
-   if (settings != NULL) {
-      if (settings->contains("color")) {
-         color = settings->value("color").value<QColor>();
-      }
-      if (settings->contains("width")) {
-         shapeWidth = settings->value("width").toDouble() * size.width() / 100;
-      }
-      if (settings->contains("height")) {
-         shapeHeight = settings->value("height").toDouble() * size.height() / 100;
-      }
-      if (settings->contains("rotation")) {
-         rotation = settings->value("rotation").toDouble();
-      }
-      if (settings->contains("offsetleft")) {
-         offsetLeft = settings->value("offsetleft").toDouble() * size.width() / 100;
-      }
-      if (settings->contains("offsettop")) {
-         offsetTop = settings->value("offsettop").toDouble() * size.height() / 100;
-      }
-      if (settings->contains("numarms")) {
-         arms = settings->value("numarms").toDouble();
-      }
-      if (settings->contains("innerradius")) {
-         innerRadius = settings->value("innerradius").toDouble() / 100;
-      }
-      if (settings->contains("outerradius")) {
-         outerRadius = settings->value("outerradius").toDouble() / 100;
-      }
-      if (settings->contains("cutoutinnerradius")) {
-         cutoutInnerRadius = settings->value("cutoutinnerradius").toDouble() / 100;
-      }
-      if (settings->contains("cutoutouterradius")) {
-         cutoutOuterRadius = settings->value("cutoutouterradius").toDouble() / 100;
-      }
-   }
+   QColor color = settings->value("color").value<QColor>();
+   double shapeWidth = settings->value("width").toDouble() * size.width() / 100;
+   double shapeHeight = settings->value("height").toDouble() * size.height() / 100;
+   double rotation = settings->value("rotation").toDouble();
+   int offsetLeft = settings->value("offsetleft").toDouble() * size.width() / 100;
+   int offsetTop = settings->value("offsettop").toDouble() * size.height() / 100;
+   double arms = settings->value("numarms").toDouble();
+   double innerRadius = settings->value("innerradius").toDouble() / 100;
+   double outerRadius = settings->value("outerradius").toDouble() / 100;
+   double cutoutInnerRadius = settings->value("cutoutinnerradius").toDouble() / 100;
+   double cutoutOuterRadius = settings->value("cutoutouterradius").toDouble() / 100;
+
    if (sourceimages.contains(0)) {
       memcpy(destimage, sourceimages.value(0)->getData(), size.width() * size.height() * sizeof(TexturePixel));
    } else {

@@ -27,13 +27,10 @@ void FillTextureGenerator::generate(QSize size, TexturePixel* destimage,
 {
    Q_UNUSED(sourceimages);
 
-   if (!destimage || !size.isValid()) {
+   if (!settings || !destimage || !size.isValid()) {
       return;
    }
-   QColor color = configurables["color"].defaultvalue.value<QColor>();
-   if (settings != NULL && settings->contains("color")) {
-      color = settings->value("color").value<QColor>();
-   }
+   QColor color = settings->value("color").value<QColor>();
    const int numpixels = size.width() * size.height();
    TexturePixel filler(color.red(), color.green(), color.blue(), color.alpha());
    for (int i = 0; i < numpixels; i++) {

@@ -14,6 +14,7 @@ void EmptyGenerator::generate(QSize size, TexturePixel* destimage,
 {
    Q_UNUSED(settings);
    Q_UNUSED(sourceimages);
-   memset(destimage, 0, size.width() * size.height() * sizeof(TexturePixel));
-   return;
+   if (destimage && size.isValid()) {
+      memset(destimage, 0, size.width() * size.height() * sizeof(TexturePixel));
+   }
 }

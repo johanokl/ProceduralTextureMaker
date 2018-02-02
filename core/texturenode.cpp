@@ -406,6 +406,14 @@ TextureImagePtr TextureNode::getImage(QSize size)
    settingsmutex.lockForRead();
    TextureNodeSettings settingsCopy(settings);
    settingsmutex.unlock();
+   QMapIterator<QString, TextureGeneratorSetting> settingsIterator(gen->getSettings());
+   while (settingsIterator.hasNext()) {
+      settingsIterator.next();
+      if (!settingsCopy.contains(settingsIterator.key())) {
+         settingsCopy.insert(settingsIterator.key(), settingsIterator.value().defaultvalue);
+      }
+   }
+
    // Call the generator singleton
    gen->generate(size, destImage, sourceImages, &settingsCopy);
 

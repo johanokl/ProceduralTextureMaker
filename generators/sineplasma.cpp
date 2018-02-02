@@ -66,31 +66,15 @@ void SinePlasmaTextureGenerator::generate(QSize size,
                                           QMap<int, TextureImagePtr> sourceimages,
                                           TextureNodeSettings* settings) const
 {
-   if (!destimage || !size.isValid()) {
+   if (!settings || !destimage || !size.isValid()) {
       return;
    }
-   QColor color = configurables.value("color").defaultvalue.value<QColor>();
-   double xoffset = configurables.value("xoffset").defaultvalue.toDouble() * size.width() / 100;
-   double yoffset = configurables.value("yoffset").defaultvalue.toDouble() * size.height() / 100;
-   double xfrequency = configurables.value("xfrequency").defaultvalue.toDouble() * 5 / size.width();
-   double yfrequency = configurables.value("yfrequency").defaultvalue.toDouble() * 5 / size.height();
-   if (settings != NULL) {
-      if (settings->contains("color")) {
-         color = settings->value("color").value<QColor>();
-      }
-      if (settings->contains("xoffset")) {
-         xoffset = settings->value("xoffset").toInt() * size.width() / 100;
-      }
-      if (settings->contains("yoffset")) {
-         yoffset = settings->value("yoffset").toInt() * size.height() / 100;
-      }
-      if (settings->contains("xfrequency")) {
-         xfrequency = settings->value("xfrequency").toDouble() * 5 / size.width();
-      }
-      if (settings->contains("yfrequency")) {
-         yfrequency = settings->value("yfrequency").toDouble() * 5 / size.height();
-      }
-   }
+   QColor color = settings->value("color").value<QColor>();
+   double xoffset = settings->value("xoffset").toInt() * size.width() / 100;
+   double yoffset = settings->value("yoffset").toInt() * size.height() / 100;
+   double xfrequency = settings->value("xfrequency").toDouble() * 5 / size.width();
+   double yfrequency = settings->value("yfrequency").toDouble() * 5 / size.height();
+
    if (sourceimages.contains(0)) {
       memcpy(destimage, sourceimages.value(0)->getData(), size.width() * size.height() * sizeof(TexturePixel));
    } else {

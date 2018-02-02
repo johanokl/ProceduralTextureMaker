@@ -64,36 +64,21 @@ void CircleTextureGenerator::generate(QSize size,
                                       QMap<int, TextureImagePtr> sourceimages,
                                       TextureNodeSettings* settings) const
 {
-   if (!destimage || !size.isValid()) {
+   if (!settings || !destimage || !size.isValid()) {
       return;
    }
-   QColor color = configurables.value("color").defaultvalue.value<QColor>();
-   double innerRadius = configurables.value("innerradius").defaultvalue.toDouble() * size.width() / 200.0;
-   double outerRadius = configurables.value("outerradius").defaultvalue.toDouble() * size.width() / 200.0;
-   int offsetLeft = configurables.value("offsetleft").defaultvalue.toDouble() * size.width() / 100;
-   int offsetTop = configurables.value("offsettop").defaultvalue.toDouble() * size.height() / 100;
-   if (settings != NULL) {
-      if (settings->contains("color")) {
-         color = settings->value("color").value<QColor>();
-      }
-      if (settings->contains("innerradius")) {
-         innerRadius = settings->value("innerradius").toDouble() * size.height() / 200.0;
-      }
-      if (settings->contains("outerradius")) {
-         outerRadius = settings->value("outerradius").toDouble() * size.height() / 200.0;
-      }
-      if (settings->contains("offsetleft")) {
-         offsetLeft = settings->value("offsetleft").toDouble() * size.width() / 100;
-      }
-      if (settings->contains("offsettop")) {
-         offsetTop = settings->value("offsettop").toDouble() * size.height() / 100;
-      }
-   }
+   QColor color = settings->value("color").value<QColor>();
+   double innerRadius = settings->value("innerradius").toDouble() * size.height() / 200.0;
+   double outerRadius = settings->value("outerradius").toDouble() * size.height() / 200.0;
+   int offsetLeft = settings->value("offsetleft").toDouble() * size.width() / 100;
+   int offsetTop = settings->value("offsettop").toDouble() * size.height() / 100;
+
    if (sourceimages.contains(0)) {
       memcpy(destimage, sourceimages.value(0)->getData(), size.width() * size.height() * sizeof(TexturePixel));
    } else {
       memset(destimage, 0, size.width() * size.height() * sizeof(TexturePixel));
    }
+
    TexturePixel filler(color.red(), color.green(), color.blue(), 255);
    for (int y = 0; y < size.height(); y++) {
       for (int x = 0; x < size.width(); x++) {
