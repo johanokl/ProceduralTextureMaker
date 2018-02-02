@@ -69,10 +69,11 @@ signals:
    void nodesConnected(int, int, int);
    void nodesDisconnected(int, int, int);
    void imageUpdated(int);
-   void imageAvailable(int id, QSize size);
+   void imageAvailable(int, QSize);
    void nameUpdated(QString);
    void generatorAdded(TextureGeneratorPtr);
    void generatorRemoved(TextureGeneratorPtr);
+   void generatorNameCollision(TextureGeneratorPtr, TextureGeneratorPtr);
 
 private:
    TextureGeneratorPtr getEmptyGenerator() { return emptygenerator; }

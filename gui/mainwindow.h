@@ -16,6 +16,7 @@
 #include <QPainter>
 #include <QGraphicsView>
 #include <QToolBar>
+#include "generators/texturegenerator.h"
 
 class TexGenApplication;
 class TextureProject;
@@ -58,7 +59,7 @@ public slots:
    void clearScene();
    void showAbout();
    void showHelp();
-   void closeEvent(QCloseEvent* event);
+   void closeEvent(QCloseEvent*);
    void copyNode();
    void pasteNode();
    void cutNode();
@@ -66,6 +67,7 @@ public slots:
    void reloadSceneView();
    void moveToFront();
    void resetViewZoom();
+   void generatorNameCollision(TextureGeneratorPtr, TextureGeneratorPtr);
 
 private:
    void drawScene();

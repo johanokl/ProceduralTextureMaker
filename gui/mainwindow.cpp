@@ -71,6 +71,9 @@ MainWindow::MainWindow(TexGenApplication* parent)
    settingsManager = new SettingsManager;
    project->setSettingsManager(settingsManager);
 
+   connect(project, SIGNAL(generatorNameCollision(TextureGeneratorPtr,TextureGeneratorPtr)),
+           this, SLOT(generatorNameCollision(TextureGeneratorPtr,TextureGeneratorPtr)));
+
    iteminfopanel = new ItemInfoPanel(this, project);
    iteminfopanel->hide();
    iteminfopanel->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
@@ -88,11 +91,6 @@ MainWindow::MainWindow(TexGenApplication* parent)
    view = new ViewNodeView(settingsManager->getDefaultZoom());
    view->show();
    scene = createScene();
-
-   menuactions->setAddNodePanel(addnodewidget);
-   menuactions->setPreviewPanel(previewwidget);
-   menuactions->setSettingsPanel(settingspanel);
-   menuactions->setItemInfoPanel(iteminfopanel);
 
    project->addGenerator(TextureGeneratorPtr(new FillTextureGenerator()));
    project->addGenerator(TextureGeneratorPtr(new CircleTextureGenerator()));
@@ -133,7 +131,13 @@ MainWindow::MainWindow(TexGenApplication* parent)
    widget->setStretchFactor(0, 0);
    widget->setStretchFactor(1, 100);
    setCentralWidget(widget);
+
    setGeometry(100, 100, 900, 600);
+   menuactions->setAddNodePanel(addnodewidget);
+   menuactions->setPreviewPanel(previewwidget);
+   menuactions->setSettingsPanel(settingspanel);
+   menuactions->setItemInfoPanel(iteminfopanel);
+
    setWindowTitle("ProceduralTextureMaker");
    statusBar()->hide();
    show();
@@ -176,6 +180,29 @@ MainWindow::~MainWindow()
 bool MainWindow::saveAs()
 {
    return saveFile(true);
+}
+
+/**
+ * @brief MainWindow::generatorNameCollision
+ * @param oldGen The one existing in the project.
+ * @param newGen The new one.
+
+ * Called when the user is trying to add a texture generator with the same
+ * name as one already existing in the project.
+ * Displays a message box.
+ */
+void MainWindow::generatorNameCollision(TextureGeneratorPtr oldGen, TextureGeneratorPtr newGen)
+{
+   QString question;
+   question.append("There is a already a texture generator with the name ");
+   question.append(oldGen->getName() + ". ");
+   question.append("Replace it with the newer one just found?");
+   if (QMessageBox::question(this, "Name collision", question,
+                             QMessageBox::Yes | QMessageBox::No)
+       == QMessageBox::Yes) {
+      project->removeGenerator(oldGen);
+      project->addGenerator(newGen);
+   }
 }
 
 /**
@@ -246,7 +273,7 @@ bool MainWindow::maybeSave()
       return true;
    }
    const QMessageBox::StandardButton ret =
-         QMessageBox::warning(
+         QMessageBox::information(
             this, "ProceduralTextureMaker",
             "The document has been modified.\n"
             "Do you want to save your changes?",

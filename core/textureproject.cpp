@@ -11,6 +11,7 @@
 #include <QString>
 #include <QApplication>
 #include <QStringList>
+#include <QMessageBox>
 #include <QThread>
 #include <QClipboard>
 #include "textureproject.h"
@@ -333,15 +334,20 @@ TextureNodePtr TextureProject::newNode(int id, TextureGeneratorPtr generator)
  * @brief TextureProject::addGenerator
  * @param gen New generator
  *
- * Adds a TextureGenerator from the project's list.
+ * Adds a TextureGenerator to the project's list.
  * No copying is done by this function.
  */
 void TextureProject::addGenerator(TextureGeneratorPtr gen)
 {
-   if (gen && !generators.contains(gen->getName())) {
-      generators.insert(gen->getName(), gen);
-      emit generatorAdded(gen);
+   if (gen.isNull()) {
+      return;
    }
+   if (generators.contains(gen->getName())) {
+      emit generatorNameCollision(generators.value(gen->getName()), gen);
+      return;
+   }
+   generators.insert(gen->getName(), gen);
+   emit generatorAdded(gen);
 }
 
 /**
@@ -353,7 +359,7 @@ void TextureProject::addGenerator(TextureGeneratorPtr gen)
  */
 void TextureProject::removeGenerator(TextureGeneratorPtr gen)
 {
-   if (gen && generators.values().contains(gen)) {
+   if (!gen.isNull() && generators.values().contains(gen)) {
       generators.remove(gen->getName());
       emit generatorRemoved(gen);
    }
