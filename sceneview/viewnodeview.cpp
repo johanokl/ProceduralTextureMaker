@@ -41,7 +41,10 @@ ViewNodeView::~ViewNodeView()
  */
 void ViewNodeView::setDefaultZoom(int zoom)
 {
-   defaultZoomFactor = (double) zoom / 100;
+   if (zoom != defaultZoomFactor) {
+      defaultZoomFactor = (double) zoom / 100;
+      resetZoom();
+   }
 }
 
 /**
