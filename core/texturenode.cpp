@@ -455,6 +455,9 @@ bool TextureNode::setGenerator(TextureGeneratorPtr newgenerator)
          QMap<QString, TextureGeneratorSetting>::const_iterator it;
          for (it = genSettings.constBegin(); it != genSettings.constEnd(); ++it) {
             newSettings.insert(it.key(), it.value().defaultvalue);
+            if (it.value().defaultvalue.type() == QVariant::Type::StringList) {
+               newSettings.insert(it.key(), it.value().defaultvalue.toStringList().at(it.value().defaultindex));
+            }
          }
       }
       setSettings(newSettings);
