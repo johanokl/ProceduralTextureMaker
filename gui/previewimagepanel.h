@@ -5,8 +5,8 @@
  * Johan Lindqvist (johan.lindqvist@gmail.com)
  */
 
-#ifndef PREVIEWPANEL_H
-#define PREVIEWPANEL_H
+#ifndef PREVIEWIMAGEPANEL_H
+#define PREVIEWIMAGEPANEL_H
 
 #include <QWidget>
 #include <QMap>
@@ -22,19 +22,19 @@ class QResizeEvent;
 class QShowEvent;
 
 /**
- * @brief The PreviewPanel class
+ * @brief The PreviewImagePanel class
  *
  * Vertical panel that displays a node's generated image.
  * When an active node's image is updated this also propagates
  * to the panel, which then updates the displayed image.
  */
-class PreviewPanel : public QWidget
+class PreviewImagePanel : public QWidget
 {
    Q_OBJECT
 
 public:
-   PreviewPanel(TextureProject*);
-   virtual ~PreviewPanel() {}
+   PreviewImagePanel(TextureProject*);
+   virtual ~PreviewImagePanel() {}
    virtual void showEvent(QShowEvent* event);
    bool loadNodeImage(int);
 
@@ -77,4 +77,4 @@ private:
     QLabel* label;
 };
 
-#endif // PREVIEWPANEL_H
+#endif // PREVIEWIMAGEPANEL_H

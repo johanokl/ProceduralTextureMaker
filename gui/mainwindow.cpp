@@ -55,7 +55,7 @@
 #include "sceneview/viewnodeitem.h"
 #include "sceneview/viewnodescene.h"
 #include "gui/addnodepanel.h"
-#include "gui/previewpanel.h"
+#include "gui/previewimagepanel.h"
 #include "gui/settingspanel.h"
 #include "sceneview/viewnodeview.h"
 #include "gui/iteminfopanel.h"
@@ -84,10 +84,10 @@ MainWindow::MainWindow(TexGenApplication* parent)
 
    menuactions = new MenuActions(this);
    addnodewidget = new AddNodePanel(project);
-   previewwidget = new PreviewPanel(project);
+   previewImagewidget = new PreviewImagePanel(project);
    settingspanel = new SettingsPanel(this, settingsManager);
    addnodewidget->hide();
-   previewwidget->hide();
+   previewImagewidget->hide();
    settingspanel->hide();
 
    view = new ViewNodeView(settingsManager->getDefaultZoom());
@@ -126,7 +126,7 @@ MainWindow::MainWindow(TexGenApplication* parent)
    widget->addWidget(iteminfopanel);
    widget->addWidget(view);
    widget->addWidget(addnodewidget);
-   widget->addWidget(previewwidget);
+   widget->addWidget(previewImagewidget);
    widget->addWidget(settingspanel);
    widget->setMinimumSize(1000, 450);
    widget->setChildrenCollapsible(false);
@@ -138,7 +138,7 @@ MainWindow::MainWindow(TexGenApplication* parent)
 
    setGeometry(100, 100, 900, 600);
    menuactions->setAddNodePanel(addnodewidget);
-   menuactions->setPreviewPanel(previewwidget);
+   menuactions->setPreviewImagePanel(previewImagewidget);
    menuactions->setSettingsPanel(settingspanel);
    menuactions->setItemInfoPanel(iteminfopanel);
 
@@ -379,7 +379,7 @@ ViewNodeScene* MainWindow::createScene(ViewNodeScene* source)
    }
    view->setScene(newscene);
    connect(newscene, SIGNAL(nodeSelected(int)), iteminfopanel, SLOT(setActiveNode(int)));
-   connect(newscene, SIGNAL(nodeSelected(int)), previewwidget, SLOT(setActiveNode(int)));
+   connect(newscene, SIGNAL(nodeSelected(int)), previewImagewidget, SLOT(setActiveNode(int)));
    connect(newscene, SIGNAL(lineSelected(int, int, int)), iteminfopanel, SLOT(setActiveLine(int, int, int)));
    return newscene;
 }

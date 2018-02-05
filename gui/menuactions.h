@@ -19,7 +19,7 @@ class QMenu;
 class QAction;
 class MainWindow;
 class AddNodePanel;
-class PreviewPanel;
+class PreviewImagePanel;
 class ItemInfoPanel;
 class SettingsPanel;
 class QToolBar;
@@ -42,13 +42,13 @@ public:
    MainWindow* parent() { return parentwindow; }
    virtual ~MenuActions();
    void setAddNodePanel(AddNodePanel* addNodePanel);
-   void setPreviewPanel(PreviewPanel* previewPanel);
+   void setPreviewImagePanel(PreviewImagePanel* PreviewImagePanel);
    void setSettingsPanel(SettingsPanel* settingsPanel);
    void setItemInfoPanel(ItemInfoPanel* settingswidget);
 
 public slots:
    void toggleAddNodePanel();
-   void togglePreviewPanel();
+   void togglePreviewImagePanel();
    void toggleItemInfoPanel();
    void toggleSettingsPanel();
    void toogleToolbars();
@@ -58,7 +58,7 @@ public slots:
 private:
    MainWindow* parentwindow;
    AddNodePanel* nodepanel;
-   PreviewPanel* previewpanel;
+   PreviewImagePanel* previewImagePanel;
    ItemInfoPanel* nodesettings;
    SettingsPanel* settingspanel;
 
@@ -88,12 +88,12 @@ private:
    QAction* resetZoomAct;
    QAction* resetSceneAct;
    QAction* displayAddNodePanelAct;
-   QAction* displayPreviewPanelAct;
+   QAction* displayPreviewImagePanelAct;
    QAction* displayItemInfoPanelAct;
    QAction* displaySettingsPanelAct;
    QAction* displayToolbarsAct;
    QAction* toggleItemInfoPanelAct;
-   QAction* togglePreviewPanelAct;
+   QAction* togglePreviewImagePanelAct;
    QAction* toggleAddNodePanelAct;
 
    QVector<QAction*> windowlistActions;

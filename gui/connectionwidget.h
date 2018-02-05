@@ -29,7 +29,7 @@ class QLineEdit;
  * the names of the source and receiver nodes with a button for
  * disconnecting them.
  *
- * @todo Display the nodes' images similar to PreviewPanel
+ * @todo Display the nodes' images similar to PreviewImagePanel
  */
 class ConnectionWidget : public QWidget
 {

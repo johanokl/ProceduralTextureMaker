@@ -21,7 +21,6 @@ SOURCES = main.cpp \
     gui/nodesettingswidget.cpp \
     gui/mainwindow.cpp \
     gui/addnodepanel.cpp \
-    gui/previewpanel.cpp \
     gui/settingspanel.cpp \
     sceneview/viewnodeview.cpp \
     sceneview/viewnodeitem.cpp \
@@ -55,7 +54,8 @@ SOURCES = main.cpp \
     generators/whirl.cpp \
     generators/sinetransform.cpp \
     generators/bricks.cpp \
-    generators/invert.cpp
+    generators/invert.cpp \
+    gui/previewimagepanel.cpp
 
 
 HEADERS += core/texturenode.h \
@@ -70,7 +70,6 @@ HEADERS += core/texturenode.h \
     gui/addnodepanel.h \
     gui/qdoubleslider.h \
     gui/nodesettingswidget.h \
-    gui/previewpanel.h \
     gui/settingspanel.h \
     gui/mainwindow.h \
     generators/texturegenerator.h \
@@ -102,7 +101,8 @@ HEADERS += core/texturenode.h \
     generators/whirl.h \
     generators/sinetransform.h \
     generators/bricks.h \
-    generators/invert.h
+    generators/invert.h \
+    gui/previewimagepanel.h
 
 TARGET = "ProceduralTextureMaker"
 

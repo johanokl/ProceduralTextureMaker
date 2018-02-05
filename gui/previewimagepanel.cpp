@@ -20,7 +20,7 @@
 #include "global.h"
 #include "core/textureproject.h"
 #include "generators/texturegenerator.h"
-#include "gui/previewpanel.h"
+#include "gui/previewimagepanel.h"
 #include "gui/nodesettingswidget.h"
 #include "gui/connectionwidget.h"
 #include "generators/texturegenerator.h"
@@ -106,10 +106,10 @@ void ImageLabel::resizeImage() {
 }
 
 /**
- * @brief PreviewPanel::PreviewPanel
+ * @brief PreviewImagePanel::PreviewImagePanel
  * @param project
  */
-PreviewPanel::PreviewPanel(TextureProject* project)
+PreviewImagePanel::PreviewImagePanel(TextureProject* project)
 {
    this->project = project;
    imageSize = project->getThumbnailSize();
@@ -134,11 +134,11 @@ PreviewPanel::PreviewPanel(TextureProject* project)
 }
 
 /**
- * @brief PreviewPanel::imageUpdated
+ * @brief PreviewImagePanel::imageUpdated
  * @param id Node id
  * Removes the no longer valid image from the pixmap widgets.
  */
-void PreviewPanel::imageUpdated(int id)
+void PreviewImagePanel::imageUpdated(int id)
 {
    if (id != currId) {
       return;
@@ -153,13 +153,13 @@ void PreviewPanel::imageUpdated(int id)
 }
 
 /**
- * @brief PreviewPanel::loadNodeImage
+ * @brief PreviewImagePanel::loadNodeImage
  * @param id Node id
  * @return true if could load image
  * Checks if there is an image with the thumbnail size in the node's
  * texture cache and if found displays it in the pixmap widgets.
  */
-bool PreviewPanel::loadNodeImage(int id)
+bool PreviewImagePanel::loadNodeImage(int id)
 {
    TextureNodePtr texNode = project->getNode(id);
    if (texNode.isNull()) {
@@ -183,12 +183,12 @@ bool PreviewPanel::loadNodeImage(int id)
 }
 
 /**
- * @brief PreviewPanel::imageAvailable
+ * @brief PreviewImagePanel::imageAvailable
  * @param id Node id
  * @param size Image size
  * If the panel is visible loads a new image to the pixmap widgets.
  */
-void PreviewPanel::imageAvailable(int id, QSize size)
+void PreviewImagePanel::imageAvailable(int id, QSize size)
 {
    if (id != currId || size != imageSize) {
       return;
@@ -200,11 +200,11 @@ void PreviewPanel::imageAvailable(int id, QSize size)
 }
 
 /**
- * @brief PreviewPanel::showEvent
+ * @brief PreviewImagePanel::showEvent
  * @param event
  * Load the images when the panel is opened.
  */
-void PreviewPanel::showEvent(QShowEvent* event)
+void PreviewImagePanel::showEvent(QShowEvent* event)
 {
    QWidget::showEvent(event);
    if (!loadNodeImage(currId)) {
@@ -214,11 +214,11 @@ void PreviewPanel::showEvent(QShowEvent* event)
 }
 
 /**
- * @brief PreviewPanel::setActiveNode
+ * @brief PreviewImagePanel::setActiveNode
  * @param id Node id
  * Updates the images.
  */
-void PreviewPanel::setActiveNode(int id)
+void PreviewImagePanel::setActiveNode(int id)
 {
    if (currId == id) {
       return;

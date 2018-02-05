@@ -22,7 +22,7 @@
 #include "core/textureproject.h"
 #include "generators/texturegenerator.h"
 #include "gui/addnodepanel.h"
-#include "gui/previewpanel.h"
+#include "gui/previewimagepanel.h"
 #include "gui/settingspanel.h"
 #include "gui/iteminfopanel.h"
 
@@ -98,12 +98,12 @@ MenuActions::MenuActions(MainWindow* parent)
    displayAddNodePanelAct->setCheckable(true);
    displayAddNodePanelAct->setEnabled(false);
 
-   togglePreviewPanelAct = new QAction("Toggle preview panel", this);
-   connect(togglePreviewPanelAct, SIGNAL(triggered()), this, SLOT(togglePreviewPanel()));
-   displayPreviewPanelAct = new QAction("Display preview panel", this);
-   connect(displayPreviewPanelAct, SIGNAL(triggered()), this, SLOT(togglePreviewPanel()));
-   displayPreviewPanelAct->setCheckable(true);
-   displayPreviewPanelAct->setEnabled(false);
+   togglePreviewImagePanelAct = new QAction("Toggle preview Image panel", this);
+   connect(togglePreviewImagePanelAct, SIGNAL(triggered()), this, SLOT(togglePreviewImagePanel()));
+   displayPreviewImagePanelAct = new QAction("Display preview Image panel", this);
+   connect(displayPreviewImagePanelAct, SIGNAL(triggered()), this, SLOT(togglePreviewImagePanel()));
+   displayPreviewImagePanelAct->setCheckable(true);
+   displayPreviewImagePanelAct->setEnabled(false);
 
    displaySettingsPanelAct = new QAction("Display settings", this);
    connect(displaySettingsPanelAct, SIGNAL(triggered()), this, SLOT(toggleSettingsPanel()));
@@ -132,7 +132,7 @@ MenuActions::MenuActions(MainWindow* parent)
    viewMenu->addSeparator();
    viewMenu->addAction(displayAddNodePanelAct);
    viewMenu->addAction(displayToolbarsAct);
-   viewMenu->addAction(displayPreviewPanelAct);
+   viewMenu->addAction(displayPreviewImagePanelAct);
    viewMenu->addAction(displaySettingsPanelAct);
    viewMenu->addAction(displayItemInfoPanelAct);
    viewMenu->addSeparator();
@@ -180,14 +180,14 @@ MenuActions::MenuActions(MainWindow* parent)
    spacerWidget->setVisible(true);
    toggleAddNodeToolBar->addWidget(spacerWidget);
    toggleAddNodeToolBar->addAction(toggleAddNodePanelAct);
-   toggleAddNodeToolBar->addAction(togglePreviewPanelAct);
+   toggleAddNodeToolBar->addAction(togglePreviewImagePanelAct);
 
    connect(parent->parent(), SIGNAL(windowsChanged()), this, SLOT(windowsChanged()));
 
    QSettings settings;
    lastOpenedDirectory = settings.value("lastopeneddirectory", QDir::homePath()).toString();
    displayAddNodePanelAct->setChecked(settings.value("displayAddNodePanel", true).toBool());
-   displayPreviewPanelAct->setChecked(settings.value("displayPreviewPanel", false).toBool());
+   displayPreviewImagePanelAct->setChecked(settings.value("displayPreviewImagePanel", false).toBool());
    displayItemInfoPanelAct->setChecked(settings.value("displayItemInfoPanel", true).toBool());
    displaySettingsPanelAct->setChecked(settings.value("displaySettingsPanel", false).toBool());
    displayToolbarsAct->setChecked(settings.value("displayToolbars", true).toBool());
@@ -206,7 +206,7 @@ MenuActions::~MenuActions()
    // Save state
    QSettings settings;
    settings.setValue("displayAddNodePanel", displayAddNodePanelAct->isChecked());
-   settings.setValue("displayPreviewPanel", displayPreviewPanelAct->isChecked());
+   settings.setValue("displayPreviewImagePanel", displayPreviewImagePanelAct->isChecked());
    settings.setValue("displayItemInfoPanel", displayItemInfoPanelAct->isChecked());
    settings.setValue("displaySettingsPanel", displaySettingsPanelAct->isChecked());
    settings.setValue("displayToolbars", displayToolbarsAct->isChecked());
@@ -227,15 +227,15 @@ void MenuActions::setAddNodePanel(AddNodePanel* addNodePanel)
 }
 
 /**
- * @brief MenuActions::setPreviewPanel
- * @param previewPanel
+ * @brief MenuActions::setPreviewImagePanel
+ * @param PreviewImagePanel
  * Connects a new node preview panel and sets its visiblity.
  */
-void MenuActions::setPreviewPanel(PreviewPanel* previewPanel)
+void MenuActions::setPreviewImagePanel(PreviewImagePanel* previewImagePanel)
 {
-   this->previewpanel = previewPanel;
-   displayPreviewPanelAct->setEnabled(true);
-   previewpanel->setVisible(displayPreviewPanelAct->isChecked());
+   this->previewImagePanel = previewImagePanel;
+   displayPreviewImagePanelAct->setEnabled(true);
+   previewImagePanel->setVisible(displayPreviewImagePanelAct->isChecked());
 }
 
 /**
@@ -276,16 +276,16 @@ void MenuActions::toggleAddNodePanel()
 }
 
 /**
- * @brief MenuActions::togglePreviewPanel
+ * @brief MenuActions::togglePreviewImagePanel
  * Displays or hides the image preview panel depending on if visible or hidden.
  */
-void MenuActions::togglePreviewPanel()
+void MenuActions::togglePreviewImagePanel()
 {
-   if (!previewpanel) {
+   if (!previewImagePanel) {
       return;
    }
-   previewpanel->setVisible(!previewpanel->isVisible());
-   displayPreviewPanelAct->setChecked(previewpanel->isVisible());
+   previewImagePanel->setVisible(!previewImagePanel->isVisible());
+   displayPreviewImagePanelAct->setChecked(previewImagePanel->isVisible());
 }
 
 /**

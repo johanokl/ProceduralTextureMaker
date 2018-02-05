@@ -31,6 +31,7 @@ class TextureRenderThread : public QObject
 
 public:
    TextureRenderThread(const QSize renderSize, QMap<int, TextureNodePtr> nodes);
+   ~TextureRenderThread() {}
    void abort();
 
 public slots:
