@@ -106,7 +106,7 @@ void TextureProject::setName(QString newname)
  */
 void TextureProject::startRenderThread(QSize renderSize, QThread::Priority prio)
 {
-   QString key = QString("%1_%2").arg(renderSize.height()).arg(renderSize.width());
+   QString key = QString("%1_%2").arg(renderSize.width()).arg(renderSize.height());
    if (!renderThreads.contains(key)) {
       QThread* renderThread = new QThread;
       TextureRenderThread* renderer = new TextureRenderThread(renderSize, nodes);
@@ -131,7 +131,7 @@ void TextureProject::startRenderThread(QSize renderSize, QThread::Priority prio)
  */
 void TextureProject::stopRenderThread(QSize renderSize)
 {
-   QString key = QString("%1_%2").arg(renderSize.height()).arg(renderSize.width());
+   QString key = QString("%1_%2").arg(renderSize.width()).arg(renderSize.height());
    if (renderThreads.contains(key)) {
       TextureRenderThread* renderThread = renderThreads.take(key);
       QObject::disconnect(this, SIGNAL(nodeAdded(TextureNodePtr)), renderThread, SLOT(nodeAdded(TextureNodePtr)));
