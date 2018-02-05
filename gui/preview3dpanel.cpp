@@ -339,6 +339,7 @@ void CubeWidget::setBackgroundColor(QColor bg)
 {
    backgroundcolor = bg;
    if (initialized) {
+      makeCurrent();
       glClearColor(bg.redF(), bg.greenF(), bg.blueF(), 1);
       update();
    }
