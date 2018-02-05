@@ -19,7 +19,6 @@
 #include <QtGlobal>
 #include <QColorDialog>
 #include <QComboBox>
-#include <QDebug>
 #include <QScrollArea>
 #include <algorithm>
 #include "gui/nodesettingswidget.h"
@@ -321,6 +320,7 @@ void NodeSettingsWidget::generatorUpdated()
          break;
       case QVariant::Type::Double:
          newWidget = new QDoubleSpinBox;
+         static_cast<QDoubleSpinBox*>(newWidget)->setSingleStep(0.1);
          QObject::connect(newWidget, SIGNAL(valueChanged(double)), this, SLOT(saveSettings()));
          break;
       case QVariant::Type::Color:
@@ -344,6 +344,7 @@ void NodeSettingsWidget::generatorUpdated()
          if (doubleSpinBox) {
             QDoubleSlider* newSlider = new QDoubleSlider();
             newSlider->blockSignals(true);
+            doubleSpinBox->blockSignals(true);
             newSlider->setDoubleMinimum(currSetting.min.toDouble());
             newSlider->setDoubleMaximum(currSetting.max.toDouble());
             settingsLayout->addRow("", newSlider);
@@ -357,6 +358,7 @@ void NodeSettingsWidget::generatorUpdated()
                newSlider->setDoubleValue(value);
                newSlider->blockSignals(false);
             });
+            doubleSpinBox->blockSignals(false);
             newSlider->blockSignals(false);
          } else if (spinBox) {
             QSlider* newSlider = new QSlider(Qt::Horizontal);
