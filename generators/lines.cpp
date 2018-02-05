@@ -21,7 +21,7 @@ LinesTextureGenerator::LinesTextureGenerator()
    configurables.insert("color", color);
 
    TextureGeneratorSetting lineheight;
-   lineheight.name = "Line height";
+   lineheight.name = "Line width";
    lineheight.defaultvalue = QVariant((int) 10);
    lineheight.min = QVariant((int) 0);
    lineheight.max = QVariant((int) 100);
@@ -39,8 +39,8 @@ LinesTextureGenerator::LinesTextureGenerator()
    TextureGeneratorSetting offset;
    offset.name = "Offset";
    offset.defaultvalue = QVariant((int) 0);
-   offset.min = QVariant((int) 0);
-   offset.max = QVariant((int) 100);
+   offset.min = QVariant((int) -100);
+   offset.max = QVariant((int) 0);
    offset.order = 4;
    configurables.insert("offset", offset);
 
@@ -104,7 +104,7 @@ void LinesTextureGenerator::generate(QSize size,
          double intersection_y = ((x2 * y1 - x1 * y2) * (y4 - y) - (x4 * y - x * y4) * (y2 - y1)) /
                ((x2 - x1) * (y4 - y) - (x4 - x) * (y2 - y1));
          int distance = sqrt((x - intersection_x) * (x - intersection_x) + (y - intersection_y) * (y - intersection_y));
-         if (((distance + offset) % (lineheight + spacing)) > spacing) {
+         if (((distance - offset) % (lineheight + spacing)) > spacing) {
             if (invert) {
                destimage[y * size.width() + size.width() - x - 1] = filler;
             } else {

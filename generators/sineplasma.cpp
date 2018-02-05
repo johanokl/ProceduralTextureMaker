@@ -25,7 +25,7 @@ SinePlasmaTextureGenerator::SinePlasmaTextureGenerator()
 
    TextureGeneratorSetting xoffset;
    xoffset.defaultvalue = QVariant((double) 10);
-   xoffset.name = "Offset X axis";
+   xoffset.name = "Offset left";
    xoffset.description = "Offset along the x axis";
    xoffset.min = QVariant((double) -100);
    xoffset.max = QVariant((double) 100);
@@ -34,7 +34,7 @@ SinePlasmaTextureGenerator::SinePlasmaTextureGenerator()
 
    TextureGeneratorSetting yoffset;
    yoffset.defaultvalue = QVariant((double) 10);
-   yoffset.name = "Offset Y axis";
+   yoffset.name = "Offset top";
    yoffset.description = "Offset along the y axis";
    yoffset.min = QVariant((double) -100);
    yoffset.max = QVariant((double) 100);

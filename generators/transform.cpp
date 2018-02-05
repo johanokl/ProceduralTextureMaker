@@ -42,7 +42,7 @@ TransformTextureGenerator::TransformTextureGenerator()
    configurables.insert("rotation", rotation);
 
    TextureGeneratorSetting offsetLeft;
-   offsetLeft.name = "Offset from left";
+   offsetLeft.name = "Offset left";
    offsetLeft.description = "";
    offsetLeft.defaultvalue = QVariant((double) 0);
    offsetLeft.min = QVariant((double) -200);
@@ -51,7 +51,7 @@ TransformTextureGenerator::TransformTextureGenerator()
    configurables.insert("offsetleft", offsetLeft);
 
    TextureGeneratorSetting offsetTop;
-   offsetTop.name = "Offset from top";
+   offsetTop.name = "Offset top";
    offsetTop.description = "";
    offsetTop.defaultvalue = QVariant((double) 0);
    offsetTop.min = QVariant((double) -200);

@@ -40,7 +40,7 @@ CircleTextureGenerator::CircleTextureGenerator()
    configurables.insert("outerradius", outerRadius);
 
    TextureGeneratorSetting offsetLeft;
-   offsetLeft.name = "Offset from left";
+   offsetLeft.name = "Offset left";
    offsetLeft.description = "Inner radius of the circle in percent of width";
    offsetLeft.defaultvalue = QVariant((double) 0);
    offsetLeft.min = QVariant((double) -100);
@@ -49,7 +49,7 @@ CircleTextureGenerator::CircleTextureGenerator()
    configurables.insert("offsetleft", offsetLeft);
 
    TextureGeneratorSetting offsetTop;
-   offsetTop.name = "Offset from top";
+   offsetTop.name = "Offset top";
    offsetTop.description = "Outer radius of the circle in percent of width";
    offsetTop.defaultvalue = QVariant((double) 0);
    offsetTop.min = QVariant((double) -100);

@@ -25,7 +25,7 @@ public:
    virtual int getNumSourceSlots() const { return 0; }
    virtual QString getName() const { return QString("Fill"); }
    virtual const TextureGeneratorSettings& getSettings() const { return configurables; }
-   virtual QString getDescription() const { return QString("Fills the whole texture with the specified colour."); }
+   virtual QString getDescription() const { return QString("Fills the whole texture with the specified color."); }
    virtual TextureGenerator::Type getType() const { return TextureGenerator::Type::Generator; }
 
 private:
