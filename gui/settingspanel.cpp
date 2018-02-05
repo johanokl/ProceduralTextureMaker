@@ -17,6 +17,7 @@
 #include <QComboBox>
 #include <QFileDialog>
 #include <QCheckBox>
+#include <QShowEvent>
 #include <QColorDialog>
 #include "settingspanel.h"
 #include "core/textureproject.h"
@@ -205,6 +206,19 @@ void SettingsPanel::selectDirectoryPath(QLineEdit* lineWidget)
                                                    QFileDialog::ShowDirsOnly | QFileDialog::DontResolveSymlinks);
    if (!dir.isNull()) {
       lineWidget->setText(dir);
+   }
+}
+
+/**
+ * @brief SettingsPanel::showEvent
+ * @param event
+ * Reload the settings when the panel is opened.
+ */
+void SettingsPanel::showEvent(QShowEvent* event)
+{
+   QWidget::showEvent(event);
+   if (!event->spontaneous() && !isHidden()) {
+      settingsUpdated();
    }
 }
 

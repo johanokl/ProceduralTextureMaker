@@ -34,6 +34,7 @@ class SettingsPanel : public QWidget
 public:
    SettingsPanel(MainWindow* parent, SettingsManager* settingsmanager);
    virtual ~SettingsPanel() {}
+   virtual void showEvent(QShowEvent*);
 
 public slots:
    void settingsUpdated();
