@@ -45,7 +45,7 @@ SettingsPanel::SettingsPanel(MainWindow *parent, SettingsManager* settingsmanage
    area->setFrameShape(QFrame::NoFrame);
    layout->addWidget(area);
    area->setWidget(contents);
-   setMinimumWidth(300);
+   setMinimumWidth(350);
 
    QGroupBox* sceneviewWidget = new QGroupBox("Scene View");
    QGridLayout* sceneviewLayout = new QGridLayout;
@@ -145,6 +145,19 @@ SettingsPanel::SettingsPanel(MainWindow *parent, SettingsManager* settingsmanage
    generatorsLayout->addWidget(generatorEnabledLabel, 2, 0);
    generatorsLayout->addWidget(jsGeneratorEnabledCheckbox, 2, 1);
 
+   QGroupBox* previewWidget = new QGroupBox("Preview");
+   QGridLayout* previewLayout = new QGridLayout;
+   previewWidget->setLayout(previewLayout);
+   previewWidget->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Preferred);
+   contentsLayout->addWidget(previewWidget);
+   QLabel* previewBackgroundColorLabel = new QLabel("Background color:");
+   previewBackgroundColorButton = new QPushButton("");
+   QObject::connect(previewBackgroundColorButton,
+                    static_cast<void (QPushButton::*)(bool)>(&QPushButton::clicked),
+                    [=](bool) { this->colorDialog(previewBackgroundColorButton); });
+   previewLayout->addWidget(previewBackgroundColorLabel, 2, 0);
+   previewLayout->addWidget(previewBackgroundColorButton, 2, 1);
+
    QGroupBox* saveButtonBox = new QGroupBox("");
    QGridLayout* saveButtonLayout = new QGridLayout;
    saveButtonBox->setLayout(saveButtonLayout);
@@ -236,6 +249,7 @@ void SettingsPanel::settingsUpdated()
       defaultZoomSpinbox->setValue(settingsmanager->getDefaultZoom());
       jsGeneratorEnabledCheckbox->setChecked(settingsmanager->getJSTextureGeneratorsEnabled());
       styleColorButton(backgroundColorButton, settingsmanager->getBackgroundColor());
+      styleColorButton(previewBackgroundColorButton, settingsmanager->getPreviewBackgroundColor());
       int index = backgroundBrushCombobox->findData(settingsmanager->getBackgroundBrush());
       if (index != -1) {
          backgroundBrushCombobox->setCurrentIndex(index);
@@ -254,6 +268,7 @@ void SettingsPanel::saveSettings()
    settingsmanager->setJSTextureGeneratorsEnabled(jsGeneratorEnabledCheckbox->isChecked());
    settingsmanager->setThumbnailSize(QSize(thumbnailWidthSpinbox->value(), thumbnailHeightSpinbox->value()));
    settingsmanager->setDefaultZoom(defaultZoomSpinbox->value());
+   settingsmanager->setPreviewBackgroundColor(QColor(previewBackgroundColorButton->text()));
    settingsmanager->setBackgroundColor(QColor(backgroundColorButton->text()));
    settingsmanager->setBackgroundBrush(backgroundBrushCombobox->currentData().toInt());
    blockSlot = false;

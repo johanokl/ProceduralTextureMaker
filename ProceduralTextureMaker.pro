@@ -55,7 +55,8 @@ SOURCES = main.cpp \
     generators/sinetransform.cpp \
     generators/bricks.cpp \
     generators/invert.cpp \
-    gui/previewimagepanel.cpp
+    gui/previewimagepanel.cpp \
+    gui/preview3dpanel.cpp
 
 
 HEADERS += core/texturenode.h \
@@ -102,7 +103,8 @@ HEADERS += core/texturenode.h \
     generators/sinetransform.h \
     generators/bricks.h \
     generators/invert.h \
-    gui/previewimagepanel.h
+    gui/previewimagepanel.h \
+    gui/preview3dpanel.h
 
 TARGET = "ProceduralTextureMaker"
 
@@ -111,7 +113,9 @@ macx {
   TARGET = "ProceduralTextureMaker"
 }
 
-RESOURCES += texgen.qrc
+RESOURCES += texgen.qrc \
+    shaders.qrc \
+
 RC_ICONS += images/mainicon.ico
 ICON += images/mainicon.icns
 

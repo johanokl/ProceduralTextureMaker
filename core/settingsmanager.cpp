@@ -136,6 +136,31 @@ void SettingsManager::setJSTextureGeneratorsEnabled(bool enabled)
  * @brief SettingsManager::getBackgroundColor
  * @return Node graph view background color
  */
+QColor SettingsManager::getPreviewBackgroundColor()
+{
+   QSettings settings;
+   return QColor(settings.value("previewbackgroundcolor", "#c8c8c8").toString());
+}
+
+/**
+ * @brief SettingsManager::setBackgroundColor
+ * @param val New color to be saved.
+ * Sets the background color for the node graph view.
+ */
+void SettingsManager::setPreviewBackgroundColor(QColor val)
+{
+   if (val != getPreviewBackgroundColor()) {
+      QSettings settings;
+      settings.setValue("previewbackgroundcolor", val.name());
+      settings.sync();
+      emit settingsUpdated();
+   }
+}
+
+/**
+ * @brief SettingsManager::getBackgroundColor
+ * @return Node graph view background color
+ */
 QColor SettingsManager::getBackgroundColor()
 {
    QSettings settings;

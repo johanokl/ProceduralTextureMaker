@@ -60,6 +60,7 @@ private:
    QLineEdit* jsGeneratorPathEdit;
    QCheckBox* jsGeneratorEnabledCheckbox;
    QPushButton* backgroundColorButton;
+   QPushButton* previewBackgroundColorButton;
    QComboBox* backgroundBrushCombobox;
 
    bool blockSlot;

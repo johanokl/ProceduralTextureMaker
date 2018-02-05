@@ -27,6 +27,7 @@ class AddNodePanel;
 class QCloseEvent;
 class MenuActions;
 class PreviewImagePanel;
+class Preview3dPanel;
 class SettingsPanel;
 class SettingsManager;
 class JSTexGenManager;
@@ -87,7 +88,8 @@ private:
    ItemInfoPanel* iteminfopanel;
    SettingsPanel* settingspanel;
    AddNodePanel* addnodewidget;
-   PreviewImagePanel* previewImagewidget;
+   PreviewImagePanel* previewimagewidget;
+   Preview3dPanel* preview3dwidget;
 };
 
 #endif // MAINWINDOW_H

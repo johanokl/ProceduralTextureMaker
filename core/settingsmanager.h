@@ -29,6 +29,7 @@ public:
    QSize getThumbnailSize();
    QString getJSTextureGeneratorsPath();
    bool getJSTextureGeneratorsEnabled();
+   QColor getPreviewBackgroundColor();
    QColor getBackgroundColor();
    int getBackgroundBrush();
    int getDefaultZoom();
@@ -40,6 +41,7 @@ public slots:
    void setDefaultZoom(int);
    void setPreviewSize(QSize);
    void setThumbnailSize(QSize);
+   void setPreviewBackgroundColor(QColor);
    void setBackgroundColor(QColor);
    void setBackgroundBrush(int val);
    void setJSTextureGeneratorsPath(QString);

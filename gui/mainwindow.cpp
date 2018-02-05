@@ -56,6 +56,7 @@
 #include "sceneview/viewnodescene.h"
 #include "gui/addnodepanel.h"
 #include "gui/previewimagepanel.h"
+#include "gui/preview3dpanel.h"
 #include "gui/settingspanel.h"
 #include "sceneview/viewnodeview.h"
 #include "gui/iteminfopanel.h"
@@ -84,10 +85,12 @@ MainWindow::MainWindow(TexGenApplication* parent)
 
    menuactions = new MenuActions(this);
    addnodewidget = new AddNodePanel(project);
-   previewImagewidget = new PreviewImagePanel(project);
+   previewimagewidget = new PreviewImagePanel(project);
+   preview3dwidget = new Preview3dPanel(project);
    settingspanel = new SettingsPanel(this, settingsManager);
    addnodewidget->hide();
-   previewImagewidget->hide();
+   previewimagewidget->hide();
+   preview3dwidget->hide();
    settingspanel->hide();
 
    view = new ViewNodeView(settingsManager->getDefaultZoom());
@@ -126,7 +129,8 @@ MainWindow::MainWindow(TexGenApplication* parent)
    widget->addWidget(iteminfopanel);
    widget->addWidget(view);
    widget->addWidget(addnodewidget);
-   widget->addWidget(previewImagewidget);
+   widget->addWidget(previewimagewidget);
+   widget->addWidget(preview3dwidget);
    widget->addWidget(settingspanel);
    widget->setMinimumSize(1000, 450);
    widget->setChildrenCollapsible(false);
@@ -136,15 +140,15 @@ MainWindow::MainWindow(TexGenApplication* parent)
    widget->setStretchFactor(1, 100);
    setCentralWidget(widget);
 
-   setGeometry(100, 100, 900, 600);
+   setGeometry(100, 100, 1000, 600);
    menuactions->setAddNodePanel(addnodewidget);
-   menuactions->setPreviewImagePanel(previewImagewidget);
+   menuactions->setPreviewImagePanel(previewimagewidget);
+   menuactions->setPreview3dPanel(preview3dwidget);
    menuactions->setSettingsPanel(settingspanel);
    menuactions->setItemInfoPanel(iteminfopanel);
 
    setWindowTitle("ProceduralTextureMaker");
    statusBar()->hide();
-   show();
 }
 
 
@@ -379,7 +383,8 @@ ViewNodeScene* MainWindow::createScene(ViewNodeScene* source)
    }
    view->setScene(newscene);
    connect(newscene, SIGNAL(nodeSelected(int)), iteminfopanel, SLOT(setActiveNode(int)));
-   connect(newscene, SIGNAL(nodeSelected(int)), previewImagewidget, SLOT(setActiveNode(int)));
+   connect(newscene, SIGNAL(nodeSelected(int)), previewimagewidget, SLOT(setActiveNode(int)));
+   connect(newscene, SIGNAL(nodeSelected(int)), preview3dwidget, SLOT(setActiveNode(int)));
    connect(newscene, SIGNAL(lineSelected(int, int, int)), iteminfopanel, SLOT(setActiveLine(int, int, int)));
    return newscene;
 }
