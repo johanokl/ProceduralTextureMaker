@@ -55,6 +55,7 @@ SOURCES = main.cpp \
     generators/sinetransform.cpp \
     generators/bricks.cpp \
     generators/invert.cpp \
+    generators/fire.cpp \
     gui/previewimagepanel.cpp \
     gui/preview3dpanel.cpp
 
@@ -103,6 +104,7 @@ HEADERS += core/texturenode.h \
     generators/sinetransform.h \
     generators/bricks.h \
     generators/invert.h \
+    generators/fire.h \
     gui/previewimagepanel.h \
     gui/preview3dpanel.h
 

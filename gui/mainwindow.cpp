@@ -40,6 +40,7 @@
 #include "generators/sinetransform.h"
 #include "generators/setchannels.h"
 #include "generators/mirror.h"
+#include "generators/fire.h"
 #include "generators/boxblur.h"
 #include "generators/invert.h"
 #include "generators/whirl.h"
@@ -104,6 +105,7 @@ MainWindow::MainWindow(TexGenApplication* parent)
    project->addGenerator(TextureGeneratorPtr(new InvertTextureGenerator()));
    project->addGenerator(TextureGeneratorPtr(new BricksTextureGenerator()));
    project->addGenerator(TextureGeneratorPtr(new WhirlTextureGenerator()));
+   project->addGenerator(TextureGeneratorPtr(new FireTextureGenerator()));
    project->addGenerator(TextureGeneratorPtr(new SetChannelsTextureGenerator()));
    project->addGenerator(TextureGeneratorPtr(new GreyscaleTextureGenerator()));
    project->addGenerator(TextureGeneratorPtr(new SquareTextureGenerator()));
