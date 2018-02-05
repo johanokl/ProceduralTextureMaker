@@ -32,10 +32,26 @@ PerlinNoiseTextureGenerator::PerlinNoiseTextureGenerator()
    persistence.description = "This controls the roughness of the picture,";
    persistence.order = 3;
    configurables.insert("persistence", persistence);
+
+   TextureGeneratorSetting zoom;
+   zoom.defaultvalue = QVariant((double) 75);
+   zoom.min = QVariant((double) 10);
+   zoom.max = QVariant((double) 200);
+   zoom.name = "Zoom";
+   zoom.order = 4;
+   configurables.insert("zoom", zoom);
+
+   TextureGeneratorSetting randomizer;
+   randomizer.defaultvalue = QVariant((double) 500);
+   randomizer.min = QVariant((double) 0);
+   randomizer.max = QVariant((double) 1000);
+   randomizer.name = "Randomize";
+   randomizer.order = 5;
+   configurables.insert("randomizer", randomizer);
 }
 
 
-double PerlinNoiseTextureGenerator::findnoise2(double x,double y) const
+double PerlinNoiseTextureGenerator::findnoise2(double x, double y) const
 {
    int n = (int) x + (int) y * 57;
    n = (n << 13) ^ n;
@@ -44,18 +60,15 @@ double PerlinNoiseTextureGenerator::findnoise2(double x,double y) const
 }
 
 
-double PerlinNoiseTextureGenerator::noise(double x,double y) const
+double PerlinNoiseTextureGenerator::noise(double x, double y) const
 {
-   double floorx = (double) ((int)x);
-   double floory = (double) ((int)y);
-   double s, t, u, v;
-   s = findnoise2(floorx, floory);
-   t = findnoise2(floorx + 1, floory);
-   u = findnoise2(floorx, floory + 1);
-   v = findnoise2(floorx + 1, floory + 1);
-   double int1 = interpolate(s, t, x - floorx);
-   double int2 = interpolate(u, v, x - floorx);
-   return interpolate(int1, int2, y - floory);
+   double s = findnoise2((int) x, (int) y);
+   double t = findnoise2((int) x + 1, (int) y);
+   double u = findnoise2((int) x, (int) y + 1);
+   double v = findnoise2((int) x + 1, (int) y + 1);
+   double int1 = interpolate(s, t, x - (int) x);
+   double int2 = interpolate(u, v, x - (int) x);
+   return interpolate(int1, int2, y - (int) y);
 }
 
 
@@ -77,8 +90,10 @@ void PerlinNoiseTextureGenerator::generate(QSize size, TexturePixel* destimage,
    QColor color = settings->value("color").value<QColor>();
    int numOctaves = settings->value("numoctaves").toInt();
    double persistence = settings->value("persistence").toDouble();
-
-   double zoom = 75;
+   double zoom = settings->value("zoom").toDouble();
+   double randomizer = settings->value("randomizer").toDouble() * 1000;
+   double xFactor = (double) 500 / size.width();
+   double yFactor = (double) 500 / size.height();
    bool blend = false;
    TexturePixel* sourceImg = NULL;
    if (sourceimages.contains(0)) {
@@ -93,7 +108,8 @@ void PerlinNoiseTextureGenerator::generate(QSize size, TexturePixel* destimage,
          for (int currOctave = 0; currOctave < numOctaves - 1; currOctave++) {
             double frequency = pow(2, currOctave); //This increases the frequency with every loop of the octave.
             double amplitude = pow(persistence, currOctave);//This decreases the amplitude with every loop of the octave.
-            getnoise += noise(((double) x) * frequency / zoom, ((double) y) / zoom * frequency) * amplitude;
+            getnoise += noise(randomizer + (double) x * xFactor * frequency / zoom,
+                              randomizer + (double) y * yFactor / zoom * frequency) * amplitude;
          }
          int pixelColor = (int) ((getnoise * 128.0) + 128.0);
          if (pixelColor > 255) {

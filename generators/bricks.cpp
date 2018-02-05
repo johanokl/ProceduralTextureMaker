@@ -32,17 +32,17 @@ BricksTextureGenerator::BricksTextureGenerator()
 
    TextureGeneratorSetting brickwidth;
    brickwidth.name = "Brick width";
-   brickwidth.defaultvalue = QVariant((int) 40);
+   brickwidth.defaultvalue = QVariant((int) 120);
    brickwidth.min = QVariant((int) 0);
-   brickwidth.max = QVariant((int) 100);
+   brickwidth.max = QVariant((int) 300);
    brickwidth.order = 3;
    configurables.insert("brickwidth", brickwidth);
 
    TextureGeneratorSetting brickheight;
    brickheight.name = "Brick height";
-   brickheight.defaultvalue = QVariant((int) 15);
+   brickheight.defaultvalue = QVariant((int) 45);
    brickheight.min = QVariant((int) 0);
-   brickheight.max = QVariant((int) 100);
+   brickheight.max = QVariant((int) 300);
    brickheight.order = 4;
    configurables.insert("brickheight", brickheight);
 
@@ -74,8 +74,8 @@ void BricksTextureGenerator::generate(QSize size,
    }
    QColor color = settings->value("color").value<QColor>();
    int linewidth = settings->value("linewidth").toDouble() * size.height() / 300;
-   int brickheight = settings->value("brickheight").toDouble() * size.height() / 100;
-   int brickwidth = settings->value("brickwidth").toDouble() * size.width() / 100;
+   int brickheight = settings->value("brickheight").toDouble() * size.height() / 300;
+   int brickwidth = settings->value("brickwidth").toDouble() * size.width() / 300;
    int offsetx = settings->value("offsetx").toDouble() * size.width() / 100;
    int offsety = settings->value("offsety").toDouble() * size.height() / 100;
 
