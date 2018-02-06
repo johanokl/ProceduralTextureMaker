@@ -3,8 +3,8 @@ DESTDIR = bin
 
 QT += xml \
     widgets \
+    opengl \
     gui \
-    qml \
     script \
     core
 
@@ -57,8 +57,7 @@ SOURCES = main.cpp \
     generators/invert.cpp \
     generators/fire.cpp \
     gui/previewimagepanel.cpp \
-    gui/preview3dpanel.cpp
-
+    gui/cubewidget.cpp
 
 HEADERS += core/texturenode.h \
     core/textureimage.h \
@@ -106,7 +105,7 @@ HEADERS += core/texturenode.h \
     generators/invert.h \
     generators/fire.h \
     gui/previewimagepanel.h \
-    gui/preview3dpanel.h
+    gui/cubewidget.h
 
 TARGET = "ProceduralTextureMaker"
 

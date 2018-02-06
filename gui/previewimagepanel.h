@@ -9,7 +9,6 @@
 #define PREVIEWIMAGEPANEL_H
 
 #include <QWidget>
-#include <QMap>
 
 class TextureProject;
 class QGridLayout;
@@ -18,6 +17,8 @@ class QGroupBox;
 class QPushButton;
 class ImageLabel;
 class QLabel;
+class QComboBox;
+class CubeWidget;
 class QResizeEvent;
 class QShowEvent;
 
@@ -42,15 +43,18 @@ public slots:
    void setActiveNode(int id);
    void imageAvailable(int, QSize);
    void imageUpdated(int);
+   void settingsUpdated();
 
 private:
+   QPixmap tilePixmap(const QPixmap &pixmap, int number);
    TextureProject* project;
    QVBoxLayout* layout;
+   QComboBox* combobox;
    ImageLabel* imageLabel;
-   ImageLabel* tiledImageLabel;
+   CubeWidget* cubeWidget;
    int currId;
+   int numTiles;
    QSize imageSize;
-   bool validImage;
 };
 
 /**
@@ -68,7 +72,6 @@ public:
     const QPixmap* pixmap() const;
 public slots:
     void setPixmap(const QPixmap&);
-    void setTiledPixmap(const QPixmap&);
 protected:
     void resizeEvent(QResizeEvent*) ;//override;
 private slots:

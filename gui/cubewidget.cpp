@@ -5,164 +5,9 @@
  * Johan Lindqvist (johan.lindqvist@gmail.com)
  */
 
-#include <QPixmap>
-#include <QPainter>
 #include <QMouseEvent>
-#include <math.h>
-#include <QVector2D>
-#include <QVector3D>
-#include "global.h"
-#include "core/textureproject.h"
-#include "generators/texturegenerator.h"
-#include "gui/preview3dpanel.h"
-#include "gui/nodesettingswidget.h"
-#include "gui/connectionwidget.h"
-#include "generators/texturegenerator.h"
-#include "core/settingsmanager.h"
+#include "gui/cubewidget.h"
 
-/**
- * @brief Preview3dPanel::Preview3dPanel
- * @param project
- */
-Preview3dPanel::Preview3dPanel(TextureProject* project)
-{
-   this->project = project;
-   imageSize = project->getThumbnailSize();
-   validImage = false;
-   currId = -1;
-   QObject::connect(project, SIGNAL(imageAvailable(int, QSize)),
-                    this, SLOT(imageAvailable(int, QSize)));
-   QObject::connect(project, SIGNAL(imageUpdated(int)),
-                    this, SLOT(imageUpdated(int)));
-   QObject::connect(project->getSettingsManager(), SIGNAL(settingsUpdated(void)),
-                    this, SLOT(settingsUpdated(void)));
-   layout = new QVBoxLayout(this);
-   setLayout(layout);
-   setMaximumWidth(500);
-   setMinimumWidth(200);
-   cubeWidget = new CubeWidget(this);
-   tiledCubeWidget = new CubeWidget(this);
-   layout->addWidget(cubeWidget);
-   layout->addWidget(tiledCubeWidget);
-   QWidget *spacerWidget = new QWidget();
-   spacerWidget->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
-   spacerWidget->setVisible(true);
-   layout->addWidget(spacerWidget);
-   settingsUpdated();
-}
-
-/**
- * @brief Preview3dPanel::settingsUpdated
- * Called whenever a project setting has been changed.
- * Might not just be the background caller.
- */
-void Preview3dPanel::settingsUpdated()
-{
-   QColor bg = project->getSettingsManager()->getPreviewBackgroundColor();
-   cubeWidget->setBackgroundColor(bg);
-   tiledCubeWidget->setBackgroundColor(bg);
-}
-
-/**
- * @brief Preview3dPanel::imageUpdated
- * @param id Node id
- * Removes the no longer valid image from the pixmap widgets.
- */
-void Preview3dPanel::imageUpdated(int id)
-{
-   if (id != currId) {
-      return;
-   }
-   if (this->isHidden()) {
-      return;
-   }
-   validImage = false;
-   cubeWidget->imageUpdated();
-   tiledCubeWidget->imageUpdated();
-   update();
-}
-
-/**
- * @brief Preview3dPanel::loadNodeImage
- * @param id Node id
- * @return true if could load image
- * Checks if there is an image with the thumbnail size in the node's
- * texture cache and if found displays it in the pixmap widgets.
- */
-bool Preview3dPanel::loadNodeImage(int id)
-{
-   TextureNodePtr texNode = project->getNode(id);
-   if (texNode.isNull()) {
-      return false;
-   }
-   imageSize = project->getThumbnailSize();
-   if (!texNode->isTextureInCache(imageSize)) {
-      return false;
-   }
-   QImage tempimage = QImage(imageSize.width(), imageSize.height(), QImage::Format_ARGB32);
-   memcpy(tempimage.bits(),
-          texNode->getImage(imageSize)->getData(),
-          (imageSize.width() * imageSize.height() * sizeof(TexturePixel)));
-   QPixmap newImage = QPixmap::fromImage(tempimage);
-   cubeWidget->setTexture(newImage);
-   tiledCubeWidget->setTiledTexture(newImage);
-   cubeWidget->show();
-   tiledCubeWidget->show();
-   validImage = true;
-   return true;
-}
-
-/**
- * @brief Preview3dPanel::imageAvailable
- * @param id Node id
- * @param size Image size
- * A node has a new generated image in the specified size.
- * If it's the desired size and the panel is visible it
- * loads a new image to the widgets.
- */
-void Preview3dPanel::imageAvailable(int id, QSize size)
-{
-   if (id != currId || size != imageSize) {
-      return;
-   }
-   if (this->isHidden()) {
-      return;
-   }
-   loadNodeImage(id);
-}
-
-/**
- * @brief Preview3dPanel::showEvent
- * @param event
- * Load the updated textures when the panel is opened.
- */
-void Preview3dPanel::showEvent(QShowEvent* event)
-{
-   QWidget::showEvent(event);
-   if (!loadNodeImage(currId)) {
-      cubeWidget->imageUpdated();
-      tiledCubeWidget->imageUpdated();
-   }
-}
-
-/**
- * @brief Preview3dPanel::setActiveNode
- * @param id Node id
- * Updates the textures.
- */
-void Preview3dPanel::setActiveNode(int id)
-{
-   if (currId == id) {
-      return;
-   }
-   currId = id;
-   if (this->isHidden()) {
-      return;
-   }
-   cubeWidget->imageUpdated();
-   tiledCubeWidget->imageUpdated();
-   loadNodeImage(id);
-}
 
 /**
  * @brief CubeWidget::CubeWidget
@@ -172,7 +17,6 @@ CubeWidget::CubeWidget(QWidget *parent) :
    QOpenGLWidget(parent), indexBuf(QOpenGLBuffer::IndexBuffer)
 {
    initialized = false;
-   geometries = 0;
    texture = 0;
    angularSpeed = 0;
    QSizePolicy sizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::MinimumExpanding);
@@ -229,7 +73,7 @@ void CubeWidget::timerEvent(QTimerEvent *)
    // Decrease angular speed (friction)
    angularSpeed *= 0.99;
    // Stop rotation when speed goes below threshold
-   if (isVisible() && angularSpeed > 0.01) {
+   if (isVisible() && (textureUpdated || angularSpeed > 0.01)) {
       // Update rotation
       rotation = QQuaternion::fromAxisAndAngle(rotationAxis, angularSpeed) * rotation;
       update();
@@ -243,17 +87,13 @@ void CubeWidget::timerEvent(QTimerEvent *)
 void CubeWidget::initializeGL()
 {
    initializeOpenGLFunctions();
-   // Compile vertex shader
+   // Compile shaders
    if (!program.addShaderFromSourceFile(QOpenGLShader::Vertex, ":/3d/vshader.glsl") ||
        !program.addShaderFromSourceFile(QOpenGLShader::Fragment, ":/3d/fshader.glsl") ||
        !program.link() ||
        !program.bind()) {
       close();
    }
-   QPixmap emptyPixmap(QSize(10, 10));
-   emptyPixmap.fill(Qt::black);
-   emptytexture = new QOpenGLTexture(emptyPixmap.toImage().mirrored());
-   textureAvailable = false;
    glClearColor(backgroundcolor.redF(), backgroundcolor.greenF(), backgroundcolor.blueF(), 1);
    glEnable(GL_DEPTH_TEST);
    glEnable(GL_CULL_FACE);
@@ -302,32 +142,12 @@ void CubeWidget::initializeGL()
 }
 
 /**
- * @brief CubeWidget::setTiledTexture
- * @param pixmap Original 1:1 texture.
- * Scales the texturs sizes 50% so four tiles are fitted in
- * the place of one.
- */
-void CubeWidget::setTiledTexture(const QPixmap &pixmap)
-{
-   if (pixmap.width() <= 0 || pixmap.height() <= 0) {
-      return;
-   }
-   QPixmap newPixmap(pixmap.size() * 2);
-   newPixmap.fill(Qt::white);
-   QPainter painter(&newPixmap);
-   painter.setCompositionMode(QPainter::CompositionMode_SourceOver);
-   painter.fillRect(0, 0, newPixmap.width(), newPixmap.height(), QBrush(pixmap));
-   setTexture(newPixmap);
-}
-
-/**
  * @brief CubeWidget::imageUpdated
  * Called when a node's settings have been changed and the
  * current image is no longer valid.
  */
 void CubeWidget::imageUpdated()
 {
-   textureAvailable = false;
    update();
 }
 
@@ -352,9 +172,6 @@ void CubeWidget::setBackgroundColor(QColor bg)
  */
 void CubeWidget::setTexture(const QPixmap &pixmap)
 {
-   if (pixmap.size().isEmpty() || !pixmap.size().isValid()) {
-       return;
-   }
    if (texture) {
       makeCurrent();
       texture->release();
@@ -363,8 +180,7 @@ void CubeWidget::setTexture(const QPixmap &pixmap)
    texture = new QOpenGLTexture(pixmap.toImage().mirrored());
    texture->setMinificationFilter(QOpenGLTexture::Nearest);
    texture->setMagnificationFilter(QOpenGLTexture::Linear);
-   textureAvailable = true;
-   update();
+   textureUpdated = true;
 }
 
 /**
@@ -387,15 +203,10 @@ void CubeWidget::resizeGL(int width, int height)
  */
 void CubeWidget::paintGL()
 {
-   if (!texture) {
-      return;
-   }
    // Clear color and depth buffer
    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-   if (textureAvailable) {
+   if (texture) {
       texture->bind();
-   } else {
-      emptytexture->bind();
    }
    // Calculate model view transformation
    QMatrix4x4 matrix;

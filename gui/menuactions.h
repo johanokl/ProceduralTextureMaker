@@ -9,7 +9,6 @@
 #define MENUACTIONS_H
 
 #include <QObject>
-#include <QMap>
 #include <QVector>
 
 class QMainWindow;
@@ -44,14 +43,12 @@ public:
    virtual ~MenuActions();
    void setAddNodePanel(AddNodePanel* addNodePanel);
    void setPreviewImagePanel(PreviewImagePanel* previewImagePanel);
-   void setPreview3dPanel(Preview3dPanel* preview3dPanel);
    void setSettingsPanel(SettingsPanel* settingsPanel);
    void setItemInfoPanel(ItemInfoPanel* settingswidget);
 
 public slots:
    void toggleAddNodePanel();
    void togglePreviewImagePanel();
-   void togglePreview3dPanel();
    void toggleItemInfoPanel();
    void toggleSettingsPanel();
    void toogleToolbars();
@@ -62,7 +59,6 @@ private:
    MainWindow* parentwindow;
    AddNodePanel* nodepanel;
    PreviewImagePanel* previewImagePanel;
-   Preview3dPanel* preview3dPanel;
    ItemInfoPanel* nodesettings;
    SettingsPanel* settingspanel;
 

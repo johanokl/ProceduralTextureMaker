@@ -5,30 +5,21 @@
  * Johan Lindqvist (johan.lindqvist@gmail.com)
  */
 
-#include <stdio.h>
-#include <math.h>
-#include <QPainter>
-#include <QLibrary>
 #include <QFileDialog>
 #include <QFileInfo>
-#include <QGraphicsPixmapItem>
-#include <QLabel>
-#include <QIcon>
 #include <QFile>
 #include <QMessageBox>
-#include <QSharedPointer>
-#include <QHBoxLayout>
+#include <QVBoxLayout>
 #include <QCloseEvent>
 #include <QAction>
 #include <QStatusBar>
 #include <QTextEdit>
 #include <QSplitter>
-#include <QGraphicsItemGroup>
 #include "texgenapplication.h"
+#include "global.h"
 #include "core/textureproject.h"
 #include "core/texturenode.h"
 #include "core/settingsmanager.h"
-#include "global.h"
 #include "core/textureimage.h"
 #include "generators/javascript.h"
 #include "generators/fill.h"
@@ -55,11 +46,11 @@
 #include "generators/modifyalpha.h"
 #include "sceneview/viewnodeitem.h"
 #include "sceneview/viewnodescene.h"
+#include "sceneview/viewnodeview.h"
 #include "gui/addnodepanel.h"
 #include "gui/previewimagepanel.h"
-#include "gui/preview3dpanel.h"
+#include "gui/cubewidget.h"
 #include "gui/settingspanel.h"
-#include "sceneview/viewnodeview.h"
 #include "gui/iteminfopanel.h"
 #include "gui/menuactions.h"
 #include "mainwindow.h"
@@ -87,11 +78,9 @@ MainWindow::MainWindow(TexGenApplication* parent)
    menuactions = new MenuActions(this);
    addnodewidget = new AddNodePanel(project);
    previewimagewidget = new PreviewImagePanel(project);
-   preview3dwidget = new Preview3dPanel(project);
    settingspanel = new SettingsPanel(this, settingsManager);
    addnodewidget->hide();
    previewimagewidget->hide();
-   preview3dwidget->hide();
    settingspanel->hide();
 
    view = new ViewNodeView(settingsManager->getDefaultZoom());
@@ -132,7 +121,6 @@ MainWindow::MainWindow(TexGenApplication* parent)
    widget->addWidget(view);
    widget->addWidget(addnodewidget);
    widget->addWidget(previewimagewidget);
-   widget->addWidget(preview3dwidget);
    widget->addWidget(settingspanel);
    widget->setMinimumSize(1000, 450);
    widget->setChildrenCollapsible(false);
@@ -145,7 +133,6 @@ MainWindow::MainWindow(TexGenApplication* parent)
    setGeometry(100, 100, 1000, 600);
    menuactions->setAddNodePanel(addnodewidget);
    menuactions->setPreviewImagePanel(previewimagewidget);
-   menuactions->setPreview3dPanel(preview3dwidget);
    menuactions->setSettingsPanel(settingspanel);
    menuactions->setItemInfoPanel(iteminfopanel);
 
@@ -386,7 +373,6 @@ ViewNodeScene* MainWindow::createScene(ViewNodeScene* source)
    view->setScene(newscene);
    connect(newscene, SIGNAL(nodeSelected(int)), iteminfopanel, SLOT(setActiveNode(int)));
    connect(newscene, SIGNAL(nodeSelected(int)), previewimagewidget, SLOT(setActiveNode(int)));
-   connect(newscene, SIGNAL(nodeSelected(int)), preview3dwidget, SLOT(setActiveNode(int)));
    connect(newscene, SIGNAL(lineSelected(int, int, int)), iteminfopanel, SLOT(setActiveLine(int, int, int)));
    return newscene;
 }

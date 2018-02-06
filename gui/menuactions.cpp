@@ -5,25 +5,16 @@
  * Johan Lindqvist (johan.lindqvist@gmail.com)
  */
 
-#include <QMenu>
-#include <QMainWindow>
 #include <QMenuBar>
 #include <QToolBar>
-#include <QToolButton>
-#include <QGridLayout>
-#include <QGroupBox>
-#include <QLineEdit>
-#include <QLabel>
+#include <QAction>
 #include <QSettings>
 #include <QFileDialog>
 #include "texgenapplication.h"
 #include "mainwindow.h"
 #include "gui/menuactions.h"
-#include "core/textureproject.h"
-#include "generators/texturegenerator.h"
 #include "gui/addnodepanel.h"
 #include "gui/previewimagepanel.h"
-#include "gui/preview3dpanel.h"
 #include "gui/settingspanel.h"
 #include "gui/iteminfopanel.h"
 
@@ -106,13 +97,6 @@ MenuActions::MenuActions(MainWindow* parent)
    displayPreviewImagePanelAct->setCheckable(true);
    displayPreviewImagePanelAct->setEnabled(false);
 
-   togglePreview3dPanelAct = new QAction("Toggle preview 3d panel", this);
-   connect(togglePreview3dPanelAct, SIGNAL(triggered()), this, SLOT(togglePreview3dPanel()));
-   displayPreview3dPanelAct = new QAction("Display preview 3d panel", this);
-   connect(displayPreview3dPanelAct, SIGNAL(triggered()), this, SLOT(togglePreview3dPanel()));
-   displayPreview3dPanelAct->setCheckable(true);
-   displayPreview3dPanelAct->setEnabled(false);
-
    displaySettingsPanelAct = new QAction("Display settings", this);
    connect(displaySettingsPanelAct, SIGNAL(triggered()), this, SLOT(toggleSettingsPanel()));
    displaySettingsPanelAct->setCheckable(true);
@@ -141,7 +125,6 @@ MenuActions::MenuActions(MainWindow* parent)
    viewMenu->addAction(displayAddNodePanelAct);
    viewMenu->addAction(displayToolbarsAct);
    viewMenu->addAction(displayPreviewImagePanelAct);
-   viewMenu->addAction(displayPreview3dPanelAct);
    viewMenu->addAction(displaySettingsPanelAct);
    viewMenu->addAction(displayItemInfoPanelAct);
    viewMenu->addSeparator();
@@ -190,7 +173,6 @@ MenuActions::MenuActions(MainWindow* parent)
    toggleAddNodeToolBar->addWidget(spacerWidget);
    toggleAddNodeToolBar->addAction(toggleAddNodePanelAct);
    toggleAddNodeToolBar->addAction(togglePreviewImagePanelAct);
-   toggleAddNodeToolBar->addAction(togglePreview3dPanelAct);
 
    connect(parent->parent(), SIGNAL(windowsChanged()), this, SLOT(windowsChanged()));
 
@@ -198,7 +180,6 @@ MenuActions::MenuActions(MainWindow* parent)
    lastOpenedDirectory = settings.value("lastopeneddirectory", QDir::homePath()).toString();
    displayAddNodePanelAct->setChecked(settings.value("displayAddNodePanel", true).toBool());
    displayPreviewImagePanelAct->setChecked(settings.value("displayPreviewImagePanel", false).toBool());
-   displayPreview3dPanelAct->setChecked(settings.value("displayPreview3dPanel", false).toBool());
    displayItemInfoPanelAct->setChecked(settings.value("displayItemInfoPanel", true).toBool());
    displaySettingsPanelAct->setChecked(settings.value("displaySettingsPanel", false).toBool());
    displayToolbarsAct->setChecked(settings.value("displayToolbars", true).toBool());
@@ -218,7 +199,6 @@ MenuActions::~MenuActions()
    QSettings settings;
    settings.setValue("displayAddNodePanel", displayAddNodePanelAct->isChecked());
    settings.setValue("displayPreviewImagePanel", displayPreviewImagePanelAct->isChecked());
-   settings.setValue("displayPreview3dPanel", displayPreview3dPanelAct->isChecked());
    settings.setValue("displayItemInfoPanel", displayItemInfoPanelAct->isChecked());
    settings.setValue("displaySettingsPanel", displaySettingsPanelAct->isChecked());
    settings.setValue("displayToolbars", displayToolbarsAct->isChecked());
@@ -249,19 +229,6 @@ void MenuActions::setPreviewImagePanel(PreviewImagePanel* previewImagePanel)
    displayPreviewImagePanelAct->setEnabled(true);
    previewImagePanel->setVisible(displayPreviewImagePanelAct->isChecked());
 }
-
-/**
- * @brief MenuActions::setPreview3dPanel
- * @param Preview3dPanel
- * Connects a new node 3d preview panel and sets its visiblity.
- */
-void MenuActions::setPreview3dPanel(Preview3dPanel* preview3dPanel)
-{
-   this->preview3dPanel = preview3dPanel;
-   displayPreview3dPanelAct->setEnabled(true);
-   preview3dPanel->setVisible(displayPreview3dPanelAct->isChecked());
-}
-
 
 /**
  * @brief MenuActions::setSettingsPanel
@@ -311,19 +278,6 @@ void MenuActions::togglePreviewImagePanel()
    }
    previewImagePanel->setVisible(!previewImagePanel->isVisible());
    displayPreviewImagePanelAct->setChecked(previewImagePanel->isVisible());
-}
-
-/**
- * @brief MenuActions::togglePreview3dPanel
- * Displays or hides the 3d preview panel depending on if visible or hidden.
- */
-void MenuActions::togglePreview3dPanel()
-{
-   if (!preview3dPanel) {
-      return;
-   }
-   preview3dPanel->setVisible(!preview3dPanel->isVisible());
-   displayPreview3dPanelAct->setChecked(preview3dPanel->isVisible());
 }
 
 /**

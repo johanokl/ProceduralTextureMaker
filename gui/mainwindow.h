@@ -9,13 +9,6 @@
 #define MAINWINDOW_H
 
 #include <QMainWindow>
-#include <QImage>
-#include <QPixmap>
-#include <QGraphicsScene>
-#include <QGraphicsItem>
-#include <QPainter>
-#include <QGraphicsView>
-#include <QToolBar>
 #include "generators/texturegenerator.h"
 
 class TexGenApplication;
