@@ -9,7 +9,6 @@
 #define JSTEXGENMANAGER_H
 
 #include <QObject>
-#include <QSet>
 #include <QReadWriteLock>
 #include "texturegenerator.h"
 

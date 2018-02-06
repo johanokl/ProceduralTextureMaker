@@ -5,12 +5,7 @@
  * Johan Lindqvist (johan.lindqvist@gmail.com)
  */
 
-#include <QMessageBox>
 #include <QFileOpenEvent>
-#include <QWindow>
-#include <QList>
-#include <QWindowList>
-#include <QMenu>
 #include "gui/mainwindow.h"
 #include "core/textureproject.h"
 #include "texgenapplication.h"

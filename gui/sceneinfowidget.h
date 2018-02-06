@@ -10,17 +10,12 @@
 
 #include <QWidget>
 #include <QVBoxLayout>
-#include <QList>
-#include <QMap>
 #include "core/texturenode.h"
 
-class TextureProject;
 class ItemInfoPanel;
 class QLabel;
-class QPushButton;
-class QSpacerItem;
 class QGroupBox;
-class QLineEdit;
+class QVBoxLayout;
 
 /**
  * @brief The SceneInfoWidget class

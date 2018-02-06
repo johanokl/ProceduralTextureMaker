@@ -5,10 +5,9 @@
  * Johan Lindqvist (johan.lindqvist@gmail.com)
  */
 
-#include <QColor>
-#include "core/textureimage.h"
-#include "circle.h"
 #include <math.h>
+#include <QColor>
+#include "circle.h"
 
 using namespace std;
 

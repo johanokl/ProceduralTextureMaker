@@ -5,7 +5,6 @@
  * Johan Lindqvist (johan.lindqvist@gmail.com)
  */
 
-#include <QMapIterator>
 #include "empty.h"
 
 void EmptyGenerator::generate(QSize size, TexturePixel* destimage,

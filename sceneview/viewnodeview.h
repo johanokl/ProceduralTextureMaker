@@ -9,10 +9,7 @@
 #define VIEWNODEVIEW_H
 
 #include <QObject>
-#include <QWidget>
 #include <QGraphicsView>
-
-class ViewNodeScene;
 
 /**
  * @brief The ViewNodeView class

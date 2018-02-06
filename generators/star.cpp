@@ -6,8 +6,6 @@
  */
 
 #include <math.h>
-#include <QStringList>
-#include <QColor>
 #include <QPainter>
 #include "core/textureimage.h"
 #include "star.h"

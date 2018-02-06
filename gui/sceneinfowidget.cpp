@@ -5,14 +5,8 @@
  * Johan Lindqvist (johan.lindqvist@gmail.com)
  */
 
-#include <QPushButton>
 #include <QLabel>
-#include <QSpacerItem>
-#include <QString>
-#include <QLineEdit>
-#include <QGridLayout>
 #include <QGroupBox>
-#include "global.h"
 #include "core/textureproject.h"
 #include "gui/sceneinfowidget.h"
 #include "gui/iteminfopanel.h"

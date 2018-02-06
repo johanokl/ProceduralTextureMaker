@@ -7,27 +7,18 @@
 
 #include <QPushButton>
 #include <QLabel>
-#include <QSpacerItem>
-#include <QString>
 #include <QLineEdit>
-#include <QGridLayout>
 #include <QGroupBox>
-#include <QSlider>
 #include <QFormLayout>
 #include <QDoubleSpinBox>
-#include <QSpinBox>
-#include <QtGlobal>
 #include <QColorDialog>
 #include <QComboBox>
 #include <QScrollArea>
-#include <algorithm>
+#include <QVBoxLayout>
 #include "gui/nodesettingswidget.h"
 #include "gui/iteminfopanel.h"
 #include "gui/qdoubleslider.h"
 #include "core/textureproject.h"
-#include "core/texturenode.h"
-#include "generators/texturegenerator.h"
-#include "global.h"
 
 /**
  * @brief NodeSettingsWidget::NodeSettingsWidget

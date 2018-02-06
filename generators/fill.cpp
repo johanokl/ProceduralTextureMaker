@@ -6,7 +6,6 @@
  */
 
 #include <QColor>
-#include "core/textureimage.h"
 #include "fill.h"
 
 using namespace std;

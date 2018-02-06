@@ -5,10 +5,7 @@
  * Johan Lindqvist (johan.lindqvist@gmail.com)
  */
 
-#include <QtMath>
-#include <QColor>
 #include <math.h>
-#include <algorithm>
 #include "gaussianblur.h"
 
 GaussianBlurTextureGenerator::GaussianBlurTextureGenerator()

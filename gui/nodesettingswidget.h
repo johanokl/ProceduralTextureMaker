@@ -9,7 +9,6 @@
 #define NODESETTINGSWIDGET_H
 
 #include <QWidget>
-#include <QVBoxLayout>
 #include <QList>
 #include <QMap>
 #include "core/texturenode.h"
@@ -24,8 +23,10 @@ class QGroupBox;
 class QLineEdit;
 class QFormLayout;
 class QSlider;
+class QGridLayout;
 class QDoubleSlider;
 class QScrollArea;
+class QVBoxLayout;
 
 /**
  * @brief The NodeSettingsWidget class

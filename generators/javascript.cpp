@@ -10,15 +10,10 @@
 #include <QThread>
 #include <QDebug>
 #include <QJsonDocument>
-#include <QMapIterator>
 #include <QJsonArray>
-#include <QListIterator>
-#include <QVariant>
-#include <QVariantMap>
 #include <QJsonObject>
 #include "core/textureproject.h"
 #include "core/settingsmanager.h"
-#include "texturegenerator.h"
 #include "javascript.h"
 
 // Switch between Qt script engines

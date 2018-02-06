@@ -8,7 +8,6 @@
 #include <math.h>
 #include <QColor>
 #include <QtMath>
-#include "core/textureimage.h"
 #include "setchannels.h"
 
 using namespace std;

@@ -6,10 +6,6 @@
  */
 
 #include "blending.h"
-#include "core/textureimage.h"
-#include <math.h>
-#include <QColor>
-#include <QtMath>
 
 using namespace std;
 

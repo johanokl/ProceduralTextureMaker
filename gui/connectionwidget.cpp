@@ -7,17 +7,11 @@
 
 #include <QPushButton>
 #include <QLabel>
-#include <QSpacerItem>
-#include <QString>
-#include <QLineEdit>
-#include <QGridLayout>
+#include <QVBoxLayout>
 #include <QGroupBox>
 #include "core/textureproject.h"
-#include "core/texturenode.h"
 #include "gui/connectionwidget.h"
 #include "gui/iteminfopanel.h"
-#include "generators/texturegenerator.h"
-#include "global.h"
 
 /**
  * @brief ConnectionWidget::ConnectionWidget

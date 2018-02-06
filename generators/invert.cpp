@@ -5,10 +5,6 @@
  * Johan Lindqvist (johan.lindqvist@gmail.com)
  */
 
-#include <math.h>
-#include <QColor>
-#include <QtMath>
-#include "core/textureimage.h"
 #include "invert.h"
 
 using namespace std;

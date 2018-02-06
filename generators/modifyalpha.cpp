@@ -5,7 +5,6 @@
  * Johan Lindqvist (johan.lindqvist@gmail.com)
  */
 
-#include "core/textureimage.h"
 #include "modifyalpha.h"
 
 using namespace std;

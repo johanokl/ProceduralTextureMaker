@@ -9,12 +9,6 @@
 #define VIEWNODEITEM_H
 
 #include <QGraphicsItem>
-#include <QPixmap>
-#include <QSharedPointer>
-#include <QSet>
-#include <QSize>
-#include <QMap>
-#include "global.h"
 #include "core/texturenode.h"
 
 class ViewNodeScene;

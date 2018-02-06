@@ -9,8 +9,6 @@
 #include <QtMath>
 #include <QColor>
 #include "sineplasma.h"
-#include "core/textureimage.h"
-
 
 using namespace std;
 

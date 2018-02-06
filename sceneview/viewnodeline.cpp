@@ -5,11 +5,8 @@
  * Johan Lindqvist (johan.lindqvist@gmail.com)
  */
 
-#include <QLineF>
 #include <QPen>
-#include <QPointF>
 #include <QPainter>
-#include <QTransform>
 #include <QtMath>
 #include <QCursor>
 #include <QGraphicsSceneMouseEvent>

@@ -5,11 +5,6 @@
  * Johan Lindqvist (johan.lindqvist@gmail.com)
  */
 
-#include <math.h>
-#include <QtMath>
-#include <QColor>
-#include <QImage>
-#include <QDebug>
 #include <QPainter>
 #include "fire.h"
 

@@ -5,7 +5,6 @@
  * Johan Lindqvist (johan.lindqvist@gmail.com)
  */
 
-#include "core/textureimage.h"
 #include "greyscale.h"
 
 void GreyscaleTextureGenerator::generate(QSize size,

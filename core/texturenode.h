@@ -8,12 +8,9 @@
 #ifndef TEXTURENODE_H
 #define TEXTURENODE_H
 
-#include <vector>
-#include <map>
 #include <QSet>
 #include <QMap>
 #include <QPoint>
-#include <QSize>
 #include <QSharedPointer>
 #include <QDomNode>
 #include <QReadWriteLock>

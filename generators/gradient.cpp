@@ -5,7 +5,6 @@
  * Johan Lindqvist (johan.lindqvist@gmail.com)
  */
 
-#include <math.h>
 #include <QColor>
 #include <QPainter>
 #include <QLinearGradient>

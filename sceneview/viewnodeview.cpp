@@ -5,14 +5,12 @@
  * Johan Lindqvist (johan.lindqvist@gmail.com)
  */
 
-#include <QWidget>
 #include <QWheelEvent>
 #include <QMouseEvent>
 #include <QApplication>
 #include <QScrollBar>
-#include <qmath.h>
+#include <QtMath>
 #include "viewnodeview.h"
-#include "viewnodescene.h"
 
 /**
  * @brief ViewNodeView::ViewNodeView
@@ -81,5 +79,3 @@ void ViewNodeView::wheelEvent(QWheelEvent* event) {
    }
    QGraphicsView::wheelEvent(event);
 }
-
-

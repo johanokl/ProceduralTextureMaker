@@ -5,9 +5,6 @@
  * Johan Lindqvist (johan.lindqvist@gmail.com)
  */
 
-#include <math.h>
-#include <QColor>
-#include "core/textureimage.h"
 #include "boxblur.h"
 
 using namespace std;

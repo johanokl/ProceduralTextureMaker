@@ -5,11 +5,7 @@
  * Johan Lindqvist (johan.lindqvist@gmail.com)
  */
 
-#include <math.h>
-#include <QStringList>
-#include <QColor>
 #include <QPainter>
-#include "core/textureimage.h"
 #include "transform.h"
 
 TransformTextureGenerator::TransformTextureGenerator()

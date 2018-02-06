@@ -5,9 +5,6 @@
  * Johan Lindqvist (johan.lindqvist@gmail.com)
  */
 
-#include "core/textureimage.h"
-#include <math.h>
-#include <QColor>
 #include <QVector3D>
 #include "normalmap.h"
 

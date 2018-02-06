@@ -9,18 +9,13 @@
 #define CONNECTIONWIDGET_H
 
 #include <QWidget>
-#include <QVBoxLayout>
-#include <QList>
-#include <QMap>
-#include "core/texturenode.h"
 
 class TextureProject;
 class ItemInfoPanel;
 class QLabel;
-class QPushButton;
-class QSpacerItem;
+class QVBoxLayout;
 class QGroupBox;
-class QLineEdit;
+class QGridLayout;
 
 /**
  * @brief The ConnectionWidget class

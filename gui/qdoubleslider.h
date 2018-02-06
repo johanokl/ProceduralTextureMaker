@@ -8,7 +8,6 @@
 #ifndef QDOUBLESLIDER_H
 #define QDOUBLESLIDER_H
 
-#include <QWidget>
 #include <QSlider>
 
 /**

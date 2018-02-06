@@ -9,7 +9,6 @@
 #define VIEWNODESCENE_H
 
 #include <QGraphicsScene>
-#include <QPair>
 #include <QMap>
 #include <tuple>
 #include "core/texturenode.h"
@@ -19,7 +18,6 @@ class ViewNodeItem;
 class ViewNodeLine;
 class TextureGenerator;
 class MainWindow;
-class QMenu;
 class QAction;
 class QGraphicsRectItem;
 

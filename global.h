@@ -8,7 +8,6 @@
 #ifndef TEXGENGLOBAL_H
 #define TEXGENGLOBAL_H
 
-#include <iostream>
 #include <QMap>
 #include <QVariant>
 #include <QtGlobal>

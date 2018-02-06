@@ -8,15 +8,10 @@
 #ifndef TEXTURERENDERTHREAD_H
 #define TEXTURERENDERTHREAD_H
 
-#include <QThread>
-#include <QWaitCondition>
-#include <QMutex>
-#include <set>
 #include <QSize>
 #include "texturenode.h"
 
 class TextureProject;
-class QThread;
 
 /**
  * @brief The TextureRenderThread class

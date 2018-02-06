@@ -12,7 +12,6 @@
 #include <QVector>
 
 class QMenu;
-
 class MainWindow;
 
 /**

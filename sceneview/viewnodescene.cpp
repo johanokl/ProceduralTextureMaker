@@ -6,25 +6,15 @@
  */
 
 #include <QGraphicsSceneMouseEvent>
-#include <QObject>
-#include <QMapIterator>
 #include <QMenu>
-#include <QAction>
-#include <tuple>
 #include <QMimeData>
-#include <QGraphicsView>
-#include <QListIterator>
 #include "gui/mainwindow.h"
 #include "core/textureproject.h"
-#include "core/texturenode.h"
 #include "core/settingsmanager.h"
 #include "sceneview/viewnodescene.h"
 #include "sceneview/viewnodeview.h"
 #include "sceneview/viewnodeitem.h"
 #include "sceneview/viewnodeline.h"
-#include "generators/texturegenerator.h"
-#include "gui/menuactions.h"
-#include "global.h"
 
 /**
  * @brief ViewNodeScene::ViewNodeScene

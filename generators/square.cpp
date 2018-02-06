@@ -7,10 +7,7 @@
 
 
 #include <math.h>
-#include <QStringList>
-#include <QColor>
 #include <QPainter>
-#include "core/textureimage.h"
 #include "square.h"
 
 using namespace std;

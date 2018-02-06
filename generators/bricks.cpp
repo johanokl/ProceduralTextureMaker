@@ -7,9 +7,6 @@
 
 #include <QColor>
 #include <QPainter>
-#include <QSize>
-#include <math.h>
-#include "core/textureimage.h"
 #include "bricks.h"
 
 using namespace std;

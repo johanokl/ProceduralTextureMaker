@@ -7,7 +7,6 @@
 
 #include "texturerenderthread.h"
 #include "texturenode.h"
-#include "textureproject.h"
 #include "global.h"
 
 /**

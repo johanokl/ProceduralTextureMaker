@@ -5,9 +5,7 @@
  * Johan Lindqvist (johan.lindqvist@gmail.com)
  */
 
-#include <QColor>
 #include <math.h>
-#include "core/textureimage.h"
 #include "whirl.h"
 
 using namespace std;

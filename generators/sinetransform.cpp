@@ -5,10 +5,7 @@
  * Johan Lindqvist (johan.lindqvist@gmail.com)
  */
 
-#include <QColor>
 #include <math.h>
-#include <QDebug>
-#include "core/textureimage.h"
 #include "sinetransform.h"
 
 using namespace std;

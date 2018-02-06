@@ -5,11 +5,6 @@
  * Johan Lindqvist (johan.lindqvist@gmail.com)
  */
 
-#include <QMapIterator>
-#include <QListIterator>
-#include <QSetIterator>
-#include <QDomDocument>
-#include <QVariant>
 #include <QColor>
 #include "texturenode.h"
 #include "generators/texturegenerator.h"
@@ -313,7 +308,6 @@ bool TextureNode::setSourceSlot(int slot, int sourceId)
       // Does adding it cause loops?
       sourceNode->receivers.insert(id);
       if (project->findLoops()) {
-         INFO_MSG("Found loop in graph. Rolling back to safe state.");
          if (!(sources.values().contains(sourceId))) {
             sourceNode->receivers.remove(id);
          }

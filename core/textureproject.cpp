@@ -5,20 +5,10 @@
  * Johan Lindqvist (johan.lindqvist@gmail.com)
  */
 
-#include <QSetIterator>
-#include <QListIterator>
-#include <QMapIterator>
-#include <QString>
 #include <QApplication>
-#include <QStringList>
-#include <QMessageBox>
-#include <QThread>
 #include <QClipboard>
 #include "textureproject.h"
-#include "texturenode.h"
-#include "global.h"
 #include "settingsmanager.h"
-#include "generators/texturegenerator.h"
 #include "generators/empty.h"
 #include "texturerenderthread.h"
 
@@ -176,8 +166,6 @@ void TextureProject::loadFromXML(QDomDocument xmlfile)
          idMappings[nodeId] = getNewId();
       }
    }
-   INFO_MSG(QString("Number of nodes in file: %1").arg(nodes.count()));
-
    QMapIterator<int, int> nodeiterator(idMappings);
    while (nodeiterator.hasNext()) {
       newNode(nodeiterator.next().value());

@@ -7,7 +7,6 @@
 
 #include <QColor>
 #include <math.h>
-#include "core/textureimage.h"
 #include "lines.h"
 
 using namespace std;

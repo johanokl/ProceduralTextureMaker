@@ -5,12 +5,10 @@
  * Johan Lindqvist (johan.lindqvist@gmail.com)
  */
 
-#include <QSpacerItem>
 #include <QScrollArea>
 #include <QVBoxLayout>
 #include <QLabel>
 #include <QGroupBox>
-#include <QFont>
 #include <QSpinBox>
 #include <QPushButton>
 #include <QLineEdit>
@@ -20,8 +18,6 @@
 #include <QShowEvent>
 #include <QColorDialog>
 #include "settingspanel.h"
-#include "core/textureproject.h"
-#include "sceneview/viewnodescene.h"
 #include "core/settingsmanager.h"
 #include "gui/menuactions.h"
 #include "gui/mainwindow.h"

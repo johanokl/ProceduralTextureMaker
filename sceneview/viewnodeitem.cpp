@@ -5,28 +5,14 @@
  * Johan Lindqvist (johan.lindqvist@gmail.com)
  */
 
-#include <QGraphicsItem>
-#include <QPixmap>
 #include <QPainter>
-#include <QVariant>
-#include <QWidget>
 #include <QGraphicsSceneMouseEvent>
-#include <QGraphicsView>
-#include <QSetIterator>
-#include <QListIterator>
-#include <QMapIterator>
 #include <QMenu>
 #include <QApplication>
-#include <QCursor>
-#include <QPointF>
-
 #include "core/textureproject.h"
-#include "core/texturenode.h"
-#include "core/textureimage.h"
 #include "sceneview/viewnodeitem.h"
 #include "sceneview/viewnodescene.h"
 #include "sceneview/viewnodeline.h"
-#include "global.h"
 
 /**
  * @brief ViewNodeItem::ViewNodeItem
