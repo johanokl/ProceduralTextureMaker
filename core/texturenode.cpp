@@ -7,9 +7,15 @@
 
 #include <QColor>
 #include "texturenode.h"
-#include "generators/texturegenerator.h"
 #include "textureproject.h"
-#include "textureimage.h"
+
+bool operator<(const QSize& lhs, const QSize& rhs)
+{
+   if (lhs.height() == rhs.height()) {
+      return lhs.width() < rhs.width();
+   }
+   return lhs.height() < rhs.height();
+}
 
 /**
  * @brief TextureNode::TextureNode

@@ -11,7 +11,6 @@
 #include <QSet>
 #include <QMap>
 #include <QPoint>
-#include <QSharedPointer>
 #include <QDomNode>
 #include <QReadWriteLock>
 #include "global.h"
@@ -26,11 +25,6 @@ class TextureNode;
  * Thread-safe smart pointer for TextureNode objects.
  */
 typedef QSharedPointer<TextureNode> TextureNodePtr;
-
-inline uint qHash(const QSize &key, uint seed)
-{
-   return qHash(key.width(), seed) ^ key.height();
-}
 
 /**
  * @brief The TextureNode class
@@ -98,10 +92,10 @@ private:
    TextureProject* project;
 
    // Contains all the generated images
-   QHash<QSize, TextureImagePtr> texturecache;
+   QMap<QSize, TextureImagePtr> texturecache;
    // Set to true after releasing all connections, before delete
    bool deleted;
-   QHash<QSize, bool> validImage;
+   QMap<QSize, bool> validImage;
 
    // Mutexes to make it thread-safe.
    mutable QReadWriteLock sourcemutex;
