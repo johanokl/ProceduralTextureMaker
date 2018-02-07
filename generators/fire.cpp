@@ -27,7 +27,7 @@ FireTextureGenerator::FireTextureGenerator()
    TextureGeneratorSetting iterations;
    iterations.defaultvalue = QVariant((int) 150);
    iterations.min = QVariant((int) 1);
-   iterations.max = QVariant((int) 300);
+   iterations.max = QVariant((int) 400);
    iterations.name = "Iterations";
    iterations.order = 2;
    configurables.insert("iterations", iterations);
@@ -92,7 +92,7 @@ void FireTextureGenerator::generate(QSize size, TexturePixel* destimage,
             renderSurface[thisPos].r = palette[fire[y][x]].red();
             renderSurface[thisPos].g = palette[fire[y][x]].green();
             renderSurface[thisPos].b = palette[fire[y][x]].blue();
-            renderSurface[thisPos].a = 255;
+            renderSurface[thisPos].a = renderSurface[thisPos].r;
          }
       }
    }
@@ -106,7 +106,8 @@ void FireTextureGenerator::generate(QSize size, TexturePixel* destimage,
    } else {
       memset(destobject.bits(), 0, size.width() * size.height() * sizeof(TexturePixel));
    }
-   QPainter finalpainter(&destobject);
-   finalpainter.drawImage(QPoint(0, 0), tempimage);
+   QPainter painter(&destobject);
+   painter.setCompositionMode(QPainter::CompositionMode_SourceOver);
+   painter.drawImage(QPoint(0, 0), tempimage);
    memcpy(destimage, destobject.bits(), size.width() * size.height() * sizeof(TexturePixel));
 }
