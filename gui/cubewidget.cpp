@@ -74,8 +74,8 @@ void CubeWidget::timerEvent(QTimerEvent *)
    angularSpeed *= 0.99;
    // Stop rotation when speed goes below threshold
    if (isVisible() && (textureUpdated || angularSpeed > 0.01)) {
-      // Update rotation
       rotation = QQuaternion::fromAxisAndAngle(rotationAxis, angularSpeed) * rotation;
+      textureUpdated = false;
       update();
    }
 }
