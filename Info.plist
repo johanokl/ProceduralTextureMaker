@@ -2,18 +2,32 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
-	<key>CFBundleIconFile</key>
-	<string>mainicon.icns</string>
-	<key>CFBundleDocumentTypes</key>
-	<array>
-		<dict>
-			<key>CFBundleTypeExtensions</key>
-			<array>
-				<string>txl</string>
-			</array>
-			<key>CFBundleTypeRole</key>
-			<string>Editor</string>
-		</dict>
-	</array>
+   <key>NSPrincipalClass</key>
+   <string>NSApplication</string>
+   <key>CFBundleIconFile</key>
+   <string>mainicon.icns</string>
+   <key>CFBundlePackageType</key>
+   <string>APPL</string>
+   <key>CFBundleGetInfoString</key>
+   <string>ProceduralTextureMaker</string>
+   <key>CFBundleSignature</key>
+   <string>????</string>
+   <key>CFBundleExecutable</key>
+   <string>ProceduralTextureMaker</string>
+   <key>CFBundleIdentifier</key>
+   <string>com.github.johanokl.ProceduralTextureMaker</string>
+   <key>NOTE</key>
+   <string>Don't edit</string>
+   <key>CFBundleDocumentTypes</key>
+   <array>
+      <dict>
+         <key>CFBundleTypeExtensions</key>
+         <array>
+            <string>txl</string>
+         </array>
+         <key>CFBundleTypeRole</key>
+         <string>Editor</string>
+      </dict>
+   </array>
 </dict>
 </plist>

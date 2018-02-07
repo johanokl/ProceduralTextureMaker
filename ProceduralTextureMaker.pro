@@ -1,27 +1,37 @@
-TEMPLATE = app
-DESTDIR = bin
+TARGET = "ProceduralTextureMaker"
+
+macx {
+  # Possible to include spaces in the file name if on Mac OS X.
+  TARGET = "ProceduralTextureMaker"
+  QMAKE_MAC_SDK = 10.13
+  QMAKE_INFO_PLIST += Info.plist
+  OTHER_FILES += Info.plist
+}
+
 
 QT += xml \
     widgets \
-    opengl \
     gui \
     script \
     core
 
-CONFIG += qt
-
-INCLUDEPATH += . \
-    include
-
 SOURCES = main.cpp \
+    texgenapplication.cpp \
     core/texturenode.cpp \
     core/textureimage.cpp \
     core/texturerenderthread.cpp \
     core/settingsmanager.cpp \
+    core/textureproject.cpp \
     gui/nodesettingswidget.cpp \
     gui/mainwindow.cpp \
     gui/addnodepanel.cpp \
     gui/settingspanel.cpp \
+    gui/menuactions.cpp \
+    gui/connectionwidget.cpp \
+    gui/sceneinfowidget.cpp \
+    gui/iteminfopanel.cpp \
+    gui/previewimagepanel.cpp \
+    gui/cubewidget.cpp \
     sceneview/viewnodeview.cpp \
     sceneview/viewnodeitem.cpp \
     sceneview/viewnodescene.cpp \
@@ -40,12 +50,6 @@ SOURCES = main.cpp \
     generators/star.cpp \
     generators/lens.cpp \
     generators/transform.cpp \
-    texgenapplication.cpp \
-    gui/menuactions.cpp \
-    core/textureproject.cpp \
-    gui/connectionwidget.cpp \
-    gui/sceneinfowidget.cpp \
-    gui/iteminfopanel.cpp \
     generators/setchannels.cpp \
     generators/mirror.cpp \
     generators/gradient.cpp \
@@ -56,24 +60,30 @@ SOURCES = main.cpp \
     generators/sinetransform.cpp \
     generators/bricks.cpp \
     generators/invert.cpp \
-    generators/fire.cpp \
-    gui/previewimagepanel.cpp \
-    gui/cubewidget.cpp
+    generators/fire.cpp
 
-HEADERS += core/texturenode.h \
+HEADERS +=     global.h \
+    texgenapplication.h \
+    core/texturenode.h \
     core/textureimage.h \
     core/texturerenderthread.h \
     core/settingsmanager.h \
-    global.h \
-    sceneview/viewnodeitem.h \
-    sceneview/viewnodescene.h \
-    sceneview/viewnodeline.h \
-    sceneview/viewnodeview.h \
+    core/textureproject.h \
     gui/addnodepanel.h \
     gui/qdoubleslider.h \
     gui/nodesettingswidget.h \
     gui/settingspanel.h \
     gui/mainwindow.h \
+    gui/menuactions.h \
+    gui/connectionwidget.h \
+    gui/sceneinfowidget.h \
+    gui/iteminfopanel.h \
+    gui/previewimagepanel.h \
+    gui/cubewidget.h \
+    sceneview/viewnodeitem.h \
+    sceneview/viewnodescene.h \
+    sceneview/viewnodeline.h \
+    sceneview/viewnodeview.h \
     generators/texturegenerator.h \
     generators/blending.h \
     generators/boxblur.h \
@@ -90,12 +100,6 @@ HEADERS += core/texturenode.h \
     generators/lens.h \
     generators/star.h \
     generators/transform.h \
-    texgenapplication.h \
-    gui/menuactions.h \
-    core/textureproject.h \
-    gui/connectionwidget.h \
-    gui/sceneinfowidget.h \
-    gui/iteminfopanel.h \
     generators/setchannels.h \
     generators/mirror.h \
     generators/gradient.h \
@@ -105,24 +109,11 @@ HEADERS += core/texturenode.h \
     generators/sinetransform.h \
     generators/bricks.h \
     generators/invert.h \
-    generators/fire.h \
-    gui/previewimagepanel.h \
-    gui/cubewidget.h
-
-TARGET = "ProceduralTextureMaker"
-
-macx {
-  # Possible to include spaces in the file name if on Mac OS X.
-  TARGET = "ProceduralTextureMaker"
-}
+    generators/fire.h
 
 RESOURCES += texgen.qrc \
-    shaders.qrc \
+    shaders.qrc
 
 RC_ICONS += images/mainicon.ico
 ICON += images/mainicon.icns
 
-QMAKE_INFO_PLIST += Info.plist
-OTHER_FILES += Info.plist
-
-QMAKE_MAC_SDK = 10.13
