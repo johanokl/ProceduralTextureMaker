@@ -16,15 +16,6 @@
 #include "core/settingsmanager.h"
 #include "javascript.h"
 
-// Switch between Qt script engines
-// QScriptEngine is deprecated and might be removed
-// but QJSEngine (in Qt 5.10) has still some strange bugs
-// releated to memory management.
-// Uncomment the #define line below if QtScript isn't available
-// or QJSEngine is stable and enough to be a viable alternative.
-
-//#define USE_QJSENGINE
-
 #ifdef USE_QJSENGINE
    #include <QJSEngine>
    #include <QJSValueIterator>
@@ -33,6 +24,7 @@
    #define QScriptValueIterator QJSValueIterator
    #define toInt32 toInt
    #define toUInt32 toUInt
+   #define toUInt16 toUInt
    #define QScriptValueList QJSValueList
    #define SCRIPT_PARAMS args
 #else

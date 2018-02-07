@@ -5,12 +5,12 @@ ProceduralTextureMaker
 ProceduralTextureMaker generates texture images in arbitrary sizes based on graphs of nodes that take other nodes' output as input and transform them into new images.  
 
 Nodes are added dynamically and connected to each other graphically.  
-Custom UI widgets are created for each node based on the texture generator's available settings, making it easy to try out new configuration and watch how changes affect the output.  
+Custom UI widgets are created for each node based on the texture generator's user configurable settings, making it easy to try out new configurations and watch how changes affect the final output.  
 The project files with texture graphs can be saved to and loaded from XML files, and images can be exported to PNG files.  
 
 A number of texture generators written in C++ and Javascript are included with the project.  
 
-For more general information about procedural textures, see https://en.wikipedia.org/wiki/Procedural_texture
+For more general information about procedural textures, see https://en.wikipedia.org/wiki/Procedural_texture  
 
 ### Technical Details
 The application is written in C++ and uses the Qt framework.  
@@ -19,10 +19,11 @@ It uses multiple threads on multiple CPU cores where supported, so that CPU inte
 It's easy to extend the application by adding new generators, especially ones written in Javacript as those are loaded dynamically from external files.
 
 ### Javascript
+One example Javascript texture generator is included in the directory _JavascriptTextureGenerators_.  
 The external Javascript texture generators are parsed and run using the QtScript engine.  
-As the QtScript module is listed as deprecated and not installed by default by the Qt installer there is also support for running the scripts with the QJSEngine class.  
-However QJSEngine is not enabled by default as there were some strange unresolved bugs related to QJSEngine's memory management encountered during development. It's easy though to change which engine should be used by adding or removing a `#define USE_QJSENGINE` in _generators/javascript.cpp_.  
-One example Javascript texture generator is included in the directory _JavascriptTextureGenerators_.
+As the QtScript module is listed as deprecated and not installed by default by the Qt installer there is also support for running the scripts with the newer QJSEngine class.  
+QScriptEngine and not QJSEngine is still enabled by default as there were some strange unresolved bugs related to QJSEngine version 5.10's memory management encountered during development.  
+Changing which engine that should be used is done by adding or removing `DEFINES += "USE_QJSENGINE"` in _ProceduralTextureMaker.pro_.  
 
 ### How to build
 Install and configure Qt 5.10, available at http://www.qt.io/qt5-10.  

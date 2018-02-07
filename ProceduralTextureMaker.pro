@@ -8,11 +8,22 @@ macx {
   OTHER_FILES += Info.plist
 }
 
+# Select which Javascript engine to include
+# -----------------------------------------
+# Qt's QScriptEngine is deprecated and might be removed
+# while QJSEngine (in Qt 5.9 and 5.10) still has some
+# strange bugs releated to memory management.
+# Uncomment the #define line below if QtScript isn't available
+# or QJSEngine is stable and enough to be a viable alternative.
+# For QScriptEngine, remember to also include module script.
+# For QJSEngine, remember to also include module qml.
+#DEFINES += "USE_QJSENGINE"
+#QT += qml
+QT += script
 
 QT += xml \
     widgets \
     gui \
-    script \
     core
 
 SOURCES = main.cpp \
@@ -116,4 +127,3 @@ RESOURCES += texgen.qrc \
 
 RC_ICONS += images/mainicon.ico
 ICON += images/mainicon.icns
-
