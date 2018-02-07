@@ -38,6 +38,7 @@ SOURCES = main.cpp \
     generators/sineplasma.cpp \
     generators/square.cpp \
     generators/star.cpp \
+    generators/lens.cpp \
     generators/transform.cpp \
     texgenapplication.cpp \
     gui/menuactions.cpp \
@@ -86,6 +87,7 @@ HEADERS += core/texturenode.h \
     generators/perlinnoise.h \
     generators/sineplasma.h \
     generators/square.h \
+    generators/lens.h \
     generators/star.h \
     generators/transform.h \
     texgenapplication.h \

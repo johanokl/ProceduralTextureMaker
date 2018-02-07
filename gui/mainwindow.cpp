@@ -27,6 +27,7 @@
 #include "generators/perlinnoise.h"
 #include "generators/blending.h"
 #include "generators/lines.h"
+#include "generators/lens.h"
 #include "generators/bricks.h"
 #include "generators/sinetransform.h"
 #include "generators/setchannels.h"
@@ -101,6 +102,7 @@ MainWindow::MainWindow(TexGenApplication* parent)
    project->addGenerator(TextureGeneratorPtr(new SineTransformTextureGenerator()));
    project->addGenerator(TextureGeneratorPtr(new LinesTextureGenerator()));
    project->addGenerator(TextureGeneratorPtr(new GradientTextureGenerator()));
+   project->addGenerator(TextureGeneratorPtr(new LensTextureGenerator()));
    project->addGenerator(TextureGeneratorPtr(new StarTextureGenerator()));
    project->addGenerator(TextureGeneratorPtr(new TransformTextureGenerator()));
    project->addGenerator(TextureGeneratorPtr(new ModifyAlphaTextureGenerator()));
