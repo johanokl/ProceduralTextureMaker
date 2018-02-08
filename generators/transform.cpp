@@ -15,7 +15,7 @@ TransformTextureGenerator::TransformTextureGenerator()
    scaleX.description = "";
    scaleX.defaultvalue = QVariant((double) 100);
    scaleX.min = QVariant((double) 0);
-   scaleX.max = QVariant((double) 200);
+   scaleX.max = QVariant((double) 500);
    scaleX.order = 1;
    configurables.insert("xscale", scaleX);
 
@@ -24,7 +24,7 @@ TransformTextureGenerator::TransformTextureGenerator()
    scaleY.description = "";
    scaleY.defaultvalue = QVariant((double) 100);
    scaleY.min = QVariant((double) 0);
-   scaleY.max = QVariant((double) 200);
+   scaleY.max = QVariant((double) 500);
    scaleY.order = 2;
    configurables.insert("yscale", scaleY);
 
@@ -32,7 +32,7 @@ TransformTextureGenerator::TransformTextureGenerator()
    rotation.name = "Rotation";
    rotation.description = "";
    rotation.defaultvalue = QVariant((double) 0);
-   rotation.min = QVariant((double) 0);
+   rotation.min = QVariant((double) -360);
    rotation.max = QVariant((double) 360);
    rotation.order = 3;
    configurables.insert("rotation", rotation);

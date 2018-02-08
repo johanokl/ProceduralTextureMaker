@@ -24,7 +24,7 @@ SineTransformTextureGenerator::SineTransformTextureGenerator()
    frequencyone.name = "Frequency (1)";
    frequencyone.defaultvalue = QVariant((double) 0.5);
    frequencyone.min = QVariant((double) 0);
-   frequencyone.max = QVariant((double) 10);
+   frequencyone.max = QVariant((double) 20);
    frequencyone.order = 2;
    configurables.insert("frequencyone", frequencyone);
 
@@ -48,7 +48,7 @@ SineTransformTextureGenerator::SineTransformTextureGenerator()
    frequencytwo.name = "Frequency (2)";
    frequencytwo.defaultvalue = QVariant((double) 10);
    frequencytwo.min = QVariant((double) 0);
-   frequencytwo.max = QVariant((double) 10);
+   frequencytwo.max = QVariant((double) 20);
    frequencytwo.order = 5;
    configurables.insert("frequencytwo", frequencytwo);
 

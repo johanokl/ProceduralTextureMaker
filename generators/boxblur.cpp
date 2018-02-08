@@ -29,7 +29,8 @@ void BoxBlurTextureGenerator::generate(QSize size,
    if (!settings || !destimage || !size.isValid()) {
       return;
    }
-   int numNeightbours = settings->value("numneighbours").toInt();
+   int numNeightboursX = settings->value("numneighbours").toDouble() * qMax(size.width() / 250, 1);
+   int numNeightboursY = settings->value("numneighbours").toDouble() * qMax(size.height() / 250, 1);
    if (!sourceimages.contains(0)) {
       memset(destimage, 0, size.width() * size.height() * sizeof(TexturePixel));
       return;
@@ -38,32 +39,30 @@ void BoxBlurTextureGenerator::generate(QSize size,
 
    for (int j = 0; j < size.height(); j++) {
       for (int i = 0; i < size.width(); i++) {
-         int startX = i - numNeightbours;
-         if (startX < 0) {
-            startX = 0;
-         }
-         int endX = i + numNeightbours;
-         if (endX > size.width()) {
-            endX = size.width();
-         }
-         int startY = j - numNeightbours;
-         if (startY < 0) {
-            startY = 0;
-         }
-         int endY = j + numNeightbours;
-         if (endY > size.height()) {
-            endY = size.height();
-         }
+         int startX = i - numNeightboursX;
+         int endX = i + numNeightboursX;
+         int startY = j - numNeightboursY;
+         int endY = j + numNeightboursY;
          int totalPixels = 0;
          int red = 0;
          int green = 0;
          int blue = 0;
          int alpha = 0;
          for (int ypos = startY; ypos < endY; ypos++) {
-            int height = ypos * size.width();
+            int currY = ypos;
+            if (currY < 0) {
+               currY += size.height() * 5;
+            }
+            currY %= size.height();
+            currY *= size.width();
             for (int xpos = startX; xpos < endX; xpos++) {
+               int currX = xpos;
+               if (currX < 0) {
+                  currX += size.width() * 5;
+               }
+               currX %= size.width();
                totalPixels++;
-               TexturePixel sourcePixel = sourceImage[height + xpos];
+               TexturePixel sourcePixel = sourceImage[currY + currX];
                red += sourcePixel.r;
                green += sourcePixel.g;
                blue += sourcePixel.b;
