@@ -259,10 +259,18 @@ void SettingsPanel::settingsUpdated()
 void SettingsPanel::saveSettings()
 {
    blockSlot = true;
-   settingsmanager->setPreviewSize(QSize(exportImageWidthSpinbox->value(), exportImageHeightSpinbox->value()));
+   int exportImageWidth = exportImageWidthSpinbox->value();
+   int exportImageHeight = exportImageHeightSpinbox->value();
+   int thumbnailWidth = thumbnailWidthSpinbox->value();
+   int thumbnailHeight = thumbnailHeightSpinbox->value();
+   exportImageWidth = (exportImageWidth % 2) ? (exportImageWidth + 1) : exportImageWidth;
+   exportImageHeight = (exportImageHeight % 2) ? (exportImageHeight + 1) : exportImageHeight;
+   thumbnailWidth = (thumbnailWidth % 2) ? (thumbnailWidth + 1) : thumbnailWidth;
+   thumbnailHeight = (thumbnailHeight % 2) ? (thumbnailHeight + 1) : thumbnailHeight;
+   settingsmanager->setPreviewSize(QSize(exportImageWidth, exportImageHeight));
+   settingsmanager->setThumbnailSize(QSize(thumbnailWidth, thumbnailHeight));
    settingsmanager->setJSTextureGeneratorsPath(jsGeneratorPathEdit->text());
    settingsmanager->setJSTextureGeneratorsEnabled(jsGeneratorEnabledCheckbox->isChecked());
-   settingsmanager->setThumbnailSize(QSize(thumbnailWidthSpinbox->value(), thumbnailHeightSpinbox->value()));
    settingsmanager->setDefaultZoom(defaultZoomSpinbox->value());
    settingsmanager->setPreviewBackgroundColor(QColor(previewBackgroundColorButton->text()));
    settingsmanager->setBackgroundColor(QColor(backgroundColorButton->text()));
