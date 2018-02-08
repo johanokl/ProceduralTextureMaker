@@ -50,7 +50,7 @@ void MirrorTextureGenerator::generate(QSize size,
                destimage[destrowstart + x] = sourceImage[sourcepos];
             }
          } else {
-            int sourcerowstart = (size.height() - y) * size.width();
+            int sourcerowstart = (size.height() - y - 1) * size.width();
             for (int x = 0; x < size.width(); x++) {
                destimage[destrowstart + x] = sourceImage[sourcerowstart + x];
             }
@@ -67,7 +67,7 @@ void MirrorTextureGenerator::generate(QSize size,
                color.b = (int) (sourceImage[destrowstart + x].b + sourceImage[destrowstart + x + 1].b) / 2;
                color.a = (int) (sourceImage[destrowstart + x].a + sourceImage[destrowstart + x + 1].a) / 2;
                destimage[destrowstart + x / 2] = color;
-               destimage[destrowstart + size.width() - x / 2] = color;
+               destimage[destrowstart + size.width() - 1 - x / 2] = color;
             }
          }
       } else if (direction == "Mirror vertically") {
@@ -81,7 +81,7 @@ void MirrorTextureGenerator::generate(QSize size,
                color.b = (int) (sourceImage[y * width + x].b + sourceImage[(y + 1) * width + x].b) / 2;
                color.a = (int) (sourceImage[y * width + x].a + sourceImage[(y + 1) * width + x].a) / 2;
                destimage[y * width / 2 + x] = color;
-               destimage[(height - y / 2) * width + x] = color;
+               destimage[(height - 1 - y / 2) * width + x] = color;
             }
          }
       }
