@@ -40,10 +40,11 @@ public:
    bool loadNodeImage(int);
 
 public slots:
-   void setActiveNode(int id);
+   void setActiveNode(int);
    void imageAvailable(int, QSize);
    void imageUpdated(int);
    void settingsUpdated();
+   void nodeRemoved(int);
 
 private:
    QPixmap tilePixmap(const QPixmap &pixmap, int number);
@@ -52,6 +53,7 @@ private:
    QComboBox* combobox;
    ImageLabel* imageLabel;
    CubeWidget* cubeWidget;
+   QPushButton* lockNodeButton;
    int currId;
    int numTiles;
    QSize imageSize;

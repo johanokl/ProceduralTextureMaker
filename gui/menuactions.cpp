@@ -83,9 +83,9 @@ MenuActions::MenuActions(MainWindow* parent)
    resetZoomAct = new QAction("Reset zoom", parent);
    connect(resetZoomAct, SIGNAL(triggered()), parent, SLOT(resetViewZoom()));
 
-   toggleAddNodePanelAct = new QAction("Toggle add nodes panel", this);
+   toggleAddNodePanelAct = new QAction("Toggle add node panel", this);
    connect(toggleAddNodePanelAct, SIGNAL(triggered()), this, SLOT(toggleAddNodePanel()));
-   displayAddNodePanelAct = new QAction("Display add nodes panel", this);
+   displayAddNodePanelAct = new QAction("Display add node panel", this);
    connect(displayAddNodePanelAct, SIGNAL(triggered()), this, SLOT(toggleAddNodePanel()));
    displayAddNodePanelAct->setCheckable(true);
    displayAddNodePanelAct->setEnabled(false);

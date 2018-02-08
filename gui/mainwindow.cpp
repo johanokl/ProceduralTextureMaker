@@ -456,14 +456,15 @@ void MainWindow::showAbout()
                       .append("<hr> <br>")
                       .append("Johan Lindqvist <br>")
                       .append("<a href='mailto:johan.lindqvist@gmail.com'>johan.lindqvist@gmail.com</a>")
-                      .append("<p>")
+                      .append("</p>")
                       .append("<p align='center'>")
                       .append("More information at<br>")
-                      .append("<a href='http://github.com/johanokl/ProceduralTextureMaker'>")
-                      .append("http://github.com/johanokl/ProceduralTextureMaker")
-                      .append("</a><br></p>")
-                      .append("This version built: %1 %2")
-                      .arg(__DATE__).arg(__TIME__));
+                      .append("<a href='https://github.com/johanokl/ProceduralTextureMaker'>")
+                      .append("github.com/johanokl/ProceduralTextureMaker")
+                      .append("</a></p>")
+                      .append("<p align='center'>")
+                      .append("This version built: %1</p>")
+                      .arg(__DATE__));
 }
 
 /**

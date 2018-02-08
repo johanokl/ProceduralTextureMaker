@@ -8,6 +8,8 @@
 #include <QComboBox>
 #include <QPainter>
 #include <QLabel>
+#include <QPushButton>
+#include <QGridLayout>
 #include <QVBoxLayout>
 #include "global.h"
 #include "core/textureproject.h"
@@ -85,12 +87,7 @@ PreviewImagePanel::PreviewImagePanel(TextureProject* project)
    this->project = project;
    imageSize = project->getThumbnailSize();
    currId = -1;
-   QObject::connect(project, SIGNAL(imageAvailable(int, QSize)),
-                    this, SLOT(imageAvailable(int, QSize)));
-   QObject::connect(project, SIGNAL(imageUpdated(int)),
-                    this, SLOT(imageUpdated(int)));
-   QObject::connect(project->getSettingsManager(), SIGNAL(settingsUpdated(void)),
-                    this, SLOT(settingsUpdated(void)));
+
    layout = new QVBoxLayout(this);
    numTiles = 1;
    setLayout(layout);
@@ -107,13 +104,31 @@ PreviewImagePanel::PreviewImagePanel(TextureProject* project)
    combobox->setCurrentIndex(0);
    QObject::connect(combobox, SIGNAL(currentIndexChanged(int)), this, SLOT(settingsUpdated()));
 
+   lockNodeButton = new QPushButton("Lock node");
+   lockNodeButton->setCheckable(true);
    QWidget *spacerWidget = new QWidget();
    spacerWidget->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
    spacerWidget->setVisible(true);
    layout->addWidget(cubeWidget);
    layout->addWidget(imageLabel);
    layout->addWidget(spacerWidget);
-   layout->addWidget(combobox);
+
+   QWidget* optionsWidget = new QWidget;
+   QHBoxLayout* optionsLayout = new QHBoxLayout();
+   optionsLayout->setContentsMargins(0, 0, 0, 0);
+   optionsWidget->setLayout(optionsLayout);
+   optionsWidget->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Fixed);
+   optionsLayout->addWidget(lockNodeButton);
+   optionsLayout->addWidget(combobox);
+   layout->addWidget(optionsWidget);
+   QObject::connect(project, SIGNAL(imageAvailable(int, QSize)),
+                    this, SLOT(imageAvailable(int, QSize)));
+   QObject::connect(project, SIGNAL(imageUpdated(int)),
+                    this, SLOT(imageUpdated(int)));
+   QObject::connect(project, SIGNAL(nodeRemoved(int)),
+                    this, SLOT(nodeRemoved(int)));
+   QObject::connect(project->getSettingsManager(), SIGNAL(settingsUpdated(void)),
+                    this, SLOT(settingsUpdated(void)));
    settingsUpdated();
 }
 
@@ -202,6 +217,9 @@ void PreviewImagePanel::showEvent(QShowEvent* event)
  */
 void PreviewImagePanel::setActiveNode(int id)
 {
+   if (lockNodeButton->isChecked()) {
+      return;
+   }
    if (currId == id) {
       return;
    }
@@ -212,6 +230,20 @@ void PreviewImagePanel::setActiveNode(int id)
    imageLabel->hide();
    cubeWidget->hide();
    loadNodeImage(id);
+}
+
+/**
+ * @brief PreviewImagePanel::nodeRemoved
+ * @param id
+ */
+void PreviewImagePanel::nodeRemoved(int id)
+{
+   if (currId != id) {
+      return;
+   }
+   lockNodeButton->setChecked(false);
+   imageLabel->hide();
+   cubeWidget->hide();
 }
 
 /**
