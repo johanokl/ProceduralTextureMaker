@@ -1,3 +1,4 @@
+TEMPLATE = app
 TARGET = "ProceduralTextureMaker"
 
 macx {
@@ -13,10 +14,15 @@ macx {
 # Qt's QScriptEngine is deprecated and might be removed
 # while QJSEngine (in Qt 5.9 and 5.10) still has some
 # strange bugs releated to memory management.
-# Uncomment the #define line below if QtScript isn't available
-# or QJSEngine is stable and enough to be a viable alternative.
+# Uncomment the line "#defines USE_QJSENGINE" below if QtScript isn't
+# available or QJSEngine is stable and enough to be a viable alternative.
 # For QScriptEngine, remember to also include module script.
 # For QJSEngine, remember to also include module qml.
+# It is also possible to disable Javascript support, if both
+# QML/QJSEngine and QtScript/QScriptEngine are missing from the system.
+# To do so, uncomment the line "#defines DISABLE_JAVASCRIPT".
+# -----------------------------------------
+#DEFINES += "DISABLE_JAVASCRIPT"
 #DEFINES += "USE_QJSENGINE"
 #QT += qml
 QT += script

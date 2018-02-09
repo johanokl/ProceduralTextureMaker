@@ -16,6 +16,7 @@
 #include "core/settingsmanager.h"
 #include "javascript.h"
 
+#ifndef DISABLE_JAVASCRIPT
 #ifdef USE_QJSENGINE
    #include <QJSEngine>
    #include <QJSValueIterator>
@@ -32,6 +33,7 @@
    #include <QtScript/QScriptValueIterator>
    #define SCRIPT_PARAMS QScriptValue(), args
 #endif
+#endif
 
 
 /**
@@ -47,6 +49,7 @@ JsTexGen::JsTexGen(QString jsContent) {
    numSlots = 0;
    separateColorChannels = false;
 
+#ifndef DISABLE_JAVASCRIPT
    QScriptEngine jsEngine;
    jsEngine.globalObject().setProperty("name", "");
    QScriptValue retVal = jsEngine.evaluate(scriptContent);
@@ -124,6 +127,7 @@ JsTexGen::JsTexGen(QString jsContent) {
    }
    jsEngine.collectGarbage();
    valid = true;
+#endif
 }
 
 /**
@@ -149,6 +153,7 @@ void JsTexGen::generate(QSize size, TexturePixel* destimage,
                         QMap<int, TextureImagePtr> sourceimages,
                         TextureNodeSettings* settings) const
 {
+#ifndef DISABLE_JAVASCRIPT
    mutex.lockForWrite();
    QScriptEngine jsEngine;
    QScriptValue parseResult = jsEngine.evaluate(scriptContent);
@@ -265,6 +270,12 @@ void JsTexGen::generate(QSize size, TexturePixel* destimage,
    }
    jsEngine.collectGarbage();
    mutex.unlock();
+#else
+   Q_UNUSED(size);
+   Q_UNUSED(destimage);
+   Q_UNUSED(sourceimages);
+   Q_UNUSED(settings);
+#endif
 }
 
 /**
