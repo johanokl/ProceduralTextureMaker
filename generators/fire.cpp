@@ -6,6 +6,7 @@
  */
 
 #include <QPainter>
+#include <QtMath>
 #include "fire.h"
 
 /**
@@ -57,11 +58,10 @@ void FireTextureGenerator::generate(QSize size, TexturePixel* destimage,
    // Speed things up by having a smaller rendering surface.
    int screenWidth = 150;
    int screenHeight = 150;
-   TexturePixel* renderSurface = new TexturePixel[150 * 150];
-
-   uint fire[screenHeight][screenWidth];  //this buffer will contain the fire
-   memset(&fire, 0, screenWidth * screenWidth * sizeof(uint));
+   TexturePixel* renderSurface = new TexturePixel[screenWidth * screenHeight];
+   int* fire = new int[screenHeight * screenWidth];  //this buffer will contain the fire
    QColor palette[256]; //this will contain the color palette
+   memset(fire, 0, screenWidth * screenWidth * sizeof(int));
 
    for (int x = 0; x < 256; x++) {
       // generate the palette
@@ -73,29 +73,30 @@ void FireTextureGenerator::generate(QSize size, TexturePixel* destimage,
    for (int i = 0; i < iterations; i++) {
       // randomize the bottom row of the fire buffer
       for (int x = 0; x < screenWidth; x++) {
-         fire[screenHeight - 1][x] = abs(32768 + qrand()) % 256;
+         fire[(screenHeight - 1) * screenWidth + x] = abs(32768 + qrand()) % 256;
       }
       // do the fire calculations for every pixel
       for (int y = 0; y < screenHeight - 1; y++) {
          for (int x = 0; x < screenWidth; x++) {
-            fire[y][x] = (int)
-                  ((fire[(y + 1) % screenHeight][(x - 1 + screenWidth) % screenWidth]
-                  + fire[(y + 2) % screenHeight][(x) % screenWidth]
-                  + fire[(y + 1) % screenHeight][(x + 1) % screenWidth]
-                  + fire[(y + 3) % screenHeight][(x) % screenWidth])
+            fire[y * screenWidth + x] = (int)
+                  ((fire[screenWidth * ((y + 1) % screenHeight) + ((x - 1 + screenWidth) % screenWidth)]
+                  + fire[screenWidth * ((y + 2) % screenHeight) + ((x) % screenWidth)]
+                  + fire[screenWidth * ((y + 1) % screenHeight) + ((x + 1) % screenWidth)]
+                  + fire[screenWidth * ((y + 3) % screenHeight) + ((x) % screenWidth)])
                   * falloff) % 255;
          }
       }
       for (int y = 0; y < screenHeight; y++) {
          for (int x = 0; x < screenWidth; x++) {
             int thisPos = y * screenWidth + x;
-            renderSurface[thisPos].r = palette[fire[y][x]].red();
-            renderSurface[thisPos].g = palette[fire[y][x]].green();
-            renderSurface[thisPos].b = palette[fire[y][x]].blue();
+            renderSurface[thisPos].r = palette[fire[y * screenWidth + x]].red();
+            renderSurface[thisPos].g = palette[fire[y * screenWidth + x]].green();
+            renderSurface[thisPos].b = palette[fire[y * screenWidth + x]].blue();
             renderSurface[thisPos].a = renderSurface[thisPos].r;
          }
       }
    }
+   delete fire;
    QImage tempimage = QImage(screenWidth, screenHeight, QImage::Format_ARGB32);
    memcpy(tempimage.bits(), renderSurface, screenWidth * screenHeight * sizeof(TexturePixel));
    tempimage = tempimage.scaled(size, Qt::IgnoreAspectRatio, Qt::SmoothTransformation);

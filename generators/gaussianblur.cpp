@@ -6,6 +6,7 @@
  */
 
 #include <math.h>
+#include <QtMath>
 #include "gaussianblur.h"
 
 GaussianBlurTextureGenerator::GaussianBlurTextureGenerator()

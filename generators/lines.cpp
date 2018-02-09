@@ -7,6 +7,7 @@
 
 #include <QColor>
 #include <math.h>
+#include <QtMath>
 #include "lines.h"
 
 using namespace std;
