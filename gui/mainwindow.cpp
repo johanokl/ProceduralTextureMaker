@@ -21,30 +21,31 @@
 #include "core/texturenode.h"
 #include "core/settingsmanager.h"
 #include "core/textureimage.h"
-#include "generators/javascript.h"
-#include "generators/fill.h"
-#include "generators/circle.h"
-#include "generators/perlinnoise.h"
 #include "generators/blending.h"
+#include "generators/boxblur.h"
+#include "generators/bricks.h"
+#include "generators/circle.h"
+#include "generators/fill.h"
+#include "generators/fire.h"
+#include "generators/gaussianblur.h"
+#include "generators/gradient.h"
+#include "generators/greyscale.h"
+#include "generators/invert.h"
+#include "generators/javascript.h"
 #include "generators/lines.h"
 #include "generators/lens.h"
-#include "generators/bricks.h"
-#include "generators/sinetransform.h"
-#include "generators/setchannels.h"
 #include "generators/mirror.h"
-#include "generators/fire.h"
-#include "generators/boxblur.h"
-#include "generators/invert.h"
-#include "generators/whirl.h"
-#include "generators/gaussianblur.h"
-#include "generators/sineplasma.h"
-#include "generators/gradient.h"
-#include "generators/normalmap.h"
-#include "generators/square.h"
-#include "generators/greyscale.h"
-#include "generators/star.h"
-#include "generators/transform.h"
 #include "generators/modifyalpha.h"
+#include "generators/normalmap.h"
+#include "generators/perlinnoise.h"
+#include "generators/setchannels.h"
+#include "generators/sineplasma.h"
+#include "generators/sinetransform.h"
+#include "generators/square.h"
+#include "generators/star.h"
+#include "generators/text.h"
+#include "generators/transform.h"
+#include "generators/whirl.h"
 #include "sceneview/viewnodeitem.h"
 #include "sceneview/viewnodescene.h"
 #include "sceneview/viewnodeview.h"
@@ -88,29 +89,30 @@ MainWindow::MainWindow(TexGenApplication* parent)
    view->show();
    scene = createScene();
 
-   project->addGenerator(TextureGeneratorPtr(new FillTextureGenerator()));
-   project->addGenerator(TextureGeneratorPtr(new CircleTextureGenerator()));
-   project->addGenerator(TextureGeneratorPtr(new PerlinNoiseTextureGenerator()));
    project->addGenerator(TextureGeneratorPtr(new BlendingTextureGenerator()));
-   project->addGenerator(TextureGeneratorPtr(new InvertTextureGenerator()));
-   project->addGenerator(TextureGeneratorPtr(new BricksTextureGenerator()));
-   project->addGenerator(TextureGeneratorPtr(new WhirlTextureGenerator()));
-   project->addGenerator(TextureGeneratorPtr(new FireTextureGenerator()));
-   project->addGenerator(TextureGeneratorPtr(new SetChannelsTextureGenerator()));
-   project->addGenerator(TextureGeneratorPtr(new GreyscaleTextureGenerator()));
-   project->addGenerator(TextureGeneratorPtr(new SquareTextureGenerator()));
-   project->addGenerator(TextureGeneratorPtr(new SineTransformTextureGenerator()));
-   project->addGenerator(TextureGeneratorPtr(new LinesTextureGenerator()));
-   project->addGenerator(TextureGeneratorPtr(new GradientTextureGenerator()));
-   project->addGenerator(TextureGeneratorPtr(new LensTextureGenerator()));
-   project->addGenerator(TextureGeneratorPtr(new StarTextureGenerator()));
-   project->addGenerator(TextureGeneratorPtr(new TransformTextureGenerator()));
-   project->addGenerator(TextureGeneratorPtr(new ModifyAlphaTextureGenerator()));
    project->addGenerator(TextureGeneratorPtr(new BoxBlurTextureGenerator()));
-   project->addGenerator(TextureGeneratorPtr(new MirrorTextureGenerator()));
+   project->addGenerator(TextureGeneratorPtr(new BricksTextureGenerator()));
+   project->addGenerator(TextureGeneratorPtr(new CircleTextureGenerator()));
+   project->addGenerator(TextureGeneratorPtr(new FillTextureGenerator()));
+   project->addGenerator(TextureGeneratorPtr(new FireTextureGenerator()));
    project->addGenerator(TextureGeneratorPtr(new GaussianBlurTextureGenerator()));
-   project->addGenerator(TextureGeneratorPtr(new SinePlasmaTextureGenerator()));
+   project->addGenerator(TextureGeneratorPtr(new GradientTextureGenerator()));
+   project->addGenerator(TextureGeneratorPtr(new GreyscaleTextureGenerator()));
+   project->addGenerator(TextureGeneratorPtr(new InvertTextureGenerator()));
+   project->addGenerator(TextureGeneratorPtr(new LinesTextureGenerator()));
+   project->addGenerator(TextureGeneratorPtr(new LensTextureGenerator()));
+   project->addGenerator(TextureGeneratorPtr(new MirrorTextureGenerator()));
+   project->addGenerator(TextureGeneratorPtr(new ModifyAlphaTextureGenerator()));
    project->addGenerator(TextureGeneratorPtr(new NormalMapTextureGenerator()));
+   project->addGenerator(TextureGeneratorPtr(new PerlinNoiseTextureGenerator()));
+   project->addGenerator(TextureGeneratorPtr(new SetChannelsTextureGenerator()));
+   project->addGenerator(TextureGeneratorPtr(new SinePlasmaTextureGenerator()));
+   project->addGenerator(TextureGeneratorPtr(new SineTransformTextureGenerator()));
+   project->addGenerator(TextureGeneratorPtr(new SquareTextureGenerator()));
+   project->addGenerator(TextureGeneratorPtr(new StarTextureGenerator()));
+   project->addGenerator(TextureGeneratorPtr(new TextTextureGenerator()));
+   project->addGenerator(TextureGeneratorPtr(new TransformTextureGenerator()));
+   project->addGenerator(TextureGeneratorPtr(new WhirlTextureGenerator()));
    project->clear();
 
    jstexgenManager = new JSTexGenManager(project);

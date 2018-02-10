@@ -96,7 +96,7 @@ void FireTextureGenerator::generate(QSize size, TexturePixel* destimage,
          }
       }
    }
-   delete fire;
+   delete[] fire;
    QImage tempimage = QImage(screenWidth, screenHeight, QImage::Format_ARGB32);
    memcpy(tempimage.bits(), renderSurface, screenWidth * screenHeight * sizeof(TexturePixel));
    tempimage = tempimage.scaled(size, Qt::IgnoreAspectRatio, Qt::SmoothTransformation);

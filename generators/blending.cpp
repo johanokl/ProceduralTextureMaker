@@ -12,14 +12,12 @@ using namespace std;
 BlendingTextureGenerator::BlendingTextureGenerator()
 {
    QStringList modes;
-   // Normal
    modes.append("Normal");
    modes.append("Darken");
    modes.append("Multiply");
    modes.append("Lighten");
    modes.append("Screen");
    modes.append("Linear Dodge (Add)");
-
    TextureGeneratorSetting mode;
    mode.name = "Mode";
    mode.description = "How to blend";

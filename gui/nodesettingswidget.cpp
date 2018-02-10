@@ -301,7 +301,7 @@ void NodeSettingsWidget::generatorUpdated()
       switch (currSetting.defaultvalue.type()) {
       case QVariant::Type::String:
          newWidget = new QLineEdit;
-         QObject::connect(newWidget, SIGNAL(returnPressed(int)), this, SLOT(saveSettings()));
+         QObject::connect(newWidget, SIGNAL(returnPressed()), this, SLOT(saveSettings()));
          break;
       case QVariant::Type::StringList:
          newWidget = new QComboBox;
