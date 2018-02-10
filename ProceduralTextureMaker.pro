@@ -78,7 +78,8 @@ SOURCES = main.cpp \
     generators/bricks.cpp \
     generators/invert.cpp \
     generators/fire.cpp \
-    generators/text.cpp
+    generators/text.cpp \
+    generators/displacementmap.cpp
 
 HEADERS +=     global.h \
     texgenapplication.h \
@@ -128,7 +129,8 @@ HEADERS +=     global.h \
     generators/bricks.h \
     generators/invert.h \
     generators/fire.h \
-    generators/text.h
+    generators/text.h \
+    generators/displacementmap.h
 
 RESOURCES += texgen.qrc \
     shaders.qrc

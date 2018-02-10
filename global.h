@@ -53,6 +53,18 @@ public:
                (double) this->b)
               / 3.0) / 255.0;
    }
+
+   /**
+    * @brief TexturePixel::intensity
+    * @return the intensity of pixel, from 0 - 1
+    */
+   double intensityWithAlpha() const {
+      return (((double) this->r +
+               (double) this->g +
+               (double) this->b)
+              / 3.0) * this->a / 255.0;
+   }
+
 };
 
 
