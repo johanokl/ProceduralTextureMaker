@@ -5,31 +5,31 @@
  * Johan Lindqvist (johan.lindqvist@gmail.com)
  */
 
-#ifndef MODIFYALPHATEXTUREGENERATOR_H
-#define MODIFYALPHATEXTUREGENERATOR_H
+#ifndef MODIFYLEVELSTEXTUREGENERATOR_H
+#define MODIFYLEVELSTEXTUREGENERATOR_H
 
 #include "texturegenerator.h"
 
 /**
- * @brief The ModifyAlphaTextureGenerator class
+ * @brief The ModifyLevelsTextureGenerator class
  */
-class ModifyAlphaTextureGenerator : public TextureGenerator
+class ModifyLevelsTextureGenerator : public TextureGenerator
 {
 public:
-   ModifyAlphaTextureGenerator();
-   virtual ~ModifyAlphaTextureGenerator() {}
+   ModifyLevelsTextureGenerator();
+   virtual ~ModifyLevelsTextureGenerator() {}
    virtual void generate(QSize size,
                          TexturePixel* destimage,
                          QMap<int, TextureImagePtr> sourceimages,
                          TextureNodeSettings* settings) const;
    virtual int getNumSourceSlots() const { return 1; }
-   virtual QString getName() const { return QString("Modify alpha"); }
+   virtual QString getName() const { return QString("Modify levels"); }
    virtual const TextureGeneratorSettings& getSettings() const { return configurables; }
-   virtual QString getDescription() const { return QString("Modifies the alpha."); }
+   virtual QString getDescription() const { return QString("Modifies the different."); }
    virtual TextureGenerator::Type getType() const { return TextureGenerator::Type::Filter; }
 
 private:
    TextureGeneratorSettings configurables;
 };
 
-#endif // MODIFYALPHATEXTUREGENERATOR_H
+#endif // MODIFYLEVELSTEXTUREGENERATOR_H

@@ -59,7 +59,6 @@ SOURCES = main.cpp \
     generators/fill.cpp \
     generators/gaussianblur.cpp \
     generators/greyscale.cpp \
-    generators/modifyalpha.cpp \
     generators/normalmap.cpp \
     generators/perlinnoise.cpp \
     generators/sineplasma.cpp \
@@ -79,7 +78,8 @@ SOURCES = main.cpp \
     generators/invert.cpp \
     generators/fire.cpp \
     generators/text.cpp \
-    generators/displacementmap.cpp
+    generators/displacementmap.cpp \
+    generators/modifylevels.cpp
 
 HEADERS +=     global.h \
     texgenapplication.h \
@@ -111,7 +111,6 @@ HEADERS +=     global.h \
     generators/fill.h \
     generators/gaussianblur.h \
     generators/greyscale.h \
-    generators/modifyalpha.h \
     generators/normalmap.h \
     generators/perlinnoise.h \
     generators/sineplasma.h \
@@ -130,7 +129,8 @@ HEADERS +=     global.h \
     generators/invert.h \
     generators/fire.h \
     generators/text.h \
-    generators/displacementmap.h
+    generators/displacementmap.h \
+    generators/modifylevels.h
 
 RESOURCES += texgen.qrc \
     shaders.qrc

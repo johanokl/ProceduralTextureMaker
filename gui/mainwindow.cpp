@@ -36,7 +36,7 @@
 #include "generators/lines.h"
 #include "generators/lens.h"
 #include "generators/mirror.h"
-#include "generators/modifyalpha.h"
+#include "generators/modifylevels.h"
 #include "generators/normalmap.h"
 #include "generators/perlinnoise.h"
 #include "generators/setchannels.h"
@@ -104,7 +104,7 @@ MainWindow::MainWindow(TexGenApplication* parent)
    project->addGenerator(TextureGeneratorPtr(new LinesTextureGenerator()));
    project->addGenerator(TextureGeneratorPtr(new LensTextureGenerator()));
    project->addGenerator(TextureGeneratorPtr(new MirrorTextureGenerator()));
-   project->addGenerator(TextureGeneratorPtr(new ModifyAlphaTextureGenerator()));
+   project->addGenerator(TextureGeneratorPtr(new ModifyLevelsTextureGenerator()));
    project->addGenerator(TextureGeneratorPtr(new NormalMapTextureGenerator()));
    project->addGenerator(TextureGeneratorPtr(new PerlinNoiseTextureGenerator()));
    project->addGenerator(TextureGeneratorPtr(new SetChannelsTextureGenerator()));
