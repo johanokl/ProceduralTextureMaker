@@ -36,7 +36,7 @@ BlendingTextureGenerator::BlendingTextureGenerator()
    configurables.insert("order", order);
 
    TextureGeneratorSetting blendingAlpha;
-   blendingAlpha.defaultvalue = QVariant((double) 128);
+   blendingAlpha.defaultvalue = QVariant((double) 100);
    blendingAlpha.name = "Level";
    blendingAlpha.min = 0;
    blendingAlpha.max = 100;

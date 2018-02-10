@@ -115,7 +115,6 @@ void TextTextureGenerator::generate(QSize size,
       styleHint = QFont::StyleHint::Fantasy;
    }
 
-
    if (sourceimages.contains(0)) {
       memcpy(destimage, sourceimages.value(0)->getData(), size.width() * size.height() * sizeof(TexturePixel));
    } else {

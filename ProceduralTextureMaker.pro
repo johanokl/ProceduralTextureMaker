@@ -79,7 +79,8 @@ SOURCES = main.cpp \
     generators/fire.cpp \
     generators/text.cpp \
     generators/displacementmap.cpp \
-    generators/modifylevels.cpp
+    generators/modifylevels.cpp \
+    generators/dropshadow.cpp
 
 HEADERS +=     global.h \
     texgenapplication.h \
@@ -130,7 +131,8 @@ HEADERS +=     global.h \
     generators/fire.h \
     generators/text.h \
     generators/displacementmap.h \
-    generators/modifylevels.h
+    generators/modifylevels.h \
+    generators/dropshadow.h
 
 RESOURCES += texgen.qrc \
     shaders.qrc

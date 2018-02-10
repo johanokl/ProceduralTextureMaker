@@ -13,9 +13,8 @@ BoxBlurTextureGenerator::BoxBlurTextureGenerator()
 {
    TextureGeneratorSetting neighbourssetting;
    neighbourssetting.defaultvalue = QVariant((int) 5);
-   neighbourssetting.name = "Neighbours";
-   neighbourssetting.description = "Number of neighbours";
-   neighbourssetting.min = QVariant((int) 1);
+   neighbourssetting.name = "Blur level";
+   neighbourssetting.min = QVariant((int) 0);
    neighbourssetting.max = QVariant((int) 50);
    configurables.insert("numneighbours", neighbourssetting);
 }
@@ -36,7 +35,10 @@ void BoxBlurTextureGenerator::generate(QSize size,
       return;
    }
    TexturePixel* sourceImage = sourceimages.value(0).data()->getData();
-
+   if (settings->value("numneighbours").toInt() == 0) {
+      memcpy(destimage, sourceImage, size.width() * size.height() * sizeof(TexturePixel));
+      return;
+   }
    for (int j = 0; j < size.height(); j++) {
       for (int i = 0; i < size.width(); i++) {
          int startX = i - numNeightboursX;
