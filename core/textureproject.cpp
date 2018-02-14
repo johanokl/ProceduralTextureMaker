@@ -227,7 +227,7 @@ QDomDocument TextureProject::saveAsXML(bool includegenerators)
  * Used for indicating to the user that a scene has been modified and needs to be saved
  * before closing to prevent changes getting lost.
  */
-bool TextureProject::isModified()
+bool TextureProject::isModified() const
 {
    return modified;
 }
@@ -248,7 +248,7 @@ void TextureProject::clear()
  * @brief TextureProject::getNumNodes
  * @return the number of nodes in the node graph.
  */
-int TextureProject::getNumNodes()
+int TextureProject::getNumNodes() const
 {
    return nodes.count();
 }
@@ -361,7 +361,7 @@ void TextureProject::removeGenerator(TextureGeneratorPtr gen)
  * Searches and returns a TextureGenerator based on its full name.
  * NULL is returned if it hasn't been added to the project.
  */
-TextureGeneratorPtr TextureProject::getGenerator(QString name)
+TextureGeneratorPtr TextureProject::getGenerator(QString name) const
 {
    if (name == "Blur") {
       name = "Box blur";
@@ -515,7 +515,7 @@ void TextureProject::notifyNodesDisconnected(int sourceId, int receiverId, int s
  * This function checks all nodes and returns true if one or more
  * has it self a an indirect source.
  */
-bool TextureProject::findLoops()
+bool TextureProject::findLoops() const
 {
    QMapIterator<int, TextureNodePtr> nodeiterator(nodes);
    while (nodeiterator.hasNext()) {

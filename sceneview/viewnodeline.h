@@ -26,9 +26,9 @@ class ViewNodeLine : public QGraphicsLineItem
 public:
    virtual ~ViewNodeLine();
    virtual void updatePos();
-   inline int getSlot() { return slot; }
-   inline int getStartItemId() { return sourceItemId; }
-   inline int getEndItemId() { return receiverItemId; }
+   inline int getSlot() const { return slot; }
+   inline int getStartItemId() const { return sourceItemId; }
+   inline int getEndItemId() const { return receiverItemId; }
    void setHighlighted(bool highlighted);
    void setWidth(int width);
    void setColor(QColor color);

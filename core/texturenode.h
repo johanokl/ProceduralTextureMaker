@@ -61,7 +61,7 @@ public:
    int waitingFor(QSize size) const;
    const TextureNodeSettings getSettings() const { return settings; }
    void setSettings(TextureNodeSettings settings);
-   const QMap<int, int> getSources() { return sources; }
+   const QMap<int, int> getSources() const { return sources; }
 
 signals:
    void positionUpdated(int id);

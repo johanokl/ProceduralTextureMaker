@@ -32,7 +32,7 @@ public:
     * @brief TexturePixel::toRGBA
     * @return the pixel as RGBA
     */
-   quint32 toRGBA() {
+   quint32 toRGBA() const {
       quint32 ret = r;
       ret = ret << 8;
       ret += g;

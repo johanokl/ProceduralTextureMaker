@@ -15,7 +15,7 @@
  * @brief SettingsManager::getPreviewSize
  * @return Size of the exported images.
  */
-QSize SettingsManager::getPreviewSize()
+QSize SettingsManager::getPreviewSize() const
 {
    QSettings settings;
    return settings.value("previewsize", QSize(500, 500)).toSize();
@@ -39,7 +39,7 @@ void SettingsManager::setPreviewSize(QSize size)
  * @brief SettingsManager::getThumbnailSize
  * @return Size of thumbnails in the scene widget.
  */
-QSize SettingsManager::getThumbnailSize()
+QSize SettingsManager::getThumbnailSize() const
 {
    QSettings settings;
    return settings.value("thumbnailsize", QSize(250, 250)).toSize();
@@ -63,7 +63,7 @@ void SettingsManager::setThumbnailSize(QSize size)
  * @brief SettingsManager::getDefaultZoom
  * @return Default zoom factor for the scene view. 100 if not set.
  */
-int SettingsManager::getDefaultZoom()
+int SettingsManager::getDefaultZoom() const
 {
    QSettings settings;
    return settings.value("defaultzoom", 100).toInt();
@@ -87,7 +87,7 @@ void SettingsManager::setDefaultZoom(int zoomfactor)
  * @brief SettingsManager::getJSTextureGeneratorsPath
  * @return Absolute path to the JS textures.
  */
-QString SettingsManager::getJSTextureGeneratorsPath()
+QString SettingsManager::getJSTextureGeneratorsPath() const
 {
    QSettings settings;
    QString path = settings.value("jstexturegeneratorspath", QDir::homePath() + "/TexGen").toString();
@@ -112,7 +112,7 @@ void SettingsManager::setJSTextureGeneratorsPath(QString path)
  * @brief SettingsManager::getJSTextureGeneratorsEnabled
  * @return True if JS textures should be loaded.
  */
-bool SettingsManager::getJSTextureGeneratorsEnabled()
+bool SettingsManager::getJSTextureGeneratorsEnabled() const
 {
    QSettings settings;
    return settings.value("jstexturegeneratorsenabled", false).toBool();
@@ -136,7 +136,7 @@ void SettingsManager::setJSTextureGeneratorsEnabled(bool enabled)
  * @brief SettingsManager::getBackgroundColor
  * @return Node graph view background color
  */
-QColor SettingsManager::getPreviewBackgroundColor()
+QColor SettingsManager::getPreviewBackgroundColor() const
 {
    QSettings settings;
    return QColor(settings.value("previewbackgroundcolor", "#c8c8c8").toString());
@@ -161,7 +161,7 @@ void SettingsManager::setPreviewBackgroundColor(QColor val)
  * @brief SettingsManager::getBackgroundColor
  * @return Node graph view background color
  */
-QColor SettingsManager::getBackgroundColor()
+QColor SettingsManager::getBackgroundColor() const
 {
    QSettings settings;
    return QColor(settings.value("backgroundcolor", "#c8c8c8").toString());
@@ -186,7 +186,7 @@ void SettingsManager::setBackgroundColor(QColor val)
  * @brief SettingsManager::getBackgroundBrush
  * @return The saved brush style. For id mapping see Qt::BrushStyle.
  */
-int SettingsManager::getBackgroundBrush()
+int SettingsManager::getBackgroundBrush() const
 {
    QSettings settings;
    return settings.value("backgroundbrush", 1).toInt();

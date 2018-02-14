@@ -37,15 +37,15 @@ class ViewNodeScene : public QGraphicsScene
 public:
    ViewNodeScene(MainWindow* parent);
    virtual ~ViewNodeScene();
-   ViewNodeScene* clone();
-   TextureProject* getTextureProject();
+   ViewNodeScene* clone() const;
+   TextureProject* getTextureProject() const { return project; }
    virtual void clear();
    void endLineDrawing(int endNode);
    void startLineDrawing(int nodeId);
-   ViewNodeItem* getItem(int id);
+   ViewNodeItem* getItem(int id) const;
 
    void setSelectedNode(int id);
-   int getSelectedNode() { return selectedNode; }
+   int getSelectedNode() const { return selectedNode; }
    void setSelectedLine(int sourceNode, int receiverNode, int slot);
    void connectNodes(int sourceNodeId, int receiverNodeId, int slotId);
    void removeConnection(int sourceNodeId, int receiverNodeId);

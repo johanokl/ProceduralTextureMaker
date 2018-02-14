@@ -22,8 +22,8 @@ class TextureImage
 public:
    TextureImage(QSize size, TexturePixel* data);
    virtual ~TextureImage();
-   QSize getSize() { return size; }
-   TexturePixel* getData() { return data; }
+   QSize getSize() const { return size; }
+   TexturePixel* getData() const { return data; }
 private:
    QSize size;
    TexturePixel* data;

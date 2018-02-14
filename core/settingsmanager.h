@@ -25,14 +25,14 @@ class SettingsManager : public QObject
 public:
    SettingsManager() {}
    virtual ~SettingsManager() {}
-   QSize getPreviewSize();
-   QSize getThumbnailSize();
-   QString getJSTextureGeneratorsPath();
-   bool getJSTextureGeneratorsEnabled();
-   QColor getPreviewBackgroundColor();
-   QColor getBackgroundColor();
-   int getBackgroundBrush();
-   int getDefaultZoom();
+   QSize getPreviewSize() const;
+   QSize getThumbnailSize() const;
+   QString getJSTextureGeneratorsPath() const;
+   bool getJSTextureGeneratorsEnabled() const;
+   QColor getPreviewBackgroundColor() const;
+   QColor getBackgroundColor() const;
+   int getBackgroundBrush() const;
+   int getDefaultZoom() const;
 
 signals:
    void settingsUpdated();

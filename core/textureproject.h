@@ -35,21 +35,21 @@ public:
    virtual ~TextureProject();
    QDomDocument saveAsXML(bool includegenerators = false);
    void loadFromXML(QDomDocument xmlfile);
-   QString getName() { return name; }
+   QString getName() const { return name; }
    void setName(QString);
    TextureNodePtr getNode(int id) const;
-   bool findLoops();
+   bool findLoops() const;
    void removeNode(int id);
    TextureNodePtr newNode(int id = 0, TextureGeneratorPtr generator = NULL);
    void clear();
-   bool isModified();
-   int getNumNodes();
-   TextureGeneratorPtr getGenerator(QString name);
-   QMap<QString, TextureGeneratorPtr> getGenerators() { return generators; }
-   QSize getThumbnailSize() { return thumbnailSize; }
-   QSize getPreviewSize() { return previewSize; }
+   bool isModified() const;
+   int getNumNodes() const;
+   TextureGeneratorPtr getGenerator(QString name) const;
+   QMap<QString, TextureGeneratorPtr> getGenerators() const { return generators; }
+   QSize getThumbnailSize() const { return thumbnailSize; }
+   QSize getPreviewSize() const { return previewSize; }
    void setSettingsManager(SettingsManager* manager);
-   SettingsManager* getSettingsManager() { return settingsManager; }
+   SettingsManager* getSettingsManager() const { return settingsManager; }
 
 public slots:
    void addGenerator(TextureGeneratorPtr gen);
@@ -76,7 +76,7 @@ signals:
    void generatorNameCollision(TextureGeneratorPtr, TextureGeneratorPtr);
 
 private:
-   TextureGeneratorPtr getEmptyGenerator() { return emptygenerator; }
+   TextureGeneratorPtr getEmptyGenerator() const { return emptygenerator; }
    void startRenderThread(QSize renderSize, QThread::Priority = QThread::NormalPriority);
    void stopRenderThread(QSize renderSize);
    int getNewId();

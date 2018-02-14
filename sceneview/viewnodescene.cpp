@@ -58,7 +58,7 @@ ViewNodeScene::~ViewNodeScene()
  * Used for restarting with a new instance with clean QGraphicsScene properties.
  * For now a quick hack for resetting the scene view region properties.
  */
-ViewNodeScene* ViewNodeScene::clone()
+ViewNodeScene* ViewNodeScene::clone() const
 {
    ViewNodeScene* newscene = new ViewNodeScene(parent);
    QMapIterator<int, ViewNodeItem*> nodesIter(nodeItems);
@@ -76,20 +76,11 @@ ViewNodeScene* ViewNodeScene::clone()
 }
 
 /**
- * @brief ViewNodeScene::getTextureProject
- * @return the active TextureProject tied to this scene instance.
- */
-TextureProject* ViewNodeScene::getTextureProject()
-{
-   return project;
-}
-
-/**
  * @brief ViewNodeScene::getItem
  * @param id Node id
  * @return the ViewNodeItem if found, NULL if not.
  */
-ViewNodeItem* ViewNodeScene::getItem(int id)
+ViewNodeItem* ViewNodeScene::getItem(int id) const
 {
    if (id < 0) {
       return NULL;

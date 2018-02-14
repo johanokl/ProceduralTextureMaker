@@ -82,8 +82,13 @@ void TexGenApplication::windowUpdated(QString)
  */
 bool TexGenApplication::event(QEvent * event) {
    if (event->type() == QEvent::FileOpen) {
-      MainWindow* projectWindow = mainwindows.last();
-      if (mainwindows.length() != 1 || projectWindow->getTextureProject()->isModified() > 0) {
+      MainWindow* projectWindow;
+      if (!mainwindows.isEmpty()) {
+         projectWindow = mainwindows.last();
+      }
+      if (mainwindows.length() != 1 ||
+          (projectWindow && projectWindow->getTextureProject() &&
+           projectWindow->getTextureProject()->isModified())) {
          // There are either multiple windows opened or the only one open
          // already contains data. Create a new fresh window for this project file.
          projectWindow = this->addWindow();
