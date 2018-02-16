@@ -200,10 +200,12 @@ void ViewNodeLine::updatePos()
    }
    QSize thumbSize = scene->getTextureProject()->getThumbnailSize();
    if (sourceItem) {
-      sourcePos = sourceItem->pos() + QPointF(thumbSize.width() / 2, thumbSize.height() / 2 + 40);
+      sourcePos = sourceItem->pos() + QPointF(2 + thumbSize.width() / 2,
+                                              2 + thumbSize.height() / 2);
    }
    if (receiverItem) {
-      receiverPos = receiverItem->pos() + QPointF(thumbSize.width() / 2, thumbSize.height() / 2 + 40);
+      receiverPos = receiverItem->pos() + QPointF(2 + thumbSize.width() / 2,
+                                                  2 + thumbSize.height() / 2);
    }
    if (receiverItem) {
       QLineF centerLine = QLineF(sourcePos, receiverPos);

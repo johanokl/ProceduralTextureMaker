@@ -47,7 +47,7 @@ TextTextureGenerator::TextTextureGenerator()
    fontsize.name = "Size";
    fontsize.description = "";
    fontsize.defaultvalue = QVariant((double) 20);
-   fontsize.min = QVariant((double) 0);
+   fontsize.min = QVariant((double) 1);
    fontsize.max = QVariant((double) 200);
    fontsize.order = 4;
    configurables.insert("fontsize", fontsize);

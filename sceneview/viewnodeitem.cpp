@@ -30,6 +30,8 @@ ViewNodeItem::ViewNodeItem(ViewNodeScene* scene, TextureNodePtr newNode)
    mousePressed = false;
    isConnectable = false;
    isUnconnectable = false;
+   highlighterWidth = 6;
+   borderWidth = 2;
 
    setThumbnailSize(scene->getTextureProject()->getThumbnailSize());
    setAcceptHoverEvents(true);
@@ -62,10 +64,13 @@ QPainterPath ViewNodeItem::shape() const
 {
    QPainterPath path;
    QPolygon polygon;
-   polygon << QPoint(0, 41);
-   polygon << QPoint(thumbnailSize.width(), 41);
-   polygon << QPoint(thumbnailSize.width(), thumbnailSize.height() + 41);
-   polygon << QPoint(0, thumbnailSize.height() + 41);
+   polygon << QPoint(0, 0);
+   polygon << QPoint(thumbnailSize.width() + borderWidth * 2,
+                     0);
+   polygon << QPoint(thumbnailSize.width() + borderWidth * 2,
+                     thumbnailSize.height() + borderWidth * 2);
+   polygon << QPoint(0,
+                     thumbnailSize.height() + borderWidth * 2);
    path.addPolygon(polygon);
    return path;
 }
@@ -76,9 +81,9 @@ QPainterPath ViewNodeItem::shape() const
  */
 QRectF ViewNodeItem::boundingRect() const
 {
-   return QRectF(0, 0,
-                 thumbnailSize.width() + 10,
-                 thumbnailSize.height() + 41);
+   return QRectF(-highlighterWidth, -highlighterWidth - 13,
+                 thumbnailSize.width() + borderWidth * 2 + highlighterWidth * 2,
+                 thumbnailSize.height() + borderWidth * 2 + highlighterWidth * 2 + 13);
 }
 
 /**
@@ -385,54 +390,63 @@ void ViewNodeItem::hoverMoveEvent(QGraphicsSceneHoverEvent*)
 void ViewNodeItem::paint(QPainter* painter, const QStyleOptionGraphicsItem*, QWidget*)
 {
    QPen slotPen(QColor(0, 0, 0, 255));
-   slotPen.setWidth(2);
+   slotPen.setWidth(borderWidth);
    slotPen.setJoinStyle(Qt::MiterJoin);
    painter->setPen(slotPen);
 
    QBrush backBrush(QColor(220, 220, 220, 255));
    backBrush.setStyle(Qt::SolidPattern);
    painter->setBrush(backBrush);
-   painter->drawRect(0, 40, thumbnailSize.width(), thumbnailSize.height());
+   painter->drawRect(borderWidth / 2,
+                     borderWidth / 2,
+                     thumbnailSize.width() + borderWidth,
+                     thumbnailSize.height() + borderWidth);
    painter->setBrush(Qt::NoBrush);
 
    painter->setFont(QFont("Helvetica", 12));
-   painter->drawText(QRect(0, 15, thumbnailSize.width(), 35), titleString);
+   painter->drawText(QRect(0, -13 - (isSelected() ? highlighterWidth : 0),
+                           thumbnailSize.width(), 12), titleString);
    painter->setCompositionMode(QPainter::CompositionMode_SourceOver);
-   painter->drawPixmap(0, 40, pixmap);
+   painter->setPen(Qt::NoPen);
+   painter->drawPixmap(borderWidth,
+                       borderWidth,
+                       pixmap);
 
    if (!imageValid) {
       QBrush updateBrush(QColor(230, 100, 0, 255));
       updateBrush.setStyle(Qt::DiagCrossPattern);
       painter->setBrush(updateBrush);
+      painter->drawRect(borderWidth,
+                        borderWidth,
+                        thumbnailSize.width(),
+                        thumbnailSize.height());
    }
-
-   painter->drawRect(0, 40, thumbnailSize.width(), thumbnailSize.height());
 
    if (isConnectable || isUnconnectable || isSelected()) {
       painter->setBrush(Qt::NoBrush);
       QPen selectedPen;
       if (isConnectable || isUnconnectable) {
          selectedPen.setColor(Qt::red);
-         selectedPen.setWidth(6);
+         selectedPen.setWidth(highlighterWidth);
       } else {
          selectedPen.setColor(QColor(0, 255, 0, 255));
-         selectedPen.setWidth(6);
+         selectedPen.setWidth(highlighterWidth);
       }
       selectedPen.setJoinStyle(Qt::MiterJoin);
       painter->setPen(selectedPen);
       if (isUnconnectable) {
-         painter->drawLine(1 + selectedPen.width() / 2,
-                           41 + selectedPen.width() / 2,
-                           1 + selectedPen.width() / 2 + thumbnailSize.width() - selectedPen.width() - 1,
-                           41 + selectedPen.width() / 2 + thumbnailSize.height() - selectedPen.width() - 1);
-         painter->drawLine(1 + selectedPen.width() / 2 + thumbnailSize.width() - selectedPen.width() - 1,
-                           41 + selectedPen.width() / 2,
-                           1 + selectedPen.width() / 2,
-                           41 + selectedPen.width() / 2 + thumbnailSize.height() - selectedPen.width() - 1);
-
+         painter->drawLine(0,
+                           0,
+                           thumbnailSize.width() + borderWidth * 2,
+                           thumbnailSize.height() + borderWidth * 2);
+         painter->drawLine(thumbnailSize.width() + borderWidth * 2,
+                           0,
+                           0,
+                           thumbnailSize.height() + borderWidth * 2);
       }
-      painter->drawRect(1 + selectedPen.width() / 2, 41 + selectedPen.width() / 2,
-                        thumbnailSize.width() - selectedPen.width() - 1,
-                        thumbnailSize.height() - selectedPen.width() - 1);
+      painter->drawRect(-highlighterWidth / 2,
+                        -highlighterWidth / 2,
+                        2 * borderWidth + thumbnailSize.width() + highlighterWidth,
+                        2 * borderWidth + thumbnailSize.height() + highlighterWidth);
    }
 }

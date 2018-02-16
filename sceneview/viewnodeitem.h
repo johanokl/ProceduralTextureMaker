@@ -80,6 +80,8 @@ private:
    int highlightSlot;
    QPointF mousePressedPos;
    QPointF mousePressedItemPos;
+   int highlighterWidth;
+   int borderWidth;
 
    QSet<ViewNodeLine*> startLines;
    QMap<int, ViewNodeLine*> endLines;

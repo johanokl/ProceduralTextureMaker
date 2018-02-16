@@ -480,7 +480,10 @@ void ViewNodeScene::dragEnterEvent(QGraphicsSceneDragDropEvent *event)
 {
    if (!dropItem) {
       dropItem = new QGraphicsRectItem;
-      dropItem->setRect(QRect(QPoint(0, 40), project->getThumbnailSize()));
+      QSize itemSize = project->getThumbnailSize();
+      itemSize.setWidth(itemSize.width() + 4);
+      itemSize.setHeight(itemSize.height() + 4);
+      dropItem->setRect(QRect(QPoint(0, 0), itemSize));
       dropItem->setBrush(QBrush(Qt::DiagCrossPattern));
       addItem(dropItem);
    }
