@@ -56,6 +56,7 @@ SOURCES = main.cpp \
     generators/blending.cpp \
     generators/boxblur.cpp \
     generators/circle.cpp \
+    generators/dropshadow.cpp \
     generators/fill.cpp \
     generators/gaussianblur.cpp \
     generators/greyscale.cpp \
@@ -80,7 +81,7 @@ SOURCES = main.cpp \
     generators/text.cpp \
     generators/displacementmap.cpp \
     generators/modifylevels.cpp \
-    generators/dropshadow.cpp
+    generators/stackblur.cpp
 
 HEADERS +=     global.h \
     texgenapplication.h \
@@ -108,6 +109,7 @@ HEADERS +=     global.h \
     generators/blending.h \
     generators/boxblur.h \
     generators/circle.h \
+    generators/dropshadow.h \
     generators/empty.h \
     generators/fill.h \
     generators/gaussianblur.h \
@@ -132,7 +134,7 @@ HEADERS +=     global.h \
     generators/text.h \
     generators/displacementmap.h \
     generators/modifylevels.h \
-    generators/dropshadow.h
+    generators/stackblur.h
 
 RESOURCES += texgen.qrc \
     shaders.qrc

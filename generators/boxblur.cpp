@@ -15,7 +15,7 @@ BoxBlurTextureGenerator::BoxBlurTextureGenerator()
    neighbourssetting.defaultvalue = QVariant((int) 5);
    neighbourssetting.name = "Blur level";
    neighbourssetting.min = QVariant((int) 0);
-   neighbourssetting.max = QVariant((int) 50);
+   neighbourssetting.max = QVariant((int) 30);
    configurables.insert("numneighbours", neighbourssetting);
 }
 

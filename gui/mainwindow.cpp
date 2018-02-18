@@ -45,6 +45,7 @@
 #include "generators/sinetransform.h"
 #include "generators/square.h"
 #include "generators/star.h"
+#include "generators/stackblur.h"
 #include "generators/text.h"
 #include "generators/transform.h"
 #include "generators/whirl.h"
@@ -114,6 +115,7 @@ MainWindow::MainWindow(TexGenApplication* parent)
    project->addGenerator(TextureGeneratorPtr(new SineTransformTextureGenerator()));
    project->addGenerator(TextureGeneratorPtr(new SquareTextureGenerator()));
    project->addGenerator(TextureGeneratorPtr(new StarTextureGenerator()));
+   project->addGenerator(TextureGeneratorPtr(new StackBlurTextureGenerator()));
    project->addGenerator(TextureGeneratorPtr(new TextTextureGenerator()));
    project->addGenerator(TextureGeneratorPtr(new TransformTextureGenerator()));
    project->addGenerator(TextureGeneratorPtr(new WhirlTextureGenerator()));

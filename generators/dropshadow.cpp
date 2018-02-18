@@ -11,7 +11,7 @@
 #include "dropshadow.h"
 #include "greyscale.h"
 #include "transform.h"
-#include "boxblur.h"
+#include "stackblur.h"
 #include "blending.h"
 
 using namespace std;
@@ -51,12 +51,12 @@ DropShadowTextureGenerator::DropShadowTextureGenerator()
    configurables.insert("offsettop", offsetTop);
 
    TextureGeneratorSetting blursetting;
-   blursetting.defaultvalue = QVariant((int) 5);
+   blursetting.defaultvalue = QVariant((int) 10);
    blursetting.name = "Blur level";
    blursetting.min = QVariant((int) 1);
-   blursetting.max = QVariant((int) 15);
+   blursetting.max = QVariant((int) 20);
    blursetting.order = 5;
-   configurables.insert("numneighbours", blursetting);
+   configurables.insert("level", blursetting);
 }
 
 
@@ -74,7 +74,7 @@ void DropShadowTextureGenerator::generate(QSize size,
    }
    GreyscaleTextureGenerator greygen;
    TransformTextureGenerator transformgen;
-   BoxBlurTextureGenerator boxblurgen;
+   StackBlurTextureGenerator stackblurgen;
    BlendingTextureGenerator blendinggen;
 
    TexturePixel* greyImage = new TexturePixel[size.width() * size.height()];
@@ -84,10 +84,10 @@ void DropShadowTextureGenerator::generate(QSize size,
    QMap<int, TextureImagePtr> blurSettingsIterator;
    blurSettingsIterator.insert(0, greyImagePtr);
    TextureNodeSettings settingsForBlur;
-   settingsForBlur.insert("numneighbours", QVariant(settings->value("numneighbours").toInt()));
+   settingsForBlur.insert("level", QVariant(settings->value("level").toInt()));
    TexturePixel* blurredImage = new TexturePixel[size.width() * size.height()];
    TextureImagePtr blurredImagePtr = TextureImagePtr(new TextureImage(size, blurredImage));
-   boxblurgen.generate(size, blurredImage, blurSettingsIterator, &settingsForBlur);
+   stackblurgen.generate(size, blurredImage, blurSettingsIterator, &settingsForBlur);
 
    QMap<int, TextureImagePtr> sourceForTransform;
    sourceForTransform.insert(0, blurredImagePtr);
