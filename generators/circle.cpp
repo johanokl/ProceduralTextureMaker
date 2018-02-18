@@ -16,7 +16,7 @@ CircleTextureGenerator::CircleTextureGenerator()
    TextureGeneratorSetting colorsetting;
    colorsetting.name = "Color";
    colorsetting.description = "Color of the circle";
-   colorsetting.defaultvalue = QVariant(QColor(200, 100, 0, 255));
+   colorsetting.defaultvalue = QVariant(QColor(200, 100, 0, 200));
    colorsetting.order = 1;
    configurables.insert("color", colorsetting);
 
@@ -72,13 +72,18 @@ void CircleTextureGenerator::generate(QSize size,
    int offsetLeft = settings->value("offsetleft").toDouble() * size.width() / 100;
    int offsetTop = settings->value("offsettop").toDouble() * size.height() / 100;
 
+   bool blend = false;
    if (sourceimages.contains(0)) {
       memcpy(destimage, sourceimages.value(0)->getData(), size.width() * size.height() * sizeof(TexturePixel));
+      blend = true;
    } else {
       memset(destimage, 0, size.width() * size.height() * sizeof(TexturePixel));
    }
-
-   TexturePixel filler(color.red(), color.green(), color.blue(), 255);
+   if (color.alpha() == 255) {
+      blend = false;
+   }
+   double alpha = color.alphaF();
+   double srcAlpha = 1 - alpha;
    for (int y = 0; y < size.height(); y++) {
       for (int x = 0; x < size.width(); x++) {
          if (((pow(abs(size.width() / 2 - x + offsetLeft), 2)
@@ -87,7 +92,11 @@ void CircleTextureGenerator::generate(QSize size,
              ((pow(abs(size.width() / 2 - x + offsetLeft), 2)
                + pow(abs(size.height() / 2 - y + offsetTop), 2))
               <= (pow(outerRadius, 2)))) {
-            destimage[y * size.width() + x] = filler;
+            int thisPos = y * size.width() + x;
+            destimage[thisPos].r = (int) (alpha * color.red() + (blend ? (srcAlpha * destimage[thisPos].r) : 0));
+            destimage[thisPos].g = (int) (alpha * color.green() + (blend ? (srcAlpha * destimage[thisPos].g) : 0));
+            destimage[thisPos].b = (int) (alpha * color.blue() + (blend ? (srcAlpha * destimage[thisPos].b) : 0));
+            destimage[thisPos].a = (int) (color.alpha() + (blend ? (srcAlpha * destimage[thisPos].a) : 0));
          }
       }
    }
