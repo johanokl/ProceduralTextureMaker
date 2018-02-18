@@ -31,13 +31,14 @@ TextureNode::TextureNode(TextureProject* project, TextureGeneratorPtr gen, int i
    name = QString("Node %1").arg(id);
    this->project = project;
    this->id = id;
-   this->gen = gen;
+   this->gen = TextureGeneratorPtr(NULL);
    sources.clear();
    receivers.clear();
    deleted = false;
    for (int i = 0; i < 10; i++) {
       sources.insert(i, 0);
    }
+   setGenerator(gen);
 }
 
 /**
@@ -440,11 +441,11 @@ TextureImagePtr TextureNode::getImage(QSize size)
  */
 bool TextureNode::setGenerator(TextureGeneratorPtr newgenerator)
 {
-   if (newgenerator == NULL) {
+   if (newgenerator.isNull()) {
       newgenerator = project->getEmptyGenerator();
    }
    if (gen != newgenerator) {
-      if (gen->getNumSourceSlots() > newgenerator->getNumSourceSlots()) {
+      if (!gen.isNull() && gen->getNumSourceSlots() > newgenerator->getNumSourceSlots()) {
          for (int i = newgenerator->getNumSourceSlots(); i < gen->getNumSourceSlots(); i++) {
             setSourceSlot(i, 0);
          }
@@ -465,7 +466,6 @@ bool TextureNode::setGenerator(TextureGeneratorPtr newgenerator)
       emit generatorUpdated(id);
       setUpdated();
    }
-   gen = newgenerator;
    return true;
 }
 

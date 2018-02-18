@@ -7,6 +7,7 @@
 
 #include <QApplication>
 #include <QClipboard>
+#include <QDebug>
 #include "textureproject.h"
 #include "settingsmanager.h"
 #include "generators/empty.h"
@@ -299,7 +300,7 @@ TextureNodePtr TextureProject::newNode(int id, TextureGeneratorPtr generator)
    if (id == 0) {
       id = getNewId();
    }
-   if (generator == NULL) {
+   if (generator.isNull()) {
       generator = emptygenerator;
    }
    nodesmutex.unlock();
@@ -314,7 +315,6 @@ TextureNodePtr TextureProject::newNode(int id, TextureGeneratorPtr generator)
    QObject::connect(newNode.data(), SIGNAL(imageAvailable(int, QSize)), this, SLOT(notifyImageAvailable(int, QSize)));
 
    emit nodeAdded(newNode);
-   newNode->setUpdated();
    return newNode;
 }
 
@@ -363,8 +363,8 @@ void TextureProject::removeGenerator(TextureGeneratorPtr gen)
  */
 TextureGeneratorPtr TextureProject::getGenerator(QString name) const
 {
-   if (name == "Blur") {
-      name = "Box blur";
+   if (!generators.contains(name)) {
+      qDebug() << QString("No generator with name %1.").arg(name);
    }
    return generators.value(name, NULL);
 }
@@ -424,12 +424,14 @@ void TextureProject::pasteNode()
    }
    QDomNodeList nodes = nodeRoot.childNodes();
    for (int i = 0; i < nodes.count(); i++) {
-      TextureNodePtr node = newNode();
-      node->loadFromXML(nodes.at(i));
+      QDomNode currNode = nodes.at(i);
+      QDomElement generatornode = currNode.namedItem("generator").toElement();
+      TextureNodePtr node = newNode(0, getGenerator(!generatornode.isNull() ?
+                                                     generatornode.attribute("name") : ""));
+      node->loadFromXML(currNode);
       node->setPos(QPointF(node->getPos().x() + this->nodes.size() * 15,
                            node->getPos().y() + this->nodes.size() * 15));
    }
-
 }
 
 /**

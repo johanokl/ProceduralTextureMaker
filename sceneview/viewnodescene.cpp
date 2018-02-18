@@ -527,11 +527,10 @@ void ViewNodeScene::dropEvent(QGraphicsSceneDragDropEvent *event)
          dropItem = NULL;
       }
       QString toAdd = event->mimeData()->text();
-      TextureNodePtr texNode = project->newNode();
-      if (texNode->setGenerator(toAdd)) {
-         texNode->setPos(event->scenePos());
-      } else {
-         project->removeNode(texNode->getId());
+      TextureGeneratorPtr generator = project->getGenerator(toAdd);
+      if (generator.isNull()) {
+         return;
       }
+      project->newNode(0, generator)->setPos(event->scenePos());
    }
 }

@@ -93,7 +93,10 @@ QRectF ViewNodeItem::boundingRect() const
  */
 bool ViewNodeItem::posInImage(QPointF pos) const
 {
-   return QRectF(0, 40, thumbnailSize.width(), thumbnailSize.height()).contains(pos);
+   return QRectF(0, 0,
+                 thumbnailSize.width() + borderWidth * 2,
+                 thumbnailSize.height() + borderWidth * 2)
+         .contains(pos);
 }
 
 /**
