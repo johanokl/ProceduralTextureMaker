@@ -55,33 +55,34 @@ SOURCES = main.cpp \
     sceneview/viewnodeline.cpp \
     generators/blending.cpp \
     generators/boxblur.cpp \
+    generators/bricks.cpp \
+    generators/checkboard.cpp \
     generators/circle.cpp \
     generators/dropshadow.cpp \
+    generators/displacementmap.cpp \
+    generators/empty.cpp \
     generators/fill.cpp \
+    generators/fire.cpp \
     generators/gaussianblur.cpp \
     generators/greyscale.cpp \
+    generators/gradient.cpp \
+    generators/invert.cpp \
+    generators/javascript.cpp \
+    generators/lens.cpp \
+    generators/lines.cpp \
+    generators/mirror.cpp \
+    generators/modifylevels.cpp \
     generators/normalmap.cpp \
     generators/perlinnoise.cpp \
+    generators/sinetransform.cpp \
     generators/sineplasma.cpp \
+    generators/stackblur.cpp \
     generators/square.cpp \
     generators/star.cpp \
-    generators/lens.cpp \
-    generators/transform.cpp \
     generators/setchannels.cpp \
-    generators/mirror.cpp \
-    generators/gradient.cpp \
-    generators/empty.cpp \
-    generators/javascript.cpp \
-    generators/lines.cpp \
-    generators/whirl.cpp \
-    generators/sinetransform.cpp \
-    generators/bricks.cpp \
-    generators/invert.cpp \
-    generators/fire.cpp \
+    generators/transform.cpp \
     generators/text.cpp \
-    generators/displacementmap.cpp \
-    generators/modifylevels.cpp \
-    generators/stackblur.cpp
+    generators/whirl.cpp
 
 HEADERS +=     global.h \
     texgenapplication.h \
@@ -107,34 +108,35 @@ HEADERS +=     global.h \
     sceneview/viewnodeview.h \
     generators/texturegenerator.h \
     generators/blending.h \
+    generators/bricks.h \
     generators/boxblur.h \
+    generators/checkboard.h \
     generators/circle.h \
+    generators/displacementmap.h \
     generators/dropshadow.h \
     generators/empty.h \
     generators/fill.h \
+    generators/fire.h \
     generators/gaussianblur.h \
+    generators/gradient.h \
     generators/greyscale.h \
+    generators/invert.h \
+    generators/javascript.h \
+    generators/lens.h \
+    generators/lines.h \
+    generators/mirror.h \
+    generators/modifylevels.h \
     generators/normalmap.h \
     generators/perlinnoise.h \
     generators/sineplasma.h \
-    generators/square.h \
-    generators/lens.h \
-    generators/star.h \
-    generators/transform.h \
-    generators/setchannels.h \
-    generators/mirror.h \
-    generators/gradient.h \
-    generators/javascript.h \
-    generators/lines.h \
-    generators/whirl.h \
     generators/sinetransform.h \
-    generators/bricks.h \
-    generators/invert.h \
-    generators/fire.h \
+    generators/setchannels.h \
+    generators/square.h \
+    generators/stackblur.h \
+    generators/star.h \
     generators/text.h \
-    generators/displacementmap.h \
-    generators/modifylevels.h \
-    generators/stackblur.h
+    generators/transform.h \
+    generators/whirl.h
 
 RESOURCES += texgen.qrc \
     shaders.qrc

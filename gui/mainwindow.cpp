@@ -25,6 +25,7 @@
 #include "generators/boxblur.h"
 #include "generators/bricks.h"
 #include "generators/circle.h"
+#include "generators/checkboard.h"
 #include "generators/displacementmap.h"
 #include "generators/dropshadow.h"
 #include "generators/fill.h"
@@ -96,6 +97,7 @@ MainWindow::MainWindow(TexGenApplication* parent)
    project->addGenerator(TextureGeneratorPtr(new BoxBlurTextureGenerator()));
    project->addGenerator(TextureGeneratorPtr(new BricksTextureGenerator()));
    project->addGenerator(TextureGeneratorPtr(new CircleTextureGenerator()));
+   project->addGenerator(TextureGeneratorPtr(new CheckboardTextureGenerator()));
    project->addGenerator(TextureGeneratorPtr(new DisplacementMapTextureGenerator()));
    project->addGenerator(TextureGeneratorPtr(new DropShadowTextureGenerator()));
    project->addGenerator(TextureGeneratorPtr(new FillTextureGenerator()));
