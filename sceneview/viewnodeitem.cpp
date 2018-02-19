@@ -406,7 +406,11 @@ void ViewNodeItem::paint(QPainter* painter, const QStyleOptionGraphicsItem*, QWi
                      thumbnailSize.height() + borderWidth);
    painter->setBrush(Qt::NoBrush);
 
-   painter->setFont(QFont("Helvetica", 12));
+   QFont font;
+   font.setPixelSize(12);
+   font.setStyleHint(QFont::StyleHint::Helvetica);
+   font.setFamily(font.defaultFamily());
+   painter->setFont(font);
    painter->drawText(QRect(0, -13 - (isSelected() ? highlighterWidth : 0),
                            thumbnailSize.width(), 12), titleString);
    painter->setCompositionMode(QPainter::CompositionMode_SourceOver);
