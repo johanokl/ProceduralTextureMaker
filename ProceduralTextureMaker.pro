@@ -73,6 +73,8 @@ SOURCES = main.cpp \
     generators/modifylevels.cpp \
     generators/normalmap.cpp \
     generators/perlinnoise.cpp \
+    generators/pixelate.cpp \
+    generators/shadow.cpp \
     generators/sinetransform.cpp \
     generators/sineplasma.cpp \
     generators/stackblur.cpp \
@@ -82,7 +84,6 @@ SOURCES = main.cpp \
     generators/transform.cpp \
     generators/text.cpp \
     generators/whirl.cpp
-    generators/shadow.cpp \
 
 HEADERS +=     global.h \
     texgenapplication.h \
@@ -127,6 +128,8 @@ HEADERS +=     global.h \
     generators/modifylevels.h \
     generators/normalmap.h \
     generators/perlinnoise.h \
+    generators/pixelate.h \
+    generators/shadow.h \
     generators/sineplasma.h \
     generators/sinetransform.h \
     generators/setchannels.h \
@@ -136,7 +139,6 @@ HEADERS +=     global.h \
     generators/text.h \
     generators/transform.h \
     generators/whirl.h
-    generators/shadow.h \
 
 RESOURCES += texgen.qrc \
     shaders.qrc

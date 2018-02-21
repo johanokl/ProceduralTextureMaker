@@ -40,6 +40,7 @@
 #include "generators/modifylevels.h"
 #include "generators/normalmap.h"
 #include "generators/perlinnoise.h"
+#include "generators/pixelate.h"
 #include "generators/setchannels.h"
 #include "generators/shadow.h"
 #include "generators/sineplasma.h"
@@ -111,6 +112,7 @@ MainWindow::MainWindow(TexGenApplication* parent)
    project->addGenerator(TextureGeneratorPtr(new ModifyLevelsTextureGenerator()));
    project->addGenerator(TextureGeneratorPtr(new NormalMapTextureGenerator()));
    project->addGenerator(TextureGeneratorPtr(new PerlinNoiseTextureGenerator()));
+   project->addGenerator(TextureGeneratorPtr(new PixelateTextureGenerator()));
    project->addGenerator(TextureGeneratorPtr(new SetChannelsTextureGenerator()));
    project->addGenerator(TextureGeneratorPtr(new ShadowTextureGenerator()));
    project->addGenerator(TextureGeneratorPtr(new SinePlasmaTextureGenerator()));
