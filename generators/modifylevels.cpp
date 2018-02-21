@@ -95,16 +95,16 @@ void ModifyLevelsTextureGenerator::generate(QSize size, TexturePixel* destimage,
          }
       } else if (mode == "Multiply") {
          if (r) {
-            destimage[i].r = qMin((int) (levelFactor * destimage[i].r), 255);
+            destimage[i].r = qMax(qMin((int) (levelFactor * destimage[i].r), 255), 0);
          }
          if (g) {
-            destimage[i].g = qMin((int) (levelFactor * destimage[i].g), 255);
+            destimage[i].g = qMax(qMin((int) (levelFactor * destimage[i].g), 255), 0);
          }
          if (b) {
-            destimage[i].b = qMin((int) (levelFactor * destimage[i].b), 255);
+            destimage[i].b = qMax(qMin((int) (levelFactor * destimage[i].b), 255), 0);
          }
          if (a) {
-            destimage[i].a = qMin((int) (levelFactor * destimage[i].a), 255);
+            destimage[i].a = qMax(qMin((int) (levelFactor * destimage[i].a), 255), 0);
          }
       }
    }

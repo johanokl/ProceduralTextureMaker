@@ -28,8 +28,6 @@ void BoxBlurTextureGenerator::generate(QSize size,
    if (!settings || !destimage || !size.isValid()) {
       return;
    }
-   int numNeightboursX = settings->value("numneighbours").toDouble() * qMax(size.width() / 250, 1);
-   int numNeightboursY = settings->value("numneighbours").toDouble() * qMax(size.height() / 250, 1);
    if (!sourceimages.contains(0)) {
       memset(destimage, 0, size.width() * size.height() * sizeof(TexturePixel));
       return;
@@ -39,6 +37,8 @@ void BoxBlurTextureGenerator::generate(QSize size,
       memcpy(destimage, sourceImage, size.width() * size.height() * sizeof(TexturePixel));
       return;
    }
+   int numNeightboursX = settings->value("numneighbours").toDouble() * qMax(size.width() / 250, 1);
+   int numNeightboursY = settings->value("numneighbours").toDouble() * qMax(size.height() / 250, 1);
    for (int j = 0; j < size.height(); j++) {
       for (int i = 0; i < size.width(); i++) {
          int startX = i - numNeightboursX;
@@ -46,10 +46,10 @@ void BoxBlurTextureGenerator::generate(QSize size,
          int startY = j - numNeightboursY;
          int endY = j + numNeightboursY;
          int totalPixels = 0;
-         int red = 0;
-         int green = 0;
-         int blue = 0;
-         int alpha = 0;
+         unsigned long red = 0;
+         unsigned long green = 0;
+         unsigned long blue = 0;
+         unsigned long alpha = 0;
          for (int ypos = startY; ypos < endY; ypos++) {
             int currY = ypos;
             if (currY < 0) {

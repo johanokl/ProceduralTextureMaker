@@ -64,6 +64,7 @@ SOURCES = main.cpp \
     generators/fill.cpp \
     generators/fire.cpp \
     generators/gaussianblur.cpp \
+    generators/glow.cpp \
     generators/greyscale.cpp \
     generators/gradient.cpp \
     generators/invert.cpp \
@@ -121,6 +122,7 @@ HEADERS +=     global.h \
     generators/fill.h \
     generators/fire.h \
     generators/gaussianblur.h \
+    generators/glow.h \
     generators/gradient.h \
     generators/greyscale.h \
     generators/invert.h \

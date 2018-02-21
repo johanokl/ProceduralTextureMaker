@@ -31,6 +31,7 @@
 #include "generators/fill.h"
 #include "generators/fire.h"
 #include "generators/gaussianblur.h"
+#include "generators/glow.h"
 #include "generators/gradient.h"
 #include "generators/greyscale.h"
 #include "generators/invert.h"
@@ -106,6 +107,7 @@ MainWindow::MainWindow(TexGenApplication* parent)
    project->addGenerator(TextureGeneratorPtr(new FillTextureGenerator()));
    project->addGenerator(TextureGeneratorPtr(new FireTextureGenerator()));
    project->addGenerator(TextureGeneratorPtr(new GaussianBlurTextureGenerator()));
+   project->addGenerator(TextureGeneratorPtr(new GlowTextureGenerator()));
    project->addGenerator(TextureGeneratorPtr(new GradientTextureGenerator()));
    project->addGenerator(TextureGeneratorPtr(new GreyscaleTextureGenerator()));
    project->addGenerator(TextureGeneratorPtr(new InvertTextureGenerator()));
