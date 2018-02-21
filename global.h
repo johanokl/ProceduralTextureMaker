@@ -24,6 +24,9 @@ public:
    unsigned char r;
    unsigned char a;
 
+   TexturePixel(const TexturePixel &rhs)
+      : b(rhs.b), g(rhs.g), r(rhs.r), a(rhs.a) {}
+
    TexturePixel(unsigned char red = 0, unsigned char green = 0,
                 unsigned char blue = 0, unsigned char alpha = 255)
       : b(blue), g(green), r(red), a(alpha) {}
@@ -41,6 +44,20 @@ public:
       ret = ret << 8;
       ret += a;
       return ret;
+   }
+
+   TexturePixel &operator+=(const TexturePixel &rhs) {
+      r = qMin((int) rhs.r + r, 255);
+      g = qMin((int) rhs.g + g, 255);
+      b = qMin((int) rhs.b + b, 255);
+      a = qMin((int) rhs.a + a, 255);
+      return *this;
+   }
+
+   TexturePixel operator+(const TexturePixel &rhs) {
+       TexturePixel ret(*this);
+       ret += rhs;
+       return ret;
    }
 
    /**

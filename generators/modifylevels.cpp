@@ -38,8 +38,8 @@ ModifyLevelsTextureGenerator::ModifyLevelsTextureGenerator()
    TextureGeneratorSetting blendingAlpha;
    blendingAlpha.name = "Amount";
    blendingAlpha.defaultvalue = QVariant((double) 100);
-   blendingAlpha.min = -300;
-   blendingAlpha.max = 300;
+   blendingAlpha.min = -500;
+   blendingAlpha.max = 500;
    blendingAlpha.order = 2;
    configurables.insert("level", blendingAlpha);
 }

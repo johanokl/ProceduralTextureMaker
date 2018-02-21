@@ -70,6 +70,7 @@ SOURCES = main.cpp \
     generators/lens.cpp \
     generators/lines.cpp \
     generators/mirror.cpp \
+    generators/merge.cpp \
     generators/modifylevels.cpp \
     generators/normalmap.cpp \
     generators/perlinnoise.cpp \
@@ -124,6 +125,7 @@ HEADERS +=     global.h \
     generators/javascript.h \
     generators/lens.h \
     generators/lines.h \
+    generators/merge.h \
     generators/mirror.h \
     generators/modifylevels.h \
     generators/normalmap.h \
