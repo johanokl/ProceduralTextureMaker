@@ -5,19 +5,19 @@
  * Johan Lindqvist (johan.lindqvist@gmail.com)
  */
 
-#ifndef DROPSHADOWTEXTUREGENERATOR_H
-#define DROPSHADOWTEXTUREGENERATOR_H
+#ifndef SHADOWTEXTUREGENERATOR_H
+#define SHADOWTEXTUREGENERATOR_H
 
 #include "texturegenerator.h"
 
 /**
- * @brief The DropShadowTextureGenerator class
+ * @brief The ShadowTextureGenerator class
  */
-class DropShadowTextureGenerator : public TextureGenerator
+class ShadowTextureGenerator : public TextureGenerator
 {
 public:
-   DropShadowTextureGenerator();
-   virtual ~DropShadowTextureGenerator() {}
+   ShadowTextureGenerator();
+   virtual ~ShadowTextureGenerator() {}
    virtual void generate(QSize size,
                          TexturePixel* destimage,
                          QMap<int, TextureImagePtr> sourceimages,
@@ -32,4 +32,4 @@ private:
    TextureGeneratorSettings configurables;
 };
 
-#endif // DROPSHADOWTEXTUREGENERATOR_H
+#endif // SHADOWTEXTUREGENERATOR_H

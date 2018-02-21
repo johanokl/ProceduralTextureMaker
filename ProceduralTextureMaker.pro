@@ -58,7 +58,6 @@ SOURCES = main.cpp \
     generators/bricks.cpp \
     generators/checkboard.cpp \
     generators/circle.cpp \
-    generators/dropshadow.cpp \
     generators/displacementmap.cpp \
     generators/empty.cpp \
     generators/fill.cpp \
@@ -83,6 +82,7 @@ SOURCES = main.cpp \
     generators/transform.cpp \
     generators/text.cpp \
     generators/whirl.cpp
+    generators/shadow.cpp \
 
 HEADERS +=     global.h \
     texgenapplication.h \
@@ -113,7 +113,6 @@ HEADERS +=     global.h \
     generators/checkboard.h \
     generators/circle.h \
     generators/displacementmap.h \
-    generators/dropshadow.h \
     generators/empty.h \
     generators/fill.h \
     generators/fire.h \
@@ -137,6 +136,7 @@ HEADERS +=     global.h \
     generators/text.h \
     generators/transform.h \
     generators/whirl.h
+    generators/shadow.h \
 
 RESOURCES += texgen.qrc \
     shaders.qrc

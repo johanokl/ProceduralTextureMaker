@@ -8,7 +8,7 @@
 #include <math.h>
 #include <QColor>
 #include <QMap>
-#include "dropshadow.h"
+#include "shadow.h"
 #include "greyscale.h"
 #include "transform.h"
 #include "stackblur.h"
@@ -16,7 +16,7 @@
 
 using namespace std;
 
-DropShadowTextureGenerator::DropShadowTextureGenerator()
+ShadowTextureGenerator::ShadowTextureGenerator()
 {
    TextureGeneratorSetting scaleX;
    scaleX.name = "Scale X (%)";
@@ -53,14 +53,14 @@ DropShadowTextureGenerator::DropShadowTextureGenerator()
    TextureGeneratorSetting blursetting;
    blursetting.defaultvalue = QVariant((int) 10);
    blursetting.name = "Blur level";
-   blursetting.min = QVariant((int) 1);
+   blursetting.min = QVariant((int) 0);
    blursetting.max = QVariant((int) 20);
    blursetting.order = 5;
    configurables.insert("level", blursetting);
 }
 
 
-void DropShadowTextureGenerator::generate(QSize size,
+void ShadowTextureGenerator::generate(QSize size,
                                           TexturePixel* destimage,
                                           QMap<int, TextureImagePtr> sourceimages,
                                           TextureNodeSettings* settings) const

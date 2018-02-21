@@ -27,7 +27,6 @@
 #include "generators/circle.h"
 #include "generators/checkboard.h"
 #include "generators/displacementmap.h"
-#include "generators/dropshadow.h"
 #include "generators/fill.h"
 #include "generators/fire.h"
 #include "generators/gaussianblur.h"
@@ -42,6 +41,7 @@
 #include "generators/normalmap.h"
 #include "generators/perlinnoise.h"
 #include "generators/setchannels.h"
+#include "generators/shadow.h"
 #include "generators/sineplasma.h"
 #include "generators/sinetransform.h"
 #include "generators/square.h"
@@ -99,7 +99,6 @@ MainWindow::MainWindow(TexGenApplication* parent)
    project->addGenerator(TextureGeneratorPtr(new CircleTextureGenerator()));
    project->addGenerator(TextureGeneratorPtr(new CheckboardTextureGenerator()));
    project->addGenerator(TextureGeneratorPtr(new DisplacementMapTextureGenerator()));
-   project->addGenerator(TextureGeneratorPtr(new DropShadowTextureGenerator()));
    project->addGenerator(TextureGeneratorPtr(new FillTextureGenerator()));
    project->addGenerator(TextureGeneratorPtr(new FireTextureGenerator()));
    project->addGenerator(TextureGeneratorPtr(new GaussianBlurTextureGenerator()));
@@ -113,6 +112,7 @@ MainWindow::MainWindow(TexGenApplication* parent)
    project->addGenerator(TextureGeneratorPtr(new NormalMapTextureGenerator()));
    project->addGenerator(TextureGeneratorPtr(new PerlinNoiseTextureGenerator()));
    project->addGenerator(TextureGeneratorPtr(new SetChannelsTextureGenerator()));
+   project->addGenerator(TextureGeneratorPtr(new ShadowTextureGenerator()));
    project->addGenerator(TextureGeneratorPtr(new SinePlasmaTextureGenerator()));
    project->addGenerator(TextureGeneratorPtr(new SineTransformTextureGenerator()));
    project->addGenerator(TextureGeneratorPtr(new SquareTextureGenerator()));
