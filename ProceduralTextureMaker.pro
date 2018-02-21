@@ -58,6 +58,7 @@ SOURCES = main.cpp \
     generators/bricks.cpp \
     generators/checkboard.cpp \
     generators/circle.cpp \
+    generators/cutout.cpp \
     generators/displacementmap.cpp \
     generators/empty.cpp \
     generators/fill.cpp \
@@ -113,6 +114,7 @@ HEADERS +=     global.h \
     generators/bricks.h \
     generators/boxblur.h \
     generators/checkboard.h \
+    generators/cutout.h \
     generators/circle.h \
     generators/displacementmap.h \
     generators/empty.h \

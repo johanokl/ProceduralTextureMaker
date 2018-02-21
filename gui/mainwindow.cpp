@@ -24,8 +24,9 @@
 #include "generators/blending.h"
 #include "generators/boxblur.h"
 #include "generators/bricks.h"
-#include "generators/circle.h"
 #include "generators/checkboard.h"
+#include "generators/circle.h"
+#include "generators/cutout.h"
 #include "generators/displacementmap.h"
 #include "generators/fill.h"
 #include "generators/fire.h"
@@ -98,8 +99,9 @@ MainWindow::MainWindow(TexGenApplication* parent)
    project->addGenerator(TextureGeneratorPtr(new BlendingTextureGenerator()));
    project->addGenerator(TextureGeneratorPtr(new BoxBlurTextureGenerator()));
    project->addGenerator(TextureGeneratorPtr(new BricksTextureGenerator()));
-   project->addGenerator(TextureGeneratorPtr(new CircleTextureGenerator()));
    project->addGenerator(TextureGeneratorPtr(new CheckboardTextureGenerator()));
+   project->addGenerator(TextureGeneratorPtr(new CircleTextureGenerator()));
+   project->addGenerator(TextureGeneratorPtr(new CutoutTextureGenerator()));
    project->addGenerator(TextureGeneratorPtr(new DisplacementMapTextureGenerator()));
    project->addGenerator(TextureGeneratorPtr(new FillTextureGenerator()));
    project->addGenerator(TextureGeneratorPtr(new FireTextureGenerator()));
