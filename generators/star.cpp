@@ -27,6 +27,7 @@ StarTextureGenerator::StarTextureGenerator()
    shapeWidth.defaultvalue = QVariant((double) 80);
    shapeWidth.min = QVariant((double) 0);
    shapeWidth.max = QVariant((double) 200);
+   shapeWidth.group = "size";
    shapeWidth.order = 2;
    configurables.insert("width", shapeWidth);
 
@@ -36,6 +37,7 @@ StarTextureGenerator::StarTextureGenerator()
    shapeHeight.defaultvalue = QVariant((double) 80);
    shapeHeight.min = QVariant((double) 0);
    shapeHeight.max = QVariant((double) 200);
+   shapeHeight.group = "size";
    shapeHeight.order = 3;
    configurables.insert("height", shapeHeight);
 

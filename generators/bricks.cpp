@@ -32,6 +32,7 @@ BricksTextureGenerator::BricksTextureGenerator()
    brickwidth.defaultvalue = QVariant((int) 120);
    brickwidth.min = QVariant((int) 0);
    brickwidth.max = QVariant((int) 300);
+   brickwidth.group = "size";
    brickwidth.order = 3;
    configurables.insert("brickwidth", brickwidth);
 
@@ -40,6 +41,7 @@ BricksTextureGenerator::BricksTextureGenerator()
    brickheight.defaultvalue = QVariant((int) 45);
    brickheight.min = QVariant((int) 0);
    brickheight.max = QVariant((int) 300);
+   brickheight.group = "size";
    brickheight.order = 4;
    configurables.insert("brickheight", brickheight);
 

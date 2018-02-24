@@ -13,11 +13,9 @@
 #include <QMap>
 #include "core/texturenode.h"
 
-class TextureProject;
 class ItemInfoPanel;
 class QLabel;
 class QPushButton;
-class SourceRemover;
 class QSpacerItem;
 class QGroupBox;
 class QLineEdit;
@@ -48,14 +46,13 @@ public slots:
    void slotsUpdated();
    void generatorUpdated();
    void saveSettings();
-   void removeSourceSlot(int slot);
    void colorDialog(QString settingsId);
    void swapSlots();
 
 private:
    QFormLayout* createGroupLayout();
    void styleButton(QPushButton* button, QColor color);
-
+   void setGroupAlignment(QString group, bool aligned);
    ItemInfoPanel* widgetmanager;
    int id;
    TextureNodePtr texNode;
@@ -84,19 +81,5 @@ private:
    QList<QPushButton*> sourceSlotButtons;
    QVBoxLayout* layout;
 };
-
-class SourceRemover : public QObject
-{
-   Q_OBJECT
-public:
-   SourceRemover(NodeSettingsWidget* node, int slot) : node(node), slot(slot) {}
-   NodeSettingsWidget* node;
-   int slot;
-public slots:
-   void activate() {
-      node->removeSourceSlot(slot);
-   }
-};
-
 
 #endif // NODESETTINGSWIDGET_H

@@ -14,6 +14,7 @@ PixelateTextureGenerator::PixelateTextureGenerator()
    width.name = "Width";
    width.min = QVariant((double) 0);
    width.max = QVariant((double) 50);
+   width.group = "size";
    width.order = 1;
    configurables.insert("width", width);
 
@@ -22,6 +23,7 @@ PixelateTextureGenerator::PixelateTextureGenerator()
    height.name = "Height";
    height.min = QVariant((double) 0);
    height.max = QVariant((double) 50);
+   height.group = "size";
    height.order = 2;
    configurables.insert("height", height);
 

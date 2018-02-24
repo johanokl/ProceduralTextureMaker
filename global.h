@@ -93,6 +93,7 @@ typedef struct {
    int defaultindex = 0;  // For QStringList
    QVariant min;
    QVariant max;
+   QString group;
 }
 TextureGeneratorSetting;
 

@@ -11,6 +11,7 @@
 #include <QGroupBox>
 #include <QFormLayout>
 #include <QDoubleSpinBox>
+#include <QCheckBox>
 #include <QColorDialog>
 #include <QComboBox>
 #include <QScrollArea>
@@ -64,17 +65,17 @@ NodeSettingsWidget::NodeSettingsWidget(ItemInfoPanel* widgetmanager, int id)
    sourceButtonsWidget->setLayout(sourceButtonsLayout);
    contentsLayout->addWidget(sourceButtonsWidget);
 
-   for (int i = 0; i < 5; i++) {
+   for (int i = 0; i < 10; i++) {
       QLabel* slotLabel = new QLabel("");
       sourceButtonsLayout->addWidget(slotLabel, i, 0);
-      slotLabel->hide();
       QPushButton* slotButton = new QPushButton;
-      SourceRemover* newRemover = new SourceRemover(this, i);
       sourceButtonsLayout->addWidget(slotButton, i, 1);
-      QObject::connect(slotButton, SIGNAL(clicked()), newRemover, SLOT(activate()));
-      slotButton->hide();
+      QObject::connect(slotButton, &QPushButton::clicked,
+                       [=](void) { texNode->setSourceSlot(i, 0); });
       sourceSlotButtons.push_back(slotButton);
       sourceSlotLabels.push_back(slotLabel);
+      slotButton->hide();
+      slotLabel->hide();
    }
    swapSlotButton = new QPushButton("Swap slots");
    sourceButtonsLayout->addWidget(swapSlotButton, sourceSlotButtons.size(), 1);
@@ -150,22 +151,24 @@ void NodeSettingsWidget::saveSettings()
          settingsNewValueString = settingsWidgetCombobox->currentText();
       }
       QVariant settingVariant;
-      switch (texNode->getGenerator()->getSettings().value(settingsId).defaultvalue.type()) {
-      case QVariant::Type::Int:
-         settingVariant = QVariant(settingsNewValueString.toInt());
-         break;
-      case QVariant::Type::Double:
-         settingVariant = QVariant(settingsNewValueString.toDouble());
-         break;
-      case QVariant::Type::Color:
-         settingVariant = QVariant(QColor(settingsNewValueString));
-         break;
-      case QVariant::Type::String:
-      case QVariant::Type::StringList:
-         settingVariant = QVariant(settingsNewValueString);
-         break;
-      default:
-         INFO_MSG("Type not found");
+      if (texNode->getGenerator()->getSettings().contains(settingsId)) {
+         switch (texNode->getGenerator()->getSettings().value(settingsId).defaultvalue.type()) {
+         case QVariant::Type::Int:
+            settingVariant = QVariant(settingsNewValueString.toInt());
+            break;
+         case QVariant::Type::Double:
+            settingVariant = QVariant(settingsNewValueString.toDouble());
+            break;
+         case QVariant::Type::Color:
+            settingVariant = QVariant(QColor(settingsNewValueString));
+            break;
+         case QVariant::Type::String:
+         case QVariant::Type::StringList:
+            settingVariant = QVariant(settingsNewValueString);
+            break;
+         default:
+            INFO_MSG("Type not found");
+         }
       }
       nodeSettings[settingsId] = settingVariant;
    }
@@ -268,7 +271,7 @@ void NodeSettingsWidget::generatorUpdated()
    }
    for (int i = 0; i < generator->getNumSourceSlots() &&
          i <  (sourceSlotLabels.count() - 1); i++) {
-      sourceSlotLabels[i]->setText(generator->getSlotName(i).append(":"));
+      sourceSlotLabels[i]->setText(generator->getSlotName(i) + ":");
    }
 
    // Remove all previous settings value widget, if any.
@@ -296,7 +299,6 @@ void NodeSettingsWidget::generatorUpdated()
    while (settingsIterator.hasNext()) {
       TextureGeneratorSetting currSetting = settingsIterator.next();
       QString settingsId = settings.key(currSetting);
-      QLabel* newLabel = new QLabel(currSetting.name.append(":"));
       QWidget* newWidget;
       switch (currSetting.defaultvalue.type()) {
       case QVariant::Type::String:
@@ -328,6 +330,9 @@ void NodeSettingsWidget::generatorUpdated()
          newWidget = new QSpinBox;
          QObject::connect(newWidget, SIGNAL(valueChanged(int)), this, SLOT(saveSettings()));
       }
+      QLabel* newLabel = new QLabel(currSetting.name + ":");
+      settingLabels[settingsId] = newLabel;
+      settingElements[settingsId] = newWidget;
       settingsLayout->addRow(newLabel, newWidget);
       if (!currSetting.max.isNull()) {
          QDoubleSpinBox* doubleSpinBox = dynamic_cast<QDoubleSpinBox*>(newWidget);
@@ -367,11 +372,82 @@ void NodeSettingsWidget::generatorUpdated()
             newSlider->blockSignals(true);
          }
       }
-      settingLabels[settingsId] = newLabel;
-      settingElements[settingsId] = newWidget;
-   }
+      if (!currSetting.group.isEmpty() && ((settingsIterator.hasNext() &&
+            settingsIterator.peekNext().group != currSetting.group) ||
+            !settingsIterator.hasNext())) {
+         QCheckBox* groupCheckbox = new QCheckBox;
+         QString groupName = currSetting.group + "groupcheckbox";
+         QLabel* newLabel = new QLabel(QString("Align ").append(currSetting.group).append(":"));
+         settingLabels[groupName] = newLabel;
+         settingElements[groupName] = groupCheckbox;
+         settingsLayout->addRow(newLabel, groupCheckbox);
+         QObject::connect(groupCheckbox, &QCheckBox::toggled,
+                          [=](bool val) { this->setGroupAlignment(currSetting.group, val); });
 
+      }
+   }
    this->settingsUpdated();
+}
+
+/**
+ * @brief NodeSettingsWidget::toogleAligned
+ * @param group
+ * @param aligned
+ */
+void NodeSettingsWidget::setGroupAlignment(QString group, bool aligned)
+{
+   TextureGeneratorSettings settings = texNode->getGenerator()->getSettings();
+   QList<TextureGeneratorSetting> settingsvalues = settings.values();
+   qSort(settingsvalues.begin(), settingsvalues.end(), settingsComperator);
+   QListIterator<TextureGeneratorSetting> settingsIterator(settingsvalues);
+   QString firstsetting;
+   while (settingsIterator.hasNext()) {
+      TextureGeneratorSetting currSetting = settingsIterator.next();
+      QString settingsId = settings.key(currSetting);
+      if (currSetting.group == group) {
+         if (firstsetting.isEmpty()) {
+            firstsetting = settingsId;
+            continue;
+         }
+         QWidget* currwidget = settingElements[settingsId];
+         QWidget* firstwidget = settingElements[firstsetting];
+         if (currwidget && firstwidget) {
+            firstwidget->disconnect(currwidget);
+            firstwidget->disconnect(this);
+            if (aligned) {
+               if (currSetting.defaultvalue.type() == QVariant::Type::Int) {
+                  QObject::connect((QSpinBox*) firstwidget, SIGNAL(valueChanged(int)),
+                                   (QSpinBox*) currwidget, SLOT(setValue(int)));
+                  QObject::connect((QSpinBox*) firstwidget, SIGNAL(valueChanged(int)),
+                                   this, SLOT(saveSettings()));
+               } else if (currSetting.defaultvalue.type() == QVariant::Type::Double) {
+                  QObject::connect((QDoubleSpinBox*) firstwidget, SIGNAL(valueChanged(double)),
+                                   (QDoubleSpinBox*) currwidget, SLOT(setValue(double)));
+                  QObject::connect((QDoubleSpinBox*) firstwidget, SIGNAL(valueChanged(double)),
+                                   this, SLOT(saveSettings()));
+               }
+            }
+            currwidget->setEnabled(!aligned);
+            currwidget->blockSignals(aligned);
+         }
+         QWidget* currslider = settingSliders[settingsId];
+         QWidget* firstslider = settingSliders[firstsetting];
+         if (currslider && firstslider) {
+            firstslider->disconnect(currslider);
+            if (aligned) {
+               if (currSetting.defaultvalue.type() == QVariant::Type::Int) {
+                  QObject::connect((QSlider*) firstslider, SIGNAL(valueChanged(int)),
+                                   (QSlider*) currslider, SLOT(setValue(int)));
+               } else if (currSetting.defaultvalue.type() == QVariant::Type::Double) {
+                  QObject::connect((QDoubleSlider*) firstslider, SIGNAL(doubleValueChanged(double)),
+                                   (QDoubleSlider*) currslider, SLOT(setDoubleValue(double)));
+               }
+            }
+            currslider->setEnabled(!aligned);
+            currslider->blockSignals(aligned);
+         }
+      }
+   }
 }
 
 /**
@@ -392,11 +468,12 @@ void NodeSettingsWidget::slotsUpdated()
       } else {
          currButton->show();
          currLabel->show();
-         currLabel->setText(texNode->getGenerator()->getSlotName(i).append(":"));
+         currLabel->setText(texNode->getGenerator()->getSlotName(i) + ":");
          int connectedNode = texNode->getSources().value(i);
          if (connectedNode != 0) {
             currLabel->setText(currLabel->text().append(" ")
-                               .append(widgetmanager->getTextureProject()->getNode(connectedNode)->getName()));
+                               .append(widgetmanager->getTextureProject()->
+                                       getNode(connectedNode)->getName()));
             currButton->setText("Clear");
             currButton->setFlat(false);
             numConnected++;
@@ -411,15 +488,6 @@ void NodeSettingsWidget::slotsUpdated()
    } else {
       swapSlotButton->setVisible(false);
    }
-}
-
-/**
- * @brief NodeSettingsWidget::removeSourceSlot
- * @param slot
- */
-void NodeSettingsWidget::removeSourceSlot(int slot)
-{
-   texNode->setSourceSlot(slot, 0);
 }
 
 /**

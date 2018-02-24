@@ -27,6 +27,7 @@ SquareTextureGenerator::SquareTextureGenerator()
    shapeWidth.min = QVariant((double) 0);
    shapeWidth.max = QVariant((double) 200);
    shapeWidth.order = 2;
+   shapeWidth.group = "size";
    configurables.insert("width", shapeWidth);
 
    TextureGeneratorSetting shapeHeight;
@@ -36,6 +37,7 @@ SquareTextureGenerator::SquareTextureGenerator()
    shapeHeight.min = QVariant((double) 0);
    shapeHeight.max = QVariant((double) 200);
    shapeHeight.order = 3;
+   shapeHeight.group = "size";
    configurables.insert("height", shapeHeight);
 
    TextureGeneratorSetting rotation;
@@ -72,6 +74,7 @@ SquareTextureGenerator::SquareTextureGenerator()
    cutoutInnerRadius.min = QVariant((double) 0);
    cutoutInnerRadius.max = QVariant((double) 100);
    cutoutInnerRadius.order = 7;
+   cutoutInnerRadius.group = "cutout";
    configurables.insert("cutoutwidth", cutoutInnerRadius);
 
    TextureGeneratorSetting cutoutOuterRadius;
@@ -81,6 +84,7 @@ SquareTextureGenerator::SquareTextureGenerator()
    cutoutOuterRadius.min = QVariant((double) 0);
    cutoutOuterRadius.max = QVariant((double) 100);
    cutoutOuterRadius.order = 8;
+   cutoutOuterRadius.group = "cutout";
    configurables.insert("cutoutheight", cutoutOuterRadius);
 }
 

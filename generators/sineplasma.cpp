@@ -45,6 +45,7 @@ SinePlasmaTextureGenerator::SinePlasmaTextureGenerator()
    xfrequency.description = "How often it repeats along the y axis";
    xfrequency.min = QVariant((double) 0);
    xfrequency.max = QVariant((double) 100);
+   xfrequency.group = "frequencies";
    xfrequency.order = 4;
    configurables.insert("xfrequency", xfrequency);
 
@@ -54,6 +55,7 @@ SinePlasmaTextureGenerator::SinePlasmaTextureGenerator()
    yfrequency.description = "How often it repeats along the y axis";
    yfrequency.min = QVariant((double) 0);
    yfrequency.max = QVariant((double) 100);
+   yfrequency.group = "frequencies";
    yfrequency.order = 5;
    configurables.insert("yfrequency", yfrequency);
 }

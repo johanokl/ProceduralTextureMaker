@@ -17,6 +17,7 @@ TransformTextureGenerator::TransformTextureGenerator()
    scaleX.min = QVariant((double) 0);
    scaleX.max = QVariant((double) 500);
    scaleX.order = 1;
+   scaleX.group = "scale";
    configurables.insert("xscale", scaleX);
 
    TextureGeneratorSetting scaleY;
@@ -26,6 +27,7 @@ TransformTextureGenerator::TransformTextureGenerator()
    scaleY.min = QVariant((double) 0);
    scaleY.max = QVariant((double) 500);
    scaleY.order = 2;
+   scaleY.group = "scale";
    configurables.insert("yscale", scaleY);
 
    TextureGeneratorSetting rotation;
@@ -62,38 +64,42 @@ TransformTextureGenerator::TransformTextureGenerator()
    configurables.insert("backgroundcolor", colorsetting);
 
    TextureGeneratorSetting firstXtiles;
-   firstXtiles.name = "Tiles first pass (X)";
+   firstXtiles.name = "Tiles 1st pass (X)";
    firstXtiles.description = "";
    firstXtiles.defaultvalue = QVariant((int) 1);
-   firstXtiles.min = QVariant((double) 1);
-   firstXtiles.max = QVariant((double) 5);
+   firstXtiles.min = QVariant((int) 1);
+   firstXtiles.max = QVariant((int) 5);
+   firstXtiles.group = "first tiles";
    firstXtiles.order = 7;
    configurables.insert("firstXtiles", firstXtiles);
 
    TextureGeneratorSetting firstYtiles;
-   firstYtiles.name = "Tiles first pass (Y)";
+   firstYtiles.name = "Tiles 1st pass (Y)";
    firstYtiles.description = "";
    firstYtiles.defaultvalue = QVariant((int) 1);
-   firstYtiles.min = QVariant((double) 1);
-   firstYtiles.max = QVariant((double) 5);
+   firstYtiles.min = QVariant((int) 1);
+   firstYtiles.max = QVariant((int) 5);
+   firstYtiles.group = "first tiles";
    firstYtiles.order = 8;
    configurables.insert("firstYtiles", firstYtiles);
 
    TextureGeneratorSetting secondXtiles;
-   secondXtiles.name = "Tiles second pass (X)";
+   secondXtiles.name = "Tiles 2nd pass (X)";
    secondXtiles.description = "";
    secondXtiles.defaultvalue = QVariant((int) 1);
    secondXtiles.min = QVariant((double) 1);
    secondXtiles.max = QVariant((double) 50);
+   secondXtiles.group = "second tiles";
    secondXtiles.order = 9;
    configurables.insert("secondXtiles", secondXtiles);
 
    TextureGeneratorSetting secondYtiles;
-   secondYtiles.name = "Tiles second pass (Y)";
+   secondYtiles.name = "Tiles 2nd pass (Y)";
    secondYtiles.description = "";
    secondYtiles.defaultvalue = QVariant((int) 1);
    secondYtiles.min = QVariant((double) 1);
    secondYtiles.max = QVariant((double) 50);
+   secondYtiles.group = "second tiles";
    secondYtiles.order = 10;
    configurables.insert("secondYtiles", secondYtiles);
 }
