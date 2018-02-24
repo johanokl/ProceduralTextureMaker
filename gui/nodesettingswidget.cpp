@@ -113,7 +113,6 @@ QFormLayout* NodeSettingsWidget::createGroupLayout()
 
 /**
  * @brief NodeSettingsWidget::saveSettings
- * @param id Not used.
  *
  * Reads all widget's values and sends them to the
  * TextureNode object's set settings function.
@@ -132,45 +131,56 @@ void NodeSettingsWidget::saveSettings()
    while (settingElementIterator.hasNext()) {
       settingElementIterator.next();
       QString settingsId = settingElementIterator.key();
-      QWidget* settingsWidget = settingElementIterator.value();
-      QString settingsNewValueString;
-      QPushButton* settingsWidgetPushButton = dynamic_cast<QPushButton*>(settingsWidget);
-      QLineEdit* settingsWidgetLineEdit = dynamic_cast<QLineEdit*>(settingsWidget);
-      QDoubleSpinBox* settingsWidgetDoubleSpinbox = dynamic_cast<QDoubleSpinBox*>(settingsWidget);
-      QSpinBox* settingsWidgetSpinbox = dynamic_cast<QSpinBox*>(settingsWidget);
-      QComboBox* settingsWidgetCombobox = dynamic_cast<QComboBox*>(settingsWidget);
-      if (settingsWidgetPushButton) {
-         settingsNewValueString = settingValues[settingsId];
-      } else if (settingsWidgetLineEdit) {
-         settingsNewValueString = settingsWidgetLineEdit->text();
-      } else if (settingsWidgetDoubleSpinbox) {
-         settingsNewValueString = QString::number(settingsWidgetDoubleSpinbox->value());
-      } else if (settingsWidgetSpinbox) {
-         settingsNewValueString = QString::number(settingsWidgetSpinbox->value());
-      } else if (settingsWidgetCombobox) {
-         settingsNewValueString = settingsWidgetCombobox->currentText();
+      if (!texNode->getGenerator()->getSettings().contains(settingsId)) {
+         continue;
       }
-      QVariant settingVariant;
-      if (texNode->getGenerator()->getSettings().contains(settingsId)) {
-         switch (texNode->getGenerator()->getSettings().value(settingsId).defaultvalue.type()) {
-         case QVariant::Type::Int:
-            settingVariant = QVariant(settingsNewValueString.toInt());
-            break;
-         case QVariant::Type::Double:
-            settingVariant = QVariant(settingsNewValueString.toDouble());
-            break;
-         case QVariant::Type::Color:
-            settingVariant = QVariant(QColor(settingsNewValueString));
-            break;
-         case QVariant::Type::String:
-         case QVariant::Type::StringList:
-            settingVariant = QVariant(settingsNewValueString);
-            break;
-         default:
-            INFO_MSG("Type not found");
+      QWidget* settingWidget = settingElementIterator.value();
+      QLineEdit* lineedit;
+      QDoubleSpinBox* doublespinbox;
+      QSpinBox* spinbox;
+      QPushButton* pushbutton;
+      QComboBox* combobox;
+      QCheckBox* checkbox;
+      switch (texNode->getGenerator()->getSettings().value(settingsId).defaultvalue.type()) {
+      case QVariant::Type::Int:
+         spinbox = dynamic_cast<QSpinBox*>(settingWidget);
+         if (spinbox) {
+            nodeSettings[settingsId] = spinbox->value();
          }
+         break;
+      case QVariant::Type::Double:
+         doublespinbox = dynamic_cast<QDoubleSpinBox*>(settingWidget);
+         if (doublespinbox) {
+            nodeSettings[settingsId] = doublespinbox->value();
+         }
+         break;
+      case QVariant::Type::Bool:
+         checkbox = dynamic_cast<QCheckBox*>(settingWidget);
+         if (checkbox) {
+            nodeSettings[settingsId] = checkbox->isChecked();
+         }
+         break;
+      case QVariant::Type::Color:
+         pushbutton = dynamic_cast<QPushButton*>(settingWidget);
+         if (pushbutton) {
+            nodeSettings[settingsId] = QColor(settingValues[settingsId]);
+         }
+         break;
+      case QVariant::Type::String:
+         lineedit = dynamic_cast<QLineEdit*>(settingWidget);
+         if (lineedit) {
+            nodeSettings[settingsId] = lineedit->text();
+         }
+         break;
+      case QVariant::Type::StringList:
+         combobox  = dynamic_cast<QComboBox*>(settingWidget);
+         if (combobox) {
+            nodeSettings[settingsId] = combobox->currentText();
+         }
+         break;
+      default:
+         INFO_MSG("Type not found");
       }
-      nodeSettings[settingsId] = settingVariant;
    }
    texNode->setSettings(nodeSettings);
 }
@@ -310,6 +320,10 @@ void NodeSettingsWidget::generatorUpdated()
          static_cast<QComboBox*>(newWidget)->addItems(currSetting.defaultvalue.toStringList());
          static_cast<QComboBox*>(newWidget)->setCurrentIndex(currSetting.defaultindex);
          QObject::connect(newWidget, SIGNAL(currentIndexChanged(int)), this, SLOT(saveSettings()));
+         break;
+      case QVariant::Type::Bool:
+         newWidget = new QCheckBox;
+         QObject::connect(newWidget, SIGNAL(toggled(bool)), this, SLOT(saveSettings()));
          break;
       case QVariant::Type::Double:
          newWidget = new QDoubleSpinBox;
@@ -504,47 +518,88 @@ void NodeSettingsWidget::settingsUpdated()
    while (settingElementIterator.hasNext()) {
       settingElementIterator.next();
       QString settingsId = settingElementIterator.key();
-      QWidget* settingsWidget = settingElementIterator.value();
-
-      QVariant value;
-      if (texNode->getSettings().contains(settingsId)) {
-         value = texNode->getSettings().value(settingsId);
-      } else if (texNode->getGenerator()->getSettings().contains(settingsId)) {
-         value = texNode->getSettings().value(settingsId);
+      if (!texNode->getGenerator()->getSettings().contains(settingsId)) {
+         continue;
       }
-      QLineEdit* lineEdit = dynamic_cast<QLineEdit*>(settingsWidget);
-      QDoubleSpinBox* doubleSpinbox = dynamic_cast<QDoubleSpinBox*>(settingsWidget);
-      QSpinBox* spinbox = dynamic_cast<QSpinBox*>(settingsWidget);
-      QPushButton* pushbutton = dynamic_cast<QPushButton*>(settingsWidget);
-      QComboBox* combobox = dynamic_cast<QComboBox*>(settingsWidget);
+      QVariant defaultvalue = texNode->getSettings().value(settingsId);
+      QVariant nodevalue = defaultvalue;
+      if (texNode->getSettings().contains(settingsId)) {
+         nodevalue = texNode->getSettings().value(settingsId);
+      }
 
+      QWidget* settingsWidget = settingElementIterator.value();
       settingsWidget->blockSignals(true);
-      if (lineEdit) {
-         lineEdit->setText(value.toString());
-      } else if (combobox) {
-         int index = combobox->findText(value.toString());
+
+      QLineEdit* lineedit;
+      QDoubleSpinBox* doublespinbox;
+      QSpinBox* spinbox;
+      QPushButton* pushbutton;
+      QComboBox* combobox;
+      QCheckBox* checkbox;
+      QSlider* slider;
+      QDoubleSlider* doubleslider;
+      int index;
+      switch (defaultvalue.type()) {
+      case QVariant::Type::Int:
+         spinbox = dynamic_cast<QSpinBox*>(settingsWidget);
+         if (!spinbox) {
+            break;
+         }
+         spinbox->setValue(nodevalue.toInt());
+         slider = dynamic_cast<QSlider*>(settingSliders[settingsId]);
+         if (slider) {
+            slider->blockSignals(true);
+            slider->setValue(nodevalue.toInt());
+            slider->blockSignals(false);
+         }
+         break;
+      case QVariant::Type::Double:
+         doublespinbox = dynamic_cast<QDoubleSpinBox*>(settingsWidget);
+         if (!doublespinbox) {
+            break;
+         }
+         doublespinbox->setValue(nodevalue.toDouble());
+         doubleslider = dynamic_cast<QDoubleSlider*>(settingSliders[settingsId]);
+         if (doubleslider) {
+            doubleslider->blockSignals(true);
+            doubleslider->setDoubleValue(nodevalue.toDouble());
+            doubleslider->blockSignals(false);
+         }
+         break;
+      case QVariant::Type::Color:
+         pushbutton = dynamic_cast<QPushButton*>(settingsWidget);
+         if (!pushbutton) {
+            break;
+         }
+         settingValues[settingsId] = nodevalue.toString();
+         styleButton(pushbutton, QColor(nodevalue.toString()));
+         break;
+      case QVariant::Type::Bool:
+         checkbox = dynamic_cast<QCheckBox*>(settingsWidget);
+         if (!checkbox) {
+            break;
+         }
+         checkbox->setChecked(nodevalue.toBool());
+         break;
+      case QVariant::Type::String:
+         lineedit = dynamic_cast<QLineEdit*>(settingsWidget);
+         if (!lineedit) {
+            break;
+         }
+         lineedit->setText(nodevalue.toString());
+         break;
+      case QVariant::Type::StringList:
+         combobox = dynamic_cast<QComboBox*>(settingsWidget);
+         if (!combobox) {
+            break;
+         }
+         index = combobox->findText(nodevalue.toString());
          if (index >= 0) {
             combobox->setCurrentIndex(index);
          }
-      } else if (doubleSpinbox) {
-         doubleSpinbox->setValue(value.toDouble());
-         QDoubleSlider* doubleslider = dynamic_cast<QDoubleSlider*>(settingSliders[settingsId]);
-         if (doubleslider) {
-            doubleslider->blockSignals(true);
-            doubleslider->setDoubleValue(value.toDouble());
-            doubleslider->blockSignals(false);
-         }
-      } else if (spinbox) {
-         spinbox->setValue(value.toInt());
-         QSlider* slider = dynamic_cast<QSlider*>(settingSliders[settingsId]);
-         if (slider) {
-            slider->blockSignals(true);
-            slider->setValue(value.toInt());
-            slider->blockSignals(false);
-         }
-      } else if (pushbutton && value.type() == QVariant::Type::Color) {
-         settingValues[settingsId] = value.toString();
-         styleButton(pushbutton, QColor(value.toString()));
+         break;
+      default:
+         INFO_MSG("Type not found");
       }
       settingsWidget->blockSignals(false);
    }
