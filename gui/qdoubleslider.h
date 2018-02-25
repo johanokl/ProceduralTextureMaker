@@ -25,8 +25,8 @@ class QDoubleSlider : public QSlider {
 public:
    QDoubleSlider(Qt::Orientation orientation = Qt::Orientation::Horizontal, QWidget* parent = 0)
       : QSlider(orientation, parent) {
-      connect(this, SIGNAL(valueChanged(int)),
-              this, SLOT(notifyValueChanged(int)));
+      QObject::connect(this, &QDoubleSlider::valueChanged,
+                       this, &QDoubleSlider::notifyValueChanged);
    }
 
 signals:

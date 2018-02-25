@@ -34,8 +34,10 @@ ItemInfoPanel::ItemInfoPanel(QWidget* parent, TextureProject* project) : QWidget
    setLayout(layout);
    lineWidget->hide();
    sceneWidget->show();
-   QObject::connect(texproject, SIGNAL(nodeRemoved(int)), this, SLOT(removeNode(int)));
-   QObject::connect(texproject, SIGNAL(nodeAdded(TextureNodePtr)), this, SLOT(addNode(TextureNodePtr)));
+   QObject::connect(texproject, &TextureProject::nodeRemoved,
+                    this, &ItemInfoPanel::removeNode);
+   QObject::connect(texproject, &TextureProject::nodeAdded,
+                    this, &ItemInfoPanel::addNode);
 }
 
 /**
@@ -112,10 +114,10 @@ void ItemInfoPanel::setActiveNode(int id)
    sceneWidget->hide();
    if (!nodes.value(id)) {
       NodeSettingsWidget* newWidget = new NodeSettingsWidget(this, id);
-      QObject::connect(texNode.data(), SIGNAL(slotsUpdated(int)),
-                       (QObject*)newWidget, SLOT(slotsUpdated()));
-      QObject::connect(texNode.data(), SIGNAL(generatorUpdated(int)),
-                       (QObject*)newWidget, SLOT(generatorUpdated()));
+      QObject::connect(texNode.data(), &TextureNode::slotsUpdated,
+                       newWidget, &NodeSettingsWidget::slotsUpdated);
+      QObject::connect(texNode.data(), &TextureNode::generatorUpdated,
+                       newWidget, &NodeSettingsWidget::generatorUpdated);
       nodes[id] = newWidget;
       layout()->addWidget(newWidget);
    }

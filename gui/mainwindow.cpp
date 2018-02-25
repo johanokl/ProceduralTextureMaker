@@ -76,8 +76,8 @@ MainWindow::MainWindow(TexGenApplication* parent)
    settingsManager = new SettingsManager;
    project->setSettingsManager(settingsManager);
 
-   connect(project, SIGNAL(generatorNameCollision(TextureGeneratorPtr,TextureGeneratorPtr)),
-           this, SLOT(generatorNameCollision(TextureGeneratorPtr,TextureGeneratorPtr)));
+   QObject::connect(project, &TextureProject::generatorNameCollision,
+                    this, &MainWindow::generatorNameCollision);
 
    iteminfopanel = new ItemInfoPanel(this, project);
    iteminfopanel->hide();
@@ -391,9 +391,12 @@ ViewNodeScene* MainWindow::createScene(ViewNodeScene* source)
       newscene = new ViewNodeScene(this);
    }
    view->setScene(newscene);
-   connect(newscene, SIGNAL(nodeSelected(int)), iteminfopanel, SLOT(setActiveNode(int)));
-   connect(newscene, SIGNAL(nodeSelected(int)), previewimagewidget, SLOT(setActiveNode(int)));
-   connect(newscene, SIGNAL(lineSelected(int, int, int)), iteminfopanel, SLOT(setActiveLine(int, int, int)));
+   QObject::connect(newscene, &ViewNodeScene::nodeSelected,
+                    iteminfopanel, &ItemInfoPanel::setActiveNode);
+   QObject::connect(newscene, &ViewNodeScene::nodeSelected,
+                    previewimagewidget, &PreviewImagePanel::setActiveNode);
+   QObject::connect(newscene, &ViewNodeScene::lineSelected,
+                    iteminfopanel, &ItemInfoPanel::setActiveLine);
    return newscene;
 }
 

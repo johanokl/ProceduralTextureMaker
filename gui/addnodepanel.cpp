@@ -107,9 +107,10 @@ AddNodePanel::AddNodePanel(TextureProject* project)
    spacerWidget->setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::Expanding);
    spacerWidget->setVisible(true);
    contentsLayout->addWidget(spacerWidget);
-
-   connect(project, SIGNAL(generatorAdded(TextureGeneratorPtr)), this, SLOT(addGenerator(TextureGeneratorPtr)));
-   connect(project, SIGNAL(generatorRemoved(TextureGeneratorPtr)), this, SLOT(removeGenerator(TextureGeneratorPtr)));
+   QObject::connect(project, &TextureProject::generatorAdded,
+                    this, &AddNodePanel::addGenerator);
+   QObject::connect(project, &TextureProject::generatorRemoved,
+                    this, &AddNodePanel::removeGenerator);
 }
 
 /**

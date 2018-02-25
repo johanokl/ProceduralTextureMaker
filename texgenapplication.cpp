@@ -43,7 +43,8 @@ void TexGenApplication::quit()
 MainWindow* TexGenApplication::addWindow()
 {
    MainWindow* newWindow = new MainWindow(this);
-   QObject::connect(newWindow, SIGNAL(windowTitleChanged(QString)), this, SLOT(windowUpdated(QString)));
+   QObject::connect(newWindow, &MainWindow::windowTitleChanged,
+                    this, &TexGenApplication::windowUpdated);
    mainwindows.push_back(newWindow);
    newWindow->show();
    emit windowsChanged();

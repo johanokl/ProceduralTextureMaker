@@ -27,90 +27,112 @@ MenuActions::MenuActions(MainWindow* parent)
 {
    newAct = new QAction(QIcon(":/newicon.png"), "&New", parent);
    newAct->setShortcuts(QKeySequence::New);
-   connect(newAct, SIGNAL(triggered()), parent->parent(), SLOT(addWindow()));
+   QObject::connect(newAct, &QAction::triggered,
+                    parent->parent(), &TexGenApplication::addWindow);
 
    openAct = new QAction(QIcon(":/openicon.png"), "&Open", parent);
    openAct->setStatusTip("Open an existing file");
    openAct->setShortcuts(QKeySequence::Open);
-   connect(openAct, SIGNAL(triggered()), this, SLOT(openFile()));
+   QObject::connect(openAct, &QAction::triggered, this,
+                    &MenuActions::openFile);
 
    saveAct = new QAction(QIcon(":/saveicon.png"), "&Save", parent);
    saveAct->setStatusTip("Save the document to disk");
    saveAct->setShortcuts(QKeySequence::Save);
-   connect(saveAct, SIGNAL(triggered()), parent, SLOT(saveFile()));
+   QObject::connect(saveAct, &QAction::triggered,
+                    parent, &MainWindow::saveFile);
 
    saveAsAct = new QAction("Save as", parent);
    saveAsAct->setStatusTip("Save the document under a new name");
    saveAsAct->setShortcuts(QKeySequence::SaveAs);
-   connect(saveAsAct, SIGNAL(triggered()), parent, SLOT(saveAs()));
+   QObject::connect(saveAsAct, &QAction::triggered,
+                    parent, &MainWindow::saveAs);
 
    saveImageAct = new QAction("Save selected image", parent);
-   connect(saveImageAct, SIGNAL(triggered()), parent, SLOT(saveImage()));
+   QObject::connect(saveImageAct, &QAction::triggered,
+                    parent, &MainWindow::saveImage);
 
    exitAct = new QAction("E&xit", parent);
    exitAct->setShortcut(QKeySequence::Quit);
    exitAct->setStatusTip("Exit the application");
-   connect(exitAct, SIGNAL(triggered()), parent, SLOT(close()));
+   QObject::connect(exitAct, &QAction::triggered,
+                    parent, &MainWindow::close);
 
    clearAct = new QAction("Cl&ear scene", parent);
    clearAct->setToolTip("Clear screen");
-   connect(clearAct, SIGNAL(triggered()), parent, SLOT(clearScene()));
+   QObject::connect(clearAct, &QAction::triggered,
+                    parent, &MainWindow::clearScene);
 
    copyAct = new QAction(QIcon(":/copy.png"), "&Copy", parent);
    copyAct->setStatusTip("Copy the current selection's contents to the clipboard");
    copyAct->setShortcuts(QKeySequence::Copy);
-   connect(copyAct, SIGNAL(triggered()), parent, SLOT(copyNode()));
+   QObject::connect(copyAct, &QAction::triggered,
+                    parent, &MainWindow::copyNode);
 
    cutAct = new QAction(QIcon(":/cut.png"), "&Cut", parent);
    cutAct->setStatusTip("Cut the current selection's contents to the clipboard");
    cutAct->setShortcuts(QKeySequence::Cut);
-   connect(cutAct, SIGNAL(triggered()), parent, SLOT(cutNode()));
+   QObject::connect(cutAct, &QAction::triggered,
+                    parent, &MainWindow::cutNode);
 
    pasteAct = new QAction(QIcon(":/paste.png"), "&Paste", parent);
    pasteAct->setStatusTip("Paste the clipboard's contents into the current selection");
    pasteAct->setShortcuts(QKeySequence::Paste);
-   connect(pasteAct, SIGNAL(triggered()), parent, SLOT(pasteNode()));
+   QObject::connect(pasteAct, &QAction::triggered,
+                    parent, &MainWindow::pasteNode);
 
    helpAct = new QAction("&Help", parent);
    helpAct->setStatusTip("Show a help popup");
-   connect(helpAct, SIGNAL(triggered()), parent, SLOT(showHelp()));
+   QObject::connect(helpAct, &QAction::triggered,
+                    parent, &MainWindow::showHelp);
    aboutAct = new QAction("&About", parent);
    aboutAct->setStatusTip("Show the application's About popup");
-   connect(aboutAct, SIGNAL(triggered()), parent, SLOT(showAbout()));
+   QObject::connect(aboutAct, &QAction::triggered,
+                    parent, &MainWindow::showAbout);
 
    resetSceneAct = new QAction("Reset scene view", parent);
-   connect(resetSceneAct, SIGNAL(triggered()), parent, SLOT(reloadSceneView()));
+   QObject::connect(resetSceneAct, &QAction::triggered,
+                    parent, &MainWindow::reloadSceneView);
    resetZoomAct = new QAction("Reset zoom", parent);
-   connect(resetZoomAct, SIGNAL(triggered()), parent, SLOT(resetViewZoom()));
+   QObject::connect(resetZoomAct, &QAction::triggered,
+                    parent, &MainWindow::resetViewZoom);
 
    toggleAddNodePanelAct = new QAction("Toggle add node panel", this);
-   connect(toggleAddNodePanelAct, SIGNAL(triggered()), this, SLOT(toggleAddNodePanel()));
+   QObject::connect(toggleAddNodePanelAct, &QAction::triggered,
+                    this, &MenuActions::toggleAddNodePanel);
    displayAddNodePanelAct = new QAction("Display add node panel", this);
-   connect(displayAddNodePanelAct, SIGNAL(triggered()), this, SLOT(toggleAddNodePanel()));
+   QObject::connect(displayAddNodePanelAct, &QAction::triggered,
+                    this, &MenuActions::toggleAddNodePanel);
    displayAddNodePanelAct->setCheckable(true);
    displayAddNodePanelAct->setEnabled(false);
 
    togglePreviewImagePanelAct = new QAction("Toggle preview image panel", this);
-   connect(togglePreviewImagePanelAct, SIGNAL(triggered()), this, SLOT(togglePreviewImagePanel()));
+   QObject::connect(togglePreviewImagePanelAct, &QAction::triggered,
+                    this, &MenuActions::togglePreviewImagePanel);
    displayPreviewImagePanelAct = new QAction("Display preview image panel", this);
-   connect(displayPreviewImagePanelAct, SIGNAL(triggered()), this, SLOT(togglePreviewImagePanel()));
+   QObject::connect(displayPreviewImagePanelAct, &QAction::triggered,
+                    this, &MenuActions::togglePreviewImagePanel);
    displayPreviewImagePanelAct->setCheckable(true);
    displayPreviewImagePanelAct->setEnabled(false);
 
    displaySettingsPanelAct = new QAction("Display settings", this);
-   connect(displaySettingsPanelAct, SIGNAL(triggered()), this, SLOT(toggleSettingsPanel()));
+   QObject::connect(displaySettingsPanelAct, &QAction::triggered,
+                    this, &MenuActions::toggleSettingsPanel);
    displaySettingsPanelAct->setCheckable(true);
    displaySettingsPanelAct->setEnabled(false);
 
    displayToolbarsAct = new QAction("Display toolbars", this);
-   connect(displayToolbarsAct, SIGNAL(triggered()), this, SLOT(toogleToolbars()));
+   QObject::connect(displayToolbarsAct, &QAction::triggered,
+                    this, &MenuActions::toogleToolbars);
    displayToolbarsAct->setCheckable(true);
    displayToolbarsAct->setEnabled(true);
 
    toggleItemInfoPanelAct = new QAction("Toggle item info panel", this);
-   connect(toggleItemInfoPanelAct, SIGNAL(triggered()), this, SLOT(toggleItemInfoPanel()));
+   QObject::connect(toggleItemInfoPanelAct, &QAction::triggered,
+                    this, &MenuActions::toggleItemInfoPanel);
    displayItemInfoPanelAct = new QAction("Display item info panel", this);
-   connect(displayItemInfoPanelAct, SIGNAL(triggered()), this, SLOT(toggleItemInfoPanel()));
+   QObject::connect(displayItemInfoPanelAct, &QAction::triggered,
+                    this, &MenuActions::toggleItemInfoPanel);
    displayItemInfoPanelAct->setCheckable(true);
    displayItemInfoPanelAct->setEnabled(false);
 
@@ -174,7 +196,8 @@ MenuActions::MenuActions(MainWindow* parent)
    toggleAddNodeToolBar->addAction(toggleAddNodePanelAct);
    toggleAddNodeToolBar->addAction(togglePreviewImagePanelAct);
 
-   connect(parent->parent(), SIGNAL(windowsChanged()), this, SLOT(windowsChanged()));
+   QObject::connect(parent->parent(), &TexGenApplication::windowsChanged,
+                    this, &MenuActions::windowsChanged);
 
    QSettings settings;
    lastOpenedDirectory = settings.value("lastopeneddirectory", QDir::homePath()).toString();
@@ -372,7 +395,8 @@ void MenuActions::windowsChanged()
       if (i < 10) {
          newAction->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_1 + i));
       }
-      connect(newAction, SIGNAL(triggered()), currWindow, SLOT(moveToFront()));
+      QObject::connect(newAction, &QAction::triggered,
+                       currWindow, &MainWindow::moveToFront);
       viewMenu->addAction(newAction);
       windowlistActions.push_back(newAction);
    }

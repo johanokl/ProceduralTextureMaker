@@ -102,7 +102,9 @@ PreviewImagePanel::PreviewImagePanel(TextureProject* project)
    combobox->addItem("3x3", 3);
    combobox->addItem("4x4", 4);
    combobox->setCurrentIndex(0);
-   QObject::connect(combobox, SIGNAL(currentIndexChanged(int)), this, SLOT(settingsUpdated()));
+   QObject::connect(combobox,
+                    static_cast<void (QComboBox::*)(int)>(&QComboBox::currentIndexChanged),
+                    [=](int i) { Q_UNUSED(i); this->settingsUpdated(); });
 
    lockNodeButton = new QPushButton("Lock node");
    lockNodeButton->setCheckable(true);
@@ -121,14 +123,14 @@ PreviewImagePanel::PreviewImagePanel(TextureProject* project)
    optionsLayout->addWidget(lockNodeButton);
    optionsLayout->addWidget(combobox);
    layout->addWidget(optionsWidget);
-   QObject::connect(project, SIGNAL(imageAvailable(int, QSize)),
-                    this, SLOT(imageAvailable(int, QSize)));
-   QObject::connect(project, SIGNAL(imageUpdated(int)),
-                    this, SLOT(imageUpdated(int)));
-   QObject::connect(project, SIGNAL(nodeRemoved(int)),
-                    this, SLOT(nodeRemoved(int)));
-   QObject::connect(project->getSettingsManager(), SIGNAL(settingsUpdated(void)),
-                    this, SLOT(settingsUpdated(void)));
+   QObject::connect(project, &TextureProject::imageAvailable,
+                    this, &PreviewImagePanel::imageAvailable);
+   QObject::connect(project, &TextureProject::imageUpdated,
+                    this, &PreviewImagePanel::imageUpdated);
+   QObject::connect(project, &TextureProject::nodeRemoved,
+                    this, &PreviewImagePanel::nodeRemoved);
+   QObject::connect(project->getSettingsManager(), &SettingsManager::settingsUpdated,
+                    this, &PreviewImagePanel::settingsUpdated);
    settingsUpdated();
 }
 

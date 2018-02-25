@@ -348,13 +348,16 @@ JSTexGenManager::JSTexGenManager(TextureProject *project)
    filefinderthread = new QThread;
    filefinder->moveToThread(filefinderthread);
    filefinderthread->start();
-   QObject::connect(this, SIGNAL(scanDirectory(QString)), filefinder, SLOT(scanDirectory(QString)));
-   QObject::connect(filefinder, SIGNAL(generatorFound(JsTexGen*)), this, SLOT(addGenerator(JsTexGen*)));
-   QObject::connect(filefinderthread, SIGNAL(finished()), filefinderthread, SLOT(deleteLater()));
-   connect(project->getSettingsManager(), SIGNAL(settingsUpdated(void)),
-           this, SLOT(settingsUpdated(void)));
-   connect(this, SIGNAL(generatorAdded(TextureGeneratorPtr)),
-           project, SLOT(addGenerator(TextureGeneratorPtr)));
+   QObject::connect(this, &JSTexGenManager::scanDirectory,
+                    filefinder, &GeneratorFileFinder::scanDirectory);
+   QObject::connect(filefinder, &GeneratorFileFinder::generatorFound,
+                    this, &JSTexGenManager::addGenerator);
+   QObject::connect(filefinderthread, &QThread::finished,
+                    filefinderthread, &QThread::deleteLater);
+   QObject::connect(project->getSettingsManager(), &SettingsManager::settingsUpdated,
+                    this, &JSTexGenManager::settingsUpdated);
+   QObject::connect(this, &JSTexGenManager::generatorAdded,
+                    project, &TextureProject::addGenerator);
    settingsUpdated();
 }
 

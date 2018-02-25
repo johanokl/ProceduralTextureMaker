@@ -40,7 +40,8 @@ ConnectionWidget::ConnectionWidget(ItemInfoPanel* widgetmanager)
 
    QPushButton* disconnectNodesButton = new QPushButton("Disconnect");
    layout->addWidget(disconnectNodesButton);
-   QObject::connect(disconnectNodesButton, SIGNAL(clicked()), this, SLOT(disconnectNodes()));
+   QObject::connect(disconnectNodesButton, &QPushButton::clicked,
+                    this, &ConnectionWidget::disconnectNodes);
 
    QSpacerItem* spaceritem = new QSpacerItem(0, 0, QSizePolicy::Minimum, QSizePolicy::Expanding);
    layout->addItem(spaceritem);

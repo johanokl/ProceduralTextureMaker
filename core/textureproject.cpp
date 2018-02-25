@@ -50,11 +50,13 @@ TextureProject::~TextureProject()
 void TextureProject::setSettingsManager(SettingsManager* manager)
 {
    if (settingsManager) {
-      QObject::disconnect(manager, SIGNAL(settingsUpdated(void)), this, SLOT(settingsUpdated(void)));
+      QObject::disconnect(manager, &SettingsManager::settingsUpdated,
+                          this, &TextureProject::settingsUpdated);
    }
    settingsManager = manager;
    settingsUpdated();
-   QObject::connect(manager, SIGNAL(settingsUpdated(void)), this, SLOT(settingsUpdated(void)));
+   QObject::connect(manager, &SettingsManager::settingsUpdated,
+                    this, &TextureProject::settingsUpdated);
 }
 
 /**
@@ -104,11 +106,16 @@ void TextureProject::startRenderThread(QSize renderSize, QThread::Priority prio)
       renderer->moveToThread(renderThread);
       renderThread->start();
       renderThread->setPriority(prio);
-      QObject::connect(this, SIGNAL(nodeAdded(TextureNodePtr)), renderer, SLOT(nodeAdded(TextureNodePtr)));
-      QObject::connect(this, SIGNAL(nodeRemoved(int)), renderer, SLOT(nodeRemoved(int)));
-      QObject::connect(this, SIGNAL(imageUpdated(int)), renderer, SLOT(imageUpdated()));
-      QObject::connect(renderThread, SIGNAL (finished()), renderThread, SLOT (deleteLater()));
-      QObject::connect(renderThread, SIGNAL (finished()), renderer, SLOT (deleteLater()));
+      QObject::connect(this, &TextureProject::nodeAdded,
+                       renderer, &TextureRenderThread::nodeAdded);
+      QObject::connect(this, &TextureProject::nodeRemoved,
+                       renderer, &TextureRenderThread::nodeRemoved);
+      QObject::connect(this, &TextureProject::imageUpdated,
+                       renderer, &TextureRenderThread::imageUpdated);
+      QObject::connect(renderThread, &QThread::finished,
+                       renderThread, &QThread::deleteLater);
+      QObject::connect(renderThread, &QThread::finished,
+                       renderer, &TextureRenderThread::deleteLater);
       renderThreads.insert(key, renderer);
       emit imageUpdated(0);
    }
@@ -125,9 +132,12 @@ void TextureProject::stopRenderThread(QSize renderSize)
    QString key = QString("%1_%2").arg(renderSize.width()).arg(renderSize.height());
    if (renderThreads.contains(key)) {
       TextureRenderThread* renderThread = renderThreads.take(key);
-      QObject::disconnect(this, SIGNAL(nodeAdded(TextureNodePtr)), renderThread, SLOT(nodeAdded(TextureNodePtr)));
-      QObject::disconnect(this, SIGNAL(nodeRemoved(int)), renderThread, SLOT(nodeRemoved(int)));
-      QObject::disconnect(this, SIGNAL(imageUpdated(int)), renderThread, SLOT(imageUpdated()));
+      QObject::disconnect(this, &TextureProject::nodeAdded,
+                          renderThread, &TextureRenderThread::nodeAdded);
+      QObject::disconnect(this, &TextureProject::nodeRemoved,
+                          renderThread, &TextureRenderThread::nodeRemoved);
+      QObject::disconnect(this, &TextureProject::imageUpdated,
+                          renderThread, &TextureRenderThread::imageUpdated);
       renderThread->abort();
       renderThread->thread()->quit();
       nodesmutex.lockForRead();
@@ -309,10 +319,14 @@ TextureNodePtr TextureProject::newNode(int id, TextureGeneratorPtr generator)
    nodes.insert(id, newNode);
    nodesmutex.unlock();
 
-   QObject::connect(newNode.data(), SIGNAL(nodesConnected(int, int, int)), this, SLOT(notifyNodesConnected(int, int, int)));
-   QObject::connect(newNode.data(), SIGNAL(nodesDisconnected(int, int, int)), this, SLOT(notifyNodesDisconnected(int, int, int)));
-   QObject::connect(newNode.data(), SIGNAL(imageUpdated(int)), this, SLOT(notifyImageUpdated(int)));
-   QObject::connect(newNode.data(), SIGNAL(imageAvailable(int, QSize)), this, SLOT(notifyImageAvailable(int, QSize)));
+   QObject::connect(newNode.data(), &TextureNode::nodesConnected,
+                    this, &TextureProject::notifyNodesConnected);
+   QObject::connect(newNode.data(), &TextureNode::nodesDisconnected,
+                    this, &TextureProject::notifyNodesDisconnected);
+   QObject::connect(newNode.data(), &TextureNode::imageUpdated,
+                    this, &TextureProject::notifyImageUpdated);
+   QObject::connect(newNode.data(), &TextureNode::imageAvailable,
+                    this, &TextureProject::notifyImageAvailable);
 
    emit nodeAdded(newNode);
    return newNode;

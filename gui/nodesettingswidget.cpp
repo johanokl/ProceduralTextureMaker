@@ -79,7 +79,8 @@ NodeSettingsWidget::NodeSettingsWidget(ItemInfoPanel* widgetmanager, int id)
    }
    swapSlotButton = new QPushButton("Swap slots");
    sourceButtonsLayout->addWidget(swapSlotButton, sourceSlotButtons.size(), 1);
-   QObject::connect(swapSlotButton, SIGNAL(clicked()), this, SLOT(swapSlots()));
+   QObject::connect(swapSlotButton, &QPushButton::clicked,
+                    this, &NodeSettingsWidget::swapSlots);
    swapSlotButton->hide();
 
    settingsWidget = new QGroupBox("Generator settings");
@@ -313,22 +314,29 @@ void NodeSettingsWidget::generatorUpdated()
       switch (currSetting.defaultvalue.type()) {
       case QVariant::Type::String:
          newWidget = new QLineEdit;
-         QObject::connect(newWidget, SIGNAL(returnPressed()), this, SLOT(saveSettings()));
+         QObject::connect(static_cast<QLineEdit*>(newWidget), &QLineEdit::returnPressed,
+                          this, &NodeSettingsWidget::saveSettings);
          break;
       case QVariant::Type::StringList:
          newWidget = new QComboBox;
          static_cast<QComboBox*>(newWidget)->addItems(currSetting.defaultvalue.toStringList());
          static_cast<QComboBox*>(newWidget)->setCurrentIndex(currSetting.defaultindex);
-         QObject::connect(newWidget, SIGNAL(currentIndexChanged(int)), this, SLOT(saveSettings()));
+         QObject::connect(static_cast<QComboBox*>(newWidget),
+                          static_cast<void (QComboBox::*)(int)>(&QComboBox::currentIndexChanged),
+                          [=](int i) { Q_UNUSED(i); this->saveSettings(); });
          break;
       case QVariant::Type::Bool:
          newWidget = new QCheckBox;
-         QObject::connect(newWidget, SIGNAL(toggled(bool)), this, SLOT(saveSettings()));
+         QObject::connect(static_cast<QCheckBox*>(newWidget),
+                          static_cast<void (QCheckBox::*)(bool)>(&QCheckBox::toggled),
+                          [=](bool i) { Q_UNUSED(i); this->saveSettings(); });
          break;
       case QVariant::Type::Double:
          newWidget = new QDoubleSpinBox;
          static_cast<QDoubleSpinBox*>(newWidget)->setSingleStep(0.1);
-         QObject::connect(newWidget, SIGNAL(valueChanged(double)), this, SLOT(saveSettings()));
+         QObject::connect(static_cast<QDoubleSpinBox*>(newWidget),
+                          static_cast<void (QDoubleSpinBox::*)(double)>(&QDoubleSpinBox::valueChanged),
+                          [=](double i) { Q_UNUSED(i); this->saveSettings(); });
          break;
       case QVariant::Type::Color:
          newWidget = new QPushButton("Color");
@@ -342,7 +350,9 @@ void NodeSettingsWidget::generatorUpdated()
          break;
       default:
          newWidget = new QSpinBox;
-         QObject::connect(newWidget, SIGNAL(valueChanged(int)), this, SLOT(saveSettings()));
+         QObject::connect(static_cast<QSpinBox*>(newWidget),
+                          static_cast<void (QSpinBox::*)(int)>(&QSpinBox::valueChanged),
+                          [=](int i) { Q_UNUSED(i); this->saveSettings(); });
       }
       QLabel* newLabel = new QLabel(currSetting.name + ":");
       settingLabels[settingsId] = newLabel;
@@ -361,7 +371,8 @@ void NodeSettingsWidget::generatorUpdated()
             settingSliders[settingsId] = newSlider;
             doubleSpinBox->setMinimum(currSetting.min.toDouble());
             doubleSpinBox->setMaximum(currSetting.max.toDouble());
-            QObject::connect(newSlider, SIGNAL(doubleValueChanged(double)), doubleSpinBox, SLOT(setValue(double)));
+            QObject::connect(newSlider, &QDoubleSlider::doubleValueChanged,
+                             doubleSpinBox, &QDoubleSpinBox::setValue);
             QObject::connect(doubleSpinBox, static_cast<void (QDoubleSpinBox::*)(double)>(&QDoubleSpinBox::valueChanged),
                              [=](double value) {
                newSlider->blockSignals(true);
@@ -380,8 +391,10 @@ void NodeSettingsWidget::generatorUpdated()
             settingSliders[settingsId] = newSlider;
             spinBox->setMinimum(currSetting.min.toInt());
             spinBox->setMaximum(currSetting.max.toInt());
-            QObject::connect(spinBox, SIGNAL(valueChanged(int)), newSlider, SLOT(setValue(int)));
-            QObject::connect(newSlider, SIGNAL(valueChanged(int)), spinBox, SLOT(setValue(int)));
+            QObject::connect(spinBox, static_cast<void (QSpinBox::*)(int)>(&QSpinBox::valueChanged),
+                             newSlider, &QSlider::setValue);
+            QObject::connect(newSlider, &QSlider::valueChanged,
+                             spinBox, &QSpinBox::setValue);
             spinBox->blockSignals(false);
             newSlider->blockSignals(true);
          }
@@ -451,15 +464,19 @@ void NodeSettingsWidget::setGroupAlignment(QString group, bool aligned)
             firstwidget->disconnect(this);
             if (aligned) {
                if (currSetting.defaultvalue.type() == QVariant::Type::Int) {
-                  QObject::connect((QSpinBox*) firstwidget, SIGNAL(valueChanged(int)),
-                                   (QSpinBox*) currwidget, SLOT(setValue(int)));
-                  QObject::connect((QSpinBox*) firstwidget, SIGNAL(valueChanged(int)),
-                                   this, SLOT(saveSettings()));
+                  QObject::connect(static_cast<QSpinBox*>(firstwidget),
+                                   static_cast<void (QSpinBox::*)(int)>(&QSpinBox::valueChanged),
+                                   static_cast<QSpinBox*>(currwidget), &QSpinBox::setValue);
+                  QObject::connect(static_cast<QSpinBox*>(firstwidget),
+                                   static_cast<void (QSpinBox::*)(int)>(&QSpinBox::valueChanged),
+                                   [=](int i) { Q_UNUSED(i); this->saveSettings(); });
                } else if (currSetting.defaultvalue.type() == QVariant::Type::Double) {
-                  QObject::connect((QDoubleSpinBox*) firstwidget, SIGNAL(valueChanged(double)),
-                                   (QDoubleSpinBox*) currwidget, SLOT(setValue(double)));
-                  QObject::connect((QDoubleSpinBox*) firstwidget, SIGNAL(valueChanged(double)),
-                                   this, SLOT(saveSettings()));
+                  QObject::connect(static_cast<QDoubleSpinBox*>(firstwidget),
+                                   static_cast<void (QDoubleSpinBox::*)(double)>(&QDoubleSpinBox::valueChanged),
+                                   static_cast<QDoubleSpinBox*>(currwidget), &QDoubleSpinBox::setValue);
+                  QObject::connect(static_cast<QDoubleSpinBox*>(firstwidget),
+                                   static_cast<void (QDoubleSpinBox::*)(double)>(&QDoubleSpinBox::valueChanged),
+                                   [=](double i) { Q_UNUSED(i); this->saveSettings(); });
                }
             }
             currwidget->setEnabled(!aligned);
@@ -471,11 +488,11 @@ void NodeSettingsWidget::setGroupAlignment(QString group, bool aligned)
             firstslider->disconnect(currslider);
             if (aligned) {
                if (currSetting.defaultvalue.type() == QVariant::Type::Int) {
-                  QObject::connect((QSlider*) firstslider, SIGNAL(valueChanged(int)),
-                                   (QSlider*) currslider, SLOT(setValue(int)));
+                  QObject::connect(static_cast<QSlider*>(firstslider), &QSlider::valueChanged,
+                                   static_cast<QSlider*>(currslider), &QSlider::setValue);
                } else if (currSetting.defaultvalue.type() == QVariant::Type::Double) {
-                  QObject::connect((QDoubleSlider*) firstslider, SIGNAL(doubleValueChanged(double)),
-                                   (QDoubleSlider*) currslider, SLOT(setDoubleValue(double)));
+                  QObject::connect(static_cast<QDoubleSlider*>(firstslider), &QDoubleSlider::doubleValueChanged,
+                                   static_cast<QDoubleSlider*>(currslider), &QDoubleSlider::setDoubleValue);
                }
             }
             currslider->setEnabled(!aligned);

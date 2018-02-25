@@ -161,8 +161,10 @@ SettingsPanel::SettingsPanel(MainWindow *parent, SettingsManager* settingsmanage
    QPushButton* closeButton = new QPushButton("Close");
    saveButtonLayout->addWidget(saveButton, 0, 0);
    saveButtonLayout->addWidget(closeButton, 0, 1);
-   QObject::connect(saveButton, SIGNAL(clicked()), this, SLOT(saveSettings()));
-   QObject::connect(closeButton, SIGNAL(clicked()), parent->getMenu(), SLOT(toggleSettingsPanel()));
+   QObject::connect(saveButton, &QPushButton::clicked,
+                    this, &SettingsPanel::saveSettings);
+   QObject::connect(closeButton, &QPushButton::clicked,
+                    parent->getMenu(), &MenuActions::toggleSettingsPanel);
    contentsLayout->addWidget(saveButtonBox);
 
    QWidget *spacerWidget = new QWidget;

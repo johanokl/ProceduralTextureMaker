@@ -31,12 +31,18 @@ ViewNodeScene::ViewNodeScene(MainWindow* parent)
    dropItem = NULL;
    selectedNode = -1;
 
-   QObject::connect(project, SIGNAL(nodeAdded(TextureNodePtr)), this, SLOT(addNode(TextureNodePtr)));
-   QObject::connect(project, SIGNAL(nodeRemoved(int)), this, SLOT(nodeRemoved(int)));
-   QObject::connect(project, SIGNAL(nodesConnected(int, int, int)), this, SLOT(nodesConnected(int, int, int)));
-   QObject::connect(project, SIGNAL(nodesDisconnected(int, int, int)), this, SLOT(nodesDisconnected(int, int, int)));
-   QObject::connect(project, SIGNAL(nodeRemoved(int)), this, SLOT(nodeRemoved(int)));
-   QObject::connect(project->getSettingsManager(), SIGNAL(settingsUpdated(void)), this, SLOT(settingsUpdated(void)));
+   QObject::connect(project, &TextureProject::nodeAdded,
+                    this, &ViewNodeScene::addNode);
+   QObject::connect(project, &TextureProject::nodeRemoved,
+                    this, &ViewNodeScene::nodeRemoved);
+   QObject::connect(project, &TextureProject::nodesConnected,
+                    this, &ViewNodeScene::nodesConnected);
+   QObject::connect(project, &TextureProject::nodesDisconnected,
+                    this, &ViewNodeScene::nodesDisconnected);
+   QObject::connect(project, &TextureProject::nodeRemoved,
+                    this, &ViewNodeScene::nodeRemoved);
+   QObject::connect(project->getSettingsManager(), &SettingsManager::settingsUpdated,
+                    this, &ViewNodeScene::settingsUpdated);
 
    QBrush backgroundBrush;
    backgroundBrush.setStyle(Qt::SolidPattern);
@@ -162,11 +168,16 @@ void ViewNodeScene::addNode(TextureNodePtr newNode)
    nodeItems.insert(newNode->getId(), newItem);
    newItem->settingsUpdated();
    newItem->imageUpdated();
-   QObject::connect(newNode.data(), SIGNAL(positionUpdated(int)), this, SLOT(positionUpdated(int)));
-   QObject::connect(newNode.data(), SIGNAL(settingsUpdated(int)), this, SLOT(nodeSettingsUpdated(int)));
-   QObject::connect(newNode.data(), SIGNAL(imageUpdated(int)), this, SLOT(imageUpdated(int)));
-   QObject::connect(newNode.data(), SIGNAL(imageAvailable(int, QSize)), this, SLOT(imageAvailable(int, QSize)));
-   QObject::connect(newNode.data(), SIGNAL(generatorUpdated(int)), this, SLOT(generatorUpdated(int)));
+   QObject::connect(newNode.data(), &TextureNode::positionUpdated,
+                    this, &ViewNodeScene::positionUpdated);
+   QObject::connect(newNode.data(), &TextureNode::settingsUpdated,
+                    this, &ViewNodeScene::nodeSettingsUpdated);
+   QObject::connect(newNode.data(), &TextureNode::imageUpdated,
+                    this, &ViewNodeScene::imageUpdated);
+   QObject::connect(newNode.data(), &TextureNode::imageAvailable,
+                    this, &ViewNodeScene::imageAvailable);
+   QObject::connect(newNode.data(), &TextureNode::generatorUpdated,
+                    this, &ViewNodeScene::generatorUpdated);
    update();
 }
 
