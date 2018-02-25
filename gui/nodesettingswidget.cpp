@@ -386,18 +386,39 @@ void NodeSettingsWidget::generatorUpdated()
             newSlider->blockSignals(true);
          }
       }
+      QString groupId;
       if (!currSetting.group.isEmpty() && ((settingsIterator.hasNext() &&
             settingsIterator.peekNext().group != currSetting.group) ||
             !settingsIterator.hasNext())) {
          QCheckBox* groupCheckbox = new QCheckBox;
-         QString groupName = currSetting.group + "groupcheckbox";
+         groupId = currSetting.group + "groupcheckbox";
          QLabel* newLabel = new QLabel(QString("Align ").append(currSetting.group).append(":"));
-         settingLabels[groupName] = newLabel;
-         settingElements[groupName] = groupCheckbox;
+         settingLabels[groupId] = newLabel;
+         settingElements[groupId] = groupCheckbox;
          settingsLayout->addRow(newLabel, groupCheckbox);
          QObject::connect(groupCheckbox, &QCheckBox::toggled,
                           [=](bool val) { this->setGroupAlignment(currSetting.group, val); });
 
+      }
+      if (!currSetting.enabler.isEmpty()) {
+         QCheckBox* enablerWidget = dynamic_cast<QCheckBox*>(settingElements[currSetting.enabler]);
+         if (enablerWidget) {
+            if (settingElements[settingsId]) {
+               settingElements[settingsId]->setEnabled(enablerWidget->isChecked());
+               QObject::connect(enablerWidget, &QCheckBox::toggled,
+                                settingElements[settingsId], &QWidget::setEnabled);
+            }
+            if (settingSliders[settingsId]) {
+               settingSliders[settingsId]->setEnabled(enablerWidget->isChecked());
+               QObject::connect(enablerWidget, &QCheckBox::toggled,
+                                settingSliders[settingsId], &QWidget::setEnabled);
+            }
+            if (settingElements[groupId]) {
+               settingElements[groupId]->setEnabled(enablerWidget->isChecked());
+               QObject::connect(enablerWidget, &QCheckBox::toggled,
+                                settingElements[groupId], &QWidget::setEnabled);
+            }
+         }
       }
    }
    this->settingsUpdated();

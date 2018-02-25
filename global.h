@@ -94,6 +94,7 @@ typedef struct {
    QVariant min;
    QVariant max;
    QString group;
+   QString enabler;
 }
 TextureGeneratorSetting;
 
