@@ -22,9 +22,13 @@ public:
       Multiply = 3,
       Lighten = 4,
       Screen = 5,
-      LinearDodgeAdd = 6,
-      Overlay = 7,
-      SoftLight = 8
+      ColorDodge = 6,
+      ColorBurn = 7,
+      Overlay = 8,
+      SoftLight = 9,
+      HardLight = 10,
+      Difference = 11,
+      Exclusion = 12
    };
 
    BlendingTextureGenerator();
@@ -41,9 +45,9 @@ public:
 
 private:
    TextureGeneratorSettings configurables;
-   unsigned char blendColors(double originColor, double addColor,
-                             double addPixelAlpha, double blendingAlpha,
-                             BlendModes mode) const;
+   double blendColors(BlendModes mode, double originColor, double addColor) const;
+   int alphaCompose(double originAlpha, double addAlpha, double compositeAlpha,
+                    double originColor, double addColor, double compositeColor) const;
 };
 
 #endif // BLENDINGTEXTUREGENERATOR_H

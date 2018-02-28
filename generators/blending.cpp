@@ -5,6 +5,11 @@
  * Johan Lindqvist (johan.lindqvist@gmail.com)
  */
 
+/**
+ * Algorithms taken from Florian Reuschel's
+ * https://github.com/Loilo/color-blend
+ */
+
 #include "blending.h"
 
 using namespace std;
@@ -17,7 +22,13 @@ BlendingTextureGenerator::BlendingTextureGenerator()
    modes.append("Multiply");
    modes.append("Lighten");
    modes.append("Screen");
-   modes.append("Linear Dodge (Add)");
+   modes.append("Color Dodge");
+   modes.append("Color Burn");
+   modes.append("Overlay");
+   modes.append("Soft Light");
+   modes.append("Hard Light");
+   modes.append("Difference");
+   modes.append("Exclusion");
    TextureGeneratorSetting mode;
    mode.name = "Mode";
    mode.description = "How to blend";
@@ -45,39 +56,70 @@ BlendingTextureGenerator::BlendingTextureGenerator()
    configurables.insert("alpha", blendingAlpha);
 }
 
-unsigned char BlendingTextureGenerator::blendColors(double originColor, double addColor,
-                                                    double addPixelAlpha, double blendingAlpha,
-                                                    BlendModes mode) const
-{
-   double val;
-   double secondLevel;
 
+int BlendingTextureGenerator::alphaCompose(double originAlpha, double addAlpha,
+                                           double compositeAlpha,
+                                           double originColor, double addColor,
+                                           double compositeColor) const
+{
+   return qMax(0, qMin(255, (int)
+                       ((1 - (addAlpha / compositeAlpha)) * originColor +
+                        (addAlpha / compositeAlpha) *
+                        qRound((1 - originAlpha) * addColor +
+                               originAlpha * compositeColor))));
+}
+
+
+double BlendingTextureGenerator::blendColors(BlendModes mode, double originColor,
+                                             double addColor) const
+{
+   originColor /= 255;
+   addColor /= 255;
    switch (mode) {
-   case BlendModes::Normal:
-      secondLevel = blendingAlpha * addPixelAlpha / 255;
-      val = (1 - secondLevel) * originColor + secondLevel * addColor;
-      break;
-   case BlendModes::Darken:
-      val = qMin(originColor, addColor);
-      break;
-   case BlendModes::Lighten:
-      val = qMax(originColor, addColor);
-      break;
    case BlendModes::Multiply:
-      val = originColor * addColor / 255;
-      break;
+      return originColor * addColor;
    case BlendModes::Screen:
-      secondLevel = blendingAlpha * addPixelAlpha / 255;
-      val = (255 - (((255 - (1 - secondLevel) * originColor) * (255 - secondLevel * addColor)) / 255));
-      break;
-   case BlendModes::LinearDodgeAdd:
-      secondLevel = blendingAlpha * addPixelAlpha / 255;
-      val = qMin(originColor + secondLevel * addColor, (double) 255);
-      break;
+      return originColor + addColor - originColor * addColor;
+   case BlendModes::Overlay:
+      return blendColors(BlendModes::HardLight, addColor * 255, originColor * 255);
+   case BlendModes::Darken:
+      return qMin(originColor, addColor);
+   case BlendModes::Lighten:
+      return qMin(qMax(originColor, addColor), 1.0);
+   case BlendModes::ColorDodge:
+      if (originColor == 0) {
+         return 0;
+      }
+      if (addColor == 1) {
+         return 1;
+      }
+      return qMin(1.0, originColor / (1 - addColor));
+   case BlendModes::ColorBurn:
+      if (originColor == 1) {
+         return 1;
+      }
+      if (addColor == 0) {
+         return 0;
+      }
+      return 1 - qMin(1.0, (1 - originColor) / addColor);
+   case BlendModes::HardLight:
+      if (addColor <= 0.5) {
+         return blendColors(BlendModes::Multiply, originColor * 255, (2 * addColor) * 255);
+      }
+      return blendColors(BlendModes::Screen, originColor * 255, (2 * addColor - 1) * 255);
+   case BlendModes::SoftLight:
+      if (addColor <= 0.5) {
+         return originColor - (1 - 2 * addColor) * originColor * (1 - originColor);
+      }
+      return originColor - (2 * addColor - 1) * (originColor - ((originColor <= 0.25) ?
+         ((16 * originColor - 12) * originColor + 4) * originColor : sqrt(originColor)));
+   case BlendModes::Difference:
+      return qAbs(originColor - addColor);
+   case BlendModes::Exclusion:
+      return originColor + addColor - 2 * originColor * addColor;
    default:
-      val = 0;
+      return addColor;
    }
-   return qMax(qMin(val, (double)255), (double)0);
 }
 
 
@@ -106,9 +148,22 @@ void BlendingTextureGenerator::generate(QSize size, TexturePixel* destimage,
       blendMode = BlendModes::Lighten;
    } else if (mode == "Screen") {
       blendMode = BlendModes::Screen;
-   } else if (mode == "Linear Dodge (Add)") {
-      blendMode = BlendModes::LinearDodgeAdd;
+   } else if (mode == "Color Dodge") {
+      blendMode = BlendModes::ColorDodge;
+   } else if (mode == "Color Burn") {
+      blendMode = BlendModes::ColorBurn;
+   } else if (mode == "Overlay") {
+      blendMode = BlendModes::Overlay;
+   } else if (mode == "Soft Light") {
+      blendMode = BlendModes::SoftLight;
+   } else if (mode == "Hard Light") {
+      blendMode = BlendModes::HardLight;
+   } else if (mode == "Difference") {
+      blendMode = BlendModes::Difference;
+   } else if (mode == "Exclusion") {
+      blendMode = BlendModes::Exclusion;
    }
+
    TexturePixel* originSource = NULL;
    TexturePixel* addSource = NULL;
 
@@ -129,10 +184,19 @@ void BlendingTextureGenerator::generate(QSize size, TexturePixel* destimage,
    int numPixels = size.width() * size.height();
    if (originSource && addSource) {
       for (int thisPos = 0; thisPos < numPixels; thisPos++) {
-         destimage[thisPos].r = blendColors(originSource[thisPos].r, addSource[thisPos].r, addSource[thisPos].a, blendingAlpha, blendMode);
-         destimage[thisPos].g = blendColors(originSource[thisPos].g, addSource[thisPos].g, addSource[thisPos].a, blendingAlpha, blendMode);
-         destimage[thisPos].b = blendColors(originSource[thisPos].b, addSource[thisPos].b, addSource[thisPos].a, blendingAlpha, blendMode);
-         destimage[thisPos].a = blendColors(originSource[thisPos].a, addSource[thisPos].a, addSource[thisPos].a, blendingAlpha, blendMode);
+         double addAlpha = (blendingAlpha * addSource[thisPos].a) / 255;
+         double originAlpha = ((double) originSource[thisPos].a) / 255;
+         double pixelAlpha = addAlpha + originAlpha - addAlpha * originAlpha;
+         int r = blendColors(blendMode, originSource[thisPos].r, addSource[thisPos].r) * 255;
+         int g = blendColors(blendMode, originSource[thisPos].g, addSource[thisPos].g) * 255;
+         int b = blendColors(blendMode, originSource[thisPos].b, addSource[thisPos].b) * 255;
+         destimage[thisPos].r = alphaCompose(originAlpha, addAlpha, pixelAlpha,
+                                             originSource[thisPos].r, addSource[thisPos].r, r);
+         destimage[thisPos].g = alphaCompose(originAlpha, addAlpha, pixelAlpha,
+                                             originSource[thisPos].g, addSource[thisPos].g, g);
+         destimage[thisPos].b = alphaCompose(originAlpha, addAlpha, pixelAlpha,
+                                             originSource[thisPos].b, addSource[thisPos].b, b);
+         destimage[thisPos].a = pixelAlpha * 255;
       }
    } else if (originSource) {
       memcpy(destimage, originSource, numPixels * sizeof(TexturePixel));
