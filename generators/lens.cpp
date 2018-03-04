@@ -16,32 +16,32 @@ LensTextureGenerator::LensTextureGenerator()
    TextureGeneratorSetting offsetleft;
    offsetleft.defaultvalue = QVariant((int) 0);
    offsetleft.name = "Offset left";
-   offsetleft.min = QVariant((int) -100);
-   offsetleft.max = QVariant((int) 100);
+   offsetleft.min = QVariant(-100);
+   offsetleft.max = QVariant(100);
    offsetleft.order = 0;
    configurables.insert("offsetleft", offsetleft);
 
    TextureGeneratorSetting offsettop;
    offsettop.defaultvalue = QVariant((int) 0);
    offsettop.name = "Offset top";
-   offsettop.min = QVariant((int) -100);
-   offsettop.max = QVariant((int) 100);
+   offsettop.min = QVariant(-100);
+   offsettop.max = QVariant(100);
    offsettop.order = 1;
    configurables.insert("offsettop", offsettop);
 
    TextureGeneratorSetting size;
    size.defaultvalue = QVariant((double) 50);
    size.name = "Size";
-   size.min = QVariant((int) 0);
-   size.max = QVariant((int) 300);
+   size.min = QVariant(0);
+   size.max = QVariant(300);
    size.order = 2;
    configurables.insert("size", size);
 
    TextureGeneratorSetting strength;
-   strength.defaultvalue = QVariant((double) 80);
+   strength.defaultvalue = QVariant((double) 200);
    strength.name = "strength";
-   strength.min = QVariant((int) 0);
-   strength.max = QVariant((int) 150);
+   strength.min = QVariant(0);
+   strength.max = QVariant(300);
    strength.order = 3;
    configurables.insert("strength", strength);
 }
@@ -58,7 +58,7 @@ void LensTextureGenerator::generate(QSize size,
    int offsetleft = settings->value("offsetleft").toDouble() * size.width() / 100;
    int offsettop = settings->value("offsettop").toDouble() * size.height() / 100;
    int lenssize = settings->value("size").toDouble() * size.height() / 100;
-   int strength = settings->value("strength").toInt();
+   double strength = (300 - settings->value("strength").toDouble()) * size.width() / 100;
    if (!sourceimages.contains(0)) {
       memset(destimage, 0, size.width() * size.height() * sizeof(TexturePixel));
       return;
@@ -72,14 +72,14 @@ void LensTextureGenerator::generate(QSize size,
    }
    QPoint* lens = new QPoint[lenssize * lenssize];
    int r = lenssize / 2;
-   int d = 150 - strength;
 
    for (int y = 0; y < (lenssize >> 1); y++) {
       for (int x = 0; x < (lenssize >> 1); x++) {
          int ix = 0;
          int iy = 0;
          if ((x * x + y * y) < (r * r)) {
-            double shift = (double) d / sqrt(d * d - (x * x + y * y - r * r));
+            double shift = (double) strength /
+                  sqrt(strength * strength - (x * x + y * y - r * r));
             ix = x * shift - x;
             iy = y * shift - y;
          }
@@ -111,4 +111,5 @@ void LensTextureGenerator::generate(QSize size,
          }
       }
    }
+   delete lens;
 }
