@@ -13,6 +13,7 @@
 #include "sceneview/viewnodeitem.h"
 #include "sceneview/viewnodescene.h"
 #include "sceneview/viewnodeline.h"
+#include "gui/mainwindow.h"
 
 /**
  * @brief ViewNodeItem::ViewNodeItem
@@ -247,6 +248,8 @@ void ViewNodeItem::contextMenuEvent(QGraphicsSceneContextMenuEvent* event)
    QAction* copyNodeAction = menu.addAction(QString("Copy node"));
    QAction* cutNodeAction = menu.addAction(QString("Cut"));
    menu.addSeparator();
+   QAction* exportImageAction = menu.addAction(QString("Save selected image"));
+   menu.addSeparator();
    QAction* removeNodeAction = menu.addAction(QString("Remove node %1").arg(texNode->getName()));
 
    QAction* selectedAction = menu.exec(event->screenPos());
@@ -256,6 +259,8 @@ void ViewNodeItem::contextMenuEvent(QGraphicsSceneContextMenuEvent* event)
       scene->getTextureProject()->copyNode(id);
    } else if (cutNodeAction == selectedAction) {
       scene->getTextureProject()->cutNode(id);
+   } else if (exportImageAction == selectedAction) {
+      scene->getParent()->saveImage(id);
    } else {
       for (int i = 0; i < texNode->getNumSourceSlots(); i++) {
          if (actions[i] == selectedAction) {

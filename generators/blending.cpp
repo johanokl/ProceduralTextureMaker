@@ -10,6 +10,7 @@
  * https://github.com/Loilo/color-blend
  */
 
+#include <math.h>
 #include "blending.h"
 
 using namespace std;

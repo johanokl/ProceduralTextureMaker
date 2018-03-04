@@ -39,6 +39,7 @@ public:
    virtual ~ViewNodeScene();
    ViewNodeScene* clone() const;
    TextureProject* getTextureProject() const { return project; }
+   MainWindow* getParent() const { return parent; }
    virtual void clear();
    void endLineDrawing(int endNode);
    void startLineDrawing(int nodeId);

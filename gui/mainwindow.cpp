@@ -337,9 +337,12 @@ void MainWindow::pasteNode()
 /**
  * @brief MainWindow::saveImage
  */
-void MainWindow::saveImage()
+void MainWindow::saveImage(int id)
 {
-   TextureNodePtr texNode = project->getNode(scene->getSelectedNode());
+   if (id == 0) {
+      id = scene->getSelectedNode();
+   }
+   TextureNodePtr texNode = project->getNode(id);
    if (texNode.isNull()) {
       return;
    }

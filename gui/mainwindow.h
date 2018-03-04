@@ -57,7 +57,7 @@ public slots:
    void copyNode();
    void pasteNode();
    void cutNode();
-   void saveImage();
+   void saveImage(int id = 0);
    void reloadSceneView();
    void moveToFront();
    void resetViewZoom();
