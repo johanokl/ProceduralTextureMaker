@@ -8,6 +8,8 @@
 #include <QGraphicsSceneMouseEvent>
 #include <QMenu>
 #include <QMimeData>
+#include <QMessageBox>
+#include <QKeyEvent>
 #include "gui/mainwindow.h"
 #include "core/textureproject.h"
 #include "core/settingsmanager.h"
@@ -30,6 +32,7 @@ ViewNodeScene::ViewNodeScene(MainWindow* parent)
    lineItem = NULL;
    dropItem = NULL;
    selectedNode = -1;
+   selectedLine = std::tuple<int, int, int>(-1, 0, 0);
 
    QObject::connect(project, &TextureProject::nodeAdded,
                     this, &ViewNodeScene::addNode);
@@ -141,6 +144,9 @@ void ViewNodeScene::nodesConnected(int sourceid, int receiverid, int slot)
 void ViewNodeScene::nodesDisconnected(int sourceid, int receiverid, int slot)
 {
    auto key = std::tuple<int, int, int>(sourceid, receiverid, slot);
+   if (key == selectedLine) {
+      selectedLine = std::tuple<int, int, int>(-1, 0, 0);
+   }
    if (!nodeConnections.contains(key)) {
       return;
    }
@@ -201,6 +207,7 @@ void ViewNodeScene::positionUpdated(int id)
 void ViewNodeScene::setSelectedNode(int id)
 {
    selectedNode = id;
+   selectedLine = std::tuple<int, int, int>(-1, 0, 0);
    emit nodeSelected(id);
 }
 
@@ -215,6 +222,7 @@ void ViewNodeScene::setSelectedNode(int id)
 void ViewNodeScene::setSelectedLine(int sourceNode, int receiverNode, int slot)
 {
    selectedNode = -1;
+   selectedLine = std::tuple<int, int, int>(sourceNode, receiverNode, slot);
    emit lineSelected(sourceNode, receiverNode, slot);
 }
 
@@ -544,4 +552,38 @@ void ViewNodeScene::dropEvent(QGraphicsSceneDragDropEvent *event)
       }
       project->newNode(0, generator)->setPos(event->scenePos());
    }
+}
+
+/**
+ * @brief ViewNodeScene::keyPressEvent
+ * @param event
+ * Called when the widget's in focus and the user
+ * presses a keyboard key.
+ */
+void ViewNodeScene::keyPressEvent(QKeyEvent* event)
+{
+   switch (event->key()) {
+   case Qt::Key_Delete:
+      TextureNodePtr node = project->getNode(selectedNode);
+      if (node &&
+          QMessageBox::question((QWidget*) project->parent(), "Remove",
+                                QString("Remove node %1?").arg(node->getName()),
+                                QMessageBox::Yes | QMessageBox::No)
+          == QMessageBox::Yes) {
+         project->removeNode(selectedNode);
+         break;
+      }
+      TextureNodePtr lineFirstNode = project->getNode(std::get<0>(selectedLine));
+      TextureNodePtr lineSecondNode = project->getNode(std::get<1>(selectedLine));
+      if (lineFirstNode && lineSecondNode &&
+          QMessageBox::question((QWidget*) project->parent(), "Disconnect",
+                                QString("Disconnect node %1 and node %2?")
+                                .arg(lineFirstNode->getName()).arg(lineSecondNode->getName()),
+                                QMessageBox::Yes | QMessageBox::No)
+          == QMessageBox::Yes) {
+         lineSecondNode.data()->setSourceSlot(std::get<2>(selectedLine), 0);
+      }
+      break;
+   }
+   QGraphicsScene::keyPressEvent(event);
 }

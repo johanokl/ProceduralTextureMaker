@@ -40,6 +40,7 @@ public slots:
    void removeNode(int id);
    void addNode(TextureNodePtr);
    void sourceUpdated(int id);
+   void nodesDisconnected(int sourceNodeId, int receiverNodeId, int slot);
 
 private:
    TextureProject* texproject;
@@ -48,7 +49,8 @@ private:
    ConnectionWidget* lineWidget;
    NodeSettingsWidget* currWidget;
    SceneInfoWidget* sceneWidget;
-   int currId;
+   int currNodeId;
+   std::tuple<int, int, int> currLine;
 };
 
 

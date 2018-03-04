@@ -60,6 +60,7 @@ protected:
    void dragMoveEvent(QGraphicsSceneDragDropEvent* event);
    void dragLeaveEvent(QGraphicsSceneDragDropEvent* event);
    void dropEvent(QGraphicsSceneDragDropEvent* event);
+   void keyPressEvent(QKeyEvent* event);
 
 public slots:
    void addNode(TextureNodePtr newNode);
@@ -88,6 +89,7 @@ private:
    bool lineDrawing;
    ViewNodeLine* lineItem;
    int selectedNode;
+   std::tuple<int, int, int> selectedLine;
 };
 
 #endif // VIEWNODESCENE_H
