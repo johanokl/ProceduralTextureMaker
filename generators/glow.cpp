@@ -31,19 +31,19 @@ GlowTextureGenerator::GlowTextureGenerator()
 
    TextureGeneratorSetting size;
    size.name = "Size";
-   size.defaultvalue = QVariant((double) 2);
-   size.min = QVariant((double) 0);
-   size.max = QVariant((double) 20);
+   size.defaultvalue = QVariant((double) 4);
+   size.min = QVariant(0);
+   size.max = QVariant(20);
    size.order = 2;
    configurables.insert("size", size);
 
-   TextureGeneratorSetting blur;
-   blur.defaultvalue = QVariant((double) 3);
-   blur.name = "Blur level";
-   blur.min = QVariant((double) 0);
-   blur.max = QVariant((double) 25);
-   blur.order = 3;
-   configurables.insert("level", blur);
+   TextureGeneratorSetting firstblur;
+   firstblur.defaultvalue = QVariant((double) 3);
+   firstblur.name = "First blur";
+   firstblur.min = QVariant(0);
+   firstblur.max = QVariant(25);
+   firstblur.order = 3;
+   configurables.insert("firstblurlevel", firstblur);
 
    QStringList modes;
    modes.append("Multiply");
@@ -51,13 +51,55 @@ GlowTextureGenerator::GlowTextureGenerator()
    TextureGeneratorSetting mode;
    mode.name = "Mode";
    mode.defaultvalue = QVariant(modes);
+   mode.order = 4;
    configurables.insert("mode", mode);
+
+   TextureGeneratorSetting ontop;
+   ontop.name = "Glow on top";
+   ontop.defaultvalue = QVariant((bool) false);
+   ontop.order = 5;
+   configurables.insert("ontop", ontop);
+
+   TextureGeneratorSetting cutoutx;
+   cutoutx.name = "Cutout X (%)";
+   cutoutx.defaultvalue = QVariant((double) 95);
+   cutoutx.min = QVariant(0);
+   cutoutx.max = QVariant(100);
+   cutoutx.group = "cutout";
+   cutoutx.order = 6;
+   cutoutx.enabler = "ontop";
+   configurables.insert("cutoutx", cutoutx);
+
+   TextureGeneratorSetting cutouty;
+   cutouty.name = "Cutout Y (%)";
+   cutouty.defaultvalue = QVariant((double) 95);
+   cutouty.min = QVariant(0);
+   cutouty.max = QVariant(100);
+   cutouty.group = "cutout";
+   cutouty.enabler = "ontop";
+   cutouty.order = 7;
+   configurables.insert("cutouty", cutouty);
+
+   TextureGeneratorSetting secondblur;
+   secondblur.defaultvalue = QVariant((double) 3);
+   secondblur.name = "Second blur";
+   secondblur.min = QVariant(0);
+   secondblur.max = QVariant(25);
+   secondblur.enabler = "ontop";
+   secondblur.order = 8;
+   configurables.insert("secondblurlevel", secondblur);
+
+   TextureGeneratorSetting includesource;
+   includesource.name = "Include source";
+   includesource.defaultvalue = QVariant((bool) true);
+   includesource.order = 9;
+   configurables.insert("includesource", includesource);
 }
 
 void GlowTextureGenerator::generate(QSize size,
-                                          TexturePixel* destimage,
-                                          QMap<int, TextureImagePtr> sourceimages,
-                                          TextureNodeSettings* settings) const
+                                    TexturePixel* destimage,
+                                    QMap<int, TextureImagePtr> sourceimages,
+                                    TextureNodeSettings* settings) const
 {
    if (!settings || !destimage || !size.isValid()) {
       return;
@@ -67,17 +109,12 @@ void GlowTextureGenerator::generate(QSize size,
       return;
    }
 
-   TransformTextureGenerator transformgen;
    StackBlurTextureGenerator stackblurgen;
-   BlendingTextureGenerator blendinggen;
-   MergeTextureGenerator mergegen;
-   FillTextureGenerator fillgen;
-   ModifyLevelsTextureGenerator modifylevelsgen;
-   SetChannelsTextureGenerator setchannelsgen;
 
    double offset = settings->value("size").toDouble();
    QString mode = settings->value("mode").toString();
 
+   TransformTextureGenerator transformgen;
    TextureNodeSettings settingsForTransform;
    QMapIterator<QString, TextureGeneratorSetting> transformSettingsIterator(transformgen.getSettings());
    while (transformSettingsIterator.hasNext()) {
@@ -129,6 +166,7 @@ void GlowTextureGenerator::generate(QSize size,
       settingsForTransform.insert("offsettop", offset * 0.705);
       transformgen.generate(size, transformedDownRightImage, sourceimages, &settingsForTransform);
 
+      MergeTextureGenerator mergegen;
       QMap<int, TextureImagePtr> mergeImages;
       mergeImages.insert(0, transformedLeftImagePtr);
       mergeImages.insert(1, transformedRightImagePtr);
@@ -145,10 +183,12 @@ void GlowTextureGenerator::generate(QSize size,
       transformgen.generate(size, mergedImage, sourceimages, &settingsForTransform);
    }
 
+   FillTextureGenerator fillgen;
    TexturePixel* filledImage = new TexturePixel[size.width() * size.height()];
    TextureImagePtr filledImagePtr = TextureImagePtr(new TextureImage(size, filledImage));
    fillgen.generate(size, filledImage, sourceimages, settings);
 
+   SetChannelsTextureGenerator setchannelsgen;
    QMap<int, TextureImagePtr> setchannelImages;
    setchannelImages.insert(0, filledImagePtr);
    setchannelImages.insert(1, mergedImagePtr);
@@ -161,6 +201,7 @@ void GlowTextureGenerator::generate(QSize size,
    TextureImagePtr setchannelsImagePtr = TextureImagePtr(new TextureImage(size, setchannelsImage));
    setchannelsgen.generate(size, setchannelsImage, setchannelImages, &settingsForSetchannels);
 
+   ModifyLevelsTextureGenerator modifylevelsgen;
    QMap<int, TextureImagePtr> modifylevelsImages;
    modifylevelsImages.insert(0, setchannelsImagePtr);
    TextureNodeSettings settingsForModifyLevels;
@@ -174,32 +215,69 @@ void GlowTextureGenerator::generate(QSize size,
    QMap<int, TextureImagePtr> firstblurImages;
    firstblurImages.insert(0, modifylevelsImagePtr);
    TextureNodeSettings settingsForFirstBlur;
-   settingsForFirstBlur.insert("level", QVariant(settings->value("level").toInt()));
+   settingsForFirstBlur.insert("level", QVariant(settings->value("firstblurlevel").toInt()));
    TexturePixel* firstblurredImage = new TexturePixel[size.width() * size.height()];
    TextureImagePtr firstblurredImagePtr = TextureImagePtr(new TextureImage(size, firstblurredImage));
    stackblurgen.generate(size, firstblurredImage, firstblurImages, &settingsForFirstBlur);
 
-   CutoutTextureGenerator cutoutgen;
-   QMap<int, TextureImagePtr> cutoutImages;
-   cutoutImages.insert(0, firstblurredImagePtr);
-   cutoutImages.insert(1, sourceimages.value(0));
-   TextureNodeSettings settingsForCutout;
-   settingsForCutout.insert("factor", 255);
-   TexturePixel* cutoutImage = new TexturePixel[size.width() * size.height()];
-   TextureImagePtr cutoutImagePtr = TextureImagePtr(new TextureImage(size, cutoutImage));
-   cutoutgen.generate(size, cutoutImage, cutoutImages, &settingsForCutout);
+   if (settings->value("ontop").toBool()) {
+      TexturePixel* smallerCutoutImage = new TexturePixel[size.width() * size.height()];
+      TextureImagePtr smallerCutoutImagePtr = TextureImagePtr(new TextureImage(size, smallerCutoutImage));
+      settingsForTransform.insert("offsetleft", 0);
+      settingsForTransform.insert("offsettop", 0);
+      double cutoutx = settings->value("cutoutx").toDouble();
+      double cutouty = settings->value("cutouty").toDouble();
+      settingsForTransform.insert("xscale", cutoutx);
+      settingsForTransform.insert("yscale", cutouty);
+      transformgen.generate(size, smallerCutoutImage, sourceimages, &settingsForTransform);
 
-   QMap<int, TextureImagePtr> sourceForBlend;
-   sourceForBlend.insert(0, sourceimages.value(0));
-   sourceForBlend.insert(1, cutoutImagePtr);
-   TextureNodeSettings settingsForBlend;
-   QMapIterator<QString, TextureGeneratorSetting> blendSettingsIterator(blendinggen.getSettings());
-   while (blendSettingsIterator.hasNext()) {
-      blendSettingsIterator.next();
-      settingsForBlend.insert(blendSettingsIterator.key(), blendSettingsIterator.value().defaultvalue);
+      CutoutTextureGenerator cutoutgen;
+      QMap<int, TextureImagePtr> cutoutImages;
+      cutoutImages.insert(0, firstblurredImagePtr);
+      cutoutImages.insert(1, smallerCutoutImagePtr);
+      TextureNodeSettings settingsForCutout;
+      settingsForCutout.insert("factor", 255);
+      TexturePixel* cutoutImage = new TexturePixel[size.width() * size.height()];
+      TextureImagePtr cutoutImagePtr = TextureImagePtr(new TextureImage(size, cutoutImage));
+      cutoutgen.generate(size, cutoutImage, cutoutImages, &settingsForCutout);
+
+      QMap<int, TextureImagePtr> secondblurImages;
+      secondblurImages.insert(0, cutoutImagePtr);
+      TextureNodeSettings settingsForsecondBlur;
+      settingsForsecondBlur.insert("level", QVariant(settings->value("secondblurlevel").toInt()));
+      TexturePixel* secondblurredImage = new TexturePixel[size.width() * size.height()];
+      TextureImagePtr secondblurredImagePtr = TextureImagePtr(new TextureImage(size, secondblurredImage));
+      stackblurgen.generate(size, secondblurredImage, secondblurImages, &settingsForsecondBlur);
+      firstblurredImagePtr = secondblurredImagePtr;
+   } else {
+      CutoutTextureGenerator cutoutgen;
+      QMap<int, TextureImagePtr> cutoutImages;
+      cutoutImages.insert(0, firstblurredImagePtr);
+      cutoutImages.insert(1, sourceimages.value(0));
+      TextureNodeSettings settingsForCutout;
+      settingsForCutout.insert("factor", 255);
+      TexturePixel* cutoutImage = new TexturePixel[size.width() * size.height()];
+      TextureImagePtr cutoutImagePtr = TextureImagePtr(new TextureImage(size, cutoutImage));
+      cutoutgen.generate(size, cutoutImage, cutoutImages, &settingsForCutout);
+      firstblurredImagePtr = cutoutImagePtr;
    }
-   TexturePixel* blendedImage = new TexturePixel[size.width() * size.height()];
-   blendinggen.generate(size, blendedImage, sourceForBlend, &settingsForBlend);
-   memcpy(destimage, blendedImage, size.width() * size.height() * sizeof(TexturePixel));
-   delete[] blendedImage;
+
+   if (settings->value("includesource").toBool()) {
+      BlendingTextureGenerator blendinggen;
+      QMap<int, TextureImagePtr> sourceForBlend;
+      sourceForBlend.insert(0, sourceimages.value(0));
+      sourceForBlend.insert(1, firstblurredImagePtr);
+      TextureNodeSettings settingsForBlend;
+      QMapIterator<QString, TextureGeneratorSetting> blendSettingsIterator(blendinggen.getSettings());
+      while (blendSettingsIterator.hasNext()) {
+         blendSettingsIterator.next();
+         settingsForBlend.insert(blendSettingsIterator.key(), blendSettingsIterator.value().defaultvalue);
+      }
+      TexturePixel* blendedImage = new TexturePixel[size.width() * size.height()];
+      blendinggen.generate(size, blendedImage, sourceForBlend, &settingsForBlend);
+      memcpy(destimage, blendedImage, size.width() * size.height() * sizeof(TexturePixel));
+      delete[] blendedImage;
+   } else {
+      memcpy(destimage, firstblurredImagePtr->getData(), size.width() * size.height() * sizeof(TexturePixel));
+   }
 }
