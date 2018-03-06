@@ -8,7 +8,10 @@
 #include <QFileDialog>
 #include <QFileInfo>
 #include <QFile>
+#include <QCheckBox>
+#include <QPushButton>
 #include <QMessageBox>
+#include <QSettings>
 #include <QVBoxLayout>
 #include <QCloseEvent>
 #include <QAction>
@@ -160,6 +163,10 @@ MainWindow::MainWindow(TexGenApplication* parent)
 
    setWindowTitle("ProceduralTextureMaker");
    statusBar()->hide();
+
+   if (QSettings().value("showhelpstartup", true).toBool()) {
+      showHelp();
+   }
 }
 
 
@@ -249,7 +256,6 @@ bool MainWindow::saveFile(bool newFileName)
       QMessageBox msgBox(this);
       msgBox.setText("There already exists a file at this location. \n"
                      "Still want to save and thus overwrite the file or do you want to cancel the operation?");
-      msgBox.setInformativeText("Saving file...");
       msgBox.setStandardButtons(QMessageBox::Save | QMessageBox::Cancel);
       msgBox.setDefaultButton(QMessageBox::Cancel);
       int ret = msgBox.exec();
@@ -358,7 +364,6 @@ void MainWindow::saveImage(int id)
       QMessageBox msgBox(this);
       msgBox.setText("There already exists a file at this location. \n"
                      "Still want to save and thus overwrite the file or do you want to cancel the operation?");
-      msgBox.setInformativeText("Saving file...");
       msgBox.setStandardButtons(QMessageBox::Save | QMessageBox::Cancel);
       msgBox.setDefaultButton(QMessageBox::Cancel);
       int ret = msgBox.exec();
@@ -477,23 +482,23 @@ void MainWindow::moveToFront()
 void MainWindow::showAbout()
 {
    QString aboutText;
-   QTextStream textstream(&aboutText);
-   textstream << "<p align='center'>";
-   textstream << "<h2>ProceduralTextureMaker</h2>";
-   textstream << "<hr><br>";
-   textstream << "Johan Lindqvist";
-   textstream << "<br>";
-   textstream << "<a href='mailto:johan.lindqvist@gmail.com'>johan.lindqvist@gmail.com</a>";
-   textstream << "</p>";
-   textstream << "<p align='center'>";
-   textstream << "More information at<br>";
-   textstream << "<a href='https://github.com/johanokl/ProceduralTextureMaker'>";
-   textstream << "github.com/johanokl/ProceduralTextureMaker";
-   textstream << "</a>";
-   textstream << "</p>";
-   textstream << "<p align='center'>";
-   textstream << "This version built: %1";
-   textstream << "</p>";
+   QTextStream ts(&aboutText);
+   ts << "<p align='center'>"
+      << "<h2>ProceduralTextureMaker</h2>"
+      << "<hr><br>"
+      << "Johan Lindqvist"
+      << "<br>"
+      << "<a href='mailto:johan.lindqvist@gmail.com'>johan.lindqvist@gmail.com</a>"
+      << "</p>"
+      << "<p align='center'>"
+      << "More information at<br>"
+      << "<a href='https://github.com/johanokl/ProceduralTextureMaker'>"
+      << "github.com/johanokl/ProceduralTextureMaker"
+      << "</a>"
+      << "</p>"
+      << "<p align='center'>"
+      << "This version built: %1"
+      << "</p>";
    QMessageBox::about(this, "About", aboutText.arg(__DATE__));
 }
 
@@ -503,13 +508,54 @@ void MainWindow::showAbout()
  */
 void MainWindow::showHelp()
 {
+   QString helpText;
+   QTextStream ts(&helpText);
+   ts << "<h1>Help</h1>"
+      << "<h2>Add nodes</h2>"
+      << "<p>There are two methods available:<br>"
+      << "1. Drag a node from the Add node panel on the right to the scene view in the center.<br>"
+      << "2. Right click in the scene view and select the node you want to add from the context menu.</p>"
+      << "<h2>Remove nodes</h2>"
+      << "<p>Right click on a node and select \"Remove node\" in the context menu.</p>"
+      << "<h2>Connect nodes</h2>"
+      << "<p>Connect nodes by holding down the ctrl key and dragging a connection to the node.</p>"
+      << "<h2>Remove connections</h2>"
+      << "<p>There are two methods available:<br>"
+      << "1. Select the receiver and in the node settings panel press the \"Clear\" button.<br>"
+      << "2. Select the connection line in the scene view and either press the keyboard's delete key "
+      << "or press the \"Disconnect\" button in the connection info panel.</p>"
+      << "<h2>Export images</h2>"
+      << "<p>Right click on a node and select \"Save selected image\".</p>"
+      << "<h2>Graph</h2>"
+      << "<p>Zoom in and out in the scene view by holding down the alt or shift keys and "
+      << "scrolling the mouse wheel.<br>"
+      << "Select \"Reset scene view\" or \"Reset zoom\" to restore the view to the default settings.</p>"
+      << "<h2>Adding Javascript</h2>"
+      << "<p>Open the settings panel and set the directory for the generators.<br>"
+      << "For info about how the scripts should look, see github.com/johanokl/ProceduralTextureMaker.</p>";
+
+   QDialog* dialog = new QDialog(this);
    QTextEdit* help = new QTextEdit;
-   help->setWindowTitle("Help");
    help->setReadOnly(true);
-   help->append("Drag nodes from the button list on the right side to the center workboard.<br/>");
-   help->append("Connect nodes by holding down the ctrl key and dragging a connection to the node.<br/>");
-   help->append("Zoom in and out by holding down the alt key and scrolling the mouse wheel.<br/>");
-   help->show();
+   help->setText(helpText);
+   help->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+   QCheckBox* displayOnStart = new QCheckBox("Show on startup");
+   displayOnStart->setChecked(QSettings().value("showhelpstartup", true).toBool());
+   QObject::connect(displayOnStart, &QCheckBox::toggled,
+                    [=](bool val) {
+      QSettings().setValue("showhelpstartup", val);
+   });
+   QPushButton* closeButton = new QPushButton("Close");
+   QObject::connect(closeButton, &QPushButton::clicked, dialog, &QDialog::close);
+   QVBoxLayout* layout = new QVBoxLayout;
+   layout->setContentsMargins(0, 0, 0, 0);
+   layout->addWidget(help);
+   layout->addWidget(displayOnStart);
+   layout->addWidget(closeButton);
+   dialog->setWindowTitle("Help");
+   dialog->setMinimumSize(300, 400);
+   dialog->setLayout(layout);
+   dialog->show();
 }
 
 /**
