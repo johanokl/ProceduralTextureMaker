@@ -111,5 +111,5 @@ void LensTextureGenerator::generate(QSize size,
          }
       }
    }
-   delete lens;
+   delete[] lens;
 }

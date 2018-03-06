@@ -380,7 +380,7 @@ TextureGeneratorPtr TextureProject::getGenerator(QString name) const
    if (!generators.contains(name)) {
       qDebug() << QString("No generator with name %1.").arg(name);
    }
-   return generators.value(name, NULL);
+   return generators.value(name, TextureGeneratorPtr(NULL));
 }
 
 /**

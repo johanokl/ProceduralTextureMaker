@@ -40,7 +40,7 @@ public:
    TextureNodePtr getNode(int id) const;
    bool findLoops() const;
    void removeNode(int id);
-   TextureNodePtr newNode(int id = 0, TextureGeneratorPtr generator = NULL);
+   TextureNodePtr newNode(int id = 0, TextureGeneratorPtr generator = TextureGeneratorPtr(NULL));
    void clear();
    bool isModified() const;
    int getNumNodes() const;

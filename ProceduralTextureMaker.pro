@@ -32,6 +32,8 @@ QT += xml \
     gui \
     core
 
+CONFIG += c++11
+
 SOURCES = main.cpp \
     texgenapplication.cpp \
     core/texturenode.cpp \

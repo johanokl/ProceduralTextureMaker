@@ -13,6 +13,7 @@
 #include <QGroupBox>
 #include <QDrag>
 #include <QMimeData>
+#include <QMouseEvent>
 #include <QScrollArea>
 #include <QLabel>
 #include "global.h"

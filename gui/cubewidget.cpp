@@ -66,7 +66,7 @@ void CubeWidget::mouseReleaseEvent(QMouseEvent *e)
 
 /**
  * @brief CubeWidget::timerEvent
- * Called every 12 milliseconds.
+ * Called every 24 milliseconds.
  */
 void CubeWidget::timerEvent(QTimerEvent *)
 {
@@ -137,7 +137,7 @@ void CubeWidget::initializeGL()
    indexBuf.bind();
    indexBuf.allocate(indices, 34 * sizeof(GLushort));
    // Use QBasicTimer because its faster than QTimer
-   timer.start(12, this);
+   timer.start(24, this);
    initialized = true;
 }
 

@@ -17,8 +17,7 @@
  */
 QSize SettingsManager::getPreviewSize() const
 {
-   QSettings settings;
-   return settings.value("previewsize", QSize(500, 500)).toSize();
+   return QSettings().value("previewsize", QSize(500, 500)).toSize();
 }
 
 /**
@@ -41,8 +40,7 @@ void SettingsManager::setPreviewSize(QSize size)
  */
 QSize SettingsManager::getThumbnailSize() const
 {
-   QSettings settings;
-   return settings.value("thumbnailsize", QSize(250, 250)).toSize();
+   return QSettings().value("thumbnailsize", QSize(250, 250)).toSize();
 }
 
 /**
@@ -65,8 +63,7 @@ void SettingsManager::setThumbnailSize(QSize size)
  */
 int SettingsManager::getDefaultZoom() const
 {
-   QSettings settings;
-   return settings.value("defaultzoom", 100).toInt();
+   return QSettings().value("defaultzoom", 100).toInt();
 }
 
 /**
@@ -89,8 +86,8 @@ void SettingsManager::setDefaultZoom(int zoomfactor)
  */
 QString SettingsManager::getJSTextureGeneratorsPath() const
 {
-   QSettings settings;
-   QString path = settings.value("jstexturegeneratorspath", QDir::homePath() + "/TexGen").toString();
+   QString path = QSettings().value("jstexturegeneratorspath",
+                                    QDir::homePath() + "/TexGen").toString();
    return QDir::toNativeSeparators(path);
 }
 
@@ -114,8 +111,7 @@ void SettingsManager::setJSTextureGeneratorsPath(QString path)
  */
 bool SettingsManager::getJSTextureGeneratorsEnabled() const
 {
-   QSettings settings;
-   return settings.value("jstexturegeneratorsenabled", false).toBool();
+   return QSettings().value("jstexturegeneratorsenabled", false).toBool();
 }
 
 /**
@@ -138,8 +134,8 @@ void SettingsManager::setJSTextureGeneratorsEnabled(bool enabled)
  */
 QColor SettingsManager::getPreviewBackgroundColor() const
 {
-   QSettings settings;
-   return QColor(settings.value("previewbackgroundcolor", "#c8c8c8").toString());
+   return QColor(QSettings().value("previewbackgroundcolor",
+                                   "#c8c8c8").toString());
 }
 
 /**
@@ -163,8 +159,8 @@ void SettingsManager::setPreviewBackgroundColor(QColor val)
  */
 QColor SettingsManager::getBackgroundColor() const
 {
-   QSettings settings;
-   return QColor(settings.value("backgroundcolor", "#c8c8c8").toString());
+   return QColor(QSettings().value("backgroundcolor",
+                                   "#c8c8c8").toString());
 }
 
 /**
@@ -188,8 +184,7 @@ void SettingsManager::setBackgroundColor(QColor val)
  */
 int SettingsManager::getBackgroundBrush() const
 {
-   QSettings settings;
-   return settings.value("backgroundbrush", 1).toInt();
+   return QSettings().value("backgroundbrush", 1).toInt();
 }
 
 /**

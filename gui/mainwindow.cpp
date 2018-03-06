@@ -474,21 +474,25 @@ void MainWindow::moveToFront()
  */
 void MainWindow::showAbout()
 {
-   QMessageBox::about(this, "About",
-                      QString("<p align='center'>")
-                      .append("<h2>ProceduralTextureMaker</h2>")
-                      .append("<hr> <br>")
-                      .append("Johan Lindqvist <br>")
-                      .append("<a href='mailto:johan.lindqvist@gmail.com'>johan.lindqvist@gmail.com</a>")
-                      .append("</p>")
-                      .append("<p align='center'>")
-                      .append("More information at<br>")
-                      .append("<a href='https://github.com/johanokl/ProceduralTextureMaker'>")
-                      .append("github.com/johanokl/ProceduralTextureMaker")
-                      .append("</a></p>")
-                      .append("<p align='center'>")
-                      .append("This version built: %1</p>")
-                      .arg(__DATE__));
+   QString aboutText;
+   QTextStream textstream(&aboutText);
+   textstream << "<p align='center'>";
+   textstream << "<h2>ProceduralTextureMaker</h2>";
+   textstream << "<hr><br>";
+   textstream << "Johan Lindqvist";
+   textstream << "<br>";
+   textstream << "<a href='mailto:johan.lindqvist@gmail.com'>johan.lindqvist@gmail.com</a>";
+   textstream << "</p>";
+   textstream << "<p align='center'>";
+   textstream << "More information at<br>";
+   textstream << "<a href='https://github.com/johanokl/ProceduralTextureMaker'>";
+   textstream << "github.com/johanokl/ProceduralTextureMaker";
+   textstream << "</a>";
+   textstream << "</p>";
+   textstream << "<p align='center'>";
+   textstream << "This version built: %1";
+   textstream << "</p>";
+   QMessageBox::about(this, "About", aboutText.arg(__DATE__));
 }
 
 /**
@@ -498,7 +502,6 @@ void MainWindow::showAbout()
 void MainWindow::showHelp()
 {
    QTextEdit* help = new QTextEdit;
-   help->setWindowFlag(Qt::Tool);
    help->setWindowTitle("Help");
    help->setReadOnly(true);
    help->append("Drag nodes from the button list on the right side to the center workboard.<br/>");

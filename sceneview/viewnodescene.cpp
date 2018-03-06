@@ -170,10 +170,7 @@ void ViewNodeScene::nodesDisconnected(int sourceid, int receiverid, int slot)
 void ViewNodeScene::addNode(TextureNodePtr newNode)
 {
    ViewNodeItem* newItem = new ViewNodeItem(this, newNode);
-   addItem(newItem);
    nodeItems.insert(newNode->getId(), newItem);
-   newItem->settingsUpdated();
-   newItem->imageUpdated();
    QObject::connect(newNode.data(), &TextureNode::positionUpdated,
                     this, &ViewNodeScene::positionUpdated);
    QObject::connect(newNode.data(), &TextureNode::settingsUpdated,
@@ -184,6 +181,9 @@ void ViewNodeScene::addNode(TextureNodePtr newNode)
                     this, &ViewNodeScene::imageAvailable);
    QObject::connect(newNode.data(), &TextureNode::generatorUpdated,
                     this, &ViewNodeScene::generatorUpdated);
+   addItem(newItem);
+   newItem->settingsUpdated();
+   newItem->imageAvailable(project->getThumbnailSize());
    update();
 }
 
@@ -487,8 +487,9 @@ void ViewNodeScene::contextMenuEvent(QGraphicsSceneContextMenuEvent* event)
       project->newNode(0, actions[selectedAction])->setPos(event->scenePos());
    } else if (selectedAction == pasteAction) {
       project->pasteNode();
+   } else {
+      QGraphicsScene::contextMenuEvent(event);
    }
-   QGraphicsScene::contextMenuEvent(event);
 }
 
 /**
@@ -539,19 +540,17 @@ void ViewNodeScene::dragLeaveEvent(QGraphicsSceneDragDropEvent*)
 void ViewNodeScene::dropEvent(QGraphicsSceneDragDropEvent *event)
 {
    event->acceptProposedAction();
-   if (event->buttons() & Qt::LeftButton) {
-      if (dropItem) {
-         removeItem(dropItem);
-         delete dropItem;
-         dropItem = NULL;
-      }
-      QString toAdd = event->mimeData()->text();
-      TextureGeneratorPtr generator = project->getGenerator(toAdd);
-      if (generator.isNull()) {
-         return;
-      }
-      project->newNode(0, generator)->setPos(event->scenePos());
+   if (dropItem) {
+      removeItem(dropItem);
+      delete dropItem;
+      dropItem = NULL;
    }
+   QString toAdd = event->mimeData()->text();
+   TextureGeneratorPtr generator = project->getGenerator(toAdd);
+   if (generator.isNull()) {
+      return;
+   }
+   project->newNode(0, generator)->setPos(event->scenePos());
 }
 
 /**
