@@ -76,6 +76,7 @@ SOURCES = main.cpp \
     generators/mirror.cpp \
     generators/merge.cpp \
     generators/modifylevels.cpp \
+    generators/noise.cpp \
     generators/normalmap.cpp \
     generators/perlinnoise.cpp \
     generators/pixelate.cpp \
@@ -134,6 +135,7 @@ HEADERS +=     global.h \
     generators/merge.h \
     generators/mirror.h \
     generators/modifylevels.h \
+    generators/noise.h \
     generators/normalmap.h \
     generators/perlinnoise.h \
     generators/pixelate.h \

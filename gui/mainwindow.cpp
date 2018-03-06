@@ -41,6 +41,7 @@
 #include "generators/mirror.h"
 #include "generators/merge.h"
 #include "generators/modifylevels.h"
+#include "generators/noise.h"
 #include "generators/normalmap.h"
 #include "generators/perlinnoise.h"
 #include "generators/pixelate.h"
@@ -116,6 +117,7 @@ MainWindow::MainWindow(TexGenApplication* parent)
    project->addGenerator(TextureGeneratorPtr(new MergeTextureGenerator()));
    project->addGenerator(TextureGeneratorPtr(new MirrorTextureGenerator()));
    project->addGenerator(TextureGeneratorPtr(new ModifyLevelsTextureGenerator()));
+   project->addGenerator(TextureGeneratorPtr(new NoiseTextureGenerator()));
    project->addGenerator(TextureGeneratorPtr(new NormalMapTextureGenerator()));
    project->addGenerator(TextureGeneratorPtr(new PerlinNoiseTextureGenerator()));
    project->addGenerator(TextureGeneratorPtr(new PixelateTextureGenerator()));

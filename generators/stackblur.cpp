@@ -5,7 +5,6 @@
  * Johan Lindqvist (johan.lindqvist@gmail.com)
  */
 
-#include <QDebug>
 #include "stackblur.h"
 
 using namespace std;

@@ -56,6 +56,7 @@ private:
    ItemInfoPanel* widgetmanager;
    int id;
    TextureNodePtr texNode;
+   bool saveDisabled;
 
    QMap<QString, QLabel*> settingLabels;
    QMap<QString, QWidget*> settingElements;

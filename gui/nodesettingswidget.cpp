@@ -30,6 +30,7 @@ NodeSettingsWidget::NodeSettingsWidget(ItemInfoPanel* widgetmanager, int id)
 {
    this->widgetmanager = widgetmanager;
    this->id = id;
+   saveDisabled = false;
    texNode = widgetmanager->getTextureProject()->getNode(id);
 
    layout = new QVBoxLayout(this);
@@ -120,6 +121,9 @@ QFormLayout* NodeSettingsWidget::createGroupLayout()
  */
 void NodeSettingsWidget::saveSettings()
 {
+   if (saveDisabled) {
+      return;
+   }
    if (texNode->getName() != nodeNameLineEdit->text()) {
       texNode->setName(nodeNameLineEdit->text());
       QSetIterator<int> receiveriter = texNode->getReceivers();
@@ -281,7 +285,7 @@ void NodeSettingsWidget::generatorUpdated()
       sourceButtonsWidget->hide();
    }
    for (int i = 0; i < generator->getNumSourceSlots() &&
-         i <  (sourceSlotLabels.count() - 1); i++) {
+        i <  (sourceSlotLabels.count() - 1); i++) {
       sourceSlotLabels[i]->setText(generator->getSlotName(i) + ":");
    }
 
@@ -396,13 +400,13 @@ void NodeSettingsWidget::generatorUpdated()
             QObject::connect(newSlider, &QSlider::valueChanged,
                              spinBox, &QSpinBox::setValue);
             spinBox->blockSignals(false);
-            newSlider->blockSignals(true);
+            newSlider->blockSignals(false);
          }
       }
       QString groupId;
-      if (!currSetting.group.isEmpty() && ((settingsIterator.hasNext() &&
-            settingsIterator.peekNext().group != currSetting.group) ||
-            !settingsIterator.hasNext())) {
+      if (!(currSetting.group.isEmpty()) &&
+          ((settingsIterator.hasNext() && settingsIterator.peekNext().group != currSetting.group) ||
+           !settingsIterator.hasNext())) {
          QCheckBox* groupCheckbox = new QCheckBox;
          groupId = currSetting.group + "groupcheckbox";
          QLabel* newLabel = new QLabel(QString("Align ").append(currSetting.group).append(":"));
@@ -566,16 +570,13 @@ void NodeSettingsWidget::settingsUpdated()
       }
 
       QWidget* settingsWidget = settingElementIterator.value();
-      settingsWidget->blockSignals(true);
-
+      saveDisabled = true;
       QLineEdit* lineedit;
       QDoubleSpinBox* doublespinbox;
       QSpinBox* spinbox;
       QPushButton* pushbutton;
       QComboBox* combobox;
       QCheckBox* checkbox;
-      QSlider* slider;
-      QDoubleSlider* doubleslider;
       int index;
       switch (defaultvalue.type()) {
       case QVariant::Type::Int:
@@ -584,12 +585,6 @@ void NodeSettingsWidget::settingsUpdated()
             break;
          }
          spinbox->setValue(nodevalue.toInt());
-         slider = dynamic_cast<QSlider*>(settingSliders[settingsId]);
-         if (slider) {
-            slider->blockSignals(true);
-            slider->setValue(nodevalue.toInt());
-            slider->blockSignals(false);
-         }
          break;
       case QVariant::Type::Double:
          doublespinbox = dynamic_cast<QDoubleSpinBox*>(settingsWidget);
@@ -597,12 +592,6 @@ void NodeSettingsWidget::settingsUpdated()
             break;
          }
          doublespinbox->setValue(nodevalue.toDouble());
-         doubleslider = dynamic_cast<QDoubleSlider*>(settingSliders[settingsId]);
-         if (doubleslider) {
-            doubleslider->blockSignals(true);
-            doubleslider->setDoubleValue(nodevalue.toDouble());
-            doubleslider->blockSignals(false);
-         }
          break;
       case QVariant::Type::Color:
          pushbutton = dynamic_cast<QPushButton*>(settingsWidget);
@@ -639,6 +628,6 @@ void NodeSettingsWidget::settingsUpdated()
       default:
          INFO_MSG("Type not found");
       }
-      settingsWidget->blockSignals(false);
+      saveDisabled = false;
    }
 }

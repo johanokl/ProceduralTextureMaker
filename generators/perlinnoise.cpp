@@ -35,16 +35,16 @@ PerlinNoiseTextureGenerator::PerlinNoiseTextureGenerator()
 
    TextureGeneratorSetting zoom;
    zoom.defaultvalue = QVariant((double) 75);
-   zoom.min = QVariant((double) 10);
-   zoom.max = QVariant((double) 200);
+   zoom.min = QVariant(10);
+   zoom.max = QVariant(200);
    zoom.name = "Zoom";
    zoom.order = 4;
    configurables.insert("zoom", zoom);
 
    TextureGeneratorSetting randomizer;
    randomizer.defaultvalue = QVariant((double) 500);
-   randomizer.min = QVariant((double) 0);
-   randomizer.max = QVariant((double) 1000);
+   randomizer.min = QVariant(0);
+   randomizer.max = QVariant(1000);
    randomizer.name = "Randomize";
    randomizer.order = 5;
    configurables.insert("randomizer", randomizer);

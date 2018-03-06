@@ -119,7 +119,7 @@ SettingsPanel::SettingsPanel(MainWindow *parent, SettingsManager* settingsmanage
    exportLayout->addWidget(exportImageHeightLabel, 1, 0);
    exportLayout->addWidget(exportImageHeightSpinbox, 1, 1);
 
-   QGroupBox* generatorsWidget = new QGroupBox("Generators");
+   QGroupBox* generatorsWidget = new QGroupBox("JavaScript Generators");
    QGridLayout* generatorsLayout = new QGridLayout;
    generatorsWidget->setLayout(generatorsLayout);
    generatorsWidget->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Preferred);

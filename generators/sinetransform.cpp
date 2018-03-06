@@ -16,65 +16,65 @@ SineTransformTextureGenerator::SineTransformTextureGenerator()
    TextureGeneratorSetting angle;
    angle.name = "Angle";
    angle.defaultvalue = QVariant((double) 45);
-   angle.min = QVariant((double) 0);
-   angle.max = QVariant((double) 90);
+   angle.min = QVariant(0);
+   angle.max = QVariant(90);
    angle.order = 1;
    configurables.insert("angle", angle);
 
    TextureGeneratorSetting frequencyone;
    frequencyone.name = "Frequency (1)";
    frequencyone.defaultvalue = QVariant((double) 0.5);
-   frequencyone.min = QVariant((double) 0);
-   frequencyone.max = QVariant((double) 20);
+   frequencyone.min = QVariant(0);
+   frequencyone.max = QVariant(50);
    frequencyone.order = 2;
    configurables.insert("frequencyone", frequencyone);
 
    TextureGeneratorSetting amplitudeone;
    amplitudeone.name = "Amplitude (1)";
    amplitudeone.defaultvalue = QVariant((double) 20);
-   amplitudeone.min = QVariant((double) 0);
-   amplitudeone.max = QVariant((double) 100);
+   amplitudeone.min = QVariant(0);
+   amplitudeone.max = QVariant(100);
    amplitudeone.order = 3;
    configurables.insert("amplitudeone", amplitudeone);
 
    TextureGeneratorSetting offsetone;
    offsetone.name = "Offset (1)";
    offsetone.defaultvalue = QVariant((double) 0);
-   offsetone.min = QVariant((double) -360);
-   offsetone.max = QVariant((double) 360);
+   offsetone.min = QVariant(-360);
+   offsetone.max = QVariant(360);
    offsetone.order = 4;
    configurables.insert("offsetone", offsetone);
 
    TextureGeneratorSetting frequencytwo;
    frequencytwo.name = "Frequency (2)";
    frequencytwo.defaultvalue = QVariant((double) 10);
-   frequencytwo.min = QVariant((double) 0);
-   frequencytwo.max = QVariant((double) 20);
+   frequencytwo.min = QVariant(0);
+   frequencytwo.max = QVariant(50);
    frequencytwo.order = 5;
    configurables.insert("frequencytwo", frequencytwo);
 
    TextureGeneratorSetting amplitudetwo;
    amplitudetwo.name = "Amplitude (2)";
    amplitudetwo.defaultvalue = QVariant((double) 6);
-   amplitudetwo.min = QVariant((double) 0);
-   amplitudetwo.max = QVariant((double) 50);
+   amplitudetwo.min = QVariant(0);
+   amplitudetwo.max = QVariant(50);
    amplitudetwo.order = 6;
    configurables.insert("amplitudetwo", amplitudetwo);
 
    TextureGeneratorSetting offsettwo;
    offsettwo.name = "Offset (2)";
    offsettwo.defaultvalue = QVariant((double) 0);
-   offsettwo.min = QVariant((double) -360);
-   offsettwo.max = QVariant((double) 360);
+   offsettwo.min = QVariant(-360);
+   offsettwo.max = QVariant(360);
    offsettwo.order = 7;
    configurables.insert("offsettwo", offsettwo);
 }
 
 
 void SineTransformTextureGenerator::generate(QSize size,
-                                     TexturePixel* destimage,
-                                     QMap<int, TextureImagePtr> sourceimages,
-                                     TextureNodeSettings* settings) const
+                                             TexturePixel* destimage,
+                                             QMap<int, TextureImagePtr> sourceimages,
+                                             TextureNodeSettings* settings) const
 {
    if (!settings || !destimage || !size.isValid()) {
       return;
