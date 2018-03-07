@@ -8,8 +8,11 @@
 #include <QtMath>
 #include <QImage>
 #include <QPainter>
-#include <QDebug>
 #include <QColor>
+#include <QtGlobal>
+#if QT_VERSION >= QT_VERSION_CHECK(5, 10, 0)
+#include <QRandomGenerator>
+#endif
 #include "noise.h"
 
 NoiseTextureGenerator::NoiseTextureGenerator()
@@ -114,24 +117,40 @@ void NoiseTextureGenerator::generate(QSize size,
       alphamin = alphamax - alphamin;
       alphamax = alphamax - alphamin;
    }
-   int alpharange = alphamax - alphamin + 1;
 
    if (width > 0 && height > 0) {
       TexturePixel baseColor(color.red(), color.green(), color.blue());
-      qsrand(randomizer);
+#if QT_VERSION < QT_VERSION_CHECK(5, 10, 0)
+      int alpharange = (alphamax - alphamin + 1);
+      srand(randomizer);
+#else
+      QRandomGenerator random(randomizer);
+#endif
       QImage tempimage = QImage(width, height, QImage::Format_ARGB32);
       TexturePixel* bufferImage = (TexturePixel*) tempimage.bits();
       if (!settings->value("scatter").toBool()) {
          for (int i = 0; i < width * height; i++) {
             bufferImage[i] = baseColor;
+#if QT_VERSION < QT_VERSION_CHECK(5, 10, 0)
             bufferImage[i].a = alphamin + (qrand() % alpharange);
+#else
+            bufferImage[i].a = random.bounded(alphamin, alphamax + 1);
+#endif
          }
       } else {
          memset(bufferImage, 0, width * height * sizeof(TexturePixel));
          for (int i = 0; i < numpoints; i++) {
+#if QT_VERSION < QT_VERSION_CHECK(5, 10, 0)
             int index = qrand() % (width * height);
+#else
+            int index = random.bounded(width * height);
+#endif
             bufferImage[index] = baseColor;
+#if QT_VERSION < QT_VERSION_CHECK(5, 10, 0)
             bufferImage[index].a = alphamin + (qrand() % alpharange);
+#else
+            bufferImage[index].a = random.bounded(alphamin, alphamax + 1);
+#endif
          }
       }
       Qt::TransformationMode transformationMode = Qt::FastTransformation;
