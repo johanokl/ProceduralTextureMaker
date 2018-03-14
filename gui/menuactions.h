@@ -78,6 +78,7 @@ private:
    QAction* saveAct;
    QAction* saveAsAct;
    QAction* saveImageAct;
+   QAction* closeAct;
    QAction* exitAct;
    QAction* clearAct;
    QAction* copyAct;

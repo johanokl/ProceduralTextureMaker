@@ -163,6 +163,7 @@ MainWindow::MainWindow(TexGenApplication* parent)
 
    setWindowTitle("ProceduralTextureMaker");
    statusBar()->hide();
+   setAttribute(Qt::WA_DeleteOnClose);
 
    if (QSettings().value("showhelpstartup", true).toBool()) {
       showHelp();
@@ -182,8 +183,6 @@ void MainWindow::closeEvent(QCloseEvent *event)
       return;
    }
    event->accept();
-   parentapp->removeWindow(this);
-   delete this;
 }
 
 /**

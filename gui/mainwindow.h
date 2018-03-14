@@ -40,8 +40,6 @@ class MainWindow : public QMainWindow
 public:
    MainWindow(TexGenApplication* parent = 0);
    virtual ~MainWindow();
-
-public:
    TextureProject* getTextureProject() { return project; }
    TexGenApplication* parent() { return parentapp; }
    MenuActions* getMenu() { return menuactions; }
@@ -53,7 +51,7 @@ public slots:
    void clearScene();
    void showAbout();
    void showHelp();
-   void closeEvent(QCloseEvent*);
+   virtual void closeEvent(QCloseEvent*);
    void copyNode();
    void pasteNode();
    void cutNode();

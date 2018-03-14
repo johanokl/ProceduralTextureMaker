@@ -29,8 +29,10 @@ TexGenApplication::TexGenApplication(int argc, char * argv[]) : QApplication(arg
  */
 void TexGenApplication::quit()
 {
-   while (!mainwindows.isEmpty()) {
-      if (mainwindows.last()->close() == false) {
+   QMutableVectorIterator<MainWindow*> it(mainwindows);
+   it.toBack();
+   while (it.hasPrevious()) {
+      if (it.previous()->close() == false) {
          return;
       }
    }
@@ -45,6 +47,8 @@ MainWindow* TexGenApplication::addWindow()
    MainWindow* newWindow = new MainWindow(this);
    QObject::connect(newWindow, &MainWindow::windowTitleChanged,
                     this, &TexGenApplication::windowUpdated);
+   QObject::connect(newWindow, &MainWindow::destroyed,
+                    this, &TexGenApplication::removeWindow);
    mainwindows.push_back(newWindow);
    newWindow->show();
    emit windowsChanged();
@@ -56,9 +60,9 @@ MainWindow* TexGenApplication::addWindow()
  * @param windowObj The window to be removed.
  * Removes a MainWindows from the window list.
  */
-void TexGenApplication::removeWindow(MainWindow* windowObj)
+void TexGenApplication::removeWindow(QObject* windowObj)
 {
-   int index = mainwindows.indexOf(windowObj);
+   int index = mainwindows.indexOf((MainWindow*) windowObj);
    if (index == -1) {
       return;
    }

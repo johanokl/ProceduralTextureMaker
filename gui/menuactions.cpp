@@ -52,11 +52,17 @@ MenuActions::MenuActions(MainWindow* parent)
    QObject::connect(saveImageAct, &QAction::triggered,
                     parent, &MainWindow::saveImage);
 
-   exitAct = new QAction("E&xit", parent);
-   exitAct->setShortcut(QKeySequence::Quit);
-   exitAct->setStatusTip("Exit the application");
-   QObject::connect(exitAct, &QAction::triggered,
+   closeAct = new QAction("Close window", parent);
+   closeAct->setShortcut(QKeySequence::Close);
+   closeAct->setStatusTip("Close the window");
+   QObject::connect(closeAct, &QAction::triggered,
                     parent, &MainWindow::close);
+
+
+   exitAct = new QAction("Q&uit application", parent);
+   exitAct->setShortcut(QKeySequence::Quit);
+   QObject::connect(exitAct, &QAction::triggered,
+                    parent->parent(), &TexGenApplication::quit);
 
    clearAct = new QAction("Cl&ear scene", parent);
    clearAct->setToolTip("Clear screen");
@@ -158,6 +164,7 @@ MenuActions::MenuActions(MainWindow* parent)
    fileMenu->addSeparator();
    fileMenu->addAction(saveImageAct);
    fileMenu->addSeparator();
+   fileMenu->addAction(closeAct);
    fileMenu->addAction(exitAct);
 
    editMenu->addAction(clearAct);
@@ -376,7 +383,7 @@ void MenuActions::windowsChanged()
 {
    while(!windowlistActions.isEmpty()) {
       QAction* currAction = windowlistActions.last();
-      windowlistActions.remove(windowlistActions.size()-1);
+      windowlistActions.remove(windowlistActions.size() - 1);
       viewMenu->removeAction(currAction);
       delete currAction;
    }

@@ -39,7 +39,7 @@ signals:
 
 public slots:
    MainWindow* addWindow();
-   void removeWindow(MainWindow*);
+   void removeWindow(QObject*);
    void quit();
    void windowUpdated(QString);
 
