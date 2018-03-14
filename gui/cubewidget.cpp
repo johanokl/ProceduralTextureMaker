@@ -31,7 +31,9 @@ CubeWidget::~CubeWidget()
 {
    // Make sure the context is current when deleting the texture
    makeCurrent();
-   delete texture;
+   if (texture) {
+      delete texture;
+   }
    arrayBuf.destroy();
    indexBuf.destroy();
    doneCurrent();
@@ -176,11 +178,16 @@ void CubeWidget::setTexture(const QPixmap &pixmap)
       makeCurrent();
       texture->release();
       delete texture;
+      texture = 0;
+      textureUpdated = true;
    }
-   texture = new QOpenGLTexture(pixmap.toImage().mirrored());
-   texture->setMinificationFilter(QOpenGLTexture::Nearest);
-   texture->setMagnificationFilter(QOpenGLTexture::Linear);
-   textureUpdated = true;
+   if (!pixmap.isNull() && !pixmap.size().isEmpty()) {
+      makeCurrent();
+      texture = new QOpenGLTexture(pixmap.toImage().mirrored());
+      texture->setMinificationFilter(QOpenGLTexture::Nearest);
+      texture->setMagnificationFilter(QOpenGLTexture::Linear);
+      textureUpdated = true;
+   }
 }
 
 /**
