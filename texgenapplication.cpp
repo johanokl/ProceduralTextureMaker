@@ -15,12 +15,15 @@
  * @param argc Number of arguments passed (including the application name).
  * @param argv Array of arguments as C char strings.
  */
-TexGenApplication::TexGenApplication(int argc, char * argv[]) : QApplication(argc,argv)
+TexGenApplication::TexGenApplication(int argc, char* argv[]) : QApplication(argc, argv)
 {
    addWindow();
+#ifndef Q_OS_MAC
+   // On Mac OS the platform handles this automatically,
    if (argc > 1) {
       mainwindows.first()->openFile(QString(argv[1]));
    }
+#endif
 }
 
 /**
@@ -85,7 +88,7 @@ void TexGenApplication::windowUpdated(QString)
  * @brief TexGenApplication::event
  * Used to handle files being dropped on the application icon in OS X.
  */
-bool TexGenApplication::event(QEvent * event) {
+bool TexGenApplication::event(QEvent* event) {
    if (event->type() == QEvent::FileOpen) {
       MainWindow* projectWindow;
       if (!mainwindows.isEmpty()) {
