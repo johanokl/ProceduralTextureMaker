@@ -80,6 +80,7 @@ SOURCES = main.cpp \
     generators/normalmap.cpp \
     generators/perlinnoise.cpp \
     generators/pixelate.cpp \
+    generators/pointillism.cpp \
     generators/shadow.cpp \
     generators/sinetransform.cpp \
     generators/sineplasma.cpp \
@@ -140,6 +141,7 @@ HEADERS +=     global.h \
     generators/normalmap.h \
     generators/perlinnoise.h \
     generators/pixelate.h \
+    generators/pointillism.h \
     generators/shadow.h \
     generators/sineplasma.h \
     generators/sinetransform.h \
