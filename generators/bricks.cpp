@@ -5,11 +5,9 @@
  * Johan Lindqvist (johan.lindqvist@gmail.com)
  */
 
+#include "bricks.h"
 #include <QColor>
 #include <QPainter>
-#include "bricks.h"
-
-using namespace std;
 
 BricksTextureGenerator::BricksTextureGenerator()
 {
@@ -22,16 +20,16 @@ BricksTextureGenerator::BricksTextureGenerator()
    TextureGeneratorSetting linewidth;
    linewidth.name = "Line width";
    linewidth.defaultvalue = QVariant((int) 10);
-   linewidth.min = QVariant((int) 0);
-   linewidth.max = QVariant((int) 100);
+   linewidth.min = QVariant(0);
+   linewidth.max = QVariant(100);
    linewidth.order = 2;
    configurables.insert("linewidth", linewidth);
 
    TextureGeneratorSetting brickwidth;
    brickwidth.name = "Brick width";
    brickwidth.defaultvalue = QVariant((int) 120);
-   brickwidth.min = QVariant((int) 0);
-   brickwidth.max = QVariant((int) 300);
+   brickwidth.min = QVariant(0);
+   brickwidth.max = QVariant(300);
    brickwidth.group = "size";
    brickwidth.order = 3;
    configurables.insert("brickwidth", brickwidth);
@@ -39,8 +37,8 @@ BricksTextureGenerator::BricksTextureGenerator()
    TextureGeneratorSetting brickheight;
    brickheight.name = "Brick height";
    brickheight.defaultvalue = QVariant((int) 45);
-   brickheight.min = QVariant((int) 0);
-   brickheight.max = QVariant((int) 300);
+   brickheight.min = QVariant(0);
+   brickheight.max = QVariant(300);
    brickheight.group = "size";
    brickheight.order = 4;
    configurables.insert("brickheight", brickheight);
@@ -48,16 +46,16 @@ BricksTextureGenerator::BricksTextureGenerator()
    TextureGeneratorSetting offsetx;
    offsetx.name = "Offset left";
    offsetx.defaultvalue = QVariant((int) 0);
-   offsetx.min = QVariant((int) -100);
-   offsetx.max = QVariant((int) 100);
+   offsetx.min = QVariant(-100);
+   offsetx.max = QVariant(100);
    offsetx.order = 5;
    configurables.insert("offsetx", offsetx);
 
    TextureGeneratorSetting offsety;
    offsety.name = "Offset top";
    offsety.defaultvalue = QVariant((int) 0);
-   offsety.min = QVariant((int) -100);
-   offsety.max = QVariant((int) 100);
+   offsety.min = QVariant(-100);
+   offsety.max = QVariant(100);
    offsety.order = 6;
    configurables.insert("offsety", offsety);
 }

@@ -5,9 +5,8 @@
  * Johan Lindqvist (johan.lindqvist@gmail.com)
  */
 
-#include <QMouseEvent>
 #include "gui/cubewidget.h"
-
+#include <QMouseEvent>
 
 /**
  * @brief CubeWidget::CubeWidget
@@ -17,7 +16,7 @@ CubeWidget::CubeWidget(QWidget *parent) :
    QOpenGLWidget(parent), indexBuf(QOpenGLBuffer::IndexBuffer)
 {
    initialized = false;
-   texture = 0;
+   texture = nullptr;
    angularSpeed = 0;
    QSizePolicy sizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::MinimumExpanding);
    sizePolicy.setHeightForWidth(true);
@@ -31,7 +30,7 @@ CubeWidget::~CubeWidget()
 {
    // Make sure the context is current when deleting the texture
    makeCurrent();
-   if (texture) {
+   if (texture != nullptr) {
       delete texture;
    }
    arrayBuf.destroy();
@@ -157,7 +156,7 @@ void CubeWidget::imageUpdated()
  * @brief CubeWidget::setBackgroundColor
  * Set the widget's background color.
  */
-void CubeWidget::setBackgroundColor(QColor bg)
+void CubeWidget::setBackgroundColor(const QColor& bg)
 {
    backgroundcolor = bg;
    if (initialized) {
@@ -172,13 +171,13 @@ void CubeWidget::setBackgroundColor(QColor bg)
  * @param pixmap The texture
  * Displays the QPixmap on all six sides of the cube.
  */
-void CubeWidget::setTexture(const QPixmap &pixmap)
+void CubeWidget::setTexture(const QPixmap& pixmap)
 {
-   if (texture) {
+   if (texture != nullptr) {
       makeCurrent();
       texture->release();
       delete texture;
-      texture = 0;
+      texture = nullptr;
       textureUpdated = true;
    }
    if (!pixmap.isNull() && !pixmap.size().isEmpty()) {
@@ -196,7 +195,7 @@ void CubeWidget::setTexture(const QPixmap &pixmap)
  */
 void CubeWidget::resizeGL(int width, int height)
 {
-   double aspectRatio = (double) width / (double) (height ? height : 1);
+   float aspectRatio = static_cast<float>(width) / static_cast<float>(height ? height : 1);
    // Reset projection
    projection.setToIdentity();
    // Set perspective projection
@@ -212,7 +211,7 @@ void CubeWidget::paintGL()
 {
    // Clear color and depth buffer
    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-   if (texture) {
+   if (texture != nullptr) {
       texture->bind();
    }
    // Calculate model view transformation
@@ -225,7 +224,7 @@ void CubeWidget::paintGL()
    arrayBuf.bind();
    indexBuf.bind();
    // Offset for position
-   quintptr offset = 0;
+   int offset = 0;
    // Tell OpenGL programmable pipeline how to locate vertex position data
    int vertexLocation = program.attributeLocation("a_position");
    program.enableAttributeArray(vertexLocation);
@@ -236,5 +235,5 @@ void CubeWidget::paintGL()
    int texcoordLocation = program.attributeLocation("a_texcoord");
    program.enableAttributeArray(texcoordLocation);
    program.setAttributeBuffer(texcoordLocation, GL_FLOAT, offset, 2, sizeof(VertexData));
-   glDrawElements(GL_TRIANGLE_STRIP, 34, GL_UNSIGNED_SHORT, 0);
+   glDrawElements(GL_TRIANGLE_STRIP, 34, GL_UNSIGNED_SHORT, nullptr);
 }

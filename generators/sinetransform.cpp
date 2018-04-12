@@ -5,11 +5,9 @@
  * Johan Lindqvist (johan.lindqvist@gmail.com)
  */
 
-#include <math.h>
-#include <QtMath>
 #include "sinetransform.h"
-
-using namespace std;
+#include <QtMath>
+#include <cmath>
 
 SineTransformTextureGenerator::SineTransformTextureGenerator()
 {

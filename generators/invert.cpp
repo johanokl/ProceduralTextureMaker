@@ -7,8 +7,6 @@
 
 #include "invert.h"
 
-using namespace std;
-
 InvertTextureGenerator::InvertTextureGenerator()
 {
    QStringList options;
@@ -45,18 +43,18 @@ InvertTextureGenerator::InvertTextureGenerator()
 }
 
 void InvertTextureGenerator::generate(QSize size, TexturePixel* destimage,
-                                           QMap<int, TextureImagePtr> sourceimages,
-                                           TextureNodeSettings* settings) const
+                                      QMap<int, TextureImagePtr> sourceimages,
+                                      TextureNodeSettings* settings) const
 {
    if (!settings || !destimage || !size.isValid()) {
       return;
    }
-   QString channelRedStr = settings->value("channelRed").toString();
-   QString channelGreenStr = settings->value("channelGreen").toString();
-   QString channelBlueStr = settings->value("channelBlue").toString();
-   QString channelAlphaStr = settings->value("channelAlpha").toString();
+   auto channelRedStr = settings->value("channelRed").toString();
+   auto channelGreenStr = settings->value("channelGreen").toString();
+   auto channelBlueStr = settings->value("channelBlue").toString();
+   auto channelAlphaStr = settings->value("channelAlpha").toString();
    int numPixels = size.width() * size.height();
-   TexturePixel* source = NULL;
+   TexturePixel* source = nullptr;
    if (sourceimages.contains(0)) {
       source = sourceimages.value(0).data()->getData();
    }

@@ -8,9 +8,9 @@
 #ifndef JSTEXGENMANAGER_H
 #define JSTEXGENMANAGER_H
 
+#include "texturegenerator.h"
 #include <QObject>
 #include <QReadWriteLock>
-#include "texturegenerator.h"
 
 class GeneratorFileFinder;
 class JsTexGen;
@@ -24,14 +24,14 @@ class JSTexGenManager : public QObject
    Q_OBJECT
 
 public:
-   explicit JSTexGenManager(TextureProject *project);
-   virtual ~JSTexGenManager();
+   explicit JSTexGenManager(TextureProject* project);
+   ~JSTexGenManager() override;
 
 public slots:
-   void setDirectory(QString path, bool forceScan=false);
+   void setDirectory(const QString& path, bool forceScan=false);
    void addGenerator(JsTexGen* generator);
    void setEnabled(bool);
-   void settingsUpdated(void);
+   void settingsUpdated();
 
 signals:
    void generatorAdded(TextureGeneratorPtr);
@@ -53,17 +53,17 @@ private:
 class JsTexGen : public TextureGenerator
 {
 public:
-   JsTexGen(QString jsContent);
-   virtual ~JsTexGen() {}
-   virtual void generate(QSize size, TexturePixel* destimage,
-                         QMap<int, TextureImagePtr> sourceimages,
-                         TextureNodeSettings* settings) const;
+   explicit JsTexGen(const QString& jsContent);
+    ~JsTexGen() override = default;
+   void generate(QSize size, TexturePixel* destimage,
+                 QMap<int, TextureImagePtr> sourceimages,
+                 TextureNodeSettings* settings) const override;
 
-   virtual int getNumSourceSlots() const { return numSlots; }
-   virtual QString getName() const { return name; }
-   virtual const TextureGeneratorSettings& getSettings() const { return configurables; }
-   virtual QString getDescription() const { return description; }
-   virtual TextureGenerator::Type getType() const { return TextureGenerator::Type::Generator; }
+   int getNumSourceSlots() const override { return numSlots; }
+   QString getName() const override { return name; }
+   const TextureGeneratorSettings& getSettings() const override { return configurables; }
+   QString getDescription() const override { return description; }
+   TextureGenerator::Type getType() const override { return TextureGenerator::Type::Generator; }
    bool isValid();
 
 private:
@@ -71,10 +71,10 @@ private:
    QString name;
    QString description;
    QString scriptContent;
-   bool valid;
-   int numSlots;
-   bool separateColorChannels;
    mutable QReadWriteLock mutex;
+   int numSlots;
+   bool valid;
+   bool separateColorChannels;
 };
 
 /**

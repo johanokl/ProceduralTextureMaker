@@ -5,8 +5,8 @@
  * Johan Lindqvist (johan.lindqvist@gmail.com)
  */
 
-#include <QPainter>
 #include "transform.h"
+#include <QPainter>
 
 TransformTextureGenerator::TransformTextureGenerator()
 {
@@ -14,8 +14,8 @@ TransformTextureGenerator::TransformTextureGenerator()
    scaleX.name = "Scale X (%)";
    scaleX.description = "";
    scaleX.defaultvalue = QVariant((double) 100);
-   scaleX.min = QVariant((double) 0);
-   scaleX.max = QVariant((double) 500);
+   scaleX.min = QVariant(0);
+   scaleX.max = QVariant(500);
    scaleX.order = 1;
    scaleX.group = "scale";
    configurables.insert("xscale", scaleX);
@@ -24,8 +24,8 @@ TransformTextureGenerator::TransformTextureGenerator()
    scaleY.name = "Scale Y (%)";
    scaleY.description = "";
    scaleY.defaultvalue = QVariant((double) 100);
-   scaleY.min = QVariant((double) 0);
-   scaleY.max = QVariant((double) 500);
+   scaleY.min = QVariant(0);
+   scaleY.max = QVariant(500);
    scaleY.order = 2;
    scaleY.group = "scale";
    configurables.insert("yscale", scaleY);
@@ -34,8 +34,8 @@ TransformTextureGenerator::TransformTextureGenerator()
    rotation.name = "Rotation";
    rotation.description = "";
    rotation.defaultvalue = QVariant((double) 0);
-   rotation.min = QVariant((double) -360);
-   rotation.max = QVariant((double) 360);
+   rotation.min = QVariant(-360);
+   rotation.max = QVariant(360);
    rotation.order = 3;
    configurables.insert("rotation", rotation);
 
@@ -43,8 +43,8 @@ TransformTextureGenerator::TransformTextureGenerator()
    offsetLeft.name = "Offset left";
    offsetLeft.description = "";
    offsetLeft.defaultvalue = QVariant((double) 0);
-   offsetLeft.min = QVariant((double) -200);
-   offsetLeft.max = QVariant((double) 200);
+   offsetLeft.min = QVariant(-200);
+   offsetLeft.max = QVariant(200);
    offsetLeft.order = 4;
    configurables.insert("offsetleft", offsetLeft);
 
@@ -52,8 +52,8 @@ TransformTextureGenerator::TransformTextureGenerator()
    offsetTop.name = "Offset top";
    offsetTop.description = "";
    offsetTop.defaultvalue = QVariant((double) 0);
-   offsetTop.min = QVariant((double) -200);
-   offsetTop.max = QVariant((double) 200);
+   offsetTop.min = QVariant(-200);
+   offsetTop.max = QVariant(200);
    offsetTop.order = 5;
    configurables.insert("offsettop", offsetTop);
 
@@ -67,8 +67,8 @@ TransformTextureGenerator::TransformTextureGenerator()
    firstXtiles.name = "Tiles 1st pass (X)";
    firstXtiles.description = "";
    firstXtiles.defaultvalue = QVariant((int) 1);
-   firstXtiles.min = QVariant((int) 1);
-   firstXtiles.max = QVariant((int) 5);
+   firstXtiles.min = QVariant(1);
+   firstXtiles.max = QVariant(5);
    firstXtiles.group = "first tiles";
    firstXtiles.order = 7;
    configurables.insert("firstXtiles", firstXtiles);
@@ -77,8 +77,8 @@ TransformTextureGenerator::TransformTextureGenerator()
    firstYtiles.name = "Tiles 1st pass (Y)";
    firstYtiles.description = "";
    firstYtiles.defaultvalue = QVariant((int) 1);
-   firstYtiles.min = QVariant((int) 1);
-   firstYtiles.max = QVariant((int) 5);
+   firstYtiles.min = QVariant(1);
+   firstYtiles.max = QVariant(5);
    firstYtiles.group = "first tiles";
    firstYtiles.order = 8;
    configurables.insert("firstYtiles", firstYtiles);
@@ -87,8 +87,8 @@ TransformTextureGenerator::TransformTextureGenerator()
    secondXtiles.name = "Tiles 2nd pass (X)";
    secondXtiles.description = "";
    secondXtiles.defaultvalue = QVariant((int) 1);
-   secondXtiles.min = QVariant((double) 1);
-   secondXtiles.max = QVariant((double) 50);
+   secondXtiles.min = QVariant(1);
+   secondXtiles.max = QVariant(50);
    secondXtiles.group = "second tiles";
    secondXtiles.order = 9;
    configurables.insert("secondXtiles", secondXtiles);
@@ -97,8 +97,8 @@ TransformTextureGenerator::TransformTextureGenerator()
    secondYtiles.name = "Tiles 2nd pass (Y)";
    secondYtiles.description = "";
    secondYtiles.defaultvalue = QVariant((int) 1);
-   secondYtiles.min = QVariant((double) 1);
-   secondYtiles.max = QVariant((double) 50);
+   secondYtiles.min = QVariant(1);
+   secondYtiles.max = QVariant(50);
    secondYtiles.group = "second tiles";
    secondYtiles.order = 10;
    configurables.insert("secondYtiles", secondYtiles);
@@ -143,7 +143,7 @@ void TransformTextureGenerator::generate(QSize size,
    QImage destBuffer(firstXtiles * size.width(), firstYtiles * size.height(), QImage::Format_ARGB32);
    TexturePixel col(backgroundcolor.red(), backgroundcolor.green(), backgroundcolor.blue(), backgroundcolor.alpha());
 
-   TexturePixel* destBufferPixels = (TexturePixel*) destBuffer.bits();
+   auto* destBufferPixels = (TexturePixel*) destBuffer.bits();
    int numPixels = firstXtiles * size.width() * firstYtiles * size.height();
    for (int i=0; i < numPixels; i++) {
       *destBufferPixels = col;

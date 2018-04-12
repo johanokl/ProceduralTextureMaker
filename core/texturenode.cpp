@@ -5,9 +5,9 @@
  * Johan Lindqvist (johan.lindqvist@gmail.com)
  */
 
-#include <QColor>
 #include "texturenode.h"
 #include "textureproject.h"
+#include <QColor>
 
 bool operator<(const QSize& lhs, const QSize& rhs)
 {
@@ -25,13 +25,13 @@ bool operator<(const QSize& lhs, const QSize& rhs)
  *
  * Private constructor. To be called from TextureProject only.
  */
-TextureNode::TextureNode(TextureProject* project, TextureGeneratorPtr gen, int id)
+TextureNode::TextureNode(TextureProject* project, const TextureGeneratorPtr& gen, int id)
 {
    qRegisterMetaType<TextureNodePtr>("TextureNodePtr");
    name = QString("Node %1").arg(id);
    this->project = project;
    this->id = id;
-   this->gen = TextureGeneratorPtr(NULL);
+   this->gen = TextureGeneratorPtr(nullptr);
    sources.clear();
    receivers.clear();
    deleted = false;
@@ -80,7 +80,7 @@ void TextureNode::release()
  * Set up the node's properties, including settings and connections, based on
  * the serialized data stored in XML format by the function saveAsXML().
  */
-void TextureNode::loadFromXML(QDomNode xmlnode, QMap<int, int> idMappings)
+void TextureNode::loadFromXML(const QDomNode& xmlnode, QMap<int, int> idMappings)
 {
    name = xmlnode.toElement().attribute("name");
    QDomElement pos = xmlnode.namedItem("pos").toElement();
@@ -187,7 +187,7 @@ QDomElement TextureNode::saveAsXML(QDomDocument targetdoc)
  * @param newname
  * Sets the node's public name displayed in the view.
  */
-void TextureNode::setName(QString newname)
+void TextureNode::setName(const QString& newname)
 {
    name = newname;
 }
@@ -198,7 +198,7 @@ void TextureNode::setName(QString newname)
  *
  * Replaces the node's settings with the new settings object. No merging is done.
  */
-void TextureNode::setSettings(TextureNodeSettings settings)
+void TextureNode::setSettings(const TextureNodeSettings& settings)
 {
    settingsmutex.lockForWrite();
    this->settings = settings;
@@ -297,7 +297,7 @@ bool TextureNode::setSourceSlot(int slot, int sourceId)
       }
    }
    // Shall we remove an unused source?
-   if (sources[slot] != 0 && sources.values().count(sources[slot]) <= 1) {
+   if (sources[slot] != 0 && sources.keys(sources[slot]).length() <= 1) {
       TextureNodePtr oldNode = project->getNode(sources[slot]);
       if (!oldNode.isNull()) {
          oldNode->receivers.remove(id);
@@ -315,7 +315,7 @@ bool TextureNode::setSourceSlot(int slot, int sourceId)
       // Does adding it cause loops?
       sourceNode->receivers.insert(id);
       if (project->findLoops()) {
-         if (!(sources.values().contains(sourceId))) {
+         if (sources.key(sourceId, -1) != -1) {
             sourceNode->receivers.remove(id);
          }
          sourcemutex.unlock();
@@ -401,7 +401,7 @@ TextureImagePtr TextureNode::getImage(QSize size)
       }
    }
    // Smart pointer to memory area to store the new image
-   TexturePixel* destImage = new TexturePixel[size.width() * size.height()];
+   auto* destImage = new TexturePixel[size.width() * size.height()];
    retImage = TextureImagePtr(new TextureImage(size, destImage));
    // Copy the settings to make it thread safe.
    settingsmutex.lockForRead();
@@ -479,7 +479,7 @@ bool TextureNode::setGenerator(TextureGeneratorPtr newgenerator)
  * The generator needs to have been added to the project before this function
  * is called.
  */
-bool TextureNode::setGenerator(QString name)
+bool TextureNode::setGenerator(const QString& name)
 {
    return setGenerator(project->getGenerator(name));
 }
@@ -540,7 +540,7 @@ int TextureNode::waitingFor(QSize size) const
    }
    sourcemutex.lockForRead();
    int numwaitingFor = 0;
-   QSetIterator<int> sourceiterator(sources.values().toSet());
+   QListIterator<int> sourceiterator(sources.values());
    while (sourceiterator.hasNext()) {
       int currNode = sourceiterator.next();
       if (currNode != 0) {

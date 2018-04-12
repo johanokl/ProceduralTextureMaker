@@ -17,16 +17,16 @@ class CutoutTextureGenerator : public TextureGenerator
 {
 public:
    CutoutTextureGenerator();
-   virtual ~CutoutTextureGenerator() {}
-   virtual void generate(QSize size,
-                         TexturePixel* destimage,
-                         QMap<int, TextureImagePtr> sourceimages,
-                         TextureNodeSettings* settings) const;
-   virtual int getNumSourceSlots() const { return 2; }
-   virtual QString getName() const { return QString("Cutout"); }
-   virtual const TextureGeneratorSettings& getSettings() const { return configurables; }
-   virtual QString getDescription() const { return QString("Cut alpha from one image using another."); }
-   virtual TextureGenerator::Type getType() const { return TextureGenerator::Type::Combiner; }
+   ~CutoutTextureGenerator() override = default;
+   void generate(QSize size,
+                 TexturePixel* destimage,
+                 QMap<int, TextureImagePtr> sourceimages,
+                 TextureNodeSettings* settings) const override;
+   int getNumSourceSlots() const override { return 2; }
+   QString getName() const override { return QString("Cutout"); }
+   const TextureGeneratorSettings& getSettings() const override { return configurables; }
+   QString getDescription() const override { return QString("Cut alpha from one image using another."); }
+   TextureGenerator::Type getType() const override { return TextureGenerator::Type::Combiner; }
 
 private:
    TextureGeneratorSettings configurables;

@@ -5,11 +5,9 @@
  * Johan Lindqvist (johan.lindqvist@gmail.com)
  */
 
-#include <math.h>
-#include <QColor>
 #include "circle.h"
-
-using namespace std;
+#include <QColor>
+#include <cmath>
 
 CircleTextureGenerator::CircleTextureGenerator()
 {
@@ -24,8 +22,8 @@ CircleTextureGenerator::CircleTextureGenerator()
    innerRadius.name = "Inner radius";
    innerRadius.description = "Inner radius of the circle in percent of width";
    innerRadius.defaultvalue = QVariant((double) 0);
-   innerRadius.min = QVariant((double) 0);
-   innerRadius.max = QVariant((double) 200);
+   innerRadius.min = QVariant(0);
+   innerRadius.max = QVariant(200);
    innerRadius.order = 2;
    configurables.insert("innerradius", innerRadius);
 
@@ -33,8 +31,8 @@ CircleTextureGenerator::CircleTextureGenerator()
    outerRadius.name = "Outer radius";
    outerRadius.description = "Outer radius of the circle in percent of width";
    outerRadius.defaultvalue = QVariant((double) 100);
-   outerRadius.min = QVariant((double) 0);
-   outerRadius.max = QVariant((double) 200);
+   outerRadius.min = QVariant(0);
+   outerRadius.max = QVariant(200);
    outerRadius.order = 3;
    configurables.insert("outerradius", outerRadius);
 
@@ -42,8 +40,8 @@ CircleTextureGenerator::CircleTextureGenerator()
    offsetLeft.name = "Offset left";
    offsetLeft.description = "Inner radius of the circle in percent of width";
    offsetLeft.defaultvalue = QVariant((double) 0);
-   offsetLeft.min = QVariant((double) -100);
-   offsetLeft.max = QVariant((double) 100);
+   offsetLeft.min = QVariant(-100);
+   offsetLeft.max = QVariant(100);
    offsetLeft.order = 4;
    configurables.insert("offsetleft", offsetLeft);
 
@@ -51,8 +49,8 @@ CircleTextureGenerator::CircleTextureGenerator()
    offsetTop.name = "Offset top";
    offsetTop.description = "Outer radius of the circle in percent of width";
    offsetTop.defaultvalue = QVariant((double) 0);
-   offsetTop.min = QVariant((double) -100);
-   offsetTop.max = QVariant((double) 100);
+   offsetTop.min = QVariant(-100);
+   offsetTop.max = QVariant(100);
    offsetTop.order = 5;
    configurables.insert("offsettop", offsetTop);
 }
@@ -93,10 +91,10 @@ void CircleTextureGenerator::generate(QSize size,
                + pow(abs(size.height() / 2 - y + offsetTop), 2))
               <= (pow(outerRadius, 2)))) {
             int thisPos = y * size.width() + x;
-            destimage[thisPos].r = (int) (alpha * color.red() + (blend ? (srcAlpha * destimage[thisPos].r) : 0));
-            destimage[thisPos].g = (int) (alpha * color.green() + (blend ? (srcAlpha * destimage[thisPos].g) : 0));
-            destimage[thisPos].b = (int) (alpha * color.blue() + (blend ? (srcAlpha * destimage[thisPos].b) : 0));
-            destimage[thisPos].a = (int) (color.alpha() + (blend ? (srcAlpha * destimage[thisPos].a) : 0));
+            destimage[thisPos].r = static_cast<quint8>(alpha * color.red() + (blend ? (srcAlpha * destimage[thisPos].r) : 0));
+            destimage[thisPos].g = static_cast<quint8>(alpha * color.green() + (blend ? (srcAlpha * destimage[thisPos].g) : 0));
+            destimage[thisPos].b = static_cast<quint8>(alpha * color.blue() + (blend ? (srcAlpha * destimage[thisPos].b) : 0));
+            destimage[thisPos].a = static_cast<quint8>(color.alpha() + (blend ? (srcAlpha * destimage[thisPos].a) : 0));
          }
       }
    }

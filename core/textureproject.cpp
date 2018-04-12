@@ -5,20 +5,20 @@
  * Johan Lindqvist (johan.lindqvist@gmail.com)
  */
 
+#include "generators/empty.h"
+#include "settingsmanager.h"
+#include "textureproject.h"
+#include "texturerenderthread.h"
 #include <QApplication>
 #include <QClipboard>
 #include <QDebug>
-#include "textureproject.h"
-#include "settingsmanager.h"
-#include "generators/empty.h"
-#include "texturerenderthread.h"
 
 /**
  * @brief TextureProject::TextureProject
  */
 TextureProject::TextureProject()
 {
-   settingsManager = NULL;
+   settingsManager = nullptr;
    nodes.clear();
    generators.clear();
    newIdCounter = 0;
@@ -82,7 +82,7 @@ void TextureProject::settingsUpdated()
  *
  * Sets the project's public long name.
  */
-void TextureProject::setName(QString newname)
+void TextureProject::setName(const QString& newname)
 {
    name = newname;
    emit nameUpdated(name);
@@ -101,7 +101,7 @@ void TextureProject::startRenderThread(QSize renderSize, QThread::Priority prio)
 {
    QString key = QString("%1_%2").arg(renderSize.width()).arg(renderSize.height());
    if (!renderThreads.contains(key)) {
-      QThread* renderThread = new QThread;
+      auto* renderThread = new QThread;
       TextureRenderThread* renderer = new TextureRenderThread(renderSize, nodes);
       renderer->moveToThread(renderThread);
       renderThread->start();
@@ -156,7 +156,7 @@ void TextureProject::stopRenderThread(QSize renderSize)
  *
  * Loads a whole project including node connections and settings from an XML document.
  */
-void TextureProject::loadFromXML(QDomDocument xmlfile)
+void TextureProject::loadFromXML(const QDomDocument& xmlfile)
 {
    QDomNode rootNode = xmlfile.namedItem("TextureSet");
    QDomNodeList generators = rootNode.namedItem("Generators").childNodes();
@@ -173,7 +173,7 @@ void TextureProject::loadFromXML(QDomDocument xmlfile)
       QDomNode currNode = nodes.at(i);
       int nodeId = currNode.toElement().attribute("id").toInt();
       idMappings[nodeId] = nodeId;
-      if (getNode(nodeId) != NULL) {
+      if (getNode(nodeId) != nullptr) {
          idMappings[nodeId] = getNewId();
       }
    }
@@ -272,7 +272,7 @@ int TextureProject::getNumNodes() const
 int TextureProject::getNewId()
 {
    newIdCounter++;
-   while (getNode(newIdCounter) != NULL) {
+   while (getNode(newIdCounter) != nullptr) {
       newIdCounter++;
    }
    return newIdCounter;
@@ -285,7 +285,7 @@ int TextureProject::getNewId()
  */
 TextureNodePtr TextureProject::getNode(int id) const
 {
-   TextureNodePtr retval(NULL);
+   TextureNodePtr retval(nullptr);
    nodesmutex.lockForRead();
    if (nodes.contains(id)) {
       retval = nodes.value(id);
@@ -339,7 +339,7 @@ TextureNodePtr TextureProject::newNode(int id, TextureGeneratorPtr generator)
  * Adds a TextureGenerator to the project's list.
  * No copying is done by this function.
  */
-void TextureProject::addGenerator(TextureGeneratorPtr gen)
+void TextureProject::addGenerator(const TextureGeneratorPtr& gen)
 {
    if (gen.isNull()) {
       return;
@@ -359,9 +359,9 @@ void TextureProject::addGenerator(TextureGeneratorPtr gen)
  * Removes a TextureGenerator from the project's list.
  * Must be the same reference that was added.
  */
-void TextureProject::removeGenerator(TextureGeneratorPtr gen)
+void TextureProject::removeGenerator(const TextureGeneratorPtr& gen)
 {
-   if (!gen.isNull() && generators.values().contains(gen)) {
+   if (!gen.isNull() && generators.key(gen, "NULL") != "NULL") {
       generators.remove(gen->getName());
       emit generatorRemoved(gen);
    }
@@ -375,12 +375,12 @@ void TextureProject::removeGenerator(TextureGeneratorPtr gen)
  * Searches and returns a TextureGenerator based on its full name.
  * NULL is returned if it hasn't been added to the project.
  */
-TextureGeneratorPtr TextureProject::getGenerator(QString name) const
+TextureGeneratorPtr TextureProject::getGenerator(const QString& name) const
 {
    if (!generators.contains(name)) {
       qDebug() << QString("No generator with name %1.").arg(name);
    }
-   return generators.value(name, TextureGeneratorPtr(NULL));
+   return generators.value(name, TextureGeneratorPtr(nullptr));
 }
 
 /**

@@ -8,14 +8,14 @@
 #ifndef TEXTURENODE_H
 #define TEXTURENODE_H
 
-#include <QSet>
-#include <QMap>
-#include <QPoint>
-#include <QDomNode>
-#include <QReadWriteLock>
+#include "generators/texturegenerator.h"
 #include "global.h"
 #include "textureimage.h"
-#include "generators/texturegenerator.h"
+#include <QDomNode>
+#include <QMap>
+#include <QPoint>
+#include <QReadWriteLock>
+#include <QSet>
 
 class TextureProject;
 class TextureNode;
@@ -24,7 +24,7 @@ class TextureNode;
  * @brief TextureNodePtr
  * Thread-safe smart pointer for TextureNode objects.
  */
-typedef QSharedPointer<TextureNode> TextureNodePtr;
+using TextureNodePtr = QSharedPointer<TextureNode>;
 
 /**
  * @brief The TextureNode class
@@ -38,12 +38,12 @@ class TextureNode : public QObject
    friend class TextureProject;
 
 public:
-   virtual ~TextureNode();
+   ~TextureNode() override;
    void release();
    int getId() const { return id; }
    QString getName() const { return name; }
-   void setName(QString name);
-   bool setGenerator(QString name);
+   void setName(const QString& name);
+   bool setGenerator(const QString& name);
    bool setGenerator(TextureGeneratorPtr gen);
    TextureGeneratorPtr getGenerator() const { return gen; }
    QString getGeneratorName() const;
@@ -60,7 +60,7 @@ public:
    bool isTextureInCache(QSize size) const;
    int waitingFor(QSize size) const;
    const TextureNodeSettings getSettings() const { return settings; }
-   void setSettings(TextureNodeSettings settings);
+   void setSettings(const TextureNodeSettings& settings);
    const QMap<int, int> getSources() const { return sources; }
 
 signals:
@@ -74,8 +74,8 @@ signals:
    void nodesDisconnected(int sourceId, int receiverId, int slot);
 
 private:
-   TextureNode(TextureProject* project, TextureGeneratorPtr generator, int id);
-   void loadFromXML(QDomNode xmlnode, const QMap<int, int> idMapping = QMap<int, int>());
+   TextureNode(TextureProject* project, const TextureGeneratorPtr& generator, int id);
+   void loadFromXML(const QDomNode& xmlnode, const QMap<int, int> idMapping = QMap<int, int>());
    QDomElement saveAsXML(QDomDocument targetdoc);
    bool findLoop(QList<int> visited) const;
    void removeSource(int id);

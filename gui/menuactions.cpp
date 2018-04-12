@@ -5,18 +5,18 @@
  * Johan Lindqvist (johan.lindqvist@gmail.com)
  */
 
-#include <QMenuBar>
-#include <QToolBar>
-#include <QAction>
-#include <QSettings>
-#include <QFileDialog>
-#include "texgenapplication.h"
-#include "mainwindow.h"
-#include "gui/menuactions.h"
 #include "gui/addnodepanel.h"
+#include "gui/iteminfopanel.h"
+#include "gui/menuactions.h"
 #include "gui/previewimagepanel.h"
 #include "gui/settingspanel.h"
-#include "gui/iteminfopanel.h"
+#include "mainwindow.h"
+#include "texgenapplication.h"
+#include <QAction>
+#include <QFileDialog>
+#include <QMenuBar>
+#include <QSettings>
+#include <QToolBar>
 
 /**
  * @brief MenuActions::MenuActions
@@ -34,7 +34,7 @@ MenuActions::MenuActions(MainWindow* parent)
    openAct->setStatusTip("Open an existing file");
    openAct->setShortcuts(QKeySequence::Open);
    QObject::connect(openAct, &QAction::triggered, this,
-                    &MenuActions::openFile);
+                   & MenuActions::openFile);
 
    saveAct = new QAction(QIcon(":/saveicon.png"), "&Save", parent);
    saveAct->setStatusTip("Save the document to disk");
@@ -303,11 +303,10 @@ void MenuActions::toggleAddNodePanel()
  */
 void MenuActions::togglePreviewImagePanel()
 {
-   if (!previewImagePanel) {
-      return;
+   if (previewImagePanel != nullptr) {
+      previewImagePanel->setVisible(!previewImagePanel->isVisible());
+      displayPreviewImagePanelAct->setChecked(previewImagePanel->isVisible());
    }
-   previewImagePanel->setVisible(!previewImagePanel->isVisible());
-   displayPreviewImagePanelAct->setChecked(previewImagePanel->isVisible());
 }
 
 /**
@@ -315,11 +314,10 @@ void MenuActions::togglePreviewImagePanel()
  */
 void MenuActions::toggleSettingsPanel()
 {
-   if (!settingspanel) {
-      return;
+   if (settingspanel != nullptr) {
+      settingspanel->setVisible(!settingspanel->isVisible());
+      displaySettingsPanelAct->setChecked(settingspanel->isVisible());
    }
-   settingspanel->setVisible(!settingspanel->isVisible());
-   displaySettingsPanelAct->setChecked(settingspanel->isVisible());
 }
 
 /**
@@ -328,11 +326,10 @@ void MenuActions::toggleSettingsPanel()
  */
 void MenuActions::toggleItemInfoPanel()
 {
-   if (!nodesettings) {
-      return;
+   if (nodesettings != nullptr) {
+      nodesettings->setVisible(!nodesettings->isVisible());
+      displayItemInfoPanelAct->setChecked(nodesettings->isVisible());
    }
-   nodesettings->setVisible(!nodesettings->isVisible());
-   displayItemInfoPanelAct->setChecked(nodesettings->isVisible());
 }
 
 /**
@@ -341,19 +338,19 @@ void MenuActions::toggleItemInfoPanel()
  */
 void MenuActions::toogleToolbars()
 {
-   if (settingsToolBar) {
+   if (settingsToolBar != nullptr) {
       settingsToolBar->setVisible(displayToolbarsAct->isChecked());
    }
-   if (fileToolBar) {
+   if (fileToolBar != nullptr) {
       fileToolBar->setVisible(displayToolbarsAct->isChecked());
    }
-   if (editToolBar) {
+   if (editToolBar != nullptr) {
       editToolBar->setVisible(displayToolbarsAct->isChecked());
    }
-   if (insertToolBar) {
+   if (insertToolBar != nullptr) {
       insertToolBar->setVisible(displayToolbarsAct->isChecked());
    }
-   if (toggleAddNodeToolBar) {
+   if (toggleAddNodeToolBar != nullptr) {
       toggleAddNodeToolBar->setVisible(displayToolbarsAct->isChecked());
    }
 }
@@ -398,7 +395,7 @@ void MenuActions::windowsChanged()
          title.remove(title.length() - QString(" - ProceduralTextureMaker").length(), title.length() + 1);
       }
 #endif
-      QAction* newAction = new QAction(title, parent());
+      auto* newAction = new QAction(title, parent());
       if (i < 10) {
          newAction->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_1 + i));
       }

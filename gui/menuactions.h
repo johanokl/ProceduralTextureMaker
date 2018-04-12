@@ -38,9 +38,9 @@ class MenuActions : public QObject
    Q_OBJECT
 
 public:
-   MenuActions(MainWindow* parentwindow);
+   explicit MenuActions(MainWindow* parentwindow);
    MainWindow* parent() { return parentwindow; }
-   virtual ~MenuActions();
+    ~MenuActions() override;
    void setAddNodePanel(AddNodePanel* addNodePanel);
    void setPreviewImagePanel(PreviewImagePanel* previewImagePanel);
    void setSettingsPanel(SettingsPanel* settingsPanel);

@@ -5,17 +5,17 @@
  * Johan Lindqvist (johan.lindqvist@gmail.com)
  */
 
-#include <QComboBox>
-#include <QPainter>
-#include <QLabel>
-#include <QPushButton>
-#include <QGridLayout>
-#include <QVBoxLayout>
-#include "global.h"
-#include "core/textureproject.h"
 #include "core/settingsmanager.h"
+#include "core/textureproject.h"
+#include "global.h"
 #include "gui/cubewidget.h"
 #include "gui/previewimagepanel.h"
+#include <QComboBox>
+#include <QGridLayout>
+#include <QLabel>
+#include <QPainter>
+#include <QPushButton>
+#include <QVBoxLayout>
 
 /**
  * @brief ImageLabel::ImageLabel
@@ -61,7 +61,7 @@ const QPixmap* ImageLabel::pixmap() const
  * @param pixmap background image
  * Sets the pixmap to fill the whole widget.
  */
-void ImageLabel::setPixmap(const QPixmap &pixmap)
+void ImageLabel::setPixmap(const QPixmap& pixmap)
 {
    label->setPixmap(pixmap);
    resizeImage();
@@ -116,7 +116,7 @@ PreviewImagePanel::PreviewImagePanel(TextureProject* project)
    layout->addWidget(spacerWidget);
 
    QWidget* optionsWidget = new QWidget;
-   QHBoxLayout* optionsLayout = new QHBoxLayout();
+   auto* optionsLayout = new QHBoxLayout();
    optionsLayout->setContentsMargins(0, 0, 0, 0);
    optionsWidget->setLayout(optionsLayout);
    optionsWidget->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Fixed);
@@ -169,7 +169,7 @@ bool PreviewImagePanel::loadNodeImage(int id)
    QImage tempimage = QImage(imageSize.width(), imageSize.height(), QImage::Format_ARGB32);
    memcpy(tempimage.bits(),
           texNode->getImage(imageSize)->getData(),
-          (imageSize.width() * imageSize.height() * sizeof(TexturePixel)));
+          sizeof(TexturePixel) * imageSize.width() * imageSize.height());
    QPixmap newImage = QPixmap::fromImage(tempimage);
    if (numTiles > 1) {
       newImage = tilePixmap(newImage, numTiles);
@@ -253,7 +253,7 @@ void PreviewImagePanel::nodeRemoved(int id)
  * @param pixmap Image
  * Draws the image tiled 2*2 times.
  */
-QPixmap PreviewImagePanel::tilePixmap(const QPixmap &pixmap, int number)
+QPixmap PreviewImagePanel::tilePixmap(const QPixmap& pixmap, int number)
 {
    QPixmap newPixmap(pixmap.size() * number);
    newPixmap.fill(QColor(255, 255, 255, 255));

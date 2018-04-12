@@ -32,16 +32,16 @@ public:
    };
 
    BlendingTextureGenerator();
-   virtual ~BlendingTextureGenerator() {}
-   virtual void generate(QSize size,
-                         TexturePixel* destimage,
-                         QMap<int, TextureImagePtr> sourceimages,
-                         TextureNodeSettings* settings) const;
-   virtual int getNumSourceSlots() const { return 2; }
-   virtual QString getName() const { return QString("Blending"); }
-   virtual const TextureGeneratorSettings& getSettings() const { return configurables; }
-   virtual QString getDescription() const { return QString("Blends two textures together."); }
-   virtual TextureGenerator::Type getType() const { return TextureGenerator::Type::Combiner; }
+   ~BlendingTextureGenerator() override = default;
+   void generate(QSize size,
+                 TexturePixel* destimage,
+                 QMap<int, TextureImagePtr> sourceimages,
+                 TextureNodeSettings* settings) const override;
+   int getNumSourceSlots() const override { return 2; }
+   QString getName() const override { return QString("Blending"); }
+   const TextureGeneratorSettings& getSettings() const override { return configurables; }
+   QString getDescription() const override { return QString("Blends two textures together."); }
+   TextureGenerator::Type getType() const override { return TextureGenerator::Type::Combiner; }
 
 private:
    TextureGeneratorSettings configurables;

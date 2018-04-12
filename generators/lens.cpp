@@ -5,11 +5,9 @@
  * Johan Lindqvist (johan.lindqvist@gmail.com)
  */
 
-#include <QPoint>
-#include <math.h>
 #include "lens.h"
-
-using namespace std;
+#include <QPoint>
+#include <cmath>
 
 LensTextureGenerator::LensTextureGenerator()
 {

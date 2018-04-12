@@ -17,16 +17,16 @@ class FillTextureGenerator : public TextureGenerator
 {
 public:
    FillTextureGenerator();
-   virtual ~FillTextureGenerator() {}
-   virtual void generate(QSize size,
-                         TexturePixel* destimage,
-                         QMap<int, TextureImagePtr> sourceimages,
-                         TextureNodeSettings* settings) const;
-   virtual int getNumSourceSlots() const { return 0; }
-   virtual QString getName() const { return QString("Fill"); }
-   virtual const TextureGeneratorSettings& getSettings() const { return configurables; }
-   virtual QString getDescription() const { return QString("Fills the whole texture with the specified color."); }
-   virtual TextureGenerator::Type getType() const { return TextureGenerator::Type::Generator; }
+   ~FillTextureGenerator() override = default;
+   void generate(QSize size,
+                 TexturePixel* destimage,
+                 QMap<int, TextureImagePtr> sourceimages,
+                 TextureNodeSettings* settings) const override;
+   int getNumSourceSlots() const override { return 0; }
+   QString getName() const override { return QString("Fill"); }
+   const TextureGeneratorSettings& getSettings() const override { return configurables; }
+   QString getDescription() const override { return QString("Fills the whole texture with the specified color."); }
+   TextureGenerator::Type getType() const override { return TextureGenerator::Type::Generator; }
 
 private:
    TextureGeneratorSettings configurables;

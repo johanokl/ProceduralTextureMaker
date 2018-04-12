@@ -30,9 +30,9 @@ class ConnectionWidget : public QWidget
 {
    Q_OBJECT
 
- public:
-   ConnectionWidget(ItemInfoPanel* widgetmanager);
-   virtual ~ConnectionWidget() {}
+public:
+   explicit ConnectionWidget(ItemInfoPanel* widgetmanager);
+   ~ConnectionWidget() override = default;
    void setNodes(int sourceNodeId, int receiverNodeId, int slot);
 
 public slots:

@@ -5,9 +5,9 @@
  * Johan Lindqvist (johan.lindqvist@gmail.com)
  */
 
+#include "checkboard.h"
 #include <QColor>
 #include <QPainter>
-#include "checkboard.h"
 
 CheckboardTextureGenerator::CheckboardTextureGenerator()
 {
@@ -20,41 +20,41 @@ CheckboardTextureGenerator::CheckboardTextureGenerator()
    TextureGeneratorSetting brickwidth;
    brickwidth.name = "Brick width";
    brickwidth.defaultvalue = QVariant((int) 10);
-   brickwidth.min = QVariant((int) 1);
-   brickwidth.max = QVariant((int) 300);
+   brickwidth.min = QVariant(1);
+   brickwidth.max = QVariant(300);
    brickwidth.order = 2;
    configurables.insert("brickwidth", brickwidth);
 
    TextureGeneratorSetting brickheight;
    brickheight.name = "Brick height";
    brickheight.defaultvalue = QVariant((int) 10);
-   brickheight.min = QVariant((int) 1);
-   brickheight.max = QVariant((int) 300);
+   brickheight.min = QVariant(1);
+   brickheight.max = QVariant(300);
    brickheight.order = 3;
    configurables.insert("brickheight", brickheight);
 
    TextureGeneratorSetting offsetx;
    offsetx.name = "Offset left";
    offsetx.defaultvalue = QVariant((int) 0);
-   offsetx.min = QVariant((int) -100);
-   offsetx.max = QVariant((int) 100);
+   offsetx.min = QVariant(-100);
+   offsetx.max = QVariant(100);
    offsetx.order = 4;
    configurables.insert("offsetx", offsetx);
 
    TextureGeneratorSetting offsety;
    offsety.name = "Offset top";
    offsety.defaultvalue = QVariant((int) 0);
-   offsety.min = QVariant((int) -100);
-   offsety.max = QVariant((int) 100);
+   offsety.min = QVariant(-100);
+   offsety.max = QVariant(100);
    offsety.order = 5;
    configurables.insert("offsety", offsety);
 }
 
 
 void CheckboardTextureGenerator::generate(QSize size,
-                                      TexturePixel* destimage,
-                                      QMap<int, TextureImagePtr> sourceimages,
-                                      TextureNodeSettings* settings) const
+                                          TexturePixel* destimage,
+                                          QMap<int, TextureImagePtr> sourceimages,
+                                          TextureNodeSettings* settings) const
 {
    if (!settings || !destimage || !size.isValid()) {
       return;

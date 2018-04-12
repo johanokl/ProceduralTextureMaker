@@ -8,10 +8,10 @@
 #ifndef VIEWNODESCENE_H
 #define VIEWNODESCENE_H
 
+#include "core/texturenode.h"
 #include <QGraphicsScene>
 #include <QMap>
 #include <tuple>
-#include "core/texturenode.h"
 
 class TextureProject;
 class ViewNodeItem;
@@ -35,8 +35,8 @@ class ViewNodeScene : public QGraphicsScene
    friend class ViewNodeItem;
 
 public:
-   ViewNodeScene(MainWindow* parent);
-   virtual ~ViewNodeScene();
+   explicit ViewNodeScene(MainWindow* parent);
+   ~ViewNodeScene() override = default;
    ViewNodeScene* clone() const;
    TextureProject* getTextureProject() const { return project; }
    MainWindow* getParent() const { return parent; }
@@ -52,18 +52,18 @@ public:
    void removeConnection(int sourceNodeId, int receiverNodeId);
 
 protected:
-   void mousePressEvent(QGraphicsSceneMouseEvent* mouseEvent);
-   void mouseReleaseEvent(QGraphicsSceneMouseEvent* mouseEvent);
-   void mouseMoveEvent(QGraphicsSceneMouseEvent* mouseEvent);
-   void contextMenuEvent(QGraphicsSceneContextMenuEvent* event);
-   void dragEnterEvent(QGraphicsSceneDragDropEvent* event);
-   void dragMoveEvent(QGraphicsSceneDragDropEvent* event);
-   void dragLeaveEvent(QGraphicsSceneDragDropEvent* event);
-   void dropEvent(QGraphicsSceneDragDropEvent* event);
-   void keyPressEvent(QKeyEvent* event);
+   void mousePressEvent(QGraphicsSceneMouseEvent* mouseEvent) override;
+   void mouseReleaseEvent(QGraphicsSceneMouseEvent* mouseEvent) override;
+   void mouseMoveEvent(QGraphicsSceneMouseEvent* mouseEvent) override;
+   void contextMenuEvent(QGraphicsSceneContextMenuEvent* event) override;
+   void dragEnterEvent(QGraphicsSceneDragDropEvent* event) override;
+   void dragMoveEvent(QGraphicsSceneDragDropEvent* event) override;
+   void dragLeaveEvent(QGraphicsSceneDragDropEvent* event) override;
+   void dropEvent(QGraphicsSceneDragDropEvent* event) override;
+   void keyPressEvent(QKeyEvent* event) override;
 
 public slots:
-   void addNode(TextureNodePtr newNode);
+   void addNode(const TextureNodePtr& newNode);
    void nodeRemoved(int id);
    void positionUpdated(int id);
    void nodeSettingsUpdated(int id);
@@ -85,11 +85,11 @@ private:
    QMap<std::tuple<int, int, int>, ViewNodeLine*> nodeConnections;
 
    QGraphicsRectItem* dropItem;
-   int startLineNode;
-   bool lineDrawing;
    ViewNodeLine* lineItem;
+   int startLineNode;
    int selectedNode;
    std::tuple<int, int, int> selectedLine;
+   bool lineDrawing;
 };
 
 #endif // VIEWNODESCENE_H

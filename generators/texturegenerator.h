@@ -8,9 +8,9 @@
 #ifndef TEXTUREGENERATOR_H
 #define TEXTUREGENERATOR_H
 
-#include <QMap>
-#include "global.h"
 #include "core/textureimage.h"
+#include "global.h"
+#include <QMap>
 
 class TextureImage;
 
@@ -24,7 +24,7 @@ class TextureGenerator
 public:
    enum class Type { Filter, Combiner, Generator };
 
-   virtual ~TextureGenerator() {}
+   virtual ~TextureGenerator() = default;
    virtual void generate(QSize size,
                          TexturePixel* destimage,
                          QMap<int, TextureImagePtr> sourceimages,
@@ -33,7 +33,7 @@ public:
    virtual Type getType() const = 0;
    virtual int getNumSourceSlots() const = 0;
    virtual QString getName() const = 0;
-   virtual QString getSlotName(int num) { return QString("Slot %1").arg(num + 1); }
+   virtual QString getSlotName(int id);
    virtual QString getDescription() const = 0;
 };
 

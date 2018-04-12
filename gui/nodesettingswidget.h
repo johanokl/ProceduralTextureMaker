@@ -8,10 +8,10 @@
 #ifndef NODESETTINGSWIDGET_H
 #define NODESETTINGSWIDGET_H
 
-#include <QWidget>
+#include "core/texturenode.h"
 #include <QList>
 #include <QMap>
-#include "core/texturenode.h"
+#include <QWidget>
 
 class ItemInfoPanel;
 class QLabel;
@@ -39,20 +39,20 @@ class NodeSettingsWidget : public QWidget
 
  public:
    NodeSettingsWidget(ItemInfoPanel* widgetmanager, int id);
-   virtual ~NodeSettingsWidget() {}
+   ~NodeSettingsWidget() override = default;
 
 public slots:
    void settingsUpdated();
    void slotsUpdated();
    void generatorUpdated();
    void saveSettings();
-   void colorDialog(QString settingsId);
+   void colorDialog(const QString&);
    void swapSlots();
 
 private:
    QFormLayout* createGroupLayout();
-   void styleButton(QPushButton* button, QColor color);
-   void setGroupAlignment(QString group, bool aligned);
+   void styleButton(QPushButton* button, const QColor& color);
+   void setGroupAlignment(const QString& group, bool aligned);
    ItemInfoPanel* widgetmanager;
    int id;
    TextureNodePtr texNode;

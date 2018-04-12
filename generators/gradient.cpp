@@ -5,13 +5,12 @@
  * Johan Lindqvist (johan.lindqvist@gmail.com)
  */
 
+#include "gradient.h"
 #include <QColor>
-#include <QPainter>
 #include <QGradient>
 #include <QGraphicsOpacityEffect>
-#include "gradient.h"
+#include <QPainter>
 
-using namespace std;
 
 GradientTextureGenerator::GradientTextureGenerator()
 {
@@ -56,48 +55,48 @@ GradientTextureGenerator::GradientTextureGenerator()
    TextureGeneratorSetting startposx;
    startposx.name = "Start pos X";
    startposx.defaultvalue = QVariant((double) -20);
-   startposx.min = QVariant((double) -100);
-   startposx.max = QVariant((double) 100);
+   startposx.min = QVariant(-100);
+   startposx.max = QVariant(100);
    startposx.order = 6;
    configurables.insert("startposx", startposx);
 
    TextureGeneratorSetting startposy;
    startposy.name = "Start pos Y";
    startposy.defaultvalue = QVariant((double) -20);
-   startposy.min = QVariant((double) -100);
-   startposy.max = QVariant((double) 100);
+   startposy.min = QVariant(-100);
+   startposy.max = QVariant(100);
    startposy.order = 7;
    configurables.insert("startposy", startposy);
 
    TextureGeneratorSetting middleposition;
    middleposition.name = "Middle position (%)";
    middleposition.defaultvalue = QVariant((double) 50);
-   middleposition.min = QVariant((double) 0);
-   middleposition.max = QVariant((double) 100);
+   middleposition.min = QVariant(0);
+   middleposition.max = QVariant(100);
    middleposition.order = 8;
    configurables.insert("middleposition", middleposition);
 
    TextureGeneratorSetting endposx;
    endposx.name = "End pos X";
    endposx.defaultvalue = QVariant((double) 0);
-   endposx.min = QVariant((double) -100);
-   endposx.max = QVariant((double) 100);
+   endposx.min = QVariant(-100);
+   endposx.max = QVariant(100);
    endposx.order = 9;
    configurables.insert("endposx", endposx);
 
    TextureGeneratorSetting endposy;
    endposy.name = "End pos Y";
    endposy.defaultvalue = QVariant((double) 20);
-   endposy.min = QVariant((double) -100);
-   endposy.max = QVariant((double) 100);
+   endposy.min = QVariant(-100);
+   endposy.max = QVariant(100);
    endposy.order = 10;
    configurables.insert("endposy", endposy);
 
    TextureGeneratorSetting radius;
    radius.name = "Radius (%)";
    radius.defaultvalue = QVariant((double) 50);
-   radius.min = QVariant((double) 0);
-   radius.max = QVariant((double) 200);
+   radius.min = QVariant(0);
+   radius.max = QVariant(200);
    radius.order = 11;
    configurables.insert("radius", radius);
 }

@@ -8,9 +8,9 @@
 #ifndef SETTINGSMANAGER_H
 #define SETTINGSMANAGER_H
 
+#include <QColor>
 #include <QObject>
 #include <QSize>
-#include <QColor>
 
 /**
  * @brief The SettingsManager class
@@ -23,8 +23,8 @@ class SettingsManager : public QObject
    Q_OBJECT
 
 public:
-   SettingsManager() {}
-   virtual ~SettingsManager() {}
+   SettingsManager() = default;
+   ~SettingsManager() override = default;
    QSize getPreviewSize() const;
    QSize getThumbnailSize() const;
    QString getJSTextureGeneratorsPath() const;
@@ -39,12 +39,12 @@ signals:
 
 public slots:
    void setDefaultZoom(int);
-   void setPreviewSize(QSize);
-   void setThumbnailSize(QSize);
-   void setPreviewBackgroundColor(QColor);
-   void setBackgroundColor(QColor);
+   void setPreviewSize(const QSize&);
+   void setThumbnailSize(const QSize&);
+   void setPreviewBackgroundColor(const QColor&);
+   void setBackgroundColor(const QColor&);
    void setBackgroundBrush(int val);
-   void setJSTextureGeneratorsPath(QString);
+   void setJSTextureGeneratorsPath(const QString&);
    void setJSTextureGeneratorsEnabled(bool);
 };
 

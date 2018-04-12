@@ -5,9 +5,9 @@
  * Johan Lindqvist (johan.lindqvist@gmail.com)
  */
 
-#include <math.h>
-#include <QtMath>
 #include "gaussianblur.h"
+#include <QtMath>
+#include <cmath>
 
 GaussianBlurTextureGenerator::GaussianBlurTextureGenerator()
 {
@@ -15,8 +15,8 @@ GaussianBlurTextureGenerator::GaussianBlurTextureGenerator()
    neighbourssetting.defaultvalue = QVariant((int) 1);
    neighbourssetting.name = "Neighbours";
    neighbourssetting.description = "Number of neighbours";
-   neighbourssetting.min = QVariant((int) 1);
-   neighbourssetting.max = QVariant((int) 30);
+   neighbourssetting.min = QVariant(1);
+   neighbourssetting.max = QVariant(30);
    neighbourssetting.order = 1;
    configurables.insert("numneighbours", neighbourssetting);
 
@@ -24,8 +24,8 @@ GaussianBlurTextureGenerator::GaussianBlurTextureGenerator()
    weightsetting.defaultvalue = QVariant((double) 1);
    weightsetting.name = "Weight";
    weightsetting.description = "";
-   weightsetting.min = QVariant((double) 0);
-   weightsetting.max = QVariant((double) 4);
+   weightsetting.min = QVariant(0);
+   weightsetting.max = QVariant(4);
    weightsetting.order = 2;
    configurables.insert("weight", weightsetting);
 }
@@ -34,7 +34,7 @@ GaussianBlurTextureGenerator::GaussianBlurTextureGenerator()
 float* GaussianBlurTextureGenerator::ComputeGaussianKernel(const int inRadius, const float radiusModifier) const
 {
    int mem_amount = (inRadius * 2) + 1;
-   float* gaussian_kernel = new float[mem_amount];
+   auto* gaussian_kernel = new float[mem_amount];
 
    float twoRadiusSquaredRecip = 0.5 / (inRadius * inRadius);
    float sqrtTwoPiTimesRadiusRecip = 1.0 / (sqrt(M_PI * 2) * inRadius);
@@ -127,5 +127,5 @@ void GaussianBlurTextureGenerator::generate(QSize size,
          destimage[y * size.width() + x] = blurred_value;
       }
    }
-   delete gaussian_kernel;
+   delete[] gaussian_kernel;
 }

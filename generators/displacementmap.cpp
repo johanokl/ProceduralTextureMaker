@@ -5,7 +5,7 @@
  * Johan Lindqvist (johan.lindqvist@gmail.com)
  */
 
-#include <math.h>
+#include <cmath>
 #include <QtMath>
 #include "displacementmap.h"
 
@@ -16,24 +16,24 @@ DisplacementMapTextureGenerator::DisplacementMapTextureGenerator()
    TextureGeneratorSetting angle;
    angle.name = "Angle";
    angle.defaultvalue = QVariant((double) 45);
-   angle.min = QVariant((double) -360);
-   angle.max = QVariant((double) 360);
+   angle.min = QVariant(-360);
+   angle.max = QVariant(360);
    angle.order = 1;
    configurables.insert("angle", angle);
 
    TextureGeneratorSetting strength;
    strength.name = "Strength";
    strength.defaultvalue = QVariant((double) 0.5);
-   strength.min = QVariant((double) 0);
-   strength.max = QVariant((double) 3);
+   strength.min = QVariant(0);
+   strength.max = QVariant(3);
    strength.order = 3;
    configurables.insert("strength", strength);
 
    TextureGeneratorSetting offset;
    offset.name = "Offset";
    offset.defaultvalue = QVariant((double) 0);
-   offset.min = QVariant((double) -360);
-   offset.max = QVariant((double) 360);
+   offset.min = QVariant(-360);
+   offset.max = QVariant(360);
    offset.order = 4;
    configurables.insert("offset", offset);
 

@@ -7,15 +7,13 @@
 
 #include "stackblur.h"
 
-using namespace std;
-
 StackBlurTextureGenerator::StackBlurTextureGenerator()
 {
    TextureGeneratorSetting level;
    level.defaultvalue = QVariant((double) 10);
    level.name = "Blur level";
-   level.min = QVariant((double) 0);
-   level.max = QVariant((double) 20);
+   level.min = QVariant(0);
+   level.max = QVariant(20);
    configurables.insert("level", level);
 }
 
@@ -46,7 +44,7 @@ void StackBlurTextureGenerator::generate(QSize size,
    // Victor Laskin (victor.laskin@gmail.com)
    // http://vitiy.info/stackblur-algorithm-multi-threaded-blur-for-cpp
 
-   static unsigned short const stackblur_mul[255] =
+   quint16 stackblur_mul[255] =
    {
       512, 512, 456, 512, 328, 456, 335, 512, 405, 328, 271, 456, 388, 335, 292, 512,
       454, 405, 364, 328, 298, 271, 496, 456, 420, 388, 360, 335, 312, 292, 273, 512,
@@ -66,7 +64,7 @@ void StackBlurTextureGenerator::generate(QSize size,
       289, 287, 285, 282, 280, 278, 275, 273, 271, 269, 267, 265, 263, 261, 259
    };
 
-   static unsigned char const stackblur_shr[255] =
+   quint8 stackblur_shr[255] =
    {
       9,  11, 12, 13, 13, 14, 14, 15, 15, 15, 15, 16, 16, 16, 16, 17,
       17, 17, 17, 17, 17, 17, 18, 18, 18, 18, 18, 18, 18, 18, 18, 19,
@@ -89,9 +87,9 @@ void StackBlurTextureGenerator::generate(QSize size,
    /// Stackblur algorithm body
    unsigned int radius = level;
    unsigned int div = (radius * 2) + 1;
-   unsigned char* stack = new unsigned char [div * 4];
+   auto* stack = new unsigned char [div * 4];
    memset(stack, 0, div * 4);
-   unsigned char* src = (unsigned char*) destimage;
+   auto* src = reinterpret_cast<unsigned char*>(destimage);
 
    unsigned int w = size.width();
    unsigned int h = size.height();
@@ -104,18 +102,18 @@ void StackBlurTextureGenerator::generate(QSize size,
    unsigned char* src_ptr;
    unsigned char* dst_ptr;
 
-   unsigned long sum_r;
-   unsigned long sum_g;
-   unsigned long sum_b;
-   unsigned long sum_a;
-   unsigned long sum_in_r;
-   unsigned long sum_in_g;
-   unsigned long sum_in_b;
-   unsigned long sum_in_a;
-   unsigned long sum_out_r;
-   unsigned long sum_out_g;
-   unsigned long sum_out_b;
-   unsigned long sum_out_a;
+   quint64 sum_r;
+   quint64 sum_g;
+   quint64 sum_b;
+   quint64 sum_a;
+   quint64 sum_in_r;
+   quint64 sum_in_g;
+   quint64 sum_in_b;
+   quint64 sum_in_a;
+   quint64 sum_out_r;
+   quint64 sum_out_g;
+   quint64 sum_out_b;
+   quint64 sum_out_a;
 
    unsigned int wm = w - 1;
    unsigned int hm = h - 1;
@@ -142,7 +140,7 @@ void StackBlurTextureGenerator::generate(QSize size,
       src_ptr = src + w4 * y;
 
       for (i = 0; i <= radius; i++) {
-         stack_ptr    = &stack[ 4 * i ];
+         stack_ptr    =& stack[ 4 * i ];
          stack_ptr[0] = src_ptr[0];
          stack_ptr[1] = src_ptr[1];
          stack_ptr[2] = src_ptr[2];
@@ -160,7 +158,7 @@ void StackBlurTextureGenerator::generate(QSize size,
          if (i <= wm) {
             src_ptr += 4;
          }
-         stack_ptr = &stack[ 4 * (i + radius) ];
+         stack_ptr =& stack[ 4 * (i + radius) ];
          stack_ptr[0] = src_ptr[0];
          stack_ptr[1] = src_ptr[1];
          stack_ptr[2] = src_ptr[2];
@@ -197,7 +195,7 @@ void StackBlurTextureGenerator::generate(QSize size,
          if (stack_start >= div) {
             stack_start -= div;
          }
-         stack_ptr = &stack[4 * stack_start];
+         stack_ptr =& stack[4 * stack_start];
 
          sum_out_r -= stack_ptr[0];
          sum_out_g -= stack_ptr[1];
@@ -226,7 +224,7 @@ void StackBlurTextureGenerator::generate(QSize size,
          if (sp >= div) {
             sp = 0;
          }
-         stack_ptr = &stack[sp*4];
+         stack_ptr =& stack[sp*4];
          sum_out_r += stack_ptr[0];
          sum_out_g += stack_ptr[1];
          sum_out_b += stack_ptr[2];
@@ -239,7 +237,7 @@ void StackBlurTextureGenerator::generate(QSize size,
    }
 
    // step 2
-   unsigned int minX = 0;
+   int minX = 0;
    unsigned int maxX = size.width();
 
    for (x = minX; x < maxX; x++) {
@@ -257,7 +255,7 @@ void StackBlurTextureGenerator::generate(QSize size,
       sum_out_a = 0;
       src_ptr = src + 4 * x; // x,0
       for (i = 0; i <= radius; i++) {
-         stack_ptr    = &stack[i * 4];
+         stack_ptr    =& stack[i * 4];
          stack_ptr[0] = src_ptr[0];
          stack_ptr[1] = src_ptr[1];
          stack_ptr[2] = src_ptr[2];
@@ -275,7 +273,7 @@ void StackBlurTextureGenerator::generate(QSize size,
          if (i <= hm) {
             src_ptr += w4;
          }
-         stack_ptr = &stack[4 * (i + radius)];
+         stack_ptr =& stack[4 * (i + radius)];
          stack_ptr[0] = src_ptr[0];
          stack_ptr[1] = src_ptr[1];
          stack_ptr[2] = src_ptr[2];
@@ -312,7 +310,7 @@ void StackBlurTextureGenerator::generate(QSize size,
          if (stack_start >= div) {
             stack_start -= div;
          }
-         stack_ptr = &stack[4 * stack_start];
+         stack_ptr =& stack[4 * stack_start];
 
          sum_out_r -= stack_ptr[0];
          sum_out_g -= stack_ptr[1];
@@ -342,7 +340,7 @@ void StackBlurTextureGenerator::generate(QSize size,
          if (sp >= div) {
             sp = 0;
          }
-         stack_ptr = &stack[sp * 4];
+         stack_ptr =& stack[sp * 4];
 
          sum_out_r += stack_ptr[0];
          sum_out_g += stack_ptr[1];

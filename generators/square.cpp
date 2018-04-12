@@ -6,11 +6,9 @@
  */
 
 
-#include <math.h>
-#include <QPainter>
 #include "square.h"
-
-using namespace std;
+#include <QPainter>
+#include <cmath>
 
 SquareTextureGenerator::SquareTextureGenerator()
 {
@@ -24,8 +22,8 @@ SquareTextureGenerator::SquareTextureGenerator()
    shapeWidth.name = "Width";
    shapeWidth.description = "";
    shapeWidth.defaultvalue = QVariant((double) 80);
-   shapeWidth.min = QVariant((double) 0);
-   shapeWidth.max = QVariant((double) 200);
+   shapeWidth.min = QVariant(0);
+   shapeWidth.max = QVariant(200);
    shapeWidth.order = 2;
    shapeWidth.group = "size";
    configurables.insert("width", shapeWidth);
@@ -34,8 +32,8 @@ SquareTextureGenerator::SquareTextureGenerator()
    shapeHeight.name = "Height";
    shapeHeight.description = "";
    shapeHeight.defaultvalue = QVariant((double) 80);
-   shapeHeight.min = QVariant((double) 0);
-   shapeHeight.max = QVariant((double) 200);
+   shapeHeight.min = QVariant(0);
+   shapeHeight.max = QVariant(200);
    shapeHeight.order = 3;
    shapeHeight.group = "size";
    configurables.insert("height", shapeHeight);
@@ -44,8 +42,8 @@ SquareTextureGenerator::SquareTextureGenerator()
    rotation.name = "Rotation";
    rotation.description = "";
    rotation.defaultvalue = QVariant((double) 50);
-   rotation.min = QVariant((double) 0);
-   rotation.max = QVariant((double) 360);
+   rotation.min = QVariant(0);
+   rotation.max = QVariant(360);
    rotation.order = 4;
    configurables.insert("rotation", rotation);
 
@@ -53,8 +51,8 @@ SquareTextureGenerator::SquareTextureGenerator()
    offsetLeft.name = "Offset left";
    offsetLeft.description = "";
    offsetLeft.defaultvalue = QVariant((double) 0);
-   offsetLeft.min = QVariant((double) -100);
-   offsetLeft.max = QVariant((double) 100);
+   offsetLeft.min = QVariant(-100);
+   offsetLeft.max = QVariant(100);
    offsetLeft.order = 5;
    configurables.insert("offsetleft", offsetLeft);
 
@@ -62,8 +60,8 @@ SquareTextureGenerator::SquareTextureGenerator()
    offsetTop.name = "Offset top";
    offsetTop.description = "";
    offsetTop.defaultvalue = QVariant((double) 0);
-   offsetTop.min = QVariant((double) -100);
-   offsetTop.max = QVariant((double) 100);
+   offsetTop.min = QVariant(-100);
+   offsetTop.max = QVariant(100);
    offsetTop.order = 6;
    configurables.insert("offsettop", offsetTop);
 
@@ -71,8 +69,8 @@ SquareTextureGenerator::SquareTextureGenerator()
    cutoutInnerRadius.name = "Cutout width";
    cutoutInnerRadius.description = "";
    cutoutInnerRadius.defaultvalue = QVariant((double) 0);
-   cutoutInnerRadius.min = QVariant((double) 0);
-   cutoutInnerRadius.max = QVariant((double) 100);
+   cutoutInnerRadius.min = QVariant(0);
+   cutoutInnerRadius.max = QVariant(100);
    cutoutInnerRadius.order = 7;
    cutoutInnerRadius.group = "cutout";
    configurables.insert("cutoutwidth", cutoutInnerRadius);
@@ -81,8 +79,8 @@ SquareTextureGenerator::SquareTextureGenerator()
    cutoutOuterRadius.name = "Cutout height";
    cutoutOuterRadius.description = "";
    cutoutOuterRadius.defaultvalue = QVariant((double) 0);
-   cutoutOuterRadius.min = QVariant((double) 0);
-   cutoutOuterRadius.max = QVariant((double) 100);
+   cutoutOuterRadius.min = QVariant(0);
+   cutoutOuterRadius.max = QVariant(100);
    cutoutOuterRadius.order = 8;
    cutoutOuterRadius.group = "cutout";
    configurables.insert("cutoutheight", cutoutOuterRadius);

@@ -17,16 +17,16 @@ class InvertTextureGenerator : public TextureGenerator
 {
 public:
    InvertTextureGenerator();
-   virtual ~InvertTextureGenerator() {}
-   virtual void generate(QSize size,
-                         TexturePixel* destimage,
-                         QMap<int, TextureImagePtr> sourceimages,
-                         TextureNodeSettings* settings) const;
-   virtual int getNumSourceSlots() const { return 1; }
-   virtual QString getName() const { return QString("Invert"); }
-   virtual const TextureGeneratorSettings& getSettings() const { return configurables; }
-   virtual QString getDescription() const { return QString("Inverts the colors."); }
-   virtual TextureGenerator::Type getType() const { return TextureGenerator::Type::Filter; }
+   ~InvertTextureGenerator() override = default;
+   void generate(QSize size,
+                 TexturePixel* destimage,
+                 QMap<int, TextureImagePtr> sourceimages,
+                 TextureNodeSettings* settings) const override;
+   int getNumSourceSlots() const override { return 1; }
+   QString getName() const override { return QString("Invert"); }
+   const TextureGeneratorSettings& getSettings() const override { return configurables; }
+   QString getDescription() const override { return QString("Inverts the colors."); }
+   TextureGenerator::Type getType() const override { return TextureGenerator::Type::Filter; }
 
 private:
    TextureGeneratorSettings configurables;

@@ -5,22 +5,22 @@
  * Johan Lindqvist (johan.lindqvist@gmail.com)
  */
 
-#include <QPainter>
+#include "core/textureproject.h"
+#include "gui/mainwindow.h"
+#include "sceneview/viewnodeitem.h"
+#include "sceneview/viewnodeline.h"
+#include "sceneview/viewnodescene.h"
+#include <QApplication>
 #include <QGraphicsSceneMouseEvent>
 #include <QMenu>
-#include <QApplication>
-#include "core/textureproject.h"
-#include "sceneview/viewnodeitem.h"
-#include "sceneview/viewnodescene.h"
-#include "sceneview/viewnodeline.h"
-#include "gui/mainwindow.h"
+#include <QPainter>
 
 /**
  * @brief ViewNodeItem::ViewNodeItem
  * @param scene
  * @param newNode
  */
-ViewNodeItem::ViewNodeItem(ViewNodeScene* scene, TextureNodePtr newNode)
+ViewNodeItem::ViewNodeItem(ViewNodeScene* scene, const TextureNodePtr& newNode)
 {
    imageValid = false;
    setFlag(QGraphicsItem::ItemIsSelectable);
@@ -221,7 +221,7 @@ void ViewNodeItem::imageAvailable(QSize size)
       QImage tempimage = QImage(thumbnailSize.width(), thumbnailSize.height(), QImage::Format_ARGB32);
       memcpy(tempimage.bits(),
              texNode->getImage(thumbnailSize)->getData(),
-             (thumbnailSize.width() * thumbnailSize.height() * sizeof(TexturePixel)));
+             thumbnailSize.width() * thumbnailSize.height() * sizeof(TexturePixel));
       pixmap = QPixmap::fromImage(tempimage);
       imageValid = true;
       update();
@@ -303,7 +303,7 @@ void ViewNodeItem::mousePressEvent(QGraphicsSceneMouseEvent* mouseEvent)
  * @param value 0 the node is no longer selected.
  * @return -
  */
-QVariant ViewNodeItem::itemChange(GraphicsItemChange change, const QVariant &value)
+QVariant ViewNodeItem::itemChange(GraphicsItemChange change, const QVariant& value)
 {
    if (change == ItemSelectedChange && value.toInt() == 0) {
       scene->setSelectedNode(-1);

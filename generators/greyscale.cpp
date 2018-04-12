@@ -27,7 +27,7 @@ void GreyscaleTextureGenerator::generate(QSize size,
       for (int i = 0; i < size.width(); i++) {
          int pixelpos = j * size.width() + i;
          TexturePixel sourcePixel = sourceImage[pixelpos];
-         unsigned char color = sourcePixel.intensity() * 255;
+         auto color = static_cast<unsigned char>(sourcePixel.intensity() * 255);
          destimage[pixelpos].r = color;
          destimage[pixelpos].g = color;
          destimage[pixelpos].b = color;

@@ -1,3 +1,5 @@
+#include <utility>
+
 /**
  * Part of the ProceduralTextureMaker project.
  * http://github.com/johanokl/ProceduralTextureMaker
@@ -6,8 +8,8 @@
  */
 
 #include "texturerenderthread.h"
-#include "texturenode.h"
 #include "global.h"
+#include "texturenode.h"
 
 /**
  * @brief TextureRenderThread::TextureRenderThread
@@ -15,7 +17,7 @@
  * @param nodes
  */
 TextureRenderThread::TextureRenderThread(const QSize inRendersize, QMap<int, TextureNodePtr> inNodesMap)
-   : renderSize(inRendersize), nodes(inNodesMap)
+   : renderSize(inRendersize), nodes(std::move(inNodesMap))
 {
    aborted = false;
 }
@@ -72,7 +74,7 @@ void TextureRenderThread::imageUpdated()
  *
  * Adds a node to the internal node list.
  */
-void TextureRenderThread::nodeAdded(TextureNodePtr newNode)
+void TextureRenderThread::nodeAdded(const TextureNodePtr& newNode)
 {
    if (!nodes.contains(newNode->getId())) {
       nodes.insert(newNode->getId(), newNode);

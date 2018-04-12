@@ -17,16 +17,16 @@ class SinePlasmaTextureGenerator : public TextureGenerator
 {
 public:
    SinePlasmaTextureGenerator();
-   virtual ~SinePlasmaTextureGenerator() {}
-   virtual void generate(QSize size,
-                         TexturePixel* destimage,
-                         QMap<int, TextureImagePtr> sourceimages,
-                         TextureNodeSettings* settings) const;
-   virtual int getNumSourceSlots() const { return 1; }
-   virtual QString getName() const { return QString("Sine plasma"); }
-   virtual const TextureGeneratorSettings& getSettings()  const { return configurables; }
-   virtual QString getDescription() const { return QString("Repeating sine plasma."); }
-   virtual TextureGenerator::Type getType() const { return TextureGenerator::Type::Generator; }
+   ~SinePlasmaTextureGenerator() override = default;
+   void generate(QSize size,
+                 TexturePixel* destimage,
+                 QMap<int, TextureImagePtr> sourceimages,
+                 TextureNodeSettings* settings) const override;
+   int getNumSourceSlots() const override { return 1; }
+   QString getName() const override { return QString("Sine plasma"); }
+   const TextureGeneratorSettings& getSettings()  const override { return configurables; }
+   QString getDescription() const override { return QString("Repeating sine plasma."); }
+   TextureGenerator::Type getType() const override { return TextureGenerator::Type::Generator; }
 
 private:
    TextureGeneratorSettings configurables;

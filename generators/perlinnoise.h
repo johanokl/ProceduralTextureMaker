@@ -17,16 +17,16 @@ class PerlinNoiseTextureGenerator : public TextureGenerator
 {
 public:
    PerlinNoiseTextureGenerator();
-   virtual ~PerlinNoiseTextureGenerator() {}
-   virtual void generate(QSize size,
-                         TexturePixel* destimage,
-                         QMap<int, TextureImagePtr> sourceimages,
-                         TextureNodeSettings* settings) const;
-   virtual const TextureGeneratorSettings& getSettings() const { return configurables; }
-   virtual int getNumSourceSlots() const { return 1; }
-   virtual QString getName() const { return "Perlin noise"; }
-   virtual QString getDescription() const { return QString("Basic Perlin Noise"); }
-   virtual TextureGenerator::Type getType() const { return TextureGenerator::Type::Generator; }
+   ~PerlinNoiseTextureGenerator() override = default;
+   void generate(QSize size,
+                 TexturePixel* destimage,
+                 QMap<int, TextureImagePtr> sourceimages,
+                 TextureNodeSettings* settings) const override;
+   const TextureGeneratorSettings& getSettings() const override { return configurables; }
+   int getNumSourceSlots() const override { return 1; }
+   QString getName() const override { return "Perlin noise"; }
+   QString getDescription() const override { return QString("Basic Perlin Noise"); }
+   TextureGenerator::Type getType() const override { return TextureGenerator::Type::Generator; }
 
 private:
    double noise(double x, double y) const;

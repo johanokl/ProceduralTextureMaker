@@ -7,23 +7,21 @@
 
 #include "boxblur.h"
 
-using namespace std;
-
 BoxBlurTextureGenerator::BoxBlurTextureGenerator()
 {
    TextureGeneratorSetting neighbourssetting;
    neighbourssetting.defaultvalue = QVariant((int) 5);
    neighbourssetting.name = "Blur level";
-   neighbourssetting.min = QVariant((int) 0);
-   neighbourssetting.max = QVariant((int) 30);
+   neighbourssetting.min = QVariant(0);
+   neighbourssetting.max = QVariant(30);
    configurables.insert("numneighbours", neighbourssetting);
 }
 
 
 void BoxBlurTextureGenerator::generate(QSize size,
-                             TexturePixel* destimage,
-                             QMap<int, TextureImagePtr> sourceimages,
-                             TextureNodeSettings* settings) const
+                                       TexturePixel* destimage,
+                                       QMap<int, TextureImagePtr> sourceimages,
+                                       TextureNodeSettings* settings) const
 {
    if (!settings || !destimage || !size.isValid()) {
       return;
@@ -46,10 +44,10 @@ void BoxBlurTextureGenerator::generate(QSize size,
          int startY = j - numNeightboursY;
          int endY = j + numNeightboursY;
          int totalPixels = 0;
-         unsigned long red = 0;
-         unsigned long green = 0;
-         unsigned long blue = 0;
-         unsigned long alpha = 0;
+         quint64 red = 0;
+         quint64 green = 0;
+         quint64 blue = 0;
+         quint64 alpha = 0;
          for (int ypos = startY; ypos < endY; ypos++) {
             int currY = ypos;
             if (currY < 0) {
@@ -72,10 +70,10 @@ void BoxBlurTextureGenerator::generate(QSize size,
             }
          }
          int pixelpos = j * size.width() + i;
-         destimage[pixelpos].r = (unsigned char) (red / totalPixels);
-         destimage[pixelpos].g = (unsigned char) (green / totalPixels);
-         destimage[pixelpos].b = (unsigned char) (blue / totalPixels);
-         destimage[pixelpos].a = (unsigned char) (alpha / totalPixels);
+         destimage[pixelpos].r = static_cast<unsigned char>(red / totalPixels);
+         destimage[pixelpos].g = static_cast<unsigned char>(green / totalPixels);
+         destimage[pixelpos].b = static_cast<unsigned char>(blue / totalPixels);
+         destimage[pixelpos].a = static_cast<unsigned char>(alpha / totalPixels);
       }
    }
 }

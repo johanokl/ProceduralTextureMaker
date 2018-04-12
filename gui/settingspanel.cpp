@@ -5,22 +5,22 @@
  * Johan Lindqvist (johan.lindqvist@gmail.com)
  */
 
-#include <QScrollArea>
-#include <QVBoxLayout>
-#include <QLabel>
-#include <QGroupBox>
-#include <QSpinBox>
-#include <QPushButton>
-#include <QLineEdit>
+#include "core/settingsmanager.h"
+#include "gui/mainwindow.h"
+#include "gui/menuactions.h"
+#include "settingspanel.h"
+#include <QCheckBox>
+#include <QColorDialog>
 #include <QComboBox>
 #include <QFileDialog>
-#include <QCheckBox>
+#include <QGroupBox>
+#include <QLabel>
+#include <QLineEdit>
+#include <QPushButton>
+#include <QScrollArea>
 #include <QShowEvent>
-#include <QColorDialog>
-#include "settingspanel.h"
-#include "core/settingsmanager.h"
-#include "gui/menuactions.h"
-#include "gui/mainwindow.h"
+#include <QSpinBox>
+#include <QVBoxLayout>
 
 /**
  * @brief SettingsPanel::SettingsPanel
@@ -44,7 +44,7 @@ SettingsPanel::SettingsPanel(MainWindow *parent, SettingsManager* settingsmanage
    setMinimumWidth(350);
 
    QGroupBox* sceneviewWidget = new QGroupBox("Scene View");
-   QGridLayout* sceneviewLayout = new QGridLayout;
+   auto* sceneviewLayout = new QGridLayout;
    sceneviewWidget->setLayout(sceneviewLayout);
    sceneviewWidget->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Preferred);
    contentsLayout->addWidget(sceneviewWidget);
@@ -100,7 +100,7 @@ SettingsPanel::SettingsPanel(MainWindow *parent, SettingsManager* settingsmanage
    sceneviewLayout->addWidget(defaultZoomSpinbox, 4, 1);
 
    QGroupBox* exportWidget = new QGroupBox("Exporting");
-   QGridLayout* exportLayout = new QGridLayout;
+   auto* exportLayout = new QGridLayout;
    exportWidget->setLayout(exportLayout);
    exportWidget->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Preferred);
    contentsLayout->addWidget(exportWidget);
@@ -120,7 +120,7 @@ SettingsPanel::SettingsPanel(MainWindow *parent, SettingsManager* settingsmanage
    exportLayout->addWidget(exportImageHeightSpinbox, 1, 1);
 
    QGroupBox* generatorsWidget = new QGroupBox("JavaScript Generators");
-   QGridLayout* generatorsLayout = new QGridLayout;
+   auto* generatorsLayout = new QGridLayout;
    generatorsWidget->setLayout(generatorsLayout);
    generatorsWidget->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Preferred);
    contentsLayout->addWidget(generatorsWidget);
@@ -142,7 +142,7 @@ SettingsPanel::SettingsPanel(MainWindow *parent, SettingsManager* settingsmanage
    generatorsLayout->addWidget(jsGeneratorEnabledCheckbox, 2, 1);
 
    QGroupBox* previewWidget = new QGroupBox("Preview");
-   QGridLayout* previewLayout = new QGridLayout;
+   auto* previewLayout = new QGridLayout;
    previewWidget->setLayout(previewLayout);
    previewWidget->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Preferred);
    contentsLayout->addWidget(previewWidget);
@@ -155,7 +155,7 @@ SettingsPanel::SettingsPanel(MainWindow *parent, SettingsManager* settingsmanage
    previewLayout->addWidget(previewBackgroundColorButton, 2, 1);
 
    QGroupBox* saveButtonBox = new QGroupBox("");
-   QGridLayout* saveButtonLayout = new QGridLayout;
+   auto* saveButtonLayout = new QGridLayout;
    saveButtonBox->setLayout(saveButtonLayout);
    QPushButton* saveButton = new QPushButton("Save");
    QPushButton* closeButton = new QPushButton("Close");
@@ -193,13 +193,13 @@ void SettingsPanel::colorDialog(QPushButton* button)
  * @param button
  * @param color
  */
-void SettingsPanel::styleColorButton(QPushButton* button, QColor color)
+void SettingsPanel::styleColorButton(QPushButton* button, const QColor& color)
 {
    QString fontColor("#ffffff");
    if ((color.red() * 0.299 + color.green() * 0.587 + color.blue() * 0.114) > 170) {
       fontColor = "#000000";
    }
-   button->setStyleSheet(QString("background-color: %1; color: %2").arg(color.name()).arg(fontColor));
+   button->setStyleSheet(QString("background-color: %1; color: %2").arg(color.name(), fontColor));
    button->setText(color.name());
 }
 

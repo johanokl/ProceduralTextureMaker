@@ -5,26 +5,8 @@
  * Johan Lindqvist (johan.lindqvist@gmail.com)
  */
 
-#include <QVector3D>
 #include "normalmap.h"
-
-using namespace std;
-
-NormalMapTextureGenerator::NormalMapTextureGenerator()
-{
-   QStringList directions;
-   directions.append("Up");
-   directions.append("Down");
-   directions.append("Left");
-   directions.append("Right");
-
-   TextureGeneratorSetting direction;
-   direction.name = "Direction";
-   direction.description = "Which way?";
-   direction.defaultvalue = QVariant(directions);
-   configurables.insert("direction", direction);
-}
-
+#include <QVector3D>
 
 void NormalMapTextureGenerator::generate(QSize size,
                                          TexturePixel* destimage,
@@ -34,7 +16,6 @@ void NormalMapTextureGenerator::generate(QSize size,
    if (!settings || !destimage || !size.isValid()) {
       return;
    }
-   QString direction = settings->value("direction").toString();
 
    memset(destimage, 255, size.width() * size.height() * sizeof(TexturePixel));
 

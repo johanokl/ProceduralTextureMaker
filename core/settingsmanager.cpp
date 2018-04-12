@@ -5,11 +5,11 @@
  * Johan Lindqvist (johan.lindqvist@gmail.com)
  */
 
+#include "settingsmanager.h"
+#include <QColor>
+#include <QDir>
 #include <QSettings>
 #include <QSize>
-#include <QDir>
-#include <QColor>
-#include "settingsmanager.h"
 
 /**
  * @brief SettingsManager::getPreviewSize
@@ -24,7 +24,7 @@ QSize SettingsManager::getPreviewSize() const
  * @brief SettingsManager::setPreviewSize
  * @param size Size of the exported images.
  */
-void SettingsManager::setPreviewSize(QSize size)
+void SettingsManager::setPreviewSize(const QSize& size)
 {
    if (size != getPreviewSize()) {
       QSettings settings;
@@ -47,7 +47,7 @@ QSize SettingsManager::getThumbnailSize() const
  * @brief SettingsManager::setThumbnailSize
  * @param val New thumbnail size to be set and saved.
  */
-void SettingsManager::setThumbnailSize(QSize size)
+void SettingsManager::setThumbnailSize(const QSize& size)
 {
    if (size != getThumbnailSize()) {
       QSettings settings;
@@ -95,7 +95,7 @@ QString SettingsManager::getJSTextureGeneratorsPath() const
  * @brief SettingsManager::setJSTextureGeneratorsPath
  * @param path Absolute path to the JS textures.
  */
-void SettingsManager::setJSTextureGeneratorsPath(QString path)
+void SettingsManager::setJSTextureGeneratorsPath(const QString& path)
 {
    if (path != getJSTextureGeneratorsPath()) {
       QSettings settings;
@@ -134,8 +134,7 @@ void SettingsManager::setJSTextureGeneratorsEnabled(bool enabled)
  */
 QColor SettingsManager::getPreviewBackgroundColor() const
 {
-   return QColor(QSettings().value("previewbackgroundcolor",
-                                   "#c8c8c8").toString());
+   return {QSettings().value("previewbackgroundcolor", "#c8c8c8").toString()};
 }
 
 /**
@@ -143,7 +142,7 @@ QColor SettingsManager::getPreviewBackgroundColor() const
  * @param val New color to be saved.
  * Sets the background color for the node graph view.
  */
-void SettingsManager::setPreviewBackgroundColor(QColor val)
+void SettingsManager::setPreviewBackgroundColor(const QColor& val)
 {
    if (val != getPreviewBackgroundColor()) {
       QSettings settings;
@@ -159,8 +158,7 @@ void SettingsManager::setPreviewBackgroundColor(QColor val)
  */
 QColor SettingsManager::getBackgroundColor() const
 {
-   return QColor(QSettings().value("backgroundcolor",
-                                   "#c8c8c8").toString());
+   return {QSettings().value("backgroundcolor", "#c8c8c8").toString()};
 }
 
 /**
@@ -168,7 +166,7 @@ QColor SettingsManager::getBackgroundColor() const
  * @param val New color to be saved.
  * Sets the background color for the node graph view.
  */
-void SettingsManager::setBackgroundColor(QColor val)
+void SettingsManager::setBackgroundColor(const QColor& val)
 {
    if (val != getBackgroundColor()) {
       QSettings settings;

@@ -7,8 +7,6 @@
 
 #include "mirror.h"
 
-using namespace std;
-
 MirrorTextureGenerator::MirrorTextureGenerator()
 {
    QStringList directions;

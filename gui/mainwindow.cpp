@@ -5,25 +5,10 @@
  * Johan Lindqvist (johan.lindqvist@gmail.com)
  */
 
-#include <QFileDialog>
-#include <QFileInfo>
-#include <QFile>
-#include <QCheckBox>
-#include <QPushButton>
-#include <QMessageBox>
-#include <QSettings>
-#include <QVBoxLayout>
-#include <QCloseEvent>
-#include <QAction>
-#include <QStatusBar>
-#include <QTextEdit>
-#include <QSplitter>
-#include "texgenapplication.h"
-#include "global.h"
-#include "core/textureproject.h"
-#include "core/texturenode.h"
 #include "core/settingsmanager.h"
 #include "core/textureimage.h"
+#include "core/texturenode.h"
+#include "core/textureproject.h"
 #include "generators/blending.h"
 #include "generators/boxblur.h"
 #include "generators/bricks.h"
@@ -39,10 +24,10 @@
 #include "generators/greyscale.h"
 #include "generators/invert.h"
 #include "generators/javascript.h"
-#include "generators/lines.h"
 #include "generators/lens.h"
-#include "generators/mirror.h"
+#include "generators/lines.h"
 #include "generators/merge.h"
+#include "generators/mirror.h"
 #include "generators/modifylevels.h"
 #include "generators/noise.h"
 #include "generators/normalmap.h"
@@ -53,21 +38,36 @@
 #include "generators/sineplasma.h"
 #include "generators/sinetransform.h"
 #include "generators/square.h"
-#include "generators/star.h"
 #include "generators/stackblur.h"
+#include "generators/star.h"
 #include "generators/text.h"
 #include "generators/transform.h"
 #include "generators/whirl.h"
+#include "global.h"
+#include "gui/addnodepanel.h"
+#include "gui/cubewidget.h"
+#include "gui/iteminfopanel.h"
+#include "gui/menuactions.h"
+#include "gui/previewimagepanel.h"
+#include "gui/settingspanel.h"
+#include "mainwindow.h"
 #include "sceneview/viewnodeitem.h"
 #include "sceneview/viewnodescene.h"
 #include "sceneview/viewnodeview.h"
-#include "gui/addnodepanel.h"
-#include "gui/previewimagepanel.h"
-#include "gui/cubewidget.h"
-#include "gui/settingspanel.h"
-#include "gui/iteminfopanel.h"
-#include "gui/menuactions.h"
-#include "mainwindow.h"
+#include "texgenapplication.h"
+#include <QAction>
+#include <QCheckBox>
+#include <QCloseEvent>
+#include <QFile>
+#include <QFileDialog>
+#include <QFileInfo>
+#include <QMessageBox>
+#include <QPushButton>
+#include <QSettings>
+#include <QSplitter>
+#include <QStatusBar>
+#include <QTextEdit>
+#include <QVBoxLayout>
 
 /**
  * @brief MainWindow::MainWindow
@@ -138,10 +138,10 @@ MainWindow::MainWindow(TexGenApplication* parent)
 
    jstexgenManager = new JSTexGenManager(project);
 
-   QVBoxLayout* centerLayout = new QVBoxLayout;
+   auto* centerLayout = new QVBoxLayout;
    centerLayout->addWidget(view);
 
-   QSplitter* widget = new QSplitter(this);
+   auto* widget = new QSplitter(this);
    widget->addWidget(iteminfopanel);
    widget->addWidget(view);
    widget->addWidget(addnodewidget);
@@ -216,7 +216,7 @@ bool MainWindow::saveAs()
  * name as one already existing in the project.
  * Displays a message box.
  */
-void MainWindow::generatorNameCollision(TextureGeneratorPtr oldGen, TextureGeneratorPtr newGen)
+void MainWindow::generatorNameCollision(const TextureGeneratorPtr& oldGen, const TextureGeneratorPtr& newGen)
 {
    QString question;
    question.append("There is a already a texture generator with the name ");
@@ -378,7 +378,7 @@ void MainWindow::saveImage(int id)
    QImage tempimage = QImage(outSize.width(), outSize.height(), QImage::Format_ARGB32);
    memcpy(tempimage.bits(),
           texNode->getImage(outSize)->getData(),
-          (outSize.width() * outSize.height() * sizeof(TexturePixel)));
+          outSize.width() * outSize.height() * sizeof(TexturePixel));
    tempimage.save(fileName, "PNG", 100);
 }
 
@@ -394,7 +394,7 @@ void MainWindow::saveImage(int id)
 ViewNodeScene* MainWindow::createScene(ViewNodeScene* source)
 {
    ViewNodeScene* newscene;
-   if (source) {
+   if (source != nullptr) {
       newscene = scene->clone();
    } else {
       newscene = new ViewNodeScene(this);
@@ -433,7 +433,7 @@ void MainWindow::resetViewZoom()
  * @brief MainWindow::openFile
  * @param fileName
  */
-void MainWindow::openFile(QString fileName)
+void MainWindow::openFile(const QString& fileName)
 {
    if (fileName.isNull()) {
       return;
@@ -472,7 +472,7 @@ void MainWindow::moveToFront()
 {
    this->raise();
    this->activateWindow();
-   this->setWindowState((this->windowState() & ~Qt::WindowMinimized) | Qt::WindowActive);
+   this->setWindowState((this->windowState()&  ~Qt::WindowMinimized) | Qt::WindowActive);
 }
 
 /**
@@ -533,8 +533,8 @@ void MainWindow::showHelp()
       << "<p>Open the settings panel and set the directory for the generators.<br>"
       << "For info about how the scripts should look, see github.com/johanokl/ProceduralTextureMaker.</p>";
 
-   QDialog* dialog = new QDialog(this);
-   QTextEdit* help = new QTextEdit;
+   auto* dialog = new QDialog(this);
+   auto* help = new QTextEdit;
    help->setReadOnly(true);
    help->setText(helpText);
    help->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
@@ -546,7 +546,7 @@ void MainWindow::showHelp()
    });
    QPushButton* closeButton = new QPushButton("Close");
    QObject::connect(closeButton, &QPushButton::clicked, dialog, &QDialog::close);
-   QVBoxLayout* layout = new QVBoxLayout;
+   auto* layout = new QVBoxLayout;
    layout->setContentsMargins(0, 0, 0, 0);
    layout->addWidget(help);
    layout->addWidget(displayOnStart);

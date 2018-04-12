@@ -5,12 +5,10 @@
  * Johan Lindqvist (johan.lindqvist@gmail.com)
  */
 
-#include <math.h>
+#include "setchannels.h"
 #include <QColor>
 #include <QtMath>
-#include "setchannels.h"
-
-using namespace std;
+#include <cmath>
 
 SetChannelsTextureGenerator::SetChannelsTextureGenerator()
 {
@@ -56,8 +54,9 @@ SetChannelsTextureGenerator::SetChannelsTextureGenerator()
 }
 
 
-unsigned char SetChannelsTextureGenerator::getColorFromChannel(TexturePixel &firstColor, TexturePixel &secondColor,
-                                                               SetChannelsTextureGenerator::Channels channel) const
+quint8 SetChannelsTextureGenerator::getColorFromChannel(const TexturePixel& firstColor,
+                                                        const TexturePixel& secondColor,
+                                                        SetChannelsTextureGenerator::Channels channel) const
 {
    switch (channel) {
    case Channels::none:
@@ -85,7 +84,7 @@ unsigned char SetChannelsTextureGenerator::getColorFromChannel(TexturePixel &fir
 }
 
 
-SetChannelsTextureGenerator::Channels SetChannelsTextureGenerator::getChannelFromName(QString name) const
+SetChannelsTextureGenerator::Channels SetChannelsTextureGenerator::getChannelFromName(const QString& name) const
 {
    if (name == "Fill") {
       return Channels::fill;
@@ -136,8 +135,8 @@ void SetChannelsTextureGenerator::generate(QSize size, TexturePixel* destimage,
    Channels channelAlpha = getChannelFromName(channelAlphaStr);
 
    int numPixels = size.width() * size.height();
-   TexturePixel* firstSource = NULL;
-   TexturePixel* secondSource = NULL;
+   TexturePixel* firstSource = nullptr;
+   TexturePixel* secondSource = nullptr;
 
    if (sourceimages.contains(0)) {
       firstSource = sourceimages.value(0).data()->getData();
@@ -149,17 +148,27 @@ void SetChannelsTextureGenerator::generate(QSize size, TexturePixel* destimage,
       memset(destimage, 0, numPixels * sizeof(TexturePixel));
       return;
    }
+   bool firstAllocated = false;
+   bool secondAllocated = false;
    if (!firstSource) {
       firstSource = new TexturePixel[numPixels];
       memset(firstSource, 0, numPixels * sizeof(TexturePixel));
+      firstAllocated = true;
    } else if (!secondSource) {
       secondSource = new TexturePixel[numPixels];
       memset(secondSource, 0, numPixels * sizeof(TexturePixel));
+      secondAllocated = true;
    }
    for (int thisPos = 0; thisPos < numPixels; thisPos++) {
       destimage[thisPos].r = getColorFromChannel(firstSource[thisPos], secondSource[thisPos], channelRed);
       destimage[thisPos].g = getColorFromChannel(firstSource[thisPos], secondSource[thisPos], channelGreen);
       destimage[thisPos].b = getColorFromChannel(firstSource[thisPos], secondSource[thisPos], channelBlue);
       destimage[thisPos].a = getColorFromChannel(firstSource[thisPos], secondSource[thisPos], channelAlpha);
+   }
+   if (firstAllocated) {
+      delete[] firstSource;
+   }
+   if (secondAllocated) {
+      delete[] secondSource;
    }
 }

@@ -5,10 +5,8 @@
  * Johan Lindqvist (johan.lindqvist@gmail.com)
  */
 
-#include <QColor>
 #include "fill.h"
-
-using namespace std;
+#include <QColor>
 
 FillTextureGenerator::FillTextureGenerator()
 {
@@ -31,7 +29,8 @@ void FillTextureGenerator::generate(QSize size, TexturePixel* destimage,
    }
    QColor color = settings->value("color").value<QColor>();
    const int numpixels = size.width() * size.height();
-   TexturePixel filler(color.red(), color.green(), color.blue(), color.alpha());
+   TexturePixel filler(static_cast<quint8>(color.red()), static_cast<quint8>(color.green()),
+                       static_cast<quint8>(color.blue()), static_cast<quint8>(color.alpha()));
    for (int i = 0; i < numpixels; i++) {
       destimage[i] = filler;
    }

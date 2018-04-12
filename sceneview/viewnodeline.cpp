@@ -5,15 +5,15 @@
  * Johan Lindqvist (johan.lindqvist@gmail.com)
  */
 
-#include <QPen>
-#include <QPainter>
-#include <QtMath>
+#include "core/textureproject.h"
+#include "sceneview/viewnodeitem.h"
+#include "sceneview/viewnodeline.h"
+#include "sceneview/viewnodescene.h"
 #include <QCursor>
 #include <QGraphicsSceneMouseEvent>
-#include "core/textureproject.h"
-#include "sceneview/viewnodeline.h"
-#include "sceneview/viewnodeitem.h"
-#include "sceneview/viewnodescene.h"
+#include <QPainter>
+#include <QPen>
+#include <QtMath>
 
 /**
  * @brief ViewNodeLine::ViewNodeLine
@@ -25,15 +25,14 @@
 ViewNodeLine::ViewNodeLine(ViewNodeScene* scene, int sourceItem, int receiverItem, int slot)
 {
    this->slot = slot;
-   this->scene = scene;
+   nodescene = scene;
    infocus = false;
    setNodes(sourceItem, receiverItem);
    setAcceptHoverEvents(true);
-   scene->addItem(this);
    setZValue(-1);
    setFlag(QGraphicsItem::ItemIsSelectable, true);
-   myPen = QPen(Qt::black, 6, Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin);
-   setPen(myPen);
+   myPen = new QPen(Qt::black, 6, Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin);
+   setPen(*myPen);
    updatePos();
 }
 
@@ -42,8 +41,7 @@ ViewNodeLine::ViewNodeLine(ViewNodeScene* scene, int sourceItem, int receiverIte
  */
 ViewNodeLine::~ViewNodeLine()
 {
-   prepareGeometryChange(); // Needed to prevent graphics artifacts.
-   scene->removeItem(this);
+   delete myPen;
 }
 
 /**
@@ -112,8 +110,8 @@ void ViewNodeLine::setHighlighted(bool highlighted)
  */
 void ViewNodeLine::setWidth(int width)
 {
-   myPen.setWidth(width);
-   setPen(myPen);
+   myPen->setWidth(width);
+   setPen(*myPen);
    updatePos();
 }
 
@@ -122,10 +120,10 @@ void ViewNodeLine::setWidth(int width)
  * @param color
  * Sets the line's color.
  */
-void ViewNodeLine::setColor(QColor color)
+void ViewNodeLine::setColor(const QColor& color)
 {
-   myPen.setColor(color);
-   setPen(myPen);
+   myPen->setColor(color);
+   setPen(*myPen);
    updatePos();
 }
 
@@ -153,9 +151,9 @@ void ViewNodeLine::mousePressEvent(QGraphicsSceneMouseEvent* mouseEvent)
 {
    if (mouseEvent->button() == Qt::LeftButton) {
       if (!isSelected()) {
-         scene->clearSelection();
+         nodescene->clearSelection();
          setSelected(true);
-         scene->setSelectedLine(sourceItemId, receiverItemId, slot);
+         nodescene->setSelectedLine(sourceItemId, receiverItemId, slot);
       }
    }
    QGraphicsLineItem::mousePressEvent(mouseEvent);
@@ -193,12 +191,12 @@ void ViewNodeLine::hoverLeaveEvent(QGraphicsSceneHoverEvent* event)
 void ViewNodeLine::updatePos()
 {
    prepareGeometryChange();
-   ViewNodeItem* sourceItem = scene->getItem(sourceItemId);
-   ViewNodeItem* receiverItem = scene->getItem(receiverItemId);
+   ViewNodeItem* sourceItem = nodescene->getItem(sourceItemId);
+   ViewNodeItem* receiverItem = nodescene->getItem(receiverItemId);
    if (sourceItem == receiverItem) {
       return;
    }
-   QSize thumbSize = scene->getTextureProject()->getThumbnailSize();
+   QSize thumbSize = nodescene->getTextureProject()->getThumbnailSize();
    if (sourceItem) {
       sourcePos = sourceItem->pos() + QPointF(2 + thumbSize.width() / 2,
                                               2 + thumbSize.height() / 2);
@@ -206,8 +204,6 @@ void ViewNodeLine::updatePos()
    if (receiverItem) {
       receiverPos = receiverItem->pos() + QPointF(2 + thumbSize.width() / 2,
                                                   2 + thumbSize.height() / 2);
-   }
-   if (receiverItem) {
       QLineF centerLine = QLineF(sourcePos, receiverPos);
       QPolygonF polygon = receiverItem->shape().toFillPolygon(QTransform());
       QPointF p1 = polygon.first() + receiverItem->pos();
@@ -246,8 +242,8 @@ void ViewNodeLine::updatePos()
  */
 void ViewNodeLine::paint(QPainter* painter, const QStyleOptionGraphicsItem*, QWidget*)
 {
-   ViewNodeItem* sourceItem = scene->getItem(sourceItemId);
-   ViewNodeItem* receiverItem = scene->getItem(receiverItemId);
+   ViewNodeItem* sourceItem = nodescene->getItem(sourceItemId);
+   ViewNodeItem* receiverItem = nodescene->getItem(receiverItemId);
    if (receiverPos.isNull()) {
       return;
    }
@@ -260,14 +256,14 @@ void ViewNodeLine::paint(QPainter* painter, const QStyleOptionGraphicsItem*, QWi
    if (sourceItem && receiverItem && sourceItem->collidesWithItem(receiverItem)) {
       return;
    }
-   QColor tmpColor = myPen.color();
+   QColor tmpColor = myPen->color();
    if (infocus) {
-      myPen.setColor(QColor(255, 0, 0));
+      myPen->setColor(QColor(255, 0, 0));
    }
-   painter->setPen(myPen);
+   painter->setPen(*myPen);
    painter->drawLine(line());
    painter->drawPolygon(arrowHead);
-   myPen.setColor(tmpColor);
+   myPen->setColor(tmpColor);
 
    if (isSelected()) {
       painter->setPen(QPen(Qt::blue, 10, Qt::SolidLine));

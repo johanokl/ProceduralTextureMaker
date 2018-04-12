@@ -5,13 +5,13 @@
  * Johan Lindqvist (johan.lindqvist@gmail.com)
  */
 
-#include <QPushButton>
-#include <QVBoxLayout>
 #include "core/textureproject.h"
+#include "gui/connectionwidget.h"
 #include "gui/iteminfopanel.h"
 #include "gui/nodesettingswidget.h"
-#include "gui/connectionwidget.h"
 #include "gui/sceneinfowidget.h"
+#include <QPushButton>
+#include <QVBoxLayout>
 
 /**
  * @brief ItemInfoPanel::ItemInfoPanel
@@ -21,14 +21,14 @@
 ItemInfoPanel::ItemInfoPanel(QWidget* parent, TextureProject* project) : QWidget(parent)
 {
    texproject = project;
-   currWidget = NULL;
-   lineWidget = NULL;
-   sceneWidget = NULL;
+   currWidget = nullptr;
+   lineWidget = nullptr;
+   sceneWidget = nullptr;
    currNodeId = 0;
    currLine = std::tuple<int, int, int>(0, 0, 0);
    sceneWidget = new SceneInfoWidget(this);
    lineWidget = new ConnectionWidget(this);
-   QVBoxLayout* layout = new QVBoxLayout;
+   auto* layout = new QVBoxLayout;
    layout->setContentsMargins(0, 0, 0, 0);
    layout->addWidget(lineWidget);
    layout->addWidget(sceneWidget);
@@ -48,7 +48,7 @@ ItemInfoPanel::ItemInfoPanel(QWidget* parent, TextureProject* project) : QWidget
  *
  * Called when a node has been added to the graph.
  */
-void ItemInfoPanel::addNode(TextureNodePtr)
+void ItemInfoPanel::addNode(const TextureNodePtr& /*unused*/)
 {
    // Update the scene info widget's labels.
    sceneWidget->updateNumNodes();
@@ -82,7 +82,7 @@ void ItemInfoPanel::removeNode(int id)
       // The removed node is currently visible
       setActiveNode(0);
    }
-   if (nodes.value(id)) {
+   if (nodes.value(id) != nullptr) {
       NodeSettingsWidget* currWidget = nodes[id];
       currWidget->hide();
       layout()->removeWidget(currWidget);
@@ -100,8 +100,9 @@ void ItemInfoPanel::removeNode(int id)
  */
 void ItemInfoPanel::sourceUpdated(int id)
 {
-   if (nodes.value(id)) {
-      nodes.value(id)->slotsUpdated();
+   auto* nodeptr = nodes.value(id, nullptr);
+   if (nodeptr != nullptr) {
+      nodeptr->slotsUpdated();
    }
 }
 
@@ -118,11 +119,11 @@ void ItemInfoPanel::setActiveNode(int id)
    if (currNodeId == id) {
       return;
    }
-   if (currWidget) {
+   if (currWidget != nullptr) {
       currWidget->hide();
    }
    lineWidget->hide();
-   currWidget = NULL;
+   currWidget = nullptr;
    currNodeId = 0;
    currLine = std::tuple<int, int, int>(0, 0, 0);
 
@@ -132,8 +133,8 @@ void ItemInfoPanel::setActiveNode(int id)
       return;
    }
    sceneWidget->hide();
-   if (!nodes.value(id)) {
-      NodeSettingsWidget* newWidget = new NodeSettingsWidget(this, id);
+   if (!nodes.contains(id)) {
+      auto* newWidget = new NodeSettingsWidget(this, id);
       QObject::connect(texNode.data(), &TextureNode::slotsUpdated,
                        newWidget, &NodeSettingsWidget::slotsUpdated);
       QObject::connect(texNode.data(), &TextureNode::generatorUpdated,
@@ -141,7 +142,6 @@ void ItemInfoPanel::setActiveNode(int id)
       nodes[id] = newWidget;
       layout()->addWidget(newWidget);
    }
-
    currNodeId = id;
    currWidget = nodes[id];
    currWidget->show();
@@ -160,11 +160,11 @@ void ItemInfoPanel::setActiveLine(int sourceNodeId, int receiverNodeId, int slot
    if (sourceNodeId == -1 || receiverNodeId == -1) {
       return;
    }
-   if (currWidget) {
+   if (currWidget != nullptr) {
       currWidget->hide();
    }
    sceneWidget->hide();
-   currWidget = NULL;
+   currWidget = nullptr;
    currNodeId = 0;
    currLine = std::tuple<int, int, int>(sourceNodeId, receiverNodeId, slot);
    lineWidget->setNodes(sourceNodeId, receiverNodeId, slot);

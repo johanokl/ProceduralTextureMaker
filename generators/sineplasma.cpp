@@ -5,12 +5,10 @@
  * Johan Lindqvist (johan.lindqvist@gmail.com)
  */
 
-#include <math.h>
+#include "sineplasma.h"
 #include <QtMath>
 #include <QColor>
-#include "sineplasma.h"
-
-using namespace std;
+#include <cmath>
 
 SinePlasmaTextureGenerator::SinePlasmaTextureGenerator()
 {
@@ -25,8 +23,8 @@ SinePlasmaTextureGenerator::SinePlasmaTextureGenerator()
    xoffset.defaultvalue = QVariant((double) 10);
    xoffset.name = "Offset left";
    xoffset.description = "Offset along the x axis";
-   xoffset.min = QVariant((double) -100);
-   xoffset.max = QVariant((double) 100);
+   xoffset.min = QVariant(-100);
+   xoffset.max = QVariant(100);
    xoffset.order = 2;
    configurables.insert("xoffset", xoffset);
 
@@ -34,8 +32,8 @@ SinePlasmaTextureGenerator::SinePlasmaTextureGenerator()
    yoffset.defaultvalue = QVariant((double) 10);
    yoffset.name = "Offset top";
    yoffset.description = "Offset along the y axis";
-   yoffset.min = QVariant((double) -100);
-   yoffset.max = QVariant((double) 100);
+   yoffset.min = QVariant(-100);
+   yoffset.max = QVariant(100);
    yoffset.order = 3;
    configurables.insert("yoffset", yoffset);
 
@@ -43,8 +41,8 @@ SinePlasmaTextureGenerator::SinePlasmaTextureGenerator()
    xfrequency.defaultvalue = QVariant((double) 10);
    xfrequency.name = "Frequency X axis";
    xfrequency.description = "How often it repeats along the y axis";
-   xfrequency.min = QVariant((double) 0);
-   xfrequency.max = QVariant((double) 100);
+   xfrequency.min = QVariant(0);
+   xfrequency.max = QVariant(100);
    xfrequency.group = "frequencies";
    xfrequency.order = 4;
    configurables.insert("xfrequency", xfrequency);
@@ -53,8 +51,8 @@ SinePlasmaTextureGenerator::SinePlasmaTextureGenerator()
    yfrequency.defaultvalue = QVariant((double) 10);
    yfrequency.name = "Frequency Y axis";
    yfrequency.description = "How often it repeats along the y axis";
-   yfrequency.min = QVariant((double) 0);
-   yfrequency.max = QVariant((double) 100);
+   yfrequency.min = QVariant(0);
+   yfrequency.max = QVariant(100);
    yfrequency.group = "frequencies";
    yfrequency.order = 5;
    configurables.insert("yfrequency", yfrequency);

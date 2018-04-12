@@ -34,9 +34,9 @@ class PreviewImagePanel : public QWidget
    Q_OBJECT
 
 public:
-   PreviewImagePanel(TextureProject*);
-   virtual ~PreviewImagePanel() {}
-   virtual void showEvent(QShowEvent* event);
+   explicit PreviewImagePanel(TextureProject*);
+   ~PreviewImagePanel() override = default;
+   void showEvent(QShowEvent* event) override;
    bool loadNodeImage(int);
 
 public slots:
@@ -47,7 +47,7 @@ public slots:
    void nodeRemoved(int);
 
 private:
-   QPixmap tilePixmap(const QPixmap &pixmap, int number);
+   QPixmap tilePixmap(const QPixmap& pixmap, int number);
    TextureProject* project;
    QVBoxLayout* layout;
    QComboBox* combobox;
@@ -70,12 +70,12 @@ class ImageLabel : public QWidget
 {
     Q_OBJECT
 public:
-    explicit ImageLabel(QWidget* parent = 0);
+    explicit ImageLabel(QWidget* parent = nullptr);
     const QPixmap* pixmap() const;
 public slots:
     void setPixmap(const QPixmap&);
 protected:
-    void resizeEvent(QResizeEvent*) ;//override;
+    void resizeEvent(QResizeEvent*) override;
 private slots:
     void resizeImage();
 private:

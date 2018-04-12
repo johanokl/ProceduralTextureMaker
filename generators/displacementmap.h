@@ -17,22 +17,22 @@ class DisplacementMapTextureGenerator : public TextureGenerator
 {
 public:
    DisplacementMapTextureGenerator();
-   virtual ~DisplacementMapTextureGenerator() {}
-   virtual void generate(QSize size,
-                         TexturePixel* destimage,
-                         QMap<int, TextureImagePtr> sourceimages,
-                         TextureNodeSettings* settings) const;
-   virtual int getNumSourceSlots() const { return 2; }
-   virtual QString getSlotName(int num) {
+   ~DisplacementMapTextureGenerator() override = default;
+   void generate(QSize size,
+                 TexturePixel* destimage,
+                 QMap<int, TextureImagePtr> sourceimages,
+                 TextureNodeSettings* settings) const override;
+   int getNumSourceSlots() const override { return 2; }
+   QString getSlotName(int num) override {
       if (num == 1) return QString("Map");
       return QString("Source image");
    }
-   virtual QString getName() const { return QString("Displacement"); }
-   virtual const TextureGeneratorSettings& getSettings() const { return configurables; }
-   virtual QString getDescription() const {
+   QString getName() const override { return QString("Displacement"); }
+   const TextureGeneratorSettings& getSettings() const override { return configurables; }
+   QString getDescription() const override {
       return QString("Transforms the image based on a gray-scale transform map.");
    }
-   virtual TextureGenerator::Type getType() const { return TextureGenerator::Type::Filter; }
+   TextureGenerator::Type getType() const override { return TextureGenerator::Type::Filter; }
 
 private:
    TextureGeneratorSettings configurables;

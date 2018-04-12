@@ -33,8 +33,8 @@ class SettingsPanel : public QWidget
 
 public:
    SettingsPanel(MainWindow* parent, SettingsManager* settingsmanager);
-   virtual ~SettingsPanel() {}
-   virtual void showEvent(QShowEvent*);
+   ~SettingsPanel() override = default;
+   void showEvent(QShowEvent*) override;
 
 public slots:
    void settingsUpdated();
@@ -43,7 +43,7 @@ public slots:
    void colorDialog(QPushButton*);
 
 private:
-   void styleColorButton(QPushButton*, QColor);
+   void styleColorButton(QPushButton*, const QColor&);
 
    SettingsManager* settingsmanager;
 

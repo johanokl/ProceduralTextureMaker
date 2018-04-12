@@ -5,13 +5,13 @@
  * Johan Lindqvist (johan.lindqvist@gmail.com)
  */
 
-#include <QPushButton>
-#include <QLabel>
-#include <QVBoxLayout>
-#include <QGroupBox>
 #include "core/textureproject.h"
 #include "gui/connectionwidget.h"
 #include "gui/iteminfopanel.h"
+#include <QGroupBox>
+#include <QLabel>
+#include <QPushButton>
+#include <QVBoxLayout>
 
 /**
  * @brief ConnectionWidget::ConnectionWidget
@@ -43,7 +43,7 @@ ConnectionWidget::ConnectionWidget(ItemInfoPanel* widgetmanager)
    QObject::connect(disconnectNodesButton, &QPushButton::clicked,
                     this, &ConnectionWidget::disconnectNodes);
 
-   QSpacerItem* spaceritem = new QSpacerItem(0, 0, QSizePolicy::Minimum, QSizePolicy::Expanding);
+   auto* spaceritem = new QSpacerItem(0, 0, QSizePolicy::Minimum, QSizePolicy::Expanding);
    layout->addItem(spaceritem);
 
    sourceNodeId = -1;
@@ -57,7 +57,7 @@ ConnectionWidget::ConnectionWidget(ItemInfoPanel* widgetmanager)
 void ConnectionWidget::disconnectNodes()
 {
    TextureProject* project = widgetmanager->getTextureProject();
-   if (!project) {
+   if (project == nullptr) {
       return;
    }
    TextureNodePtr node = project->getNode(receiverNodeId);
@@ -89,17 +89,17 @@ void ConnectionWidget::setNodes(int sourceNodeId, int receiverNodeId, int slot)
    nodeSlotLabel->setText(QString("%1").arg(slot + 1));
 
    TextureProject* project = widgetmanager->getTextureProject();
-   if (project) {
+   if (project != nullptr) {
       TextureNodePtr node;
       node = project->getNode(sourceNodeId);
       if (!node.isNull()) {
          nodeSourceLabel->setText(QString("%1\n(%2)")
-                                  .arg(node->getName()).arg(node->getGeneratorName()));
+                                  .arg(node->getName(), node->getGeneratorName()));
       }
       node = project->getNode(receiverNodeId);
       if (!node.isNull()) {
          nodeReceiverLabel->setText(QString("%1\n(%2)")
-                                    .arg(node->getName()).arg(node->getGeneratorName()));
+                                    .arg(node->getName(), node->getGeneratorName()));
       }
    }
 }

@@ -8,12 +8,12 @@
 #ifndef TEXTUREPROJECT_H
 #define TEXTUREPROJECT_H
 
-#include <QMap>
-#include <QDomDocument>
-#include <QSize>
-#include <QReadWriteLock>
-#include <QThread>
 #include "texturenode.h"
+#include <QDomDocument>
+#include <QMap>
+#include <QReadWriteLock>
+#include <QSize>
+#include <QThread>
 
 class TextureRenderThread;
 class TextureGenerator;
@@ -32,19 +32,19 @@ class TextureProject : public QObject
 
 public:
    TextureProject();
-   virtual ~TextureProject();
+   ~TextureProject() override;
    QDomDocument saveAsXML(bool includegenerators = false);
-   void loadFromXML(QDomDocument xmlfile);
+   void loadFromXML(const QDomDocument& xmlfile);
    QString getName() const { return name; }
-   void setName(QString);
+   void setName(const QString&);
    TextureNodePtr getNode(int id) const;
    bool findLoops() const;
    void removeNode(int id);
-   TextureNodePtr newNode(int id = 0, TextureGeneratorPtr generator = TextureGeneratorPtr(NULL));
+   TextureNodePtr newNode(int id = 0, TextureGeneratorPtr generator = TextureGeneratorPtr(nullptr));
    void clear();
    bool isModified() const;
    int getNumNodes() const;
-   TextureGeneratorPtr getGenerator(QString name) const;
+   TextureGeneratorPtr getGenerator(const QString& name) const;
    QMap<QString, TextureGeneratorPtr> getGenerators() const { return generators; }
    QSize getThumbnailSize() const { return thumbnailSize; }
    QSize getPreviewSize() const { return previewSize; }
@@ -52,8 +52,8 @@ public:
    SettingsManager* getSettingsManager() const { return settingsManager; }
 
 public slots:
-   void addGenerator(TextureGeneratorPtr gen);
-   void removeGenerator(TextureGeneratorPtr gen);
+   void addGenerator(const TextureGeneratorPtr& gen);
+   void removeGenerator(const TextureGeneratorPtr& gen);
    void notifyNodesConnected(int sourceId, int receiverId, int slot);
    void notifyNodesDisconnected(int sourceId, int receiverId, int slot);
    void notifyImageUpdated(int id);
@@ -87,12 +87,12 @@ private:
    QMap<QString, TextureRenderThread*> renderThreads;
    QMap<int, TextureNodePtr> nodes;
    QMap<QString, TextureGeneratorPtr> generators;
-   bool modified;
    mutable QReadWriteLock nodesmutex;
 
    QSize thumbnailSize;
    QSize previewSize;
    SettingsManager* settingsManager;
+   bool modified;
 };
 
 #endif // TEXTUREPROJECT_H

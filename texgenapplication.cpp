@@ -5,10 +5,10 @@
  * Johan Lindqvist (johan.lindqvist@gmail.com)
  */
 
-#include <QFileOpenEvent>
-#include "gui/mainwindow.h"
 #include "core/textureproject.h"
+#include "gui/mainwindow.h"
 #include "texgenapplication.h"
+#include <QFileOpenEvent>
 
 /**
  * @brief TexGenApplication::TexGenApplication
@@ -47,7 +47,7 @@ void TexGenApplication::quit()
  */
 MainWindow* TexGenApplication::addWindow()
 {
-   MainWindow* newWindow = new MainWindow(this);
+   auto* newWindow = new MainWindow(this);
    QObject::connect(newWindow, &MainWindow::windowTitleChanged,
                     this, &TexGenApplication::windowUpdated);
    QObject::connect(newWindow, &MainWindow::destroyed,
@@ -65,7 +65,7 @@ MainWindow* TexGenApplication::addWindow()
  */
 void TexGenApplication::removeWindow(QObject* windowObj)
 {
-   int index = mainwindows.indexOf((MainWindow*) windowObj);
+   int index = mainwindows.indexOf(dynamic_cast<MainWindow*>(windowObj));
    if (index == -1) {
       return;
    }
@@ -90,7 +90,7 @@ void TexGenApplication::windowUpdated(QString)
  */
 bool TexGenApplication::event(QEvent* event) {
    if (event->type() == QEvent::FileOpen) {
-      MainWindow* projectWindow;
+      MainWindow* projectWindow = nullptr;
       if (!mainwindows.isEmpty()) {
          projectWindow = mainwindows.last();
       }
@@ -101,7 +101,9 @@ bool TexGenApplication::event(QEvent* event) {
          // already contains data. Create a new fresh window for this project file.
          projectWindow = this->addWindow();
       }
-      projectWindow->openFile(static_cast<QFileOpenEvent*>(event)->file());
+      if (projectWindow != nullptr) {
+         projectWindow->openFile(static_cast<QFileOpenEvent*>(event)->file());
+      }
       return true;
    }
    return QApplication::event(event);

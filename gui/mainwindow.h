@@ -8,8 +8,8 @@
 #ifndef MAINWINDOW_H
 #define MAINWINDOW_H
 
-#include <QMainWindow>
 #include "generators/texturegenerator.h"
+#include <QMainWindow>
 
 class TexGenApplication;
 class TextureProject;
@@ -38,8 +38,8 @@ class MainWindow : public QMainWindow
    Q_OBJECT
 
 public:
-   MainWindow(TexGenApplication* parent = 0);
-   virtual ~MainWindow();
+   explicit MainWindow(TexGenApplication* parent = nullptr);
+   ~MainWindow() override;
    TextureProject* getTextureProject() { return project; }
    TexGenApplication* parent() { return parentapp; }
    MenuActions* getMenu() { return menuactions; }
@@ -47,11 +47,11 @@ public:
 public slots:
    bool saveAs();
    bool saveFile(bool newFileName = false);
-   void openFile(QString);
+   void openFile(const QString&);
    void clearScene();
    void showAbout();
    void showHelp();
-   virtual void closeEvent(QCloseEvent*);
+   void closeEvent(QCloseEvent*) override;
    void copyNode();
    void pasteNode();
    void cutNode();
@@ -59,13 +59,13 @@ public slots:
    void reloadSceneView();
    void moveToFront();
    void resetViewZoom();
-   void generatorNameCollision(TextureGeneratorPtr, TextureGeneratorPtr);
+   void generatorNameCollision(const TextureGeneratorPtr&, const TextureGeneratorPtr&);
 
 private:
    void drawScene();
    void createActions();
    bool maybeSave();
-   ViewNodeScene* createScene(ViewNodeScene* source=0);
+   ViewNodeScene* createScene(ViewNodeScene* source = nullptr);
 
    TexGenApplication* parentapp;
    TextureProject* project;

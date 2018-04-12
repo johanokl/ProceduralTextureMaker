@@ -5,10 +5,10 @@
  * Johan Lindqvist (johan.lindqvist@gmail.com)
  */
 
-#include <math.h>
-#include <QtMath>
-#include <QColor>
 #include "perlinnoise.h"
+#include <QColor>
+#include <QtMath>
+#include <cmath>
 
 PerlinNoiseTextureGenerator::PerlinNoiseTextureGenerator()
 {
@@ -45,7 +45,7 @@ PerlinNoiseTextureGenerator::PerlinNoiseTextureGenerator()
    randomizer.defaultvalue = QVariant((double) 500);
    randomizer.min = QVariant(0);
    randomizer.max = QVariant(1000);
-   randomizer.name = "Randomize";
+   randomizer.name = "Random seed";
    randomizer.order = 5;
    configurables.insert("randomizer", randomizer);
 }
@@ -55,7 +55,7 @@ double PerlinNoiseTextureGenerator::findnoise2(double x, double y) const
 {
    int n = (int) x + (int) y * 57;
    n = (n << 13) ^ n;
-   int nn = (n * (n * n * 60493 + 19990303) + 1376312589) & 0x7fffffff;
+   int nn = (n * (n * n * 60493 + 19990303) + 1376312589)&  0x7fffffff;
    return 1.0 - ((double) nn / 1073741824.0);
 }
 
@@ -95,7 +95,7 @@ void PerlinNoiseTextureGenerator::generate(QSize size, TexturePixel* destimage,
    double xFactor = (double) 500 / size.width();
    double yFactor = (double) 500 / size.height();
    bool blend = false;
-   TexturePixel* sourceImg = NULL;
+   TexturePixel* sourceImg = nullptr;
    if (sourceimages.contains(0)) {
       sourceImg = sourceimages.value(0)->getData();
       blend = true;
@@ -108,18 +108,18 @@ void PerlinNoiseTextureGenerator::generate(QSize size, TexturePixel* destimage,
          for (int currOctave = 0; currOctave < numOctaves - 1; currOctave++) {
             double frequency = pow(2, currOctave); //This increases the frequency with every loop of the octave.
             double amplitude = pow(persistence, currOctave);//This decreases the amplitude with every loop of the octave.
-            getnoise += noise(randomizer + (double) x * xFactor * frequency / zoom,
-                              randomizer + (double) y * yFactor / zoom * frequency) * amplitude;
+            getnoise += noise(randomizer + static_cast<double>(x) * xFactor * frequency / zoom,
+                              randomizer + static_cast<double>(y) * yFactor / zoom * frequency) * amplitude;
          }
-         int pixelColor = (int) ((getnoise * 128.0) + 128.0);
+         auto pixelColor = static_cast<int>((getnoise * 128.0) + 128.0);
          if (pixelColor > 255) {
             pixelColor = 255;
          }
          if (pixelColor < 0) {
             pixelColor = 0;
          }
-         double fraction = ((double) pixelColor / 255.0);
-         double negVal = 1 - ((double) pixelColor / 255.0);
+         double fraction = (static_cast<double>(pixelColor) / 255.0);
+         double negVal = 1 - (static_cast<double>(pixelColor) / 255.0);
 
          destimage[thisPos].r = qMin(qMax((int) (fraction * (float) color.red() + (blend ? (negVal * (float) sourceImg[thisPos].r) : 0)), 0), 255);
          destimage[thisPos].g = qMin(qMax((int) (fraction * (float) color.green() + (blend ? (negVal * (float) sourceImg[thisPos].g) : 0)), 0), 255);

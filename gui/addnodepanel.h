@@ -8,9 +8,9 @@
 #ifndef ADDNODEPANEL_H
 #define ADDNODEPANEL_H
 
-#include <QWidget>
-#include <QMap>
 #include "generators/texturegenerator.h"
+#include <QMap>
+#include <QWidget>
 
 class TextureProject;
 class QGridLayout;
@@ -32,12 +32,12 @@ class AddNodePanel : public QWidget
    Q_OBJECT
 
 public:
-   AddNodePanel(TextureProject*);
-   virtual ~AddNodePanel() {}
+   explicit AddNodePanel(TextureProject*);
+   ~AddNodePanel() override = default;
 
 public slots:
-   void addGenerator(TextureGeneratorPtr);
-   void removeGenerator(TextureGeneratorPtr);
+   void addGenerator(const TextureGeneratorPtr& generator);
+   void removeGenerator(const TextureGeneratorPtr& generator);
 
 private:
    QMap<TextureGeneratorPtr, QWidget*> widgets;

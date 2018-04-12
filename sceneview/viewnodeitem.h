@@ -8,8 +8,8 @@
 #ifndef VIEWNODEITEM_H
 #define VIEWNODEITEM_H
 
-#include <QGraphicsItem>
 #include "core/texturenode.h"
+#include <QGraphicsItem>
 
 class ViewNodeScene;
 class TextureNode;
@@ -28,15 +28,15 @@ class ViewNodeItem : public QGraphicsItem
    friend class ViewNodeScene;
 
 public:
-   ViewNodeItem(ViewNodeScene* scene, TextureNodePtr newNode);
-   virtual ~ViewNodeItem() {}
-   void paint (QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget);
+   ViewNodeItem(ViewNodeScene* scene, const TextureNodePtr& newNode);
+   ~ViewNodeItem() override = default;
+   void paint (QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget) override;
    int getId() const { return id; }
    TextureNodePtr getTextureNode() { return texNode; }
    bool posInImage(QPointF pos) const;
-   QRectF boundingRect() const;
-   QPainterPath shape() const;
-   QVariant itemChange(GraphicsItemChange change, const QVariant &value);
+   QRectF boundingRect() const override;
+   QPainterPath shape() const override;
+   QVariant itemChange(GraphicsItemChange change, const QVariant& value) override;
    void showConnectable(bool showConnectable);
    void showUnconnectable(bool showUnconnectable);
    void clearOverlays();
@@ -54,13 +54,13 @@ public slots:
    void setThumbnailSize(QSize);
 
 protected:
-   void mousePressEvent(QGraphicsSceneMouseEvent* event);
-   void mouseMoveEvent(QGraphicsSceneMouseEvent* mouseEvent);
-   void mouseReleaseEvent(QGraphicsSceneMouseEvent*  event);
-   void hoverMoveEvent(QGraphicsSceneHoverEvent* event);
-   void hoverEnterEvent(QGraphicsSceneHoverEvent* event);
-   void hoverLeaveEvent(QGraphicsSceneHoverEvent* event);
-   void contextMenuEvent(QGraphicsSceneContextMenuEvent* event);
+   void mousePressEvent(QGraphicsSceneMouseEvent* event) override;
+   void mouseMoveEvent(QGraphicsSceneMouseEvent* mouseEvent) override;
+   void mouseReleaseEvent(QGraphicsSceneMouseEvent*  event) override;
+   void hoverMoveEvent(QGraphicsSceneHoverEvent* event) override;
+   void hoverEnterEvent(QGraphicsSceneHoverEvent* event) override;
+   void hoverLeaveEvent(QGraphicsSceneHoverEvent* event) override;
+   void contextMenuEvent(QGraphicsSceneContextMenuEvent* event) override;
 
 private:
    int id;
@@ -69,14 +69,8 @@ private:
    QPixmap pixmap;
    TextureNodePtr texNode;
    QSize thumbnailSize;
-
-   bool imageValid;
-   bool isUnconnectable;
-   bool isConnectable;
-
    QString titleString;
 
-   bool mousePressed;
    int highlightSlot;
    QPointF mousePressedPos;
    QPointF mousePressedItemPos;
@@ -85,6 +79,11 @@ private:
 
    QSet<ViewNodeLine*> startLines;
    QMap<int, ViewNodeLine*> endLines;
+
+   bool imageValid;
+   bool isUnconnectable;
+   bool isConnectable;
+   bool mousePressed;
 };
 
 #endif // VIEWNODEITEM_H

@@ -5,9 +5,9 @@
  * Johan Lindqvist (johan.lindqvist@gmail.com)
  */
 
+#include "fire.h"
 #include <QPainter>
 #include <QtMath>
-#include "fire.h"
 
 /**
  * @brief FireTextureGenerator::FireTextureGenerator
@@ -19,25 +19,25 @@ FireTextureGenerator::FireTextureGenerator()
 {
    TextureGeneratorSetting falloff;
    falloff.defaultvalue = QVariant((double) 0.10);
-   falloff.min = QVariant((double) 0);
-   falloff.max = QVariant((double) 0.5);
+   falloff.min = QVariant(0);
+   falloff.max = QVariant(0.5);
    falloff.name = "Falloff";
    falloff.order = 1;
    configurables.insert("falloff", falloff);
 
    TextureGeneratorSetting iterations;
    iterations.defaultvalue = QVariant((int) 150);
-   iterations.min = QVariant((int) 1);
-   iterations.max = QVariant((int) 400);
+   iterations.min = QVariant(1);
+   iterations.max = QVariant(400);
    iterations.name = "Iterations";
    iterations.order = 2;
    configurables.insert("iterations", iterations);
 
    TextureGeneratorSetting randomize;
    randomize.defaultvalue = QVariant((int) 5);
-   randomize.min = QVariant((int) 1);
-   randomize.max = QVariant((int) 500);
-   randomize.name = "Randomize";
+   randomize.min = QVariant(1);
+   randomize.max = QVariant(500);
+   randomize.name = "Random seed";
    randomize.order = 3;
    configurables.insert("randomize", randomize);
 }
@@ -58,8 +58,8 @@ void FireTextureGenerator::generate(QSize size, TexturePixel* destimage,
    // Speed things up by having a smaller rendering surface.
    int screenWidth = 150;
    int screenHeight = 150;
-   TexturePixel* renderSurface = new TexturePixel[screenWidth * screenHeight];
-   int* fire = new int[screenHeight * screenWidth];  //this buffer will contain the fire
+   auto* renderSurface = new TexturePixel[screenWidth * screenHeight];
+   auto* fire = new int[screenHeight * screenWidth];  //this buffer will contain the fire
    QColor palette[256]; //this will contain the color palette
    memset(fire, 0, screenWidth * screenWidth * sizeof(int));
 

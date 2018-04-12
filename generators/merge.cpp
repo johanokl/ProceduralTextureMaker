@@ -7,14 +7,9 @@
 
 #include "merge.h"
 
-MergeTextureGenerator::MergeTextureGenerator()
-{
-}
-
-
 void MergeTextureGenerator::generate(QSize size, TexturePixel* destimage,
-                                        QMap<int, TextureImagePtr> sourceimages,
-                                        TextureNodeSettings* settings) const
+                                     QMap<int, TextureImagePtr> sourceimages,
+                                     TextureNodeSettings* settings) const
 {
    Q_UNUSED(settings);
    if (!destimage || !size.isValid()) {

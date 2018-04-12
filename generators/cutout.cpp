@@ -46,8 +46,8 @@ void CutoutTextureGenerator::generate(QSize size, TexturePixel* destimage,
       first = 1;
       second = 0;
    }
-   TexturePixel* originSource = NULL;
-   TexturePixel* subtractSource = NULL;
+   TexturePixel* originSource = nullptr;
+   TexturePixel* subtractSource = nullptr;
    if (sourceimages.contains(first)) {
       originSource = sourceimages.value(first).data()->getData();
    }

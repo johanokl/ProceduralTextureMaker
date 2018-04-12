@@ -5,24 +5,25 @@
  * Johan Lindqvist (johan.lindqvist@gmail.com)
  */
 
-#include <QPushButton>
-#include <QVBoxLayout>
-#include <QPushButton>
-#include <QSet>
-#include <QApplication>
-#include <QGroupBox>
-#include <QDrag>
-#include <QMimeData>
-#include <QMouseEvent>
-#include <QScrollArea>
-#include <QLabel>
-#include "global.h"
 #include "core/textureproject.h"
 #include "generators/texturegenerator.h"
-#include "gui/addnodepanel.h"
-#include "gui/nodesettingswidget.h"
-#include "gui/connectionwidget.h"
 #include "generators/texturegenerator.h"
+#include "global.h"
+#include "gui/addnodepanel.h"
+#include "gui/connectionwidget.h"
+#include "gui/nodesettingswidget.h"
+#include <QApplication>
+#include <QDrag>
+#include <QGroupBox>
+#include <QLabel>
+#include <QMimeData>
+#include <QMouseEvent>
+#include <QPushButton>
+#include <QPushButton>
+#include <QScrollArea>
+#include <QSet>
+#include <QVBoxLayout>
+#include <utility>
 
 /**
  * @brief The AddNodeButton class
@@ -33,31 +34,49 @@
 class AddNodeButton : public QPushButton
 {
 public:
-   AddNodeButton(QWidget* parent, QString generatorName) : QPushButton(parent) {
-      this->generatorName = generatorName;
-   }
-   void mousePressEvent(QMouseEvent *event)
-   {
-      if (event->button() == Qt::LeftButton) {
-         dragStartPosition = event->pos();
-      }
-   }
-   void mouseMoveEvent(QMouseEvent *event)
-   {
-      if ((event->buttons() & Qt::LeftButton)
-          && (event->pos() - dragStartPosition).manhattanLength()
-          > QApplication::startDragDistance()) {
-         QDrag *drag = new QDrag(this);
-         QMimeData *mimeData = new QMimeData;
-         mimeData->setText(generatorName);
-         drag->setMimeData(mimeData);
-         drag->exec(Qt::CopyAction | Qt::MoveAction);
-      }
-   }
+   AddNodeButton(QWidget* parent, QString _generatorName)
+      : QPushButton(parent), generatorName(std::move(_generatorName)) {}
+   ~AddNodeButton() override;
+   void mousePressEvent(QMouseEvent *event) override;
+   void mouseMoveEvent(QMouseEvent *event) override;
 private:
    QPoint dragStartPosition;
    QString generatorName;
 };
+
+/**
+ * @brief AddNodeButton::~AddNodeButton
+ */
+AddNodeButton::~AddNodeButton() = default;
+
+/**
+ * @brief AddNodeButton::mousePressEvent
+ * @param event
+ */
+void AddNodeButton::mousePressEvent(QMouseEvent *event)
+{
+   if (event->button() == Qt::LeftButton) {
+      dragStartPosition = event->pos();
+   }
+}
+
+/**
+ * @brief AddNodeButton::mouseMoveEvent
+ * @param event
+ */
+void AddNodeButton::mouseMoveEvent(QMouseEvent *event)
+{
+   if (((event->buttons()&  Qt::LeftButton) > 0)
+       && (event->pos() - dragStartPosition).manhattanLength()
+       > QApplication::startDragDistance()) {
+      auto* drag = new QDrag(this);
+      auto* mimeData = new QMimeData;
+      mimeData->setText(generatorName);
+      drag->setMimeData(mimeData);
+      drag->exec(Qt::CopyAction | Qt::MoveAction);
+   }
+}
+
 
 /**
  * @brief AddNodePanel::AddNodePanel
@@ -68,12 +87,12 @@ AddNodePanel::AddNodePanel(TextureProject* project)
 {
    this->project = project;
 
-   QVBoxLayout* layout = new QVBoxLayout(this);
-   QScrollArea* area = new QScrollArea;
+   auto* layout = new QVBoxLayout(this);
+   auto* area = new QScrollArea;
    area->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
    area->setWidgetResizable(true);
    QWidget* contents = new QWidget;
-   QVBoxLayout* contentsLayout = new QVBoxLayout(contents);
+   auto* contentsLayout = new QVBoxLayout(contents);
    layout->setContentsMargins(0, 0, 0, 0);
    contentsLayout->setContentsMargins(0, 0, 0, 0);
    area->setFrameShape(QFrame::NoFrame);
@@ -119,7 +138,7 @@ AddNodePanel::AddNodePanel(TextureProject* project)
  * @param generator
  * Removes a button.
  */
-void AddNodePanel::removeGenerator(TextureGeneratorPtr generator)
+void AddNodePanel::removeGenerator(const TextureGeneratorPtr& generator)
 {
    if (widgets.contains(generator)) {
       delete widgets.value(generator);
@@ -133,7 +152,7 @@ void AddNodePanel::removeGenerator(TextureGeneratorPtr generator)
  * Slot called when a generator has been added. Creates a new draggable
  * button and adds it to the generator types's widget group.
  */
-void AddNodePanel::addGenerator(TextureGeneratorPtr generator)
+void AddNodePanel::addGenerator(const TextureGeneratorPtr& generator)
 {
    if (widgets.contains(generator)) {
       return;
@@ -145,18 +164,18 @@ void AddNodePanel::addGenerator(TextureGeneratorPtr generator)
          return;
       }
    }
-   AddNodeButton* newButton = new AddNodeButton(this, generatorName);
+   auto* newButton = new AddNodeButton(this, generatorName);
    widgets.insert(generator, newButton);
    newButton->setFixedSize(100, 60);
    newButton->setSizePolicy(QSizePolicy::Maximum, QSizePolicy::Preferred);
-   int hash = qHash(generatorName);
-   QColor buttonColor(((hash & 0xFF0000) >> 16), ((hash & 0x00FF00) >> 8), (hash & 0x0000FF));
+   unsigned int hash = qHash(generatorName);
+   QColor buttonColor(((hash&  0xFF0000) >> 16), ((hash&  0x00FF00) >> 8), (hash&  0x0000FF));
    QString fontColor("#ffffff");
    if ((buttonColor.red() * 0.299 + buttonColor.green() * 0.587 + buttonColor.blue() * 0.114) > 170) {
       fontColor = "#000000";
    }
    newButton->setStyleSheet(QString("background-color: %1; color: %2")
-                            .arg(buttonColor.name()).arg(fontColor));
+                            .arg(buttonColor.name(), fontColor));
    QGridLayout* destLayout;
    switch (generator->getType()) {
    case TextureGenerator::Type::Combiner:

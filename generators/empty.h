@@ -16,17 +16,17 @@
 class EmptyGenerator : public TextureGenerator
 {
 public:
-   EmptyGenerator() {}
-   virtual ~EmptyGenerator() {}
-   virtual void generate(QSize size,
-                         TexturePixel* destimage,
-                         QMap<int, TextureImagePtr> sourceimages,
-                         TextureNodeSettings* settings) const;
-   virtual int getNumSourceSlots() const { return 3; }
-   virtual QString getName() const { return QString("Empty"); }
-   virtual const TextureGeneratorSettings& getSettings() const { return _settings; }
-   virtual QString getDescription() const { return QString("Empty generator."); }
-   virtual TextureGenerator::Type getType() const { return TextureGenerator::Type::Generator; }
+   EmptyGenerator() = default;
+    ~EmptyGenerator() override = default;
+   void generate(QSize size,
+                 TexturePixel* destimage,
+                 QMap<int, TextureImagePtr> sourceimages,
+                 TextureNodeSettings* settings) const override;
+   int getNumSourceSlots() const override { return 3; }
+   QString getName() const override { return QString("Empty"); }
+   const TextureGeneratorSettings& getSettings() const override { return _settings; }
+   QString getDescription() const override { return QString("Empty generator."); }
+   TextureGenerator::Type getType() const override { return TextureGenerator::Type::Generator; }
 
 private:
    TextureGeneratorSettings _settings;

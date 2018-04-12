@@ -5,11 +5,11 @@
  * Johan Lindqvist (johan.lindqvist@gmail.com)
  */
 
-#include <QLabel>
-#include <QGroupBox>
 #include "core/textureproject.h"
-#include "gui/sceneinfowidget.h"
 #include "gui/iteminfopanel.h"
+#include "gui/sceneinfowidget.h"
+#include <QGroupBox>
+#include <QLabel>
 
 /**
  * @brief SceneInfoWidget::SceneInfoWidget

@@ -5,43 +5,41 @@
  * Johan Lindqvist (johan.lindqvist@gmail.com)
  */
 
-#include <math.h>
-#include <QtMath>
 #include "whirl.h"
-
-using namespace std;
+#include <QtMath>
+#include <cmath>
 
 WhirlTextureGenerator::WhirlTextureGenerator()
 {
    TextureGeneratorSetting radius;
    radius.name = "Radius";
    radius.defaultvalue = QVariant((double) 50);
-   radius.min = QVariant((double) 0);
-   radius.max = QVariant((double) 200);
+   radius.min = QVariant(0);
+   radius.max = QVariant(200);
    radius.order = 1;
    configurables.insert("radius", radius);
 
    TextureGeneratorSetting strength;
    strength.name = "Strength";
    strength.defaultvalue = QVariant((double) 40);
-   strength.min = QVariant((double) -500);
-   strength.max = QVariant((double) 500);
+   strength.min = QVariant(-500);
+   strength.max = QVariant(500);
    strength.order = 2;
    configurables.insert("strength", strength);
 
    TextureGeneratorSetting offsetleft;
    offsetleft.name = "Offset left";
    offsetleft.defaultvalue = QVariant((double) 0);
-   offsetleft.min = QVariant((double) -100);
-   offsetleft.max = QVariant((double) 100);
+   offsetleft.min = QVariant(-100);
+   offsetleft.max = QVariant(100);
    offsetleft.order = 3;
    configurables.insert("offsetleft", offsetleft);
 
    TextureGeneratorSetting offsettop;
    offsettop.name = "Offset top";
    offsettop.defaultvalue = QVariant((double) 0);
-   offsettop.min = QVariant((double) -100);
-   offsettop.max = QVariant((double) 100);
+   offsettop.min = QVariant(-100);
+   offsettop.max = QVariant(100);
    offsettop.order = 4;
    configurables.insert("offsettop", offsettop);
 }

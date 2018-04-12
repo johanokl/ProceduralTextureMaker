@@ -8,10 +8,10 @@
 #ifndef ITEMINFOPANEL_H
 #define ITEMINFOPANEL_H
 
-#include <QWidget>
+#include "core/texturenode.h"
 #include <QMap>
 #include <QSize>
-#include "core/texturenode.h"
+#include <QWidget>
 
 class TextureProject;
 class NodeSettingsWidget;
@@ -31,14 +31,14 @@ class ItemInfoPanel : public QWidget
 
 public:
    ItemInfoPanel(QWidget* parent, TextureProject* textureProject);
-   virtual ~ItemInfoPanel() {}
+   ~ItemInfoPanel() override = default;
    TextureProject* getTextureProject() { return texproject; }
 
 public slots:
    void setActiveNode(int id);
    void setActiveLine(int sourceNodeId, int receiverNodeId, int slot);
    void removeNode(int id);
-   void addNode(TextureNodePtr);
+   void addNode(const TextureNodePtr&);
    void sourceUpdated(int id);
    void nodesDisconnected(int sourceNodeId, int receiverNodeId, int slot);
 

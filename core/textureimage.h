@@ -8,9 +8,9 @@
 #ifndef TEXTUREIMAGE_H
 #define TEXTUREIMAGE_H
 
-#include <QSize>
-#include <QSharedPointer>
 #include "global.h"
+#include <QSharedPointer>
+#include <QSize>
 
 /**
  * @brief The TextureImage class
@@ -34,7 +34,7 @@ private:
  *
  * Thread-safe smart pointer for TextureImage
  */
-typedef QSharedPointer<TextureImage> TextureImagePtr;
+using TextureImagePtr = QSharedPointer<TextureImage>;
 
 
 #endif // TEXTUREIMAGE_H

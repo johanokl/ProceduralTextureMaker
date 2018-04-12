@@ -5,12 +5,11 @@
  * Johan Lindqvist (johan.lindqvist@gmail.com)
  */
 
-#include <QColor>
-#include <math.h>
-#include <QtMath>
 #include "lines.h"
+#include <QColor>
+#include <QtMath>
+#include <cmath>
 
-using namespace std;
 
 LinesTextureGenerator::LinesTextureGenerator()
 {
@@ -23,32 +22,32 @@ LinesTextureGenerator::LinesTextureGenerator()
    TextureGeneratorSetting lineheight;
    lineheight.name = "Line width";
    lineheight.defaultvalue = QVariant((int) 10);
-   lineheight.min = QVariant((int) 0);
-   lineheight.max = QVariant((int) 100);
+   lineheight.min = QVariant(0);
+   lineheight.max = QVariant(100);
    lineheight.order = 2;
    configurables.insert("lineheight", lineheight);
 
    TextureGeneratorSetting spacing;
    spacing.name = "Spacing";
    spacing.defaultvalue = QVariant((int) 10);
-   spacing.min = QVariant((int) 0);
-   spacing.max = QVariant((int) 100);
+   spacing.min = QVariant(0);
+   spacing.max = QVariant(100);
    spacing.order = 3;
    configurables.insert("spacing", spacing);
 
    TextureGeneratorSetting offset;
    offset.name = "Offset";
    offset.defaultvalue = QVariant((int) 0);
-   offset.min = QVariant((int) -100);
-   offset.max = QVariant((int) 0);
+   offset.min = QVariant(-100);
+   offset.max = QVariant(0);
    offset.order = 4;
    configurables.insert("offset", offset);
 
    TextureGeneratorSetting angle;
    angle.name = "Angle";
    angle.defaultvalue = QVariant((double) 0);
-   angle.min = QVariant((double) 0);
-   angle.max = QVariant((double) 180);
+   angle.min = QVariant(0);
+   angle.max = QVariant(180);
    angle.order = 5;
    configurables.insert("angle", angle);
 }

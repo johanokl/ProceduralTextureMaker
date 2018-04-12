@@ -5,8 +5,8 @@
  * Johan Lindqvist (johan.lindqvist@gmail.com)
  */
 
-#include <QApplication>
 #include "texgenapplication.h"
+#include <QApplication>
 
 int main(int argc, char**argv)
 {

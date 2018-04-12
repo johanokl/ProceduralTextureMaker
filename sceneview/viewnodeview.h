@@ -8,8 +8,8 @@
 #ifndef VIEWNODEVIEW_H
 #define VIEWNODEVIEW_H
 
-#include <QObject>
 #include <QGraphicsView>
+#include <QObject>
 
 /**
  * @brief The ViewNodeView class
@@ -20,8 +20,8 @@
 class ViewNodeView : public QGraphicsView
 {
 public:
-   ViewNodeView(int defaultZoom = 100);
-   virtual ~ViewNodeView();
+   explicit ViewNodeView(int defaultZoom = 100);
+   ~ViewNodeView() override = default;
 
 public slots:
    void resetZoom();

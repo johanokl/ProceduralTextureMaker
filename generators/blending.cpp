@@ -10,10 +10,8 @@
  * https://github.com/Loilo/color-blend
  */
 
-#include <math.h>
 #include "blending.h"
-
-using namespace std;
+#include <cmath>
 
 BlendingTextureGenerator::BlendingTextureGenerator()
 {
@@ -165,8 +163,8 @@ void BlendingTextureGenerator::generate(QSize size, TexturePixel* destimage,
       blendMode = BlendModes::Exclusion;
    }
 
-   TexturePixel* originSource = NULL;
-   TexturePixel* addSource = NULL;
+   TexturePixel* originSource = nullptr;
+   TexturePixel* addSource = nullptr;
 
    int first = 0;
    int second = 1;

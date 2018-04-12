@@ -5,12 +5,12 @@
  * Johan Lindqvist (johan.lindqvist@gmail.com)
  */
 
-#include <QWheelEvent>
-#include <QMouseEvent>
-#include <QApplication>
-#include <QScrollBar>
-#include <QtMath>
 #include "viewnodeview.h"
+#include <QApplication>
+#include <QMouseEvent>
+#include <QScrollBar>
+#include <QWheelEvent>
+#include <QtMath>
 
 /**
  * @brief ViewNodeView::ViewNodeView
@@ -22,15 +22,8 @@ ViewNodeView::ViewNodeView(int defaultzoom)
    // The mouse wheel scroll factor
    scrollZoomFactor = 1.0015;
    setDragMode(QGraphicsView::ScrollHandDrag);
-   defaultZoomFactor = (double) defaultzoom / 100;
+   defaultZoomFactor = static_cast<double>(defaultzoom) / 100;
    scale(defaultZoomFactor, defaultZoomFactor);
-}
-
-/**
- * @brief ViewNodeView::~ViewNodeView
- */
-ViewNodeView::~ViewNodeView()
-{
 }
 
 /**
@@ -39,10 +32,8 @@ ViewNodeView::~ViewNodeView()
  */
 void ViewNodeView::setDefaultZoom(int zoom)
 {
-   if (zoom != defaultZoomFactor) {
-      defaultZoomFactor = (double) zoom / 100;
-      resetZoom();
-   }
+   defaultZoomFactor = static_cast<double>(zoom) / 100;
+   resetZoom();
 }
 
 /**
@@ -66,7 +57,7 @@ void ViewNodeView::resetZoom()
  * mouse wheel while pressing the Shift or Alt keys.
  */
 void ViewNodeView::wheelEvent(QWheelEvent* event) {
-   QWheelEvent* wheel_event = static_cast<QWheelEvent*>(event);
+   auto* wheel_event = static_cast<QWheelEvent*>(event);
    if ((QApplication::keyboardModifiers() == Qt::ShiftModifier
        || QApplication::keyboardModifiers() == Qt::AltModifier)
        && wheel_event->orientation() == Qt::Vertical) {

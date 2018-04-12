@@ -29,13 +29,13 @@ class CubeWidget : public QOpenGLWidget, protected QOpenGLFunctions
    };
 
 public:
-    explicit CubeWidget(QWidget *parent = 0);
-    ~CubeWidget();
-   void setTexture(const QPixmap &pixmap);
+   explicit CubeWidget(QWidget *parent = nullptr);
+    ~CubeWidget() override;
+   void setTexture(const QPixmap& pixmap);
 
 public slots:
    void imageUpdated();
-   void setBackgroundColor(QColor);
+   void setBackgroundColor(const QColor& color);
 
 protected:
     void mousePressEvent(QMouseEvent *e) override;
@@ -49,7 +49,7 @@ protected:
 private:
     QBasicTimer timer;
     QOpenGLShaderProgram program;
-    QOpenGLTexture *texture;
+    QOpenGLTexture* texture;
     bool textureUpdated;
     QMatrix4x4 projection;
     QVector2D mousePressPosition;

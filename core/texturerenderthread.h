@@ -8,8 +8,8 @@
 #ifndef TEXTURERENDERTHREAD_H
 #define TEXTURERENDERTHREAD_H
 
-#include <QSize>
 #include "texturenode.h"
+#include <QSize>
 
 class TextureProject;
 
@@ -26,13 +26,13 @@ class TextureRenderThread : public QObject
 
 public:
    TextureRenderThread(const QSize renderSize, QMap<int, TextureNodePtr> nodes);
-   ~TextureRenderThread() {}
+   ~TextureRenderThread() override = default;
    void abort();
 
 public slots:
    void imageUpdated();
    void nodeRemoved(int remNode);
-   void nodeAdded(TextureNodePtr newNode);
+   void nodeAdded(const TextureNodePtr& newNode);
 
 private:
    void generate();
@@ -41,7 +41,5 @@ private:
    QMap<int, TextureNodePtr> nodes;
    bool aborted;
 };
-
-
 
 #endif // TEXTURERENDERTHREAD_H

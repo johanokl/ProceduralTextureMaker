@@ -7,8 +7,6 @@
 
 #include "modifylevels.h"
 
-using namespace std;
-
 ModifyLevelsTextureGenerator::ModifyLevelsTextureGenerator()
 {
    TextureGeneratorSetting channel;
@@ -79,8 +77,8 @@ void ModifyLevelsTextureGenerator::generate(QSize size, TexturePixel* destimage,
       a = true;
    }
 
-   for (int i = 0; i < numpixels; i++) {
-      if (mode == "Add") {
+   if (mode == "Add") {
+      for (int i = 0; i < numpixels; i++) {
          if (r) {
             destimage[i].r = qMax(qMin(levelAbsolute + destimage[i].r, 255), 0);
          }
@@ -93,7 +91,9 @@ void ModifyLevelsTextureGenerator::generate(QSize size, TexturePixel* destimage,
          if (a) {
             destimage[i].a = qMax(qMin(levelAbsolute + destimage[i].a, 255), 0);
          }
-      } else if (mode == "Multiply") {
+      }
+   } else if (mode == "Multiply") {
+      for (int i = 0; i < numpixels; i++) {
          if (r) {
             destimage[i].r = qMax(qMin((int) (levelFactor * destimage[i].r), 255), 0);
          }

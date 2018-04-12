@@ -5,15 +5,15 @@
  * Johan Lindqvist (johan.lindqvist@gmail.com)
  */
 
-#include <QtMath>
+#include "noise.h"
+#include <QColor>
 #include <QImage>
 #include <QPainter>
-#include <QColor>
 #include <QtGlobal>
+#include <QtMath>
 #if QT_VERSION >= QT_VERSION_CHECK(5, 10, 0)
 #include <QRandomGenerator>
 #endif
-#include "noise.h"
 
 NoiseTextureGenerator::NoiseTextureGenerator()
 {
@@ -76,7 +76,7 @@ NoiseTextureGenerator::NoiseTextureGenerator()
    randomizer.defaultvalue = QVariant((int) 500);
    randomizer.min = QVariant(0);
    randomizer.max = QVariant(1000);
-   randomizer.name = "Randomize";
+   randomizer.name = "Random seed";
    randomizer.order = 8;
    configurables.insert("randomizer", randomizer);
 

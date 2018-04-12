@@ -8,9 +8,9 @@
 #ifndef SCENEINFOWIDGET_H
 #define SCENEINFOWIDGET_H
 
-#include <QWidget>
-#include <QVBoxLayout>
 #include "core/texturenode.h"
+#include <QVBoxLayout>
+#include <QWidget>
 
 class ItemInfoPanel;
 class QLabel;
@@ -29,8 +29,8 @@ class SceneInfoWidget : public QWidget
    Q_OBJECT
 
  public:
-   SceneInfoWidget(ItemInfoPanel* widgetmanager);
-   virtual ~SceneInfoWidget() {}
+   explicit SceneInfoWidget(ItemInfoPanel* widgetmanager);
+   ~SceneInfoWidget() override = default;
    void updateNumNodes();
 
 private:

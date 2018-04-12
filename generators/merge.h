@@ -16,17 +16,17 @@
 class MergeTextureGenerator : public TextureGenerator
 {
 public:
-   MergeTextureGenerator();
-   virtual ~MergeTextureGenerator() {}
-   virtual void generate(QSize size,
-                         TexturePixel* destimage,
-                         QMap<int, TextureImagePtr> sourceimages,
-                         TextureNodeSettings* settings) const;
-   virtual int getNumSourceSlots() const { return 10; }
-   virtual QString getName() const { return QString("Merge"); }
-   virtual const TextureGeneratorSettings& getSettings() const { return configurables; }
-   virtual QString getDescription() const { return QString("Merge multiple textures."); }
-   virtual TextureGenerator::Type getType() const { return TextureGenerator::Type::Combiner; }
+   MergeTextureGenerator() = default;
+   ~MergeTextureGenerator() override = default;
+   void generate(QSize size,
+                 TexturePixel* destimage,
+                 QMap<int, TextureImagePtr> sourceimages,
+                 TextureNodeSettings* settings) const override;
+   int getNumSourceSlots() const override { return 10; }
+   QString getName() const override { return QString("Merge"); }
+   const TextureGeneratorSettings& getSettings() const override { return configurables; }
+   QString getDescription() const override { return QString("Merge multiple textures."); }
+   TextureGenerator::Type getType() const override { return TextureGenerator::Type::Combiner; }
 
 private:
    TextureGeneratorSettings configurables;

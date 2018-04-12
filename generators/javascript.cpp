@@ -5,16 +5,17 @@
  * Johan Lindqvist (johan.lindqvist@gmail.com)
  */
 
+#include "core/settingsmanager.h"
+#include "core/textureproject.h"
+#include "javascript.h"
+#include <QDebug>
 #include <QDirIterator>
 #include <QFileInfo>
-#include <QThread>
-#include <QDebug>
-#include <QJsonDocument>
 #include <QJsonArray>
+#include <QJsonDocument>
 #include <QJsonObject>
-#include "core/textureproject.h"
-#include "core/settingsmanager.h"
-#include "javascript.h"
+#include <QString>
+#include <QThread>
 
 #ifndef DISABLE_JAVASCRIPT
 #ifdef USE_QJSENGINE
@@ -31,6 +32,7 @@
 #else
    #include <QtScript/QScriptEngine>
    #include <QtScript/QScriptValueIterator>
+#include <utility>
    #define SCRIPT_PARAMS QScriptValue(), args
 #endif
 #endif
@@ -42,10 +44,11 @@
  * Parses the Javascript file and checks if it's a Texture Generator.
  * Creates the settings object based on the result.
  */
-JsTexGen::JsTexGen(QString jsContent) {
+JsTexGen::JsTexGen(const QString& jsContent)
+   : scriptContent(jsContent)
+{
    valid = false;
    description = "";
-   scriptContent = jsContent;
    numSlots = 0;
    separateColorChannels = false;
 
@@ -179,6 +182,7 @@ void JsTexGen::generate(QSize size, TexturePixel* destimage,
          break;
       case QVariant::Type::String:
          settingsJson.insert(settingsName, newVal.toString());
+         break;
       case QVariant::Type::Color:
          color = newVal.value<QColor>();
          col.clear();
@@ -194,14 +198,14 @@ void JsTexGen::generate(QSize size, TexturePixel* destimage,
    }
    settingsJson.insert("imagewidth", size.width());
    settingsJson.insert("imageheight", size.height());
-   int imageSize = size.width() * size.height();
+   auto imageSize = static_cast<quint32>(size.width() * size.height());
 
    QJsonDocument settingsJsonDoc(settingsJson);
    QString settingsJsonStr(settingsJsonDoc.toJson(QJsonDocument::Compact));
    QScriptValueList args;
    args << settingsJsonStr;
 
-   int arraySize = imageSize;
+   auto arraySize = imageSize;
    if (separateColorChannels) {
       arraySize *= 4;
    }
@@ -212,13 +216,13 @@ void JsTexGen::generate(QSize size, TexturePixel* destimage,
       sourceIterator.next();
       QScriptValue srcArray = jsEngine.newArray(arraySize);
       if (separateColorChannels) {
-         uint8_t* dataptr = (uint8_t*) sourceIterator.value()->getData();
-         for (int i = 0; i < arraySize; i++) {
+         auto* dataptr = reinterpret_cast<uint8_t*>(sourceIterator.value()->getData());
+         for (quint32 i = 0; i < arraySize; i++) {
             srcArray.setProperty(i, dataptr[i]);
          }
       } else {
-         TexturePixel* dataptr = sourceIterator.value()->getData();
-         for (int i = 0; i < arraySize; i++) {
+         auto* dataptr = sourceIterator.value()->getData();
+         for (quint32 i = 0; i < arraySize; i++) {
             srcArray.setProperty(i, dataptr[i].toRGBA());
          }
       }
@@ -226,7 +230,7 @@ void JsTexGen::generate(QSize size, TexturePixel* destimage,
    }
 
    QScriptValue retArray = jsEngine.newArray(arraySize);
-   for (int i = 0; i < arraySize; i++) {
+   for (quint32 i = 0; i < arraySize; i++) {
       retArray.setProperty(i, 0);
    }
    jsEngine.globalObject().setProperty("dest", retArray);
@@ -246,26 +250,26 @@ void JsTexGen::generate(QSize size, TexturePixel* destimage,
       mutex.unlock();
       return;
    }
-   unsigned char* dstchar = (unsigned char*) destimage;
+   auto* dstchar = reinterpret_cast<unsigned char*>(destimage);
    if (retVal.property("image").isString()) {
       QString imgStr = retVal.property("image").toString();
       QJsonArray imgArray = QJsonDocument::fromJson(imgStr.toUtf8()).array();
-      int arraySize = qMin(imageSize * (int) sizeof(TexturePixel), imgArray.size());
+      int arraySize = qMin(static_cast<int>(imageSize * sizeof(TexturePixel)), imgArray.size());
       memset(destimage, 0, imageSize * sizeof(TexturePixel));
       for (int i = 0; i < arraySize; i++) {
-         dstchar[i] = (unsigned char) imgArray[i].toInt(0);
+         dstchar[i] = static_cast<unsigned char>(imgArray[i].toInt(0));
       }
    } else if (separateColorChannels) {
-      for (int i = 0; i < arraySize; i++) {
-         dstchar[i] = (unsigned char) retArray.property(i).toUInt16();
+      for (quint32 i = 0; i < arraySize; i++) {
+         dstchar[i] = static_cast<unsigned char>(retArray.property(i).toUInt16());
       }
    } else {
-      for (int i = 0; i < imageSize; i++) {
+      for (quint32 i = 0; i < imageSize; i++) {
          quint32 color = retArray.property(i).toUInt32();
-         destimage[i].r = (unsigned char) ((color) >> 24);
-         destimage[i].g = (unsigned char) ((color << 8) >> 24);
-         destimage[i].b = (unsigned char) ((color << 16) >> 24);
-         destimage[i].a = (unsigned char) ((color << 24) >> 24);
+         destimage[i].r = static_cast<unsigned char>((color) >> 24);
+         destimage[i].g = static_cast<unsigned char>((color << 8) >> 24);
+         destimage[i].b = static_cast<unsigned char>((color << 16) >> 24);
+         destimage[i].a = static_cast<unsigned char>((color << 24) >> 24);
       }
    }
    jsEngine.collectGarbage();
@@ -322,7 +326,7 @@ void GeneratorFileFinder::scanDirectory(QString basepath) {
          QTextStream stream(&scriptFile);
          QString contents = stream.readAll();
          scriptFile.close();
-         JsTexGen* newTexGen = new JsTexGen(contents);
+         auto* newTexGen = new JsTexGen(contents);
          if (newTexGen->isValid()) {
             emit generatorFound(newTexGen);
          } else {
@@ -408,7 +412,7 @@ void JSTexGenManager::settingsUpdated()
  * @param path Absolute path to scan.
  * @param forceScan True to force directory scan.
  */
-void JSTexGenManager::setDirectory(QString path, bool forceScan)
+void JSTexGenManager::setDirectory(const QString& path, bool forceScan)
 {
    if (!forceScan && directoryPath == path) {
       return;

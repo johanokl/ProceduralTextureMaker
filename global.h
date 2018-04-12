@@ -24,9 +24,10 @@ public:
    unsigned char r;
    unsigned char a;
 
-   TexturePixel(const TexturePixel &rhs)
+   TexturePixel(const TexturePixel& rhs)
       : b(rhs.b), g(rhs.g), r(rhs.r), a(rhs.a) {}
 
+   explicit
    TexturePixel(unsigned char red = 0, unsigned char green = 0,
                 unsigned char blue = 0, unsigned char alpha = 255)
       : b(blue), g(green), r(red), a(alpha) {}
@@ -46,15 +47,15 @@ public:
       return ret;
    }
 
-   TexturePixel &operator+=(const TexturePixel &rhs) {
-      r = qMin((int) rhs.r + r, 255);
-      g = qMin((int) rhs.g + g, 255);
-      b = qMin((int) rhs.b + b, 255);
-      a = qMin((int) rhs.a + a, 255);
+   TexturePixel& operator+=(const TexturePixel& rhs) {
+      r = static_cast<unsigned char>(qMin(static_cast<int>(rhs.r) + static_cast<int>(r), 255));
+      g = static_cast<unsigned char>(qMin(static_cast<int>(rhs.g) + static_cast<int>(g), 255));
+      b = static_cast<unsigned char>(qMin(static_cast<int>(rhs.b) + static_cast<int>(b), 255));
+      a = static_cast<unsigned char>(qMin(static_cast<int>(rhs.a) + static_cast<int>(a), 255));
       return *this;
    }
 
-   TexturePixel operator+(const TexturePixel &rhs) {
+   TexturePixel operator+(const TexturePixel& rhs) {
        TexturePixel ret(*this);
        ret += rhs;
        return ret;
@@ -65,9 +66,9 @@ public:
     * @return the intensity of pixel, from 0 - 1
     */
    double intensity() const {
-      return (((double) this->r +
-               (double) this->g +
-               (double) this->b)
+      return ((static_cast<double>(this->r) +
+               static_cast<double>(this->g) +
+               static_cast<double>(this->b))
               / 3.0) / 255.0;
    }
 
@@ -76,9 +77,9 @@ public:
     * @return the intensity of pixel, from 0 - 1
     */
    double intensityWithAlpha() const {
-      return (((double) this->r +
-               (double) this->g +
-               (double) this->b)
+      return ((static_cast<double>(this->r) +
+               static_cast<double>(this->g) +
+               static_cast<double>(this->b))
               / 3.0) * this->a / 255.0;
    }
 
@@ -86,10 +87,10 @@ public:
 
 
 typedef struct {
+   QVariant defaultvalue;
    QString name;
    QString description = "";
    int order = 0;
-   QVariant defaultvalue;
    int defaultindex = 0;  // For QStringList
    QVariant min;
    QVariant max;

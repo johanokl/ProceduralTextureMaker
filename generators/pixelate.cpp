@@ -12,8 +12,8 @@ PixelateTextureGenerator::PixelateTextureGenerator()
    TextureGeneratorSetting width;
    width.defaultvalue = QVariant((double) 5);
    width.name = "Width";
-   width.min = QVariant((double) 0);
-   width.max = QVariant((double) 50);
+   width.min = QVariant(0);
+   width.max = QVariant(50);
    width.group = "size";
    width.order = 1;
    configurables.insert("width", width);
@@ -21,8 +21,8 @@ PixelateTextureGenerator::PixelateTextureGenerator()
    TextureGeneratorSetting height;
    height.defaultvalue = QVariant((double) 5);
    height.name = "Height";
-   height.min = QVariant((double) 0);
-   height.max = QVariant((double) 50);
+   height.min = QVariant(0);
+   height.max = QVariant(50);
    height.group = "size";
    height.order = 2;
    configurables.insert("height", height);
@@ -30,16 +30,16 @@ PixelateTextureGenerator::PixelateTextureGenerator()
    TextureGeneratorSetting offsetx;
    offsetx.defaultvalue = QVariant((double) 0);
    offsetx.name = "Offset left";
-   offsetx.min = QVariant((double) -50);
-   offsetx.max = QVariant((double) 50);
+   offsetx.min = QVariant(-50);
+   offsetx.max = QVariant(50);
    offsetx.order = 3;
    configurables.insert("offsetx", offsetx);
 
    TextureGeneratorSetting offsety;
    offsety.defaultvalue = QVariant((double) 0);
    offsety.name = "Offset top";
-   offsety.min = QVariant((double) -50);
-   offsety.max = QVariant((double) 50);
+   offsety.min = QVariant(-50);
+   offsety.max = QVariant(50);
    offsety.order = 4;
    configurables.insert("offsety", offsety);
 }
@@ -69,10 +69,10 @@ void PixelateTextureGenerator::generate(QSize size,
          while (x < size.width()) {
             if (x + width > 0) {
                int totalPixels = 0;
-               unsigned long red = 0;
-               unsigned long green = 0;
-               unsigned long blue = 0;
-               unsigned long alpha = 0;
+               quint64 red = 0;
+               quint64 green = 0;
+               quint64 blue = 0;
+               quint64 alpha = 0;
                for (int ypos = y; ypos < y + height; ypos++) {
                   int currY = ypos;
                   if (currY < 0) {

@@ -23,7 +23,7 @@ class QDoubleSlider : public QSlider {
    Q_OBJECT
 
 public:
-   QDoubleSlider(Qt::Orientation orientation = Qt::Orientation::Horizontal, QWidget* parent = 0)
+   explicit QDoubleSlider(Qt::Orientation orientation = Qt::Orientation::Horizontal, QWidget* parent = nullptr)
       : QSlider(orientation, parent) {
       QObject::connect(this, &QDoubleSlider::valueChanged,
                        this, &QDoubleSlider::notifyValueChanged);

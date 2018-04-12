@@ -5,15 +5,15 @@
  * Johan Lindqvist (johan.lindqvist@gmail.com)
  */
 
-#include <math.h>
-#include <QColor>
-#include <QMap>
-#include "shadow.h"
+#include "blending.h"
 #include "fill.h"
 #include "setchannels.h"
-#include "transform.h"
+#include "shadow.h"
 #include "stackblur.h"
-#include "blending.h"
+#include "transform.h"
+#include <QColor>
+#include <QMap>
+#include <cmath>
 
 ShadowTextureGenerator::ShadowTextureGenerator()
 {
@@ -26,49 +26,49 @@ ShadowTextureGenerator::ShadowTextureGenerator()
    TextureGeneratorSetting scaleX;
    scaleX.name = "Scale X (%)";
    scaleX.defaultvalue = QVariant((double) 100);
-   scaleX.min = QVariant((double) 0);
-   scaleX.max = QVariant((double) 500);
+   scaleX.min = QVariant(0);
+   scaleX.max = QVariant(500);
    scaleX.order = 2;
    configurables.insert("xscale", scaleX);
 
    TextureGeneratorSetting scaleY;
    scaleY.name = "Scale Y (%)";
    scaleY.defaultvalue = QVariant((double) 100);
-   scaleY.min = QVariant((double) 0);
-   scaleY.max = QVariant((double) 500);
+   scaleY.min = QVariant(0);
+   scaleY.max = QVariant(500);
    scaleY.order = 3;
    configurables.insert("yscale", scaleY);
 
    TextureGeneratorSetting offsetLeft;
    offsetLeft.name = "Offset left";
    offsetLeft.defaultvalue = QVariant((double) -10);
-   offsetLeft.min = QVariant((double) -100);
-   offsetLeft.max = QVariant((double) 100);
+   offsetLeft.min = QVariant(-100);
+   offsetLeft.max = QVariant(100);
    offsetLeft.order = 4;
    configurables.insert("offsetleft", offsetLeft);
 
    TextureGeneratorSetting offsetTop;
    offsetTop.name = "Offset top";
    offsetTop.defaultvalue = QVariant((double) 10);
-   offsetTop.min = QVariant((double) -100);
-   offsetTop.max = QVariant((double) 100);
+   offsetTop.min = QVariant(-100);
+   offsetTop.max = QVariant(100);
    offsetTop.order = 5;
    configurables.insert("offsettop", offsetTop);
 
    TextureGeneratorSetting blursetting;
    blursetting.defaultvalue = QVariant((int) 10);
    blursetting.name = "Blur level";
-   blursetting.min = QVariant((int) 0);
-   blursetting.max = QVariant((int) 20);
+   blursetting.min = QVariant(0);
+   blursetting.max = QVariant(20);
    blursetting.order = 6;
    configurables.insert("level", blursetting);
 }
 
 
 void ShadowTextureGenerator::generate(QSize size,
-                                          TexturePixel* destimage,
-                                          QMap<int, TextureImagePtr> sourceimages,
-                                          TextureNodeSettings* settings) const
+                                      TexturePixel* destimage,
+                                      QMap<int, TextureImagePtr> sourceimages,
+                                      TextureNodeSettings* settings) const
 {
    if (!settings || !destimage || !size.isValid()) {
       return;
@@ -78,8 +78,8 @@ void ShadowTextureGenerator::generate(QSize size,
       return;
    }
    FillTextureGenerator fillgen;
-   TexturePixel* filledImage = new TexturePixel[size.width() * size.height()];
-   TextureImagePtr filledImagePtr = TextureImagePtr(new TextureImage(size, filledImage));
+   auto* filledImage = new TexturePixel[size.width() * size.height()];
+   TextureImagePtr filledImagePtr(new TextureImage(size, filledImage));
    fillgen.generate(size, filledImage, sourceimages, settings);
 
    SetChannelsTextureGenerator setchannelsgen;
@@ -91,8 +91,8 @@ void ShadowTextureGenerator::generate(QSize size,
    settingsForSetchannels.insert("channelGreen", QVariant("First's green"));
    settingsForSetchannels.insert("channelBlue", QVariant("First's blue"));
    settingsForSetchannels.insert("channelAlpha", QVariant("Second's alpha"));
-   TexturePixel* setchannelsImage = new TexturePixel[size.width() * size.height()];
-   TextureImagePtr setchannelsImagePtr = TextureImagePtr(new TextureImage(size, setchannelsImage));
+   auto* setchannelsImage = new TexturePixel[size.width() * size.height()];
+   TextureImagePtr setchannelsImagePtr(new TextureImage(size, setchannelsImage));
    setchannelsgen.generate(size, setchannelsImage, setchannelImages, &settingsForSetchannels);
 
    StackBlurTextureGenerator stackblurgen;
@@ -100,8 +100,8 @@ void ShadowTextureGenerator::generate(QSize size,
    blurSettingsIterator.insert(0, setchannelsImagePtr);
    TextureNodeSettings settingsForBlur;
    settingsForBlur.insert("level", QVariant(settings->value("level").toInt()));
-   TexturePixel* blurredImage = new TexturePixel[size.width() * size.height()];
-   TextureImagePtr blurredImagePtr = TextureImagePtr(new TextureImage(size, blurredImage));
+   auto* blurredImage = new TexturePixel[size.width() * size.height()];
+   TextureImagePtr blurredImagePtr(new TextureImage(size, blurredImage));
    stackblurgen.generate(size, blurredImage, blurSettingsIterator, &settingsForBlur);
 
    TransformTextureGenerator transformgen;
@@ -117,8 +117,8 @@ void ShadowTextureGenerator::generate(QSize size,
    settingsForTransform.insert("offsettop", QVariant(settings->value("offsettop").toDouble()));
    settingsForTransform.insert("xscale", QVariant(settings->value("xscale").toDouble()));
    settingsForTransform.insert("yscale", QVariant(settings->value("yscale").toDouble()));
-   TexturePixel* transformedImage = new TexturePixel[size.width() * size.height()];
-   TextureImagePtr transformedImagePtr = TextureImagePtr(new TextureImage(size, transformedImage));
+   auto* transformedImage = new TexturePixel[size.width() * size.height()];
+   TextureImagePtr transformedImagePtr(new TextureImage(size, transformedImage));
    transformgen.generate(size, transformedImage, sourceForTransform, &settingsForTransform);
 
    BlendingTextureGenerator blendinggen;
@@ -131,7 +131,7 @@ void ShadowTextureGenerator::generate(QSize size,
       blendSettingsIterator.next();
       settingsForBlend.insert(blendSettingsIterator.key(), blendSettingsIterator.value().defaultvalue);
    }
-   TexturePixel* blendedImage = new TexturePixel[size.width() * size.height()];
+   auto* blendedImage = new TexturePixel[size.width() * size.height()];
    blendinggen.generate(size, blendedImage, sourceForBlend, &settingsForBlend);
    memcpy(destimage, blendedImage, size.width() * size.height() * sizeof(TexturePixel));
    delete[] blendedImage;

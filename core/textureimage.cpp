@@ -5,8 +5,8 @@
  * Johan Lindqvist (johan.lindqvist@gmail.com)
  */
 
-#include <cstdlib>
 #include "textureimage.h"
+#include <cstdlib>
 #include <exception>
 
 /**
@@ -25,7 +25,7 @@ TextureImage::TextureImage(QSize size, TexturePixel* data)
  */
 TextureImage::~TextureImage()
 {
-   if (data != NULL) {
+   if (data != nullptr) {
       delete data;
    }
 }

@@ -17,16 +17,16 @@ class CheckboardTextureGenerator : public TextureGenerator
 {
 public:
    CheckboardTextureGenerator();
-   virtual ~CheckboardTextureGenerator() {}
-   virtual void generate(QSize size,
-                         TexturePixel* destimage,
-                         QMap<int, TextureImagePtr> sourceimages,
-                         TextureNodeSettings* settings) const;
-   virtual int getNumSourceSlots() const { return 1; }
-   virtual QString getName() const { return QString("Checkboard"); }
-   virtual const TextureGeneratorSettings& getSettings() const { return configurables; }
-   virtual QString getDescription() const { return QString("Draws a checkboard."); }
-   virtual TextureGenerator::Type getType() const { return TextureGenerator::Type::Generator; }
+   ~CheckboardTextureGenerator() override = default;
+   void generate(QSize size,
+                 TexturePixel* destimage,
+                 QMap<int, TextureImagePtr> sourceimages,
+                 TextureNodeSettings* settings) const override;
+   int getNumSourceSlots() const override { return 1; }
+   QString getName() const override { return QString("Checkboard"); }
+   const TextureGeneratorSettings& getSettings() const override { return configurables; }
+   QString getDescription() const override { return QString("Draws a checkboard."); }
+   TextureGenerator::Type getType() const override { return TextureGenerator::Type::Generator; }
 
 private:
    TextureGeneratorSettings configurables;

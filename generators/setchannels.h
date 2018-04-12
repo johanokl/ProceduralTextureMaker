@@ -30,21 +30,21 @@ public:
    };
 
    SetChannelsTextureGenerator();
-   virtual ~SetChannelsTextureGenerator() {}
-   virtual void generate(QSize size,
-                         TexturePixel* destimage,
-                         QMap<int, TextureImagePtr> sourceimages,
-                         TextureNodeSettings* settings) const;
-   virtual int getNumSourceSlots() const { return 2; }
-   virtual QString getName() const { return QString("Set channels"); }
-   virtual const TextureGeneratorSettings& getSettings() const { return configurables; }
-   virtual QString getDescription() const { return QString(""); }
-   virtual TextureGenerator::Type getType() const { return TextureGenerator::Type::Combiner; }
+   ~SetChannelsTextureGenerator() override = default;
+   void generate(QSize size,
+                 TexturePixel* destimage,
+                 QMap<int, TextureImagePtr> sourceimages,
+                 TextureNodeSettings* settings) const override;
+   int getNumSourceSlots() const override { return 2; }
+   QString getName() const override { return QString("Set channels"); }
+   const TextureGeneratorSettings& getSettings() const override { return configurables; }
+   QString getDescription() const override { return QString(""); }
+   TextureGenerator::Type getType() const override { return TextureGenerator::Type::Combiner; }
 
 private:
    TextureGeneratorSettings configurables;
-   Channels getChannelFromName(QString name) const;
-   unsigned char getColorFromChannel(TexturePixel &firstColor, TexturePixel &secondColor,
+   Channels getChannelFromName(const QString& name) const;
+   quint8 getColorFromChannel(const TexturePixel& firstColor, const TexturePixel& secondColor,
                                      Channels channel) const;
 };
 

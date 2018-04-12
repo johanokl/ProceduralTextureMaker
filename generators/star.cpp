@@ -5,13 +5,11 @@
  * Johan Lindqvist (johan.lindqvist@gmail.com)
  */
 
-#include <math.h>
-#include <QPainter>
-#include <QtMath>
 #include "core/textureimage.h"
 #include "star.h"
-
-using namespace std;
+#include <QPainter>
+#include <QtMath>
+#include <cmath>
 
 StarTextureGenerator::StarTextureGenerator()
 {
@@ -25,8 +23,8 @@ StarTextureGenerator::StarTextureGenerator()
    shapeWidth.name = "Width";
    shapeWidth.description = "";
    shapeWidth.defaultvalue = QVariant((double) 80);
-   shapeWidth.min = QVariant((double) 0);
-   shapeWidth.max = QVariant((double) 200);
+   shapeWidth.min = QVariant(0);
+   shapeWidth.max = QVariant(200);
    shapeWidth.group = "size";
    shapeWidth.order = 2;
    configurables.insert("width", shapeWidth);
@@ -35,8 +33,8 @@ StarTextureGenerator::StarTextureGenerator()
    shapeHeight.name = "Height";
    shapeHeight.description = "";
    shapeHeight.defaultvalue = QVariant((double) 80);
-   shapeHeight.min = QVariant((double) 0);
-   shapeHeight.max = QVariant((double) 200);
+   shapeHeight.min = QVariant(0);
+   shapeHeight.max = QVariant(200);
    shapeHeight.group = "size";
    shapeHeight.order = 3;
    configurables.insert("height", shapeHeight);
@@ -45,8 +43,8 @@ StarTextureGenerator::StarTextureGenerator()
    rotation.name = "Rotation";
    rotation.description = "";
    rotation.defaultvalue = QVariant((double) 50);
-   rotation.min = QVariant((double) 0);
-   rotation.max = QVariant((double) 360);
+   rotation.min = QVariant(0);
+   rotation.max = QVariant(360);
    rotation.order = 4;
    configurables.insert("rotation", rotation);
 
@@ -54,8 +52,8 @@ StarTextureGenerator::StarTextureGenerator()
    offsetLeft.name = "Offset left";
    offsetLeft.description = "";
    offsetLeft.defaultvalue = QVariant((double) 0);
-   offsetLeft.min = QVariant((double) -100);
-   offsetLeft.max = QVariant((double) 100);
+   offsetLeft.min = QVariant(-100);
+   offsetLeft.max = QVariant(100);
    offsetLeft.order = 5;
    configurables.insert("offsetleft", offsetLeft);
 
@@ -63,8 +61,8 @@ StarTextureGenerator::StarTextureGenerator()
    offsetTop.name = "Offset top";
    offsetTop.description = "";
    offsetTop.defaultvalue = QVariant((double) 0);
-   offsetTop.min = QVariant((double) -100);
-   offsetTop.max = QVariant((double) 100);
+   offsetTop.min = QVariant(-100);
+   offsetTop.max = QVariant(100);
    offsetTop.order = 6;
    configurables.insert("offsettop", offsetTop);
 
@@ -72,8 +70,8 @@ StarTextureGenerator::StarTextureGenerator()
    arms.name = "Number of points";
    arms.description = "";
    arms.defaultvalue = QVariant((int) 6);
-   arms.min = QVariant((int) 3);
-   arms.max = QVariant((int) 13);
+   arms.min = QVariant(3);
+   arms.max = QVariant(13);
    arms.order = 7;
    configurables.insert("numarms", arms);
 
@@ -81,8 +79,8 @@ StarTextureGenerator::StarTextureGenerator()
    innerRadius.name = "Innner radius";
    innerRadius.description = "";
    innerRadius.defaultvalue = QVariant((double) 25);
-   innerRadius.min = QVariant((double) 0);
-   innerRadius.max = QVariant((double) 100);
+   innerRadius.min = QVariant(0);
+   innerRadius.max = QVariant(100);
    innerRadius.order = 8;
    configurables.insert("innerradius", innerRadius);
 
@@ -90,8 +88,8 @@ StarTextureGenerator::StarTextureGenerator()
    outerRadius.name = "Outer radius";
    outerRadius.description = "";
    outerRadius.defaultvalue = QVariant((double) 100);
-   outerRadius.min = QVariant((double) 0);
-   outerRadius.max = QVariant((double) 100);
+   outerRadius.min = QVariant(0);
+   outerRadius.max = QVariant(100);
    outerRadius.order = 9;
    configurables.insert("outerradius", outerRadius);
 
@@ -99,8 +97,8 @@ StarTextureGenerator::StarTextureGenerator()
    cutoutInnerRadius.name = "Cutout innner radius";
    cutoutInnerRadius.description = "";
    cutoutInnerRadius.defaultvalue = QVariant((double) 15);
-   cutoutInnerRadius.min = QVariant((double) 0);
-   cutoutInnerRadius.max = QVariant((double) 100);
+   cutoutInnerRadius.min = QVariant(0);
+   cutoutInnerRadius.max = QVariant(100);
    cutoutInnerRadius.order = 10;
    configurables.insert("cutoutinnerradius", cutoutInnerRadius);
 
@@ -108,8 +106,8 @@ StarTextureGenerator::StarTextureGenerator()
    cutoutOuterRadius.name = "Cutout outer radius";
    cutoutOuterRadius.description = "";
    cutoutOuterRadius.defaultvalue = QVariant((double) 65);
-   cutoutOuterRadius.min = QVariant((double) 0);
-   cutoutOuterRadius.max = QVariant((double) 100);
+   cutoutOuterRadius.min = QVariant(0);
+   cutoutOuterRadius.max = QVariant(100);
    cutoutOuterRadius.order = 11;
    configurables.insert("cutoutouterradius", cutoutOuterRadius);
 }
@@ -159,7 +157,7 @@ void StarTextureGenerator::generate(QSize size,
    QPolygonF starPolygon;
    for (int i = 0; i < 2 * arms; i++) {
       // Use outer or inner radius depending on what iteration we are in.
-      double r = (i & 1) == 0 ? outerRadius : innerRadius;
+      double r = (i&  1) == 0 ? outerRadius : innerRadius;
       starPolygon << QPointF(0.5 + 0.5 * cos(i * M_PI / arms) * r,
                              0.5 + 0.5 * sin(i * M_PI / arms) * r);
    }
@@ -167,7 +165,7 @@ void StarTextureGenerator::generate(QSize size,
    QPolygonF removeStarPolygon;
    for (int i = 0; i < 2 * arms; i++) {
       // Use outer or inner radius depending on what iteration we are in.
-      double r = (i & 1) == 0 ? cutoutOuterRadius : cutoutInnerRadius;
+      double r = (i&  1) == 0 ? cutoutOuterRadius : cutoutInnerRadius;
       removeStarPolygon << QPointF(0.5 + 0.5 * cos(i * M_PI / arms) * r,
                                    0.5 + 0.5 * sin(i * M_PI / arms) * r);
    }

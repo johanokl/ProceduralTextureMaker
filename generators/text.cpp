@@ -5,12 +5,9 @@
  * Johan Lindqvist (johan.lindqvist@gmail.com)
  */
 
-
-#include <math.h>
-#include <QPainter>
 #include "text.h"
-
-using namespace std;
+#include <QPainter>
+#include <cmath>
 
 TextTextureGenerator::TextTextureGenerator()
 {
@@ -47,8 +44,8 @@ TextTextureGenerator::TextTextureGenerator()
    fontsize.name = "Size";
    fontsize.description = "";
    fontsize.defaultvalue = QVariant((double) 20);
-   fontsize.min = QVariant((double) 1);
-   fontsize.max = QVariant((double) 200);
+   fontsize.min = QVariant(1);
+   fontsize.max = QVariant(200);
    fontsize.order = 4;
    configurables.insert("fontsize", fontsize);
 
@@ -56,8 +53,8 @@ TextTextureGenerator::TextTextureGenerator()
    rotation.name = "Rotation";
    rotation.description = "";
    rotation.defaultvalue = QVariant((double) 0);
-   rotation.min = QVariant((double) -360);
-   rotation.max = QVariant((double) 360);
+   rotation.min = QVariant(-360);
+   rotation.max = QVariant(360);
    rotation.order = 5;
    configurables.insert("rotation", rotation);
 
@@ -65,8 +62,8 @@ TextTextureGenerator::TextTextureGenerator()
    offsetLeft.name = "Offset left";
    offsetLeft.description = "";
    offsetLeft.defaultvalue = QVariant((double) 0);
-   offsetLeft.min = QVariant((double) -200);
-   offsetLeft.max = QVariant((double) 200);
+   offsetLeft.min = QVariant(-200);
+   offsetLeft.max = QVariant(200);
    offsetLeft.order = 6;
    configurables.insert("offsetleft", offsetLeft);
 
@@ -74,8 +71,8 @@ TextTextureGenerator::TextTextureGenerator()
    offsetTop.name = "Offset top";
    offsetTop.description = "";
    offsetTop.defaultvalue = QVariant((double) 0);
-   offsetTop.min = QVariant((double) -200);
-   offsetTop.max = QVariant((double) 200);
+   offsetTop.min = QVariant(-200);
+   offsetTop.max = QVariant(200);
    offsetTop.order = 7;
    configurables.insert("offsettop", offsetTop);
 }
