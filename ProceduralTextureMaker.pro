@@ -87,6 +87,7 @@ SOURCES = main.cpp \
     generators/square.cpp \
     generators/star.cpp \
     generators/setchannels.cpp \
+    generators/texturegenerator.cpp \
     generators/transform.cpp \
     generators/text.cpp \
     generators/whirl.cpp

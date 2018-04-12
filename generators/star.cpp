@@ -110,6 +110,12 @@ StarTextureGenerator::StarTextureGenerator()
    cutoutOuterRadius.max = QVariant(100);
    cutoutOuterRadius.order = 11;
    configurables.insert("cutoutouterradius", cutoutOuterRadius);
+
+   TextureGeneratorSetting antialiasing;
+   antialiasing.defaultvalue = QVariant((bool) true);
+   antialiasing.name = "Antialiasing";
+   antialiasing.order = 12;
+   configurables.insert("antialiasing", antialiasing);
 }
 
 
@@ -133,6 +139,7 @@ void StarTextureGenerator::generate(QSize size,
    double outerRadius = settings->value("outerradius").toDouble() / 100;
    double cutoutInnerRadius = settings->value("cutoutinnerradius").toDouble() / 100;
    double cutoutOuterRadius = settings->value("cutoutouterradius").toDouble() / 100;
+   bool antialiasing = settings->value("antialiasing").toBool();
 
    if (sourceimages.contains(0)) {
       memcpy(destimage, sourceimages.value(0)->getData(), size.width() * size.height() * sizeof(TexturePixel));
@@ -175,7 +182,7 @@ void StarTextureGenerator::generate(QSize size,
    path = path.subtracted(removepath);
 
    painter.scale(shapeWidth, shapeHeight);
-   painter.setRenderHint(QPainter::Antialiasing, true);
+   painter.setRenderHint(QPainter::Antialiasing, antialiasing);
    painter.setPen(Qt::NoPen);
    painter.drawPath(path);
 

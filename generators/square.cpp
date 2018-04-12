@@ -84,6 +84,12 @@ SquareTextureGenerator::SquareTextureGenerator()
    cutoutOuterRadius.order = 8;
    cutoutOuterRadius.group = "cutout";
    configurables.insert("cutoutheight", cutoutOuterRadius);
+
+   TextureGeneratorSetting antialiasing;
+   antialiasing.defaultvalue = QVariant((bool) true);
+   antialiasing.name = "Antialiasing";
+   antialiasing.order = 9;
+   configurables.insert("antialiasing", antialiasing);
 }
 
 
@@ -104,6 +110,7 @@ void SquareTextureGenerator::generate(QSize size,
    int offsetTop = settings->value("offsettop").toDouble() * size.height() / 100;
    double cutoutInnerRadius = settings->value("cutoutwidth").toDouble() / 100;
    double cutoutOuterRadius = settings->value("cutoutheight").toDouble() / 100;
+   bool antialiasing = settings->value("antialiasing").toBool();
 
    if (sourceimages.contains(0)) {
       memcpy(destimage, sourceimages.value(0)->getData(), size.width() * size.height() * sizeof(TexturePixel));
@@ -146,7 +153,7 @@ void SquareTextureGenerator::generate(QSize size,
    path = path.subtracted(removepath);
 
    painter.scale(shapeWidth, shapeHeight);
-   painter.setRenderHint(QPainter::Antialiasing, true);
+   painter.setRenderHint(QPainter::Antialiasing, antialiasing);
    painter.setPen(Qt::NoPen);
    painter.drawPath(path);
 

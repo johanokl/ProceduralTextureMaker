@@ -75,6 +75,12 @@ TextTextureGenerator::TextTextureGenerator()
    offsetTop.max = QVariant(200);
    offsetTop.order = 7;
    configurables.insert("offsettop", offsetTop);
+
+   TextureGeneratorSetting antialiasing;
+   antialiasing.defaultvalue = QVariant((bool) true);
+   antialiasing.name = "Antialiasing";
+   antialiasing.order = 8;
+   configurables.insert("antialiasing", antialiasing);
 }
 
 
@@ -94,6 +100,7 @@ void TextTextureGenerator::generate(QSize size,
    double rotation = settings->value("rotation").toDouble();
    int offsetLeft = settings->value("offsetleft").toDouble() * size.width() / 100;
    int offsetTop = settings->value("offsettop").toDouble() * size.height() / 100;
+   bool antialiasing = settings->value("antialiasing").toBool();
 
    QFont::StyleHint styleHint = QFont::StyleHint::AnyStyle;
    if (fontname == "Times") {
@@ -135,6 +142,7 @@ void TextTextureGenerator::generate(QSize size,
    painter.rotate(rotation);
    painter.translate(-fm.width(text) / 2, -fm.height() / 2);
    painter.setCompositionMode(QPainter::CompositionMode_SourceOver);
+   painter.setRenderHint(QPainter::Antialiasing, antialiasing);
    painter.setFont(font);
    painter.setPen(color);
    painter.drawText(QRect(0, 0, size.width() * 10, size.height() * 10), text);
