@@ -15,6 +15,11 @@ For more general information about procedural textures, see https://en.wikipedia
 ### Screenshot
 ![Screenshot 1](https://i.imgur.com/Ikn4oLt.png)
 
+### Examples
+Two example textures have been added to the repository:
+* [Rose](examples/rose.txl)
+* [Wall](examples/wall.txl)
+
 ### Technical Details
 The application is written in C++ and uses the Qt framework.  
 It has been tested with Qt 5.9.1 and 5.10 on Mac OS 10.13 with Clang and Windows 10 with MinGW/GCC.  
