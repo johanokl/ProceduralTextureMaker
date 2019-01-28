@@ -5,7 +5,7 @@
  * Johan Lindqvist (johan.lindqvist@gmail.com)
  */
 
-#include "core/textureimage.h"
+#include "base/textureimage.h"
 #include "star.h"
 #include <QPainter>
 #include <QtMath>

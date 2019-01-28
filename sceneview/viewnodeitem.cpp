@@ -5,7 +5,7 @@
  * Johan Lindqvist (johan.lindqvist@gmail.com)
  */
 
-#include "core/textureproject.h"
+#include "base/textureproject.h"
 #include "gui/mainwindow.h"
 #include "sceneview/viewnodeitem.h"
 #include "sceneview/viewnodeline.h"

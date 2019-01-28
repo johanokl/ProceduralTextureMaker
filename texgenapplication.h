@@ -31,7 +31,7 @@ class TexGenApplication : public QApplication
    Q_OBJECT
 
 public:
-   TexGenApplication(int argc, char* argv[]);
+   TexGenApplication(int &argc, char* argv[]);
    virtual ~TexGenApplication() {}
 
 signals:

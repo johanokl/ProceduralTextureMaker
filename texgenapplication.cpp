@@ -5,7 +5,7 @@
  * Johan Lindqvist (johan.lindqvist@gmail.com)
  */
 
-#include "core/textureproject.h"
+#include "base/textureproject.h"
 #include "gui/mainwindow.h"
 #include "texgenapplication.h"
 #include <QFileOpenEvent>
@@ -15,7 +15,7 @@
  * @param argc Number of arguments passed (including the application name).
  * @param argv Array of arguments as C char strings.
  */
-TexGenApplication::TexGenApplication(int argc, char* argv[]) : QApplication(argc, argv)
+TexGenApplication::TexGenApplication(int &argc, char* argv[]) : QApplication(argc, argv)
 {
    addWindow();
 #ifndef Q_OS_MAC

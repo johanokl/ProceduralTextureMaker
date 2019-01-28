@@ -44,3 +44,5 @@ CMakeLists.txt.user*
 *~
 *.rc
 *plugin_import.cpp
+
+ProceduralTextureMaker

@@ -8,7 +8,7 @@
 #ifndef VIEWNODESCENE_H
 #define VIEWNODESCENE_H
 
-#include "core/texturenode.h"
+#include "base/texturenode.h"
 #include <QGraphicsScene>
 #include <QMap>
 #include <tuple>

@@ -23,9 +23,17 @@ macx {
 # To do so, uncomment the line "#defines DISABLE_JAVASCRIPT".
 # -----------------------------------------
 #DEFINES += "DISABLE_JAVASCRIPT"
-#DEFINES += "USE_QJSENGINE"
-#QT += qml
-QT += script
+
+qtHaveModule(qml) {
+  QT += qml
+  DEFINES += "USE_QJSENGINE"
+}
+else { qtHaveModule(script) {
+  QT += script
+}
+else {
+  DEFINES += "DISABLE_JAVASCRIPT"
+}}
 
 QT += xml \
     widgets \
@@ -34,13 +42,16 @@ QT += xml \
 
 CONFIG += c++11
 
-SOURCES = main.cpp \
+INCLUDEPATH += src
+
+SOURCES = \
+    main.cpp \
     texgenapplication.cpp \
-    core/texturenode.cpp \
-    core/textureimage.cpp \
-    core/texturerenderthread.cpp \
-    core/settingsmanager.cpp \
-    core/textureproject.cpp \
+    base/texturenode.cpp \
+    base/textureimage.cpp \
+    base/texturerenderthread.cpp \
+    base/settingsmanager.cpp \
+    base/textureproject.cpp \
     gui/nodesettingswidget.cpp \
     gui/mainwindow.cpp \
     gui/addnodepanel.cpp \
@@ -93,13 +104,14 @@ SOURCES = main.cpp \
     generators/text.cpp \
     generators/whirl.cpp
 
-HEADERS +=     global.h \
+HEADERS += \
+    global.h \
     texgenapplication.h \
-    core/texturenode.h \
-    core/textureimage.h \
-    core/texturerenderthread.h \
-    core/settingsmanager.h \
-    core/textureproject.h \
+    base/texturenode.h \
+    base/textureimage.h \
+    base/texturerenderthread.h \
+    base/settingsmanager.h \
+    base/textureproject.h \
     gui/addnodepanel.h \
     gui/qdoubleslider.h \
     gui/nodesettingswidget.h \
@@ -153,7 +165,8 @@ HEADERS +=     global.h \
     generators/transform.h \
     generators/whirl.h
 
-RESOURCES += texgen.qrc \
+RESOURCES += \
+    texgen.qrc \
     shaders.qrc
 
 RC_ICONS += images/mainicon.ico

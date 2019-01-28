@@ -8,7 +8,7 @@
 #ifndef ITEMINFOPANEL_H
 #define ITEMINFOPANEL_H
 
-#include "core/texturenode.h"
+#include "base/texturenode.h"
 #include <QMap>
 #include <QSize>
 #include <QWidget>

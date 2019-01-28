@@ -5,7 +5,7 @@
  * Johan Lindqvist (johan.lindqvist@gmail.com)
  */
 
-#include "core/textureproject.h"
+#include "base/textureproject.h"
 #include "sceneview/viewnodeitem.h"
 #include "sceneview/viewnodeline.h"
 #include "sceneview/viewnodescene.h"
@@ -139,8 +139,11 @@ QPainterPath ViewNodeLine::shape() const
    QPainterPathStroker stroker;
    stroker.setWidth(20);
    stroker.setJoinStyle(Qt::MiterJoin); // and other adjustments you need
-   path = (stroker.createStroke(path) + path).simplified();
-   return path;
+   QPainterPath stroke = stroker.createStroke(path);
+   QPainterPath fullPath = path + stroke;
+   // Crashes on Ubuntu 18.04 with Qt 5.9:
+   // fullPath = fullPath.simplified();
+   return fullPath;
 }
 
 /**

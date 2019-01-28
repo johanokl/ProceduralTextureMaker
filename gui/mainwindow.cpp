@@ -5,10 +5,10 @@
  * Johan Lindqvist (johan.lindqvist@gmail.com)
  */
 
-#include "core/settingsmanager.h"
-#include "core/textureimage.h"
-#include "core/texturenode.h"
-#include "core/textureproject.h"
+#include "base/settingsmanager.h"
+#include "base/textureimage.h"
+#include "base/texturenode.h"
+#include "base/textureproject.h"
 #include "generators/blending.h"
 #include "generators/boxblur.h"
 #include "generators/bricks.h"

@@ -5,7 +5,7 @@
  * Johan Lindqvist (johan.lindqvist@gmail.com)
  */
 
-#include "core/textureproject.h"
+#include "base/textureproject.h"
 #include "generators/texturegenerator.h"
 #include "generators/texturegenerator.h"
 #include "global.h"

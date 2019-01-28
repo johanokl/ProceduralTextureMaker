@@ -8,7 +8,7 @@
 #ifndef NODESETTINGSWIDGET_H
 #define NODESETTINGSWIDGET_H
 
-#include "core/texturenode.h"
+#include "base/texturenode.h"
 #include <QList>
 #include <QMap>
 #include <QWidget>

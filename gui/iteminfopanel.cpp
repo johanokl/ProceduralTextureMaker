@@ -5,7 +5,7 @@
  * Johan Lindqvist (johan.lindqvist@gmail.com)
  */
 
-#include "core/textureproject.h"
+#include "base/textureproject.h"
 #include "gui/connectionwidget.h"
 #include "gui/iteminfopanel.h"
 #include "gui/nodesettingswidget.h"

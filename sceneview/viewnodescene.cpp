@@ -5,8 +5,8 @@
  * Johan Lindqvist (johan.lindqvist@gmail.com)
  */
 
-#include "core/settingsmanager.h"
-#include "core/textureproject.h"
+#include "base/settingsmanager.h"
+#include "base/textureproject.h"
 #include "gui/mainwindow.h"
 #include "sceneview/viewnodeitem.h"
 #include "sceneview/viewnodeline.h"

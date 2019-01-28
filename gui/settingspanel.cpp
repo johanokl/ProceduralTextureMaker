@@ -5,7 +5,7 @@
  * Johan Lindqvist (johan.lindqvist@gmail.com)
  */
 
-#include "core/settingsmanager.h"
+#include "base/settingsmanager.h"
 #include "gui/mainwindow.h"
 #include "gui/menuactions.h"
 #include "settingspanel.h"

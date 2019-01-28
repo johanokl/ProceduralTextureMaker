@@ -5,8 +5,8 @@
  * Johan Lindqvist (johan.lindqvist@gmail.com)
  */
 
-#include "core/settingsmanager.h"
-#include "core/textureproject.h"
+#include "base/settingsmanager.h"
+#include "base/textureproject.h"
 #include "global.h"
 #include "gui/cubewidget.h"
 #include "gui/previewimagepanel.h"

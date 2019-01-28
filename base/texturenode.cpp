@@ -8,6 +8,7 @@
 #include "texturenode.h"
 #include "textureproject.h"
 #include <QColor>
+#include <QLocale>
 
 bool operator<(const QSize& lhs, const QSize& rhs)
 {
@@ -85,8 +86,7 @@ void TextureNode::loadFromXML(const QDomNode& xmlnode, QMap<int, int> idMappings
    name = xmlnode.toElement().attribute("name");
    QDomElement pos = xmlnode.namedItem("pos").toElement();
    if (!pos.isNull()) {
-      setPos(QPointF(pos.attribute("x").toDouble(),
-                     pos.attribute("y").toDouble()));
+      setPos(QPointF(pos.attribute("x").toDouble(), pos.attribute("y").toDouble()));
    }
    QDomElement generatornode = xmlnode.namedItem("generator").toElement();
    if (!generatornode.isNull()) {
@@ -112,6 +112,8 @@ void TextureNode::loadFromXML(const QDomNode& xmlnode, QMap<int, int> idMappings
          settingVariant = QVariant(settingValue.toInt());
       } else if (settingType == "double") {
          settingVariant = QVariant(settingValue.toDouble());
+      } else if (settingType == "bool") {
+         settingVariant = QVariant((bool) (settingValue == "true" ? true : false));
       } else if (settingType == "QColor") {
          settingVariant = QVariant(QColor(settingValue));
       } else if (settingType == "QString") {
@@ -137,9 +139,11 @@ QDomElement TextureNode::saveAsXML(QDomDocument targetdoc)
    retXmlNode.setAttribute("id", id);
    retXmlNode.setAttribute("name", name);
 
+   QLocale localeXML(QLocale::C);
+
    QDomElement posnode = targetdoc.createElement("pos");
-   posnode.setAttribute("x", pos.x());
-   posnode.setAttribute("y", pos.y());
+   posnode.setAttribute("x", localeXML.toString(pos.x()));
+   posnode.setAttribute("y", localeXML.toString(pos.y()));
    retXmlNode.appendChild(posnode);
 
    QDomElement generatornode = targetdoc.createElement("generator");

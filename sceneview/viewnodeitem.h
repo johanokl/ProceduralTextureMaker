@@ -8,7 +8,7 @@
 #ifndef VIEWNODEITEM_H
 #define VIEWNODEITEM_H
 
-#include "core/texturenode.h"
+#include "base/texturenode.h"
 #include <QGraphicsItem>
 
 class ViewNodeScene;

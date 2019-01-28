@@ -8,7 +8,7 @@
 #ifndef TEXTUREGENERATOR_H
 #define TEXTUREGENERATOR_H
 
-#include "core/textureimage.h"
+#include "base/textureimage.h"
 #include "global.h"
 #include <QMap>
 

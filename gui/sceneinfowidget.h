@@ -8,7 +8,7 @@
 #ifndef SCENEINFOWIDGET_H
 #define SCENEINFOWIDGET_H
 
-#include "core/texturenode.h"
+#include "base/texturenode.h"
 #include <QVBoxLayout>
 #include <QWidget>
 
