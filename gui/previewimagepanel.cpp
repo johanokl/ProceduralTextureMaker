@@ -48,15 +48,6 @@ void ImageLabel::resizeEvent(QResizeEvent *event)
 }
 
 /**
- * @brief ImageLabel::pixmap
- * @return the widget's pixmap visible at the moment.
- */
-const QPixmap* ImageLabel::pixmap() const
-{
-   return label->pixmap();
-}
-
-/**
  * @brief ImageLabel::setPixmap
  * @param pixmap background image
  * Sets the pixmap to fill the whole widget.
@@ -73,7 +64,11 @@ void ImageLabel::setPixmap(const QPixmap& pixmap)
  * Calling it multiple times doesn't lead to artifacts.
  */
 void ImageLabel::resizeImage() {
+#if QT_VERSION >= QT_VERSION_CHECK(5, 15, 0)
+   QSize pixSize = label->pixmap(Qt::ReturnByValue).size();
+#else
    QSize pixSize = label->pixmap()->size();
+#endif
    pixSize.scale(size(), Qt::KeepAspectRatio);
    label->setFixedSize(pixSize);
 }

@@ -140,9 +140,10 @@ void GradientTextureGenerator::generate(QSize size,
    } else if (gradientmode == "Radial Gradient") {
       gradient = QRadialGradient(startposx, startposy, radius, endposx, endposy);
    } else if (gradientmode == "Conical Gradient") {
-      QLineF l(startposx, startposy, endposx, endposy);
-      double angle = l.angle(QLineF(0, 0, 1, 0));
-      if (l.dy() > 0) {
+      QLineF l1(startposx, startposy, endposx, endposy);
+      QLineF l2(0, 0, 1, 0);
+      double angle = qMin(l1.angleTo(l2), l2.angleTo(l1));
+      if (l1.dy() > 0) {
          angle = 360 - angle;
       }
       gradient = QConicalGradient(startposx, startposy, angle);

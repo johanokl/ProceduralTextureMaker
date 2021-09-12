@@ -152,11 +152,9 @@ void SetChannelsTextureGenerator::generate(QSize size, TexturePixel* destimage,
    bool secondAllocated = false;
    if (!firstSource) {
       firstSource = new TexturePixel[numPixels];
-      memset(firstSource, 0, numPixels * sizeof(TexturePixel));
       firstAllocated = true;
    } else if (!secondSource) {
       secondSource = new TexturePixel[numPixels];
-      memset(secondSource, 0, numPixels * sizeof(TexturePixel));
       secondAllocated = true;
    }
    for (int thisPos = 0; thisPos < numPixels; thisPos++) {

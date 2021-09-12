@@ -22,7 +22,7 @@ Two example textures have been added to the repository:
 
 ### Technical Details
 The application is written in C++ and uses the Qt framework.  
-It has been tested with Qt 5.9.1 and 5.10 on Mac OS 10.13 with Clang and Windows 10 with MinGW/GCC.  
+It has been tested with Qt versions 5.9, 5.10, 5.12 and 5.15 on Mac OS, Ubuntu and Windows 10.  
 It uses multiple threads on multiple CPU cores where supported, so that CPU intensive texture calculations don't affect the UI performance.  
 It's easy to extend the application by adding new generators, especially ones written in Javacript as those are loaded dynamically from external files.
 
@@ -34,7 +34,7 @@ QScriptEngine and not QJSEngine is still enabled by default as there were some s
 Changing which engine that should be used is done by adding or removing `DEFINES += "USE_QJSENGINE"` in _ProceduralTextureMaker.pro_.  
 
 ### How to build
-Install and configure Qt 5.10, available at http://www.qt.io/qt5-10.  
+Install and configure Qt 5.15, available at https://www.qt.io/download-open-source  
 If you're compiling with the QScript engine (see the Javascript section above) make sure that the Qt installation includes that module.  
 If Qt Creator was installed, use it to open and build the project file `ProceduralTextureMaker.pro`.  
 If Qt Creator isn't available, use a terminal to browse to the project root directory and run `qmake && make && make install`.  

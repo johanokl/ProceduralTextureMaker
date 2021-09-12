@@ -17,7 +17,7 @@ void NormalMapTextureGenerator::generate(QSize size,
       return;
    }
 
-   memset(destimage, 255, size.width() * size.height() * sizeof(TexturePixel));
+   memset(destimage, 0, size.width() * size.height() * sizeof(TexturePixel));
 
    if (!sourceimages.contains(0)) {
       return;

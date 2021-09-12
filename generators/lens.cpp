@@ -37,7 +37,7 @@ LensTextureGenerator::LensTextureGenerator()
 
    TextureGeneratorSetting strength;
    strength.defaultvalue = QVariant((double) 200);
-   strength.name = "strength";
+   strength.name = "Strength";
    strength.min = QVariant(0);
    strength.max = QVariant(300);
    strength.order = 3;

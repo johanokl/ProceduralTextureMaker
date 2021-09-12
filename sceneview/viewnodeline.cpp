@@ -214,7 +214,11 @@ void ViewNodeLine::updatePos()
       for (int i = 1; i < polygon.count(); ++i) {
          QPointF p2 = polygon.at(i) + receiverItem->pos();
          polyLine = QLineF(p1, p2);
+#if QT_VERSION < QT_VERSION_CHECK(5, 14, 0)
          QLineF::IntersectType intersectType = polyLine.intersect(centerLine, &receiverPos);
+#else
+         QLineF::IntersectType intersectType = polyLine.intersects(centerLine, &receiverPos);
+#endif
          if (intersectType == QLineF::BoundedIntersection) {
             break;
          }

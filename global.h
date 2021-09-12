@@ -24,13 +24,14 @@ public:
    unsigned char r;
    unsigned char a;
 
-   TexturePixel(const TexturePixel& rhs)
-      : b(rhs.b), g(rhs.g), r(rhs.r), a(rhs.a) {}
+   TexturePixel() = default;
 
    explicit
-   TexturePixel(unsigned char red = 0, unsigned char green = 0,
-                unsigned char blue = 0, unsigned char alpha = 255)
+   TexturePixel(unsigned char red, unsigned char green,
+                unsigned char blue, unsigned char alpha)
       : b(blue), g(green), r(red), a(alpha) {}
+
+   TexturePixel(const TexturePixel& rhs) = default;
 
    /**
     * @brief TexturePixel::toRGBA
@@ -47,6 +48,8 @@ public:
       return ret;
    }
 
+   TexturePixel& operator=(const TexturePixel& rhs) = default;
+
    TexturePixel& operator+=(const TexturePixel& rhs) {
       r = static_cast<unsigned char>(qMin(static_cast<int>(rhs.r) + static_cast<int>(r), 255));
       g = static_cast<unsigned char>(qMin(static_cast<int>(rhs.g) + static_cast<int>(g), 255));
@@ -55,7 +58,7 @@ public:
       return *this;
    }
 
-   TexturePixel operator+(const TexturePixel& rhs) {
+   TexturePixel operator+(const TexturePixel& rhs) const {
        TexturePixel ret(*this);
        ret += rhs;
        return ret;
@@ -86,7 +89,7 @@ public:
 };
 
 
-typedef struct {
+struct TextureGeneratorSetting {
    QVariant defaultvalue;
    QString name;
    QString description = "";
@@ -96,8 +99,7 @@ typedef struct {
    QVariant max;
    QString group = "";
    QString enabler = "";
-}
-TextureGeneratorSetting;
+};
 
 typedef QMap<QString, TextureGeneratorSetting> TextureGeneratorSettings;
 

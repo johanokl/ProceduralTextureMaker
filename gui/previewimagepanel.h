@@ -71,7 +71,6 @@ class ImageLabel : public QWidget
     Q_OBJECT
 public:
     explicit ImageLabel(QWidget* parent = nullptr);
-    const QPixmap* pixmap() const;
 public slots:
     void setPixmap(const QPixmap&);
 protected:

@@ -108,7 +108,7 @@ void NoiseTextureGenerator::generate(QSize size,
    if (sourceimages.contains(0)) {
       memcpy(destobject.bits(), sourceimages.value(0)->getData(), size.width() * size.height() * sizeof(TexturePixel));
    } else {
-      memset(destobject.bits(), 0, size.width() * size.height() * sizeof(TexturePixel));
+      std::fill_n(destobject.bits(), size.width() * size.height(), 0);
    }
 
    if (alphamax < alphamin) {
@@ -119,10 +119,10 @@ void NoiseTextureGenerator::generate(QSize size,
    }
 
    if (width > 0 && height > 0) {
-      TexturePixel baseColor(color.red(), color.green(), color.blue());
+      TexturePixel baseColor(color.red(), color.green(), color.blue(), 255);
 #if QT_VERSION < QT_VERSION_CHECK(5, 10, 0)
       int alpharange = (alphamax - alphamin + 1);
-      srand(randomizer);
+      qsrand(randomizer);
 #else
       QRandomGenerator random(randomizer);
 #endif

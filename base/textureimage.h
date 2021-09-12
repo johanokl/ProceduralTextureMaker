@@ -24,6 +24,7 @@ public:
    virtual ~TextureImage();
    QSize getSize() const { return size; }
    TexturePixel* getData() const { return data; }
+
 private:
    QSize size;
    TexturePixel* data;

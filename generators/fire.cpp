@@ -8,6 +8,9 @@
 #include "fire.h"
 #include <QPainter>
 #include <QtMath>
+#if QT_VERSION >= QT_VERSION_CHECK(5, 10, 0)
+#include <QRandomGenerator>
+#endif
 
 /**
  * @brief FireTextureGenerator::FireTextureGenerator
@@ -53,8 +56,11 @@ void FireTextureGenerator::generate(QSize size, TexturePixel* destimage,
    double falloff = 0.245 + settings->value("falloff").toDouble() / 100;
    int iterations = settings->value("iterations").toInt();
    uint randomize = settings->value("randomize").toUInt();
+#if QT_VERSION < QT_VERSION_CHECK(5, 10, 0)
    qsrand(randomize);
-
+#else
+   QRandomGenerator random(randomize);
+#endif
    // Speed things up by having a smaller rendering surface.
    int screenWidth = 150;
    int screenHeight = 150;
@@ -73,7 +79,13 @@ void FireTextureGenerator::generate(QSize size, TexturePixel* destimage,
    for (int i = 0; i < iterations; i++) {
       // randomize the bottom row of the fire buffer
       for (int x = 0; x < screenWidth; x++) {
-         fire[(screenHeight - 1) * screenWidth + x] = abs(32768 + qrand()) % 256;
+         fire[(screenHeight - 1) * screenWidth + x] =
+      #if QT_VERSION < QT_VERSION_CHECK(5, 10, 0)
+               abs(32768 + qrand()) % 256;
+      #else
+               abs(32768 + random.bounded(RAND_MAX)) % 256;
+      #endif
+
       }
       // do the fire calculations for every pixel
       for (int y = 0; y < screenHeight - 1; y++) {

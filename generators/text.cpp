@@ -140,7 +140,11 @@ void TextTextureGenerator::generate(QSize size,
    QPainter painter(&tempimage);
    painter.translate(offsetLeft, offsetTop);
    painter.rotate(rotation);
+#if QT_VERSION >= QT_VERSION_CHECK(5, 11, 0)
+   painter.translate(-fm.horizontalAdvance(text) / 2, -fm.height() / 2);
+#else
    painter.translate(-fm.width(text) / 2, -fm.height() / 2);
+#endif
    painter.setCompositionMode(QPainter::CompositionMode_SourceOver);
    painter.setRenderHint(QPainter::Antialiasing, antialiasing);
    painter.setFont(font);

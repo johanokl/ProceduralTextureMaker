@@ -58,9 +58,8 @@ void ViewNodeView::resetZoom()
  */
 void ViewNodeView::wheelEvent(QWheelEvent* event) {
    auto* wheel_event = static_cast<QWheelEvent*>(event);
-   if ((QApplication::keyboardModifiers() == Qt::ShiftModifier
-       || QApplication::keyboardModifiers() == Qt::AltModifier)
-       && wheel_event->orientation() == Qt::Vertical) {
+   if (QApplication::keyboardModifiers() == Qt::ShiftModifier
+       || QApplication::keyboardModifiers() == Qt::AltModifier) {
       const ViewportAnchor anchor = transformationAnchor();
       setTransformationAnchor(QGraphicsView::AnchorUnderMouse);
       double angle = wheel_event->angleDelta().y();

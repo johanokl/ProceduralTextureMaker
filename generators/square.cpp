@@ -8,6 +8,7 @@
 
 #include "square.h"
 #include <QPainter>
+#include <QPainterPath>
 #include <cmath>
 
 SquareTextureGenerator::SquareTextureGenerator()

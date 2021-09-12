@@ -8,6 +8,7 @@
 #include "base/textureimage.h"
 #include "star.h"
 #include <QPainter>
+#include <QPainterPath>
 #include <QtMath>
 #include <cmath>
 

@@ -17,7 +17,7 @@
  */
 QSize SettingsManager::getPreviewSize() const
 {
-   return QSettings().value("previewsize", QSize(500, 500)).toSize();
+   return QSettings().value("previewsize", QSize(800, 800)).toSize();
 }
 
 /**
@@ -36,11 +36,11 @@ void SettingsManager::setPreviewSize(const QSize& size)
 
 /**
  * @brief SettingsManager::getThumbnailSize
- * @return Size of thumbnails in the scene widget.
+ * @return Size of thumbnails in the scene widget. 300x300 pixels if not set.
  */
 QSize SettingsManager::getThumbnailSize() const
 {
-   return QSettings().value("thumbnailsize", QSize(250, 250)).toSize();
+   return QSettings().value("thumbnailsize", QSize(300, 300)).toSize();
 }
 
 /**
@@ -59,11 +59,11 @@ void SettingsManager::setThumbnailSize(const QSize& size)
 
 /**
  * @brief SettingsManager::getDefaultZoom
- * @return Default zoom factor for the scene view. 100 if not set.
+ * @return Default zoom factor for the scene view. 50 if not set.
  */
 int SettingsManager::getDefaultZoom() const
 {
-   return QSettings().value("defaultzoom", 100).toInt();
+   return QSettings().value("defaultzoom", 50).toInt();
 }
 
 /**

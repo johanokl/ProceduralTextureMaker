@@ -87,6 +87,7 @@ void PerlinNoiseTextureGenerator::generate(QSize size, TexturePixel* destimage,
       return;
    }
 
+
    QColor color = settings->value("color").value<QColor>();
    int numOctaves = settings->value("numoctaves").toInt();
    double persistence = settings->value("persistence").toDouble();
@@ -124,6 +125,7 @@ void PerlinNoiseTextureGenerator::generate(QSize size, TexturePixel* destimage,
          destimage[thisPos].r = qMin(qMax((int) (fraction * (float) color.red() + (blend ? (negVal * (float) sourceImg[thisPos].r) : 0)), 0), 255);
          destimage[thisPos].g = qMin(qMax((int) (fraction * (float) color.green() + (blend ? (negVal * (float) sourceImg[thisPos].g) : 0)), 0), 255);
          destimage[thisPos].b = qMin(qMax((int) (fraction * (float) color.blue() + (blend ? (negVal * (float) sourceImg[thisPos].b) : 0)), 0), 255);
+         destimage[thisPos].a = 255;
       }
    }
 }

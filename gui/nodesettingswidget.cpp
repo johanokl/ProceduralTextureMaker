@@ -307,7 +307,7 @@ void NodeSettingsWidget::generatorUpdated()
 
    TextureGeneratorSettings settings = generator->getSettings();
    QList<TextureGeneratorSetting> settingsvalues = settings.values();
-   qSort(settingsvalues.begin(), settingsvalues.end(), settingsComperator);
+   std::sort(settingsvalues.begin(), settingsvalues.end(), settingsComperator);
    QListIterator<TextureGeneratorSetting> settingsIterator(settingsvalues);
 
    while (settingsIterator.hasNext()) {
@@ -449,7 +449,7 @@ void NodeSettingsWidget::setGroupAlignment(const QString& group, bool aligned)
 {
    TextureGeneratorSettings settings = texNode->getGenerator()->getSettings();
    QList<TextureGeneratorSetting> settingsvalues = settings.values();
-   qSort(settingsvalues.begin(), settingsvalues.end(), settingsComperator);
+   std::sort(settingsvalues.begin(), settingsvalues.end(), settingsComperator);
    QListIterator<TextureGeneratorSetting> settingsIterator(settingsvalues);
    QString firstsetting;
    while (settingsIterator.hasNext()) {
