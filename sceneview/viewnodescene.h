@@ -1,9 +1,8 @@
-/**
- * Part of the ProceduralTextureMaker project.
- * http://github.com/johanokl/ProceduralTextureMaker
- * Released under GPLv3.
- * Johan Lindqvist (johan.lindqvist@gmail.com)
- */
+
+// Part of the ProceduralTextureMaker project.
+// http://github.com/johanokl/ProceduralTextureMaker
+// Released under GPLv3.
+// Johan Lindqvist (johan.lindqvist@gmail.com)
 
 #ifndef VIEWNODESCENE_H
 #define VIEWNODESCENE_H
@@ -12,7 +11,6 @@
 #include <QGraphicsScene>
 #include <QMap>
 #include <tuple>
-
 class TextureProject;
 class ViewNodeItem;
 class ViewNodeLine;
@@ -21,16 +19,10 @@ class MainWindow;
 class QAction;
 class QGraphicsRectItem;
 
-/**
- * @brief The ViewNodeScene class
- *
- * The visualization of a TextureProject node scene.
- *
- * Manages the ViewNodeItem and ViewNodeLine object as well as
- * user's actions on it via the scene widget.
- */
-class ViewNodeScene : public QGraphicsScene
-{
+/// @brief The visualization of a TextureProject node scene.
+/// Manages the ViewNodeItem and ViewNodeLine object as well as
+/// user's actions on it via the scene widget.
+class ViewNodeScene : public QGraphicsScene {
    Q_OBJECT
    friend class ViewNodeItem;
 
@@ -40,10 +32,13 @@ public:
    ViewNodeScene* clone() const;
    TextureProject* getTextureProject() const { return project; }
    MainWindow* getParent() const { return parent; }
-   virtual void clear();
+   void clearProject();
    void endLineDrawing(int endNode);
    void startLineDrawing(int nodeId);
    ViewNodeItem* getItem(int id) const;
+   void setLineWidths(int normalWidth, int highlightedWidth);
+   void setArrowSize(int arrowSize);
+   void setHeaderSize(int headerSize);
 
    void setSelectedNode(int id);
    int getSelectedNode() const { return selectedNode; }
@@ -88,8 +83,12 @@ private:
    ViewNodeLine* lineItem;
    int startLineNode;
    int selectedNode;
+   int lineWidth;
+   int highlightedLineWidth;
+   int arrowSize;
+   int headerSize;
    std::tuple<int, int, int> selectedLine;
    bool lineDrawing;
 };
 
-#endif // VIEWNODESCENE_H
+#endif  // VIEWNODESCENE_H

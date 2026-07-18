@@ -1,16 +1,14 @@
-/**
- * Part of the ProceduralTextureMaker project.
- * http://github.com/johanokl/ProceduralTextureMaker
- * Released under GPLv3.
- * Johan Lindqvist (johan.lindqvist@gmail.com)
- */
+
+// Part of the ProceduralTextureMaker project.
+// http://github.com/johanokl/ProceduralTextureMaker
+// Released under GPLv3.
+// Johan Lindqvist (johan.lindqvist@gmail.com)
 
 #include "bricks.h"
 #include <QColor>
 #include <QPainter>
 
-BricksTextureGenerator::BricksTextureGenerator()
-{
+BricksTextureGenerator::BricksTextureGenerator() {
    TextureGeneratorSetting color;
    color.name = "Color";
    color.defaultvalue = QVariant(QColor(200, 200, 200, 255));
@@ -19,7 +17,7 @@ BricksTextureGenerator::BricksTextureGenerator()
 
    TextureGeneratorSetting linewidth;
    linewidth.name = "Line width";
-   linewidth.defaultvalue = QVariant((int) 10);
+   linewidth.defaultvalue = QVariant((int)10);
    linewidth.min = QVariant(0);
    linewidth.max = QVariant(100);
    linewidth.order = 2;
@@ -27,7 +25,7 @@ BricksTextureGenerator::BricksTextureGenerator()
 
    TextureGeneratorSetting brickwidth;
    brickwidth.name = "Brick width";
-   brickwidth.defaultvalue = QVariant((int) 120);
+   brickwidth.defaultvalue = QVariant((int)120);
    brickwidth.min = QVariant(0);
    brickwidth.max = QVariant(300);
    brickwidth.group = "size";
@@ -36,7 +34,7 @@ BricksTextureGenerator::BricksTextureGenerator()
 
    TextureGeneratorSetting brickheight;
    brickheight.name = "Brick height";
-   brickheight.defaultvalue = QVariant((int) 45);
+   brickheight.defaultvalue = QVariant((int)45);
    brickheight.min = QVariant(0);
    brickheight.max = QVariant(300);
    brickheight.group = "size";
@@ -45,7 +43,7 @@ BricksTextureGenerator::BricksTextureGenerator()
 
    TextureGeneratorSetting offsetx;
    offsetx.name = "Offset left";
-   offsetx.defaultvalue = QVariant((int) 0);
+   offsetx.defaultvalue = QVariant((int)0);
    offsetx.min = QVariant(-100);
    offsetx.max = QVariant(100);
    offsetx.order = 5;
@@ -53,19 +51,15 @@ BricksTextureGenerator::BricksTextureGenerator()
 
    TextureGeneratorSetting offsety;
    offsety.name = "Offset top";
-   offsety.defaultvalue = QVariant((int) 0);
+   offsety.defaultvalue = QVariant((int)0);
    offsety.min = QVariant(-100);
    offsety.max = QVariant(100);
    offsety.order = 6;
    configurables.insert("offsety", offsety);
 }
-
-
-void BricksTextureGenerator::generate(QSize size,
-                                      TexturePixel* destimage,
+void BricksTextureGenerator::generate(QSize size, TexturePixel* destimage,
                                       QMap<int, TextureImagePtr> sourceimages,
-                                      TextureNodeSettings* settings) const
-{
+                                      TextureNodeSettings* settings) const {
    if (!settings || !destimage || !size.isValid()) {
       return;
    }
@@ -77,7 +71,8 @@ void BricksTextureGenerator::generate(QSize size,
    int offsety = settings->value("offsety").toDouble() * size.height() / 100;
 
    if (sourceimages.contains(0)) {
-      memcpy(destimage, sourceimages.value(0)->getData(), size.width() * size.height() * sizeof(TexturePixel));
+      memcpy(destimage, sourceimages.value(0)->getData(),
+             size.width() * size.height() * sizeof(TexturePixel));
    } else {
       memset(destimage, 0, size.width() * size.height() * sizeof(TexturePixel));
    }

@@ -12,10 +12,6 @@
 
 # Qt-es
 
-/.qmake.cache
-/.qmake.stash
-*.pro.user
-*.pro.user.*
 *.qbs.user
 *.qbs.user.*
 *.moc
@@ -30,6 +26,10 @@ Makefile*
 
 *.autosave
 
+# Visual Studio Code
+
+.vscode/
+
 # QtCtreator Qml
 *.qmlproject.user
 *.qmlproject.user.*
@@ -39,6 +39,7 @@ CMakeLists.txt.user*
 
 /debug
 /release
+/build/
 
 .DS_store
 *~

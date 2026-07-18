@@ -1,0 +1,89 @@
+{
+  "version": 3,
+  "configurePresets": [
+    {
+      "name": "base",
+      "hidden": true,
+      "generator": "Ninja",
+      "binaryDir": "${sourceDir}/build/${presetName}",
+      "cacheVariables": {
+        "CMAKE_EXPORT_COMPILE_COMMANDS": "ON"
+      }
+    },
+    {
+      "name": "debug",
+      "displayName": "Debug",
+      "inherits": "base",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug"
+      }
+    },
+    {
+      "name": "release",
+      "displayName": "Release",
+      "inherits": "base",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release"
+      }
+    },
+    {
+      "name": "static-release",
+      "displayName": "Static Release",
+      "inherits": "base",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release",
+        "PROCEDURAL_TEXTURE_MAKER_STATIC_BUILD": "ON"
+      }
+    }
+  ],
+  "buildPresets": [
+    {
+      "name": "debug",
+      "displayName": "Build Debug",
+      "configurePreset": "debug"
+    },
+    {
+      "name": "release",
+      "displayName": "Build Release",
+      "configurePreset": "release"
+    },
+    {
+      "name": "static-release",
+      "displayName": "Build Static Release",
+      "configurePreset": "static-release"
+    },
+    {
+      "name": "clang-tidy",
+      "displayName": "Run clang-tidy",
+      "configurePreset": "debug",
+      "targets": [
+        "clang-tidy"
+      ]
+    },
+    {
+      "name": "review-all-code",
+      "displayName": "Review all code",
+      "configurePreset": "debug",
+      "targets": [
+        "clang-tidy",
+        "clang-format-check"
+      ]
+    },
+    {
+      "name": "clang-format-check",
+      "displayName": "Check clang-format",
+      "configurePreset": "debug",
+      "targets": [
+        "clang-format-check"
+      ]
+    },
+    {
+      "name": "clang-format",
+      "displayName": "Run clang-format",
+      "configurePreset": "debug",
+      "targets": [
+        "clang-format"
+      ]
+    }
+  ]
+}

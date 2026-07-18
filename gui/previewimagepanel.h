@@ -1,15 +1,13 @@
-/**
- * Part of the ProceduralTextureMaker project.
- * http://github.com/johanokl/ProceduralTextureMaker
- * Released under GPLv3.
- * Johan Lindqvist (johan.lindqvist@gmail.com)
- */
+
+// Part of the ProceduralTextureMaker project.
+// http://github.com/johanokl/ProceduralTextureMaker
+// Released under GPLv3.
+// Johan Lindqvist (johan.lindqvist@gmail.com)
 
 #ifndef PREVIEWIMAGEPANEL_H
 #define PREVIEWIMAGEPANEL_H
 
 #include <QWidget>
-
 class TextureProject;
 class QGridLayout;
 class QVBoxLayout;
@@ -22,15 +20,10 @@ class CubeWidget;
 class QResizeEvent;
 class QShowEvent;
 
-/**
- * @brief The PreviewImagePanel class
- *
- * Vertical panel that displays a node's generated image.
- * When an active node's image is updated this also propagates
- * to the panel, which then updates the displayed image.
- */
-class PreviewImagePanel : public QWidget
-{
+/// @brief Vertical panel that displays a node's generated image.
+/// When an active node's image is updated this also propagates
+/// to the panel, which then updates the displayed image.
+class PreviewImagePanel : public QWidget {
    Q_OBJECT
 
 public:
@@ -59,26 +52,23 @@ private:
    QSize imageSize;
 };
 
-/**
- * @brief The ImageLabel class
- *
- * QLabel with added functions to handle automatic
- * scaling of QPixmap images to fit them in inside a QWidget.
- * Supports 2x2 tiled drawing.
- */
-class ImageLabel : public QWidget
-{
-    Q_OBJECT
+/// @brief QLabel with added functions to handle automatic
+/// scaling of QPixmap images to fit them in inside a QWidget.
+/// Supports 2x2 tiled drawing.
+class ImageLabel : public QWidget {
+   Q_OBJECT
 public:
-    explicit ImageLabel(QWidget* parent = nullptr);
+   explicit ImageLabel(QWidget* parent = nullptr);
 public slots:
-    void setPixmap(const QPixmap&);
+   void setPixmap(const QPixmap&);
+
 protected:
-    void resizeEvent(QResizeEvent*) override;
+   void resizeEvent(QResizeEvent*) override;
 private slots:
-    void resizeImage();
+   void resizeImage();
+
 private:
-    QLabel* label;
+   QLabel* label;
 };
 
-#endif // PREVIEWIMAGEPANEL_H
+#endif  // PREVIEWIMAGEPANEL_H

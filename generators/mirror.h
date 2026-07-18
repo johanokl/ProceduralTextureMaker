@@ -1,26 +1,20 @@
-/**
- * Part of the ProceduralTextureMaker project.
- * http://github.com/johanokl/ProceduralTextureMaker
- * Released under GPLv3.
- * Johan Lindqvist (johan.lindqvist@gmail.com)
- */
+
+// Part of the ProceduralTextureMaker project.
+// http://github.com/johanokl/ProceduralTextureMaker
+// Released under GPLv3.
+// Johan Lindqvist (johan.lindqvist@gmail.com)
 
 #ifndef MIRRORTEXTUREGENERATOR_H
 #define MIRRORTEXTUREGENERATOR_H
 
 #include "texturegenerator.h"
 
-/**
- * @brief The MirrorTextureGenerator class
- */
-class MirrorTextureGenerator : public TextureGenerator
-{
+/// @brief The MirrorTextureGenerator class
+class MirrorTextureGenerator : public TextureGenerator {
 public:
    MirrorTextureGenerator();
    ~MirrorTextureGenerator() override = default;
-   void generate(QSize size,
-                 TexturePixel* destimage,
-                 QMap<int, TextureImagePtr> sourceimages,
+   void generate(QSize size, TexturePixel* destimage, QMap<int, TextureImagePtr> sourceimages,
                  TextureNodeSettings* settings) const override;
    int getNumSourceSlots() const override { return 1; }
    QString getName() const override { return QString("Mirror"); }
@@ -32,5 +26,4 @@ private:
    TextureGeneratorSettings configurables;
 };
 
-
-#endif // MIRRORTEXTUREGENERATOR_H
+#endif  // MIRRORTEXTUREGENERATOR_H

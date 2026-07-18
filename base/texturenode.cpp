@@ -1,33 +1,28 @@
-/**
- * Part of the ProceduralTextureMaker project.
- * http://github.com/johanokl/ProceduralTextureMaker
- * Released under GPLv3.
- * Johan Lindqvist (johan.lindqvist@gmail.com)
- */
+
+// Part of the ProceduralTextureMaker project.
+// http://github.com/johanokl/ProceduralTextureMaker
+// Released under GPLv3.
+// Johan Lindqvist (johan.lindqvist@gmail.com)
 
 #include "texturenode.h"
 #include "textureproject.h"
 #include <QColor>
 #include <QLocale>
+#include <QMetaType>
 
-bool operator<(const QSize& lhs, const QSize& rhs)
-{
+/// @brief Orders QSize keys for QMap.
+bool operator<(const QSize& lhs, const QSize& rhs) {
    if (lhs.height() == rhs.height()) {
       return lhs.width() < rhs.width();
    }
    return lhs.height() < rhs.height();
 }
 
-/**
- * @brief TextureNode::TextureNode
- * @param project The parent this node will belong to.
- * @param gen Reference to singleton generator.
- * @param id Node's unchangeable id.
- *
- * Private constructor. To be called from TextureProject only.
- */
-TextureNode::TextureNode(TextureProject* project, const TextureGeneratorPtr& gen, int id)
-{
+/// @brief Private constructor. To be called from TextureProject only.
+/// @param project The parent this node will belong to.
+/// @param gen Reference to singleton generator.
+/// @param id Node's unchangeable id.
+TextureNode::TextureNode(TextureProject* project, const TextureGeneratorPtr& gen, int id) {
    qRegisterMetaType<TextureNodePtr>("TextureNodePtr");
    name = QString("Node %1").arg(id);
    this->project = project;
@@ -42,47 +37,39 @@ TextureNode::TextureNode(TextureProject* project, const TextureGeneratorPtr& gen
    setGenerator(gen);
 }
 
-/**
- * @brief TextureNode::~TextureNode
- * Removes all references to this node from other nodes before deletion.
- */
-TextureNode::~TextureNode()
-{
+/// @brief Destructor.
+/// @note Removes all references to this node from other nodes before deletion.
+TextureNode::~TextureNode() {
    if (!deleted) {
       release();
    }
 }
 
-/**
- * @brief TextureNode::release
- *
- * Disconnects all source and receiver connections.
- * Needs to be called before deletion.
- */
-void TextureNode::release()
-{
+/// @brief Disconnects all source and receiver connections.
+/// @note Needs to be called before deletion.
+void TextureNode::release() {
    for (int i = 0; i < getNumSourceSlots(); i++) {
       setSourceSlot(i, 0);
    }
    receivermutex.lockForRead();
-   QSetIterator<int> receiveriter(receivers);
-   while (receiveriter.hasNext()) {
-      project->getNode(receiveriter.next())->removeSource(id);
-   }
+   QSet<int> receiversCopy = receivers;
    receivermutex.unlock();
+   QSetIterator<int> receiveriter(receiversCopy);
+   while (receiveriter.hasNext()) {
+      TextureNodePtr receiverNode = project->getNode(receiveriter.next());
+      if (!receiverNode.isNull()) {
+         receiverNode->removeSource(id);
+      }
+   }
    deleted = true;
 }
 
-/**
- * @brief TextureNode::loadFromXML
- * @param xmlnode Serialized data.
- * @param idMappings Mappings between new and old ids so that references are kept.
- *
- * Set up the node's properties, including settings and connections, based on
- * the serialized data stored in XML format by the function saveAsXML().
- */
-void TextureNode::loadFromXML(const QDomNode& xmlnode, QMap<int, int> idMappings)
-{
+/// @brief Load scene from XML data.
+/// @param xmlnode Serialized data.
+/// @param idMappings Mappings between new and old ids so that references are kept.
+/// @details Set up the node's properties, including settings and connections, based on the
+/// serialized data stored in XML format by the function saveAsXML().
+void TextureNode::loadFromXML(const QDomNode& xmlnode, QMap<int, int> idMappings) {
    name = xmlnode.toElement().attribute("name");
    QDomElement pos = xmlnode.namedItem("pos").toElement();
    if (!pos.isNull()) {
@@ -113,7 +100,7 @@ void TextureNode::loadFromXML(const QDomNode& xmlnode, QMap<int, int> idMappings
       } else if (settingType == "double") {
          settingVariant = QVariant(settingValue.toDouble());
       } else if (settingType == "bool") {
-         settingVariant = QVariant((bool) (settingValue == "true" ? true : false));
+         settingVariant = QVariant((bool)(settingValue == "true" ? true : false));
       } else if (settingType == "QColor") {
          settingVariant = QVariant(QColor(settingValue));
       } else if (settingType == "QString") {
@@ -124,17 +111,12 @@ void TextureNode::loadFromXML(const QDomNode& xmlnode, QMap<int, int> idMappings
    emit settingsUpdated(id);
 }
 
-/**
- * @brief TextureNode::saveAsXML
- * @param targetdoc The XML document to add this node to.
- * @return A XML document with this node.
- *
- * Serializes this node in a XML format that can then be loaded
- * using the function loadFromXML. Node settings, properties and
- * connections are included in the serialized data.
- */
-QDomElement TextureNode::saveAsXML(QDomDocument targetdoc)
-{
+/// @brief Save as XML
+/// @param targetdoc The XML document to add this node to.
+/// @return A XML document with this node.
+/// @details Serializes this node in a XML format that can then be loaded using the function
+/// @c loadFromXML. Node settings, properties and connections are included in the serialized data.
+QDomElement TextureNode::saveAsXML(QDomDocument targetdoc) {
    QDomElement retXmlNode = targetdoc.createElement("Node");
    retXmlNode.setAttribute("id", id);
    retXmlNode.setAttribute("name", name);
@@ -161,11 +143,7 @@ QDomElement TextureNode::saveAsXML(QDomDocument targetdoc)
          QVariant value = settingsiterator.value();
          settingnode.setAttribute("id", key);
          settingnode.setAttribute("type", value.typeName());
-         if (value.type() == QVariant::Type::Color) {
-            settingnode.setAttribute("value", value.toString());
-         } else {
-            settingnode.setAttribute("value", value.toString());
-         }
+         settingnode.setAttribute("value", value.toString());
          settingsnode.appendChild(settingnode);
       }
    }
@@ -186,24 +164,13 @@ QDomElement TextureNode::saveAsXML(QDomDocument targetdoc)
    return retXmlNode;
 }
 
-/**
- * @brief TextureNode::setName
- * @param newname
- * Sets the node's public name displayed in the view.
- */
-void TextureNode::setName(const QString& newname)
-{
-   name = newname;
-}
+/// @brief Sets the node's public name displayed in the view.
+/// @param newname
+void TextureNode::setName(const QString& newname) { name = newname; }
 
-/**
- * @brief TextureNode::setSettings
- * @param settings Content and keys used depend on the node's TextureGeneratorSettings.
- *
- * Replaces the node's settings with the new settings object. No merging is done.
- */
-void TextureNode::setSettings(const TextureNodeSettings& settings)
-{
+/// @brief Replaces the node's settings with the new settings object. No merging is done.
+/// @param settings Content and keys used depend on the node's TextureGeneratorSettings.
+void TextureNode::setSettings(const TextureNodeSettings& settings) {
    settingsmutex.lockForWrite();
    this->settings = settings;
    settingsmutex.unlock();
@@ -211,14 +178,9 @@ void TextureNode::setSettings(const TextureNodeSettings& settings)
    setUpdated();
 }
 
-/**
- * @brief TextureNode::setPos
- * @param pos Scene position (relative)
- *
- * Set the node's position and notify the scene views.
- */
-void TextureNode::setPos(QPointF pos)
-{
+/// @brief Set the node's position and notify the scene views.
+/// @param pos Scene position (relative)
+void TextureNode::setPos(QPointF pos) {
    bool posChanged = false;
    if (this->pos != pos) {
       posChanged = true;
@@ -229,32 +191,20 @@ void TextureNode::setPos(QPointF pos)
    }
 }
 
-/**
- * @brief TextureNode::removeSource
- * @param id Node id
- *
- * Disconnect the other node from this node's source slots.
- */
-void TextureNode::removeSource(int id)
-{
+/// @brief Disconnect the other node from this node's source slots.
+/// @param id Node id
+void TextureNode::removeSource(int id) {
    QMapIterator<int, int> sourceiter(sources);
    while (sourceiter.findNext(id)) {
       setSourceSlot(sourceiter.key(), 0);
    }
 }
 
-/**
- * @brief TextureNode::slotAvailable
- * @param slot Slot id, or -1 for any slot.
- * @return true if available
- *
- * Check if a source slot is empty.
- */
-bool TextureNode::slotAvailable(int slot) const
-{
-   if (slot >= 0 &&
-       slot < gen->getNumSourceSlots() &&
-       sources[slot] == 0) {
+/// @brief Check if a source slot is empty.
+/// @param slot Slot id, or -1 for any slot.
+/// @return @c true if available
+bool TextureNode::slotAvailable(int slot) const {
+   if (slot >= 0 && slot < gen->getNumSourceSlots() && sources[slot] == 0) {
       return true;
    }
    if (slot == -1) {
@@ -267,18 +217,15 @@ bool TextureNode::slotAvailable(int slot) const
    return false;
 }
 
-/**
- * @brief TextureNode::setSourceSlot
- * @param slot The slot number
- * @param sourceId The source node's id. Use -1 for disconnection.
- * @return true if the nodes could be connected.
- *
- * Checks if the slot is empty and valid, and the connection won't cause a
- * loop in the graphs. If it passes the test the source slot is set and the
- * node update signal is emitted.
- */
-bool TextureNode::setSourceSlot(int slot, int sourceId)
-{
+/// @brief Sets a source node to a slot.
+/// @param slot The slot number
+/// @param sourceId The source node's id. Use -1 for disconnection.
+/// @return @c true if the nodes could be connected.
+/// @details Sets a source node to a slot. If the slot is -1, the first empty slot is used. If the
+/// source node is already connected to this node, nothing is done. Ensures that the new connection
+/// won't cause a loop in the graphs. If it passes the test the source slot is set and the node
+/// update signal is emitted.
+bool TextureNode::setSourceSlot(int slot, int sourceId) {
    sourcemutex.lockForWrite();
    if ((slot < -1) || slot >= getNumSourceSlots() || sourceId == id) {
       sourcemutex.unlock();
@@ -300,27 +247,48 @@ bool TextureNode::setSourceSlot(int slot, int sourceId)
          return false;
       }
    }
+   int oldSourceId = sources[slot];
+   bool removedOldReceiver = false;
+   TextureNodePtr oldNode;
    // Shall we remove an unused source?
-   if (sources[slot] != 0 && sources.keys(sources[slot]).length() <= 1) {
-      TextureNodePtr oldNode = project->getNode(sources[slot]);
+   if (oldSourceId != 0 && sources.keys(oldSourceId).length() <= 1) {
+      oldNode = project->getNode(oldSourceId);
       if (!oldNode.isNull()) {
+         oldNode->receivermutex.lockForWrite();
          oldNode->receivers.remove(id);
+         oldNode->receivermutex.unlock();
+         removedOldReceiver = true;
       }
-      emit nodesDisconnected(sources[slot], id, slot);
    }
    // Can we add a new source node?
+   bool addedReceiver = false;
    if (sourceId != 0) {
       // Does the node exist?
       TextureNodePtr sourceNode = project->getNode(sourceId);
       if (sourceNode.isNull()) {
+         if (removedOldReceiver) {
+            oldNode->receivermutex.lockForWrite();
+            oldNode->receivers.insert(id);
+            oldNode->receivermutex.unlock();
+         }
          sourcemutex.unlock();
          return false;
       }
       // Does adding it cause loops?
+      sourceNode->receivermutex.lockForWrite();
+      addedReceiver = !sourceNode->receivers.contains(id);
       sourceNode->receivers.insert(id);
+      sourceNode->receivermutex.unlock();
       if (project->findLoops()) {
-         if (sources.key(sourceId, -1) != -1) {
+         if (addedReceiver) {
+            sourceNode->receivermutex.lockForWrite();
             sourceNode->receivers.remove(id);
+            sourceNode->receivermutex.unlock();
+         }
+         if (removedOldReceiver) {
+            oldNode->receivermutex.lockForWrite();
+            oldNode->receivers.insert(id);
+            oldNode->receivermutex.unlock();
          }
          sourcemutex.unlock();
          return false;
@@ -328,6 +296,9 @@ bool TextureNode::setSourceSlot(int slot, int sourceId)
    }
    // Add it and send signals
    sources[slot] = sourceId;
+   if (oldSourceId != 0 && oldSourceId != sourceId) {
+      emit nodesDisconnected(oldSourceId, id, slot);
+   }
    if (sourceId != 0) {
       emit nodesConnected(sources[slot], id, slot);
    }
@@ -339,42 +310,56 @@ bool TextureNode::setSourceSlot(int slot, int sourceId)
    return true;
 }
 
-/**
- * @brief TextureNode::setUpdated
- * Setings this node to updated. Clears the texture cache and notifies
- * the reciever nodes and the generator threads that this node's old image
- * no longer is valid.
- */
-void TextureNode::setUpdated()
-{
+/// @brief Get the number of nodes receiving this node's image.
+/// @return Number of nodes receiving this node's image.
+int TextureNode::getNumReceivers() const {
+   receivermutex.lockForRead();
+   int count = receivers.size();
+   receivermutex.unlock();
+   return count;
+}
+
+/// @brief Get an iterator over a copy of the receiver set.
+/// @return Iterator over a copy of the receiver set.
+/// @details Returns an iterator over a copy of the set of nodes that receive this node's image.
+QSetIterator<int> TextureNode::getReceivers() const {
+   receivermutex.lockForRead();
+   QSet<int> receiversCopy = receivers;
+   receivermutex.unlock();
+   return QSetIterator<int>(receiversCopy);
+}
+
+/// @brief Sets this node to updated.
+/// @details Sets this node to updated. Clears the texture cache and notifies the receiver nodes and
+/// the generator threads that this node's old image no longer is valid.
+void TextureNode::setUpdated() {
    imagemutex.lockForWrite();
    texturecache.clear();
    validImage.clear();
    imagemutex.unlock();
-   QSetIterator<int> receiveriter(receivers);
    receivermutex.lockForRead();
-   while (receiveriter.hasNext()) {
-      project->getNode(receiveriter.next())->setUpdated();
-   }
+   QSet<int> receiversCopy = receivers;
    receivermutex.unlock();
+   QSetIterator<int> receiveriter(receiversCopy);
+   while (receiveriter.hasNext()) {
+      TextureNodePtr receiverNode = project->getNode(receiveriter.next());
+      if (!receiverNode.isNull()) {
+         receiverNode->setUpdated();
+      }
+   }
    emit imageUpdated(id);
 }
 
-/**
- * @brief TextureNode::getImage
- * @param size The requested image size.
- * @return a thread safe pointer to the new TextureImage
- *
- * Retrieves the generated image for this node. If the image for the requested
- * size has already been calculated, and the image or its sources' settings
- * since then haven't since been changed, the image is returned immediately
- * from the cache.
- * If the node has source nodes whose images haven't been calculated those
- * nodes are calculated first. Thus the waiting time for this call can be long.
- * This call is thread safe and contains several mutexes for various node properties.
- */
-TextureImagePtr TextureNode::getImage(QSize size)
-{
+/// @brief Retrieves the generated image for this node.
+/// @param size The requested image size.
+/// @return a thread safe pointer to the new TextureImage
+/// @details Retrieves the generated image for this node. If the image for the requested size has
+/// already been calculated, and the image or its sources' settings since then haven't since been
+/// changed, the image is returned immediately from the cache. If the node has source nodes whose
+/// images haven't been calculated those nodes are calculated first. Thus the waiting time for this
+/// call can be long. This call is thread safe and contains several mutexes for various node
+/// properties.
+TextureImagePtr TextureNode::getImage(QSize size) {
    // First check if the image is in the texture cache and
    // and can be returned immediately.
    imagemutex.lockForRead();
@@ -398,15 +383,15 @@ TextureImagePtr TextureNode::getImage(QSize size)
       int slotSource = sources.value(i);
       sourcemutex.unlock();
       if (slotSource != 0) {
-         TextureNodePtr srcNode = project->getNode(sources.value(i));
+         TextureNodePtr srcNode = project->getNode(slotSource);
          if (!srcNode.isNull()) {
             sourceImages.insert(i, srcNode->getImage(size));
          }
       }
    }
    // Smart pointer to memory area to store the new image
-   auto* destImage = new TexturePixel[size.width() * size.height()];
-   retImage = TextureImagePtr(new TextureImage(size, destImage));
+   retImage = TextureImage::create(size);
+   auto* destImage = retImage->getData();
    // Copy the settings to make it thread safe.
    settingsmutex.lockForRead();
    TextureNodeSettings settingsCopy(settings);
@@ -433,18 +418,13 @@ TextureImagePtr TextureNode::getImage(QSize size)
    return retImage;
 }
 
-/**
- * @brief TextureNode::setGenerator
- * @param newgenerator
- * @return true if successful.
- *
- * Sets the texture generator for this node. The texture generator does not
- * need to have been added to the project. The node keeps a reference to the
- * texture generator singleton instance, no data besides the default settings
- * is copied.
- */
-bool TextureNode::setGenerator(TextureGeneratorPtr newgenerator)
-{
+/// @brief Sets the texture generator for this node.
+/// @param newgenerator The new texture generator to set.
+/// @return @c true if successful.
+/// @details Sets the texture generator for this node. The texture generator does not need to have
+/// been added to the project. The node keeps a reference to the texture generator singleton
+/// instance, no data besides the default settings is copied.
+bool TextureNode::setGenerator(TextureGeneratorPtr newgenerator) {
    if (newgenerator.isNull()) {
       newgenerator = project->getEmptyGenerator();
    }
@@ -460,8 +440,9 @@ bool TextureNode::setGenerator(TextureGeneratorPtr newgenerator)
          QMap<QString, TextureGeneratorSetting>::const_iterator it;
          for (it = genSettings.constBegin(); it != genSettings.constEnd(); ++it) {
             newSettings.insert(it.key(), it.value().defaultvalue);
-            if (it.value().defaultvalue.type() == QVariant::Type::StringList) {
-               newSettings.insert(it.key(), it.value().defaultvalue.toStringList().at(it.value().defaultindex));
+            if (it.value().defaultvalue.typeId() == QMetaType::QStringList) {
+               newSettings.insert(
+                   it.key(), it.value().defaultvalue.toStringList().at(it.value().defaultindex));
             }
          }
       }
@@ -473,51 +454,29 @@ bool TextureNode::setGenerator(TextureGeneratorPtr newgenerator)
    return true;
 }
 
-/**
- * @brief TextureNode::setGenerator
- * @param name The generator class's public name.
- * @return true if successful.
- *
- * Wrapper function for setting the texture generator for this node that takes
- * the name and searches the project for it.
- * The generator needs to have been added to the project before this function
- * is called.
- */
-bool TextureNode::setGenerator(const QString& name)
-{
+/// @brief Sets the texture generator for this node by searching for a generator with that name.
+/// @param name The generator class's public name.
+/// @return @c true if successful.
+/// @details Wrapper function for setting the texture generator for this node that takes the name
+/// and searches the project for it. The generator needs to have been added to the project before
+/// this function is called.
+bool TextureNode::setGenerator(const QString& name) {
    return setGenerator(project->getGenerator(name));
 }
 
-/**
- * @brief TextureNode::getGeneratorName
- * @return the node's generator's long name.
- */
-QString TextureNode::getGeneratorName() const
-{
-   return gen->getName();
-}
+/// @brief Gets the node's generator's long name.
+/// @return the node's generator's long name.
+QString TextureNode::getGeneratorName() const { return gen->getName(); }
 
-/**
- * @brief TextureNode::getNumSourceSlots
- * @return number [0,∞]
- *
- * Retrieves the number of sources for this node's generator.
- */
-int TextureNode::getNumSourceSlots() const
-{
-   return gen->getNumSourceSlots();
-}
+/// @brief Retrieves the number of sources for this node's generator.
+/// @return number [0,∞]
+int TextureNode::getNumSourceSlots() const { return gen->getNumSourceSlots(); }
 
-/**
- * @brief TextureNode::isTextureInCache
- * @param size The size to look for.
- * @return true if in cache.
- *
- * Checks whether the local cache contains an image
- * with the selected size.
- */
-bool TextureNode::isTextureInCache(QSize size) const
-{
+/// @brief Is the node's image for the requested size already in the cache?
+/// @param size The size to look for.
+/// @return @c true if in cache.
+/// @details Checks whether the local cache contains an image with the selected size.
+bool TextureNode::isTextureInCache(QSize size) const {
    imagemutex.lockForRead();
    bool retval = false;
    if (texturecache.contains(size)) {
@@ -527,18 +486,14 @@ bool TextureNode::isTextureInCache(QSize size) const
    return retval;
 }
 
-/**
- * @brief TextureNode::waitingFor
- * @param size
- * @return number of nodes
- *
- * Calculates the number of node images that need to be generated
- * in the selected size before this one has all its source slots
- * marked as ready. If the number is zero then this node image can
- * be generated.
- */
-int TextureNode::waitingFor(QSize size) const
-{
+/// @brief Number of nodes that need to be generated before this node's image can be generated.
+/// @param size
+/// @return number of nodes
+/// @details Calculates the number of node images that need to be generated
+/// in the selected size before this one has all its source slots
+/// marked as ready. If the number is zero then this node image can
+/// be generated.
+int TextureNode::waitingFor(QSize size) const {
    if (isTextureInCache(size)) {
       return 0;
    }
@@ -555,26 +510,19 @@ int TextureNode::waitingFor(QSize size) const
    return numwaitingFor;
 }
 
-/**
- * @brief TextureNode::findLoop
- * @return true if the node has itself a source
- *
- * As a node having itself as a source, even indirectly,
- * would lead to an infinite loop suchs graphs are not allowed.
- */
-bool TextureNode::findLoop() const
-{
+/// @brief Finds if this node has itself as a source, directly or indirectly.
+/// @return @c true if the node has itself a source
+/// @note As a node having itself as a source, even indirectly,
+/// would lead to an infinite loop suchs graphs are not allowed.
+bool TextureNode::findLoop() const {
    QList<int> empty;
    return findLoop(empty);
 }
 
-/**
- * @brief TextureNode::findLoop
- * @param visited Contains the visited nodes
- * @return true if the node has itself a source
- */
-bool TextureNode::findLoop(QList<int> visited) const
-{
+/// @brief Finds if this node has itself as a source, directly or indirectly.
+/// @param visited Contains the visited nodes
+/// @return @c true if the node has itself a source
+bool TextureNode::findLoop(QList<int> visited) const {
    if (visited.contains(id)) {
       return true;
    }

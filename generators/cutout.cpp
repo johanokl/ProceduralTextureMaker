@@ -1,14 +1,12 @@
-/**
- * Part of the ProceduralTextureMaker project.
- * http://github.com/johanokl/ProceduralTextureMaker
- * Released under GPLv3.
- * Johan Lindqvist (johan.lindqvist@gmail.com)
- */
+
+// Part of the ProceduralTextureMaker project.
+// http://github.com/johanokl/ProceduralTextureMaker
+// Released under GPLv3.
+// Johan Lindqvist (johan.lindqvist@gmail.com)
 
 #include "cutout.h"
 
-CutoutTextureGenerator::CutoutTextureGenerator()
-{
+CutoutTextureGenerator::CutoutTextureGenerator() {
    QStringList ordering;
    ordering.append("Slot 2 cut out from Slot 1");
    ordering.append("Slot 1 cut out from Slot 2");
@@ -21,19 +19,16 @@ CutoutTextureGenerator::CutoutTextureGenerator()
 
    TextureGeneratorSetting factor;
    factor.name = "Factor";
-   factor.defaultvalue = QVariant((int) 1);
+   factor.defaultvalue = QVariant((int)1);
    factor.min = 1;
    factor.max = 255;
    factor.defaultindex = 0;
    factor.order = 2;
    configurables.insert("factor", factor);
 }
-
-
 void CutoutTextureGenerator::generate(QSize size, TexturePixel* destimage,
-                                        QMap<int, TextureImagePtr> sourceimages,
-                                        TextureNodeSettings* settings) const
-{
+                                      QMap<int, TextureImagePtr> sourceimages,
+                                      TextureNodeSettings* settings) const {
    if (!settings || !destimage || !size.isValid()) {
       return;
    }

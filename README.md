@@ -1,50 +1,205 @@
-ProceduralTextureMaker
-========================
+# ProceduralTextureMaker
 
-### Introduction
-ProceduralTextureMaker generates texture images in arbitrary sizes based on graphs of nodes that take other nodes' output as input and transform them into new images.  
+## Introduction
 
-Nodes are added dynamically and connected to each other graphically.  
-Custom UI widgets are created for each node based on the texture generator's user configurable settings, making it easy to try out new configurations and watch how changes affect the final output.  
-The project files with texture graphs can be saved to and loaded from XML files, and images can be exported to PNG files.  
+ProceduralTextureMaker generates texture images in arbitrary sizes based on graphs of nodes that
+take other nodes' output as input and transform them into new images.
 
-A number of texture generators written in C++ and Javascript are included with the project.  
+Nodes are added dynamically and connected to each other graphically.
 
-For more general information about procedural textures, see https://en.wikipedia.org/wiki/Procedural_texture  
+Custom UI widgets are created for each node based on the texture generator's user configurable
+settings, making it easy to try out new configurations and watch how changes affect the final
+output.
 
-### Screenshot
+The project files with texture graphs can be saved to and loaded from XML files, and images can be
+exported to PNG files.
+
+A number of texture generators written in C++ and Javascript are included with the project.
+
+For more general information about procedural textures, see
+<https://en.wikipedia.org/wiki/Procedural_texture>
+
+## Screenshot
+
 ![Screenshot 1](https://i.imgur.com/Ikn4oLt.png)
 
-### Examples
+## Examples
+
 Two example textures have been added to the repository:
-* [Rose](examples/rose.txl)
-* [Wall](examples/wall.txl)
 
-### Technical Details
-The application is written in C++ and uses the Qt framework.  
-It has been tested with Qt versions 5.9, 5.10, 5.12 and 5.15 on Mac OS, Ubuntu and Windows 10.  
-It uses multiple threads on multiple CPU cores where supported, so that CPU intensive texture calculations don't affect the UI performance.  
-It's easy to extend the application by adding new generators, especially ones written in Javacript as those are loaded dynamically from external files.
+- [Rose](examples/rose.txl)
+- [Wall](examples/wall.txl)
 
-### Javascript
-One example Javascript texture generator is included in the directory _JavascriptTextureGenerators_.  
-The external Javascript texture generators are parsed and run using the QtScript engine.  
-As the QtScript module is listed as deprecated and not installed by default by the Qt installer there is also support for running the scripts with the newer QJSEngine class.  
-QScriptEngine and not QJSEngine is still enabled by default as there were some strange unresolved bugs related to QJSEngine version 5.10's memory management encountered during development.  
-Changing which engine that should be used is done by adding or removing `DEFINES += "USE_QJSENGINE"` in _ProceduralTextureMaker.pro_.  
+## Technical Details
 
-### How to build
-Install and configure Qt 5.15, available at https://www.qt.io/download-open-source  
-If you're compiling with the QScript engine (see the Javascript section above) make sure that the Qt installation includes that module.  
-If Qt Creator was installed, use it to open and build the project file `ProceduralTextureMaker.pro`.  
-If Qt Creator isn't available, use a terminal to browse to the project root directory and run `qmake && make && make install`.  
+The application is written in C++ and uses the Qt framework.
 
-### License
+It uses multiple threads on multiple CPU cores where supported, so that CPU intensive texture
+calculations don't affect the UI performance.
+
+It's easy to extend the application by adding new generators, especially ones written in Javascript
+as those are loaded dynamically from external files.
+
+## Javascript
+
+One example Javascript texture generator is included in the directory _JavascriptTextureGenerators_.
+External Javascript texture generators are parsed and run using QJSEngine from the Qt QML module.
+
+## How to build
+
+The build requires:
+
+- Qt 6 with the Qt Base and Qt Declarative modules
+- CMake 3.21 or newer
+- Ninja
+- A C++17 compiler supported by the installed Qt version
+
+Do not mix Qt libraries built for different compilers or architectures.
+
+### Qt Creator
+
+Qt Creator is the recommended IDE for building and developing the application. Open the repository
+as a CMake project and configure it with a Qt 6 desktop kit.
+
+The following platform instructions describe how to install the dependencies and build from a
+terminal.
+
+### Windows
+
+Install Qt using the [Qt Online Installer](https://www.qt.io/download-open-source). The default "Qt
+for desktop development" installation includes a matching MinGW toolchain. Make sure CMake and Ninja
+are also selected. This avoids installing and configuring a compiler separately.
+
+To build from PowerShell, add the selected Qt kit, MinGW, CMake, and Ninja `bin` directories to
+`PATH`, then run:
+
+```powershell
+cmake --preset release
+cmake --build --preset release
+```
+
+If CMake cannot find Qt, pass the directory containing the selected Qt kit:
+
+```powershell
+cmake --preset release -DCMAKE_PREFIX_PATH="C:\Qt\6.x.x\mingw_64"
+cmake --build --preset release
+```
+
+To run the application:
+
+```powershell
+.\build\release\ProceduralTextureMaker.exe
+```
+
+### Linux
+
+Install the compiler, CMake, and Qt 6 development packages from your distribution package manager.
+On Debian and Ubuntu based distributions:
+
+```sh
+sudo apt install build-essential cmake ninja-build qt6-base-dev qt6-declarative-dev libgl1-mesa-dev
+cmake --preset release
+cmake --build --preset release
+```
+
+If Qt was installed with the Qt online installer instead of the system package manager, pass the Qt
+installation prefix to CMake:
+
+```sh
+cmake --preset release -DCMAKE_PREFIX_PATH="$HOME/Qt/6.x.x/gcc_64"
+cmake --build --preset release
+```
+
+To run the application:
+
+```sh
+./build/release/ProceduralTextureMaker
+```
+
+### macOS
+
+Install the Xcode command-line tools, CMake, Ninja, and Qt 6. With Homebrew:
+
+```sh
+xcode-select --install
+brew install cmake ninja qt
+cmake --preset release -DCMAKE_PREFIX_PATH="$(brew --prefix qt)"
+cmake --build --preset release
+```
+
+If Qt was installed with the Qt online installer, use the matching Qt installation prefix instead:
+
+```sh
+cmake --preset release -DCMAKE_PREFIX_PATH="$HOME/Qt/6.x.x/macos"
+cmake --build --preset release
+```
+
+To run the application:
+
+```sh
+open build/release/ProceduralTextureMaker.app
+```
+
+### Static release builds
+
+The Qt packages supplied by standard installers and package managers normally use shared libraries.
+A release without distributable Qt DLLs or frameworks requires a separately installed
+[static build of Qt](https://doc.qt.io/qt-6/deployment.html#static-linking).
+
+Configure the application with the static Qt installation prefix:
+
+```sh
+cmake --preset static-release -DCMAKE_PREFIX_PATH="/path/to/static/Qt"
+cmake --build --preset static-release
+```
+
+The `static-release` preset rejects shared Qt installations instead of producing a partially dynamic
+build. On Windows, it also links the compiler runtime statically for MinGW and MSVC builds. The
+result can still depend on libraries provided by the operating system.
+
+## Code analysis and formatting
+
+The repository includes clang-tidy and clang-format configuration. Install clang-tidy and
+clang-format, then configure the debug preset once:
+
+```sh
+cmake --preset debug
+```
+
+Run clang-tidy with:
+
+```sh
+cmake --build --preset clang-tidy
+```
+
+To review all code with clang-tidy and clang-format:
+
+```sh
+cmake --build --preset review-all-code
+```
+
+To check formatting only:
+
+```sh
+cmake --build --preset clang-format-check
+```
+
+To format all C++ source and header files in place:
+
+```sh
+cmake --build --preset clang-format
+```
+
+Reconfigure after changing CMake files or installing a tool that was unavailable during the previous
+configuration.
+
+## License
+
 Released under GPL version 3.
 
-### Author
-Johan Lindqvist  
-johan.lindqvist@gmail.com  
-https://github.com/johanokl
+## Author
 
-Icon from https://www.iconfinder.com/icons/28730/
+Johan Lindqvist  
+<johan.lindqvist@gmail.com> <https://github.com/johanokl>
+
+Icon from <https://www.iconfinder.com/icons/28730/>

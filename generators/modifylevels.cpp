@@ -1,14 +1,12 @@
-/**
- * Part of the ProceduralTextureMaker project.
- * http://github.com/johanokl/ProceduralTextureMaker
- * Released under GPLv3.
- * Johan Lindqvist (johan.lindqvist@gmail.com)
- */
+
+// Part of the ProceduralTextureMaker project.
+// http://github.com/johanokl/ProceduralTextureMaker
+// Released under GPLv3.
+// Johan Lindqvist (johan.lindqvist@gmail.com)
 
 #include "modifylevels.h"
 
-ModifyLevelsTextureGenerator::ModifyLevelsTextureGenerator()
-{
+ModifyLevelsTextureGenerator::ModifyLevelsTextureGenerator() {
    TextureGeneratorSetting channel;
    channel.name = "Channels";
    QStringList channels;
@@ -35,18 +33,15 @@ ModifyLevelsTextureGenerator::ModifyLevelsTextureGenerator()
 
    TextureGeneratorSetting blendingAlpha;
    blendingAlpha.name = "Amount";
-   blendingAlpha.defaultvalue = QVariant((double) 100);
+   blendingAlpha.defaultvalue = QVariant((double)100);
    blendingAlpha.min = -500;
    blendingAlpha.max = 500;
    blendingAlpha.order = 2;
    configurables.insert("level", blendingAlpha);
 }
-
-
 void ModifyLevelsTextureGenerator::generate(QSize size, TexturePixel* destimage,
                                             QMap<int, TextureImagePtr> sourceimages,
-                                            TextureNodeSettings* settings) const
-{
+                                            TextureNodeSettings* settings) const {
    if (!settings || !destimage || !size.isValid()) {
       return;
    }
@@ -59,7 +54,7 @@ void ModifyLevelsTextureGenerator::generate(QSize size, TexturePixel* destimage,
 
    QString mode = settings->value("mode").toString();
    QString channel = settings->value("channel").toString();
-   double levelFactor = settings->value("level").toDouble()  / 100;
+   double levelFactor = settings->value("level").toDouble() / 100;
    int levelAbsolute = qMin(settings->value("level").toInt(), 255);
 
    bool r = false, g = false, b = false, a = false;
@@ -95,19 +90,17 @@ void ModifyLevelsTextureGenerator::generate(QSize size, TexturePixel* destimage,
    } else if (mode == "Multiply") {
       for (int i = 0; i < numpixels; i++) {
          if (r) {
-            destimage[i].r = qMax(qMin((int) (levelFactor * destimage[i].r), 255), 0);
+            destimage[i].r = qMax(qMin((int)(levelFactor * destimage[i].r), 255), 0);
          }
          if (g) {
-            destimage[i].g = qMax(qMin((int) (levelFactor * destimage[i].g), 255), 0);
+            destimage[i].g = qMax(qMin((int)(levelFactor * destimage[i].g), 255), 0);
          }
          if (b) {
-            destimage[i].b = qMax(qMin((int) (levelFactor * destimage[i].b), 255), 0);
+            destimage[i].b = qMax(qMin((int)(levelFactor * destimage[i].b), 255), 0);
          }
          if (a) {
-            destimage[i].a = qMax(qMin((int) (levelFactor * destimage[i].a), 255), 0);
+            destimage[i].a = qMax(qMin((int)(levelFactor * destimage[i].a), 255), 0);
          }
       }
    }
 }
-
-

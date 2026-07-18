@@ -1,16 +1,13 @@
-/**
- * Part of the ProceduralTextureMaker project.
- * http://github.com/johanokl/ProceduralTextureMaker
- * Released under GPLv3.
- * Johan Lindqvist (johan.lindqvist@gmail.com)
- */
+
+// Part of the ProceduralTextureMaker project.
+// http://github.com/johanokl/ProceduralTextureMaker
+// Released under GPLv3.
+// Johan Lindqvist (johan.lindqvist@gmail.com)
 
 #include "merge.h"
-
 void MergeTextureGenerator::generate(QSize size, TexturePixel* destimage,
                                      QMap<int, TextureImagePtr> sourceimages,
-                                     TextureNodeSettings* settings) const
-{
+                                     TextureNodeSettings* settings) const {
    Q_UNUSED(settings);
    if (!destimage || !size.isValid()) {
       return;

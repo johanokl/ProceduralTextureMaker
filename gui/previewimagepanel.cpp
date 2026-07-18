@@ -1,9 +1,8 @@
-/**
- * Part of the ProceduralTextureMaker project.
- * http://github.com/johanokl/ProceduralTextureMaker
- * Released under GPLv3.
- * Johan Lindqvist (johan.lindqvist@gmail.com)
- */
+
+// Part of the ProceduralTextureMaker project.
+// http://github.com/johanokl/ProceduralTextureMaker
+// Released under GPLv3.
+// Johan Lindqvist (johan.lindqvist@gmail.com)
 
 #include "base/settingsmanager.h"
 #include "base/textureproject.h"
@@ -17,68 +16,46 @@
 #include <QPushButton>
 #include <QVBoxLayout>
 
-/**
- * @brief ImageLabel::ImageLabel
- * @param parent
- */
-ImageLabel::ImageLabel(QWidget *parent) :
-   QWidget(parent)
-{
+/// @brief @param parent
+ImageLabel::ImageLabel(QWidget* parent) : QWidget(parent) {
    label = new QLabel(this);
    label->setPixmap(QPixmap(0, 0));
    label->setScaledContents(true);
    label->setFixedSize(0, 0);
-   label->setFrameStyle(QFrame::Panel | QFrame::Sunken);
+   label->setObjectName("previewImage");
+   label->setFrameShape(QFrame::NoFrame);
 
    QSizePolicy sizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::MinimumExpanding);
    sizePolicy.setHeightForWidth(true);
    setSizePolicy(sizePolicy);
 }
 
-/**
- * @brief ImageLabel::resizeEvent
- * @param event
- * Called by Qt when widget's size changed.
- * Updates the image transform to match the new size.
- */
-void ImageLabel::resizeEvent(QResizeEvent *event)
-{
+/// @brief Called by Qt when widget's size changed.
+/// Updates the image transform to match the new size.
+/// @param event
+void ImageLabel::resizeEvent(QResizeEvent* event) {
    QWidget::resizeEvent(event);
    resizeImage();
 }
 
-/**
- * @brief ImageLabel::setPixmap
- * @param pixmap background image
- * Sets the pixmap to fill the whole widget.
- */
-void ImageLabel::setPixmap(const QPixmap& pixmap)
-{
+/// @brief Sets the pixmap to fill the whole widget.
+/// @param pixmap background image
+void ImageLabel::setPixmap(const QPixmap& pixmap) {
    label->setPixmap(pixmap);
    resizeImage();
 }
 
-/**
- * @brief ImageLabel::resizeImage
- * Updates the image rescale transform.
- * Calling it multiple times doesn't lead to artifacts.
- */
+/// @brief Updates the image rescale transform.
+/// Calling it multiple times doesn't lead to artifacts.
 void ImageLabel::resizeImage() {
-#if QT_VERSION >= QT_VERSION_CHECK(5, 15, 0)
    QSize pixSize = label->pixmap(Qt::ReturnByValue).size();
-#else
-   QSize pixSize = label->pixmap()->size();
-#endif
    pixSize.scale(size(), Qt::KeepAspectRatio);
    label->setFixedSize(pixSize);
 }
 
-/**
- * @brief PreviewImagePanel::PreviewImagePanel
- * @param project
- */
-PreviewImagePanel::PreviewImagePanel(TextureProject* project)
-{
+///
+/// @param project
+PreviewImagePanel::PreviewImagePanel(TextureProject* project) {
    this->project = project;
    imageSize = project->getThumbnailSize();
    currId = -1;
@@ -88,6 +65,7 @@ PreviewImagePanel::PreviewImagePanel(TextureProject* project)
    setLayout(layout);
    setMaximumWidth(500);
    setMinimumWidth(200);
+   setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Expanding);
    imageLabel = new ImageLabel();
    cubeWidget = new CubeWidget();
 
@@ -99,16 +77,15 @@ PreviewImagePanel::PreviewImagePanel(TextureProject* project)
    combobox->setCurrentIndex(0);
    QObject::connect(combobox,
                     static_cast<void (QComboBox::*)(int)>(&QComboBox::currentIndexChanged),
-                    [=](int i) { Q_UNUSED(i); this->settingsUpdated(); });
+                    [=](int i) {
+                       Q_UNUSED(i);
+                       this->settingsUpdated();
+                    });
 
    lockNodeButton = new QPushButton("Lock node");
    lockNodeButton->setCheckable(true);
-   QWidget *spacerWidget = new QWidget();
-   spacerWidget->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
-   spacerWidget->setVisible(true);
-   layout->addWidget(cubeWidget);
-   layout->addWidget(imageLabel);
-   layout->addWidget(spacerWidget);
+   layout->addWidget(cubeWidget, 1);
+   layout->addWidget(imageLabel, 1);
 
    QWidget* optionsWidget = new QWidget;
    auto* optionsLayout = new QHBoxLayout();
@@ -118,24 +95,18 @@ PreviewImagePanel::PreviewImagePanel(TextureProject* project)
    optionsLayout->addWidget(lockNodeButton);
    optionsLayout->addWidget(combobox);
    layout->addWidget(optionsWidget);
-   QObject::connect(project, &TextureProject::imageAvailable,
-                    this, &PreviewImagePanel::imageAvailable);
-   QObject::connect(project, &TextureProject::imageUpdated,
-                    this, &PreviewImagePanel::imageUpdated);
-   QObject::connect(project, &TextureProject::nodeRemoved,
-                    this, &PreviewImagePanel::nodeRemoved);
-   QObject::connect(project->getSettingsManager(), &SettingsManager::settingsUpdated,
-                    this, &PreviewImagePanel::settingsUpdated);
+   QObject::connect(project, &TextureProject::imageAvailable, this,
+                    &PreviewImagePanel::imageAvailable);
+   QObject::connect(project, &TextureProject::imageUpdated, this, &PreviewImagePanel::imageUpdated);
+   QObject::connect(project, &TextureProject::nodeRemoved, this, &PreviewImagePanel::nodeRemoved);
+   QObject::connect(project->getSettingsManager(), &SettingsManager::settingsUpdated, this,
+                    &PreviewImagePanel::settingsUpdated);
    settingsUpdated();
 }
 
-/**
- * @brief PreviewImagePanel::imageUpdated
- * @param id Node id
- * Removes the no longer valid image from the pixmap widgets.
- */
-void PreviewImagePanel::imageUpdated(int id)
-{
+/// @brief Removes the no longer valid image from the pixmap widgets.
+/// @param id Node id
+void PreviewImagePanel::imageUpdated(int id) {
    if (id != currId) {
       return;
    }
@@ -144,15 +115,11 @@ void PreviewImagePanel::imageUpdated(int id)
    }
 }
 
-/**
- * @brief PreviewImagePanel::loadNodeImage
- * @param id Node id
- * @return true if could load image
- * Checks if there is an image with the thumbnail size in the node's
- * texture cache and if found displays it in the pixmap widgets.
- */
-bool PreviewImagePanel::loadNodeImage(int id)
-{
+/// @brief Checks if there is an image with the thumbnail size in the node's texture cache.
+/// If found, displays it in the pixmap widgets.
+/// @param id Node id
+/// @return @c true if could load image
+bool PreviewImagePanel::loadNodeImage(int id) {
    TextureNodePtr texNode = project->getNode(id);
    if (texNode.isNull()) {
       return false;
@@ -162,28 +129,24 @@ bool PreviewImagePanel::loadNodeImage(int id)
       return false;
    }
    QImage tempimage = QImage(imageSize.width(), imageSize.height(), QImage::Format_ARGB32);
-   memcpy(tempimage.bits(),
-          texNode->getImage(imageSize)->getData(),
+   memcpy(tempimage.bits(), texNode->getImage(imageSize)->getData(),
           sizeof(TexturePixel) * imageSize.width() * imageSize.height());
    QPixmap newImage = QPixmap::fromImage(tempimage);
    if (numTiles > 1) {
       newImage = tilePixmap(newImage, numTiles);
    }
    imageLabel->setPixmap(newImage);
-   cubeWidget->setTexture(newImage);
    imageLabel->show();
    cubeWidget->show();
+   cubeWidget->setTexture(newImage);
    return true;
 }
 
-/**
- * @brief PreviewImagePanel::imageAvailable
- * @param id Node id
- * @param size Image size
- * If the panel is visible loads a new image to the pixmap widgets.
- */
-void PreviewImagePanel::imageAvailable(int id, QSize size)
-{
+/// @brief Called when an image is available for the preview.
+/// @details If the panel is visible loads a new image to the pixmap widgets.
+/// @param id Node id
+/// @param size Image size
+void PreviewImagePanel::imageAvailable(int id, QSize size) {
    if (id != currId || size != imageSize) {
       return;
    }
@@ -193,13 +156,10 @@ void PreviewImagePanel::imageAvailable(int id, QSize size)
    loadNodeImage(id);
 }
 
-/**
- * @brief PreviewImagePanel::showEvent
- * @param event
- * Load the images when the panel is opened.
- */
-void PreviewImagePanel::showEvent(QShowEvent* event)
-{
+/// @brief Called when the panel is shown.
+/// @param event Show event
+/// @details Load the images when the panel is opened.
+void PreviewImagePanel::showEvent(QShowEvent* event) {
    QWidget::showEvent(event);
    if (!loadNodeImage(currId)) {
       imageLabel->hide();
@@ -207,13 +167,10 @@ void PreviewImagePanel::showEvent(QShowEvent* event)
    }
 }
 
-/**
- * @brief PreviewImagePanel::setActiveNode
- * @param id Node id
- * Updates the images.
- */
-void PreviewImagePanel::setActiveNode(int id)
-{
+/// @brief Sets the active node for the preview.
+/// @param id Node id
+/// @details Updates the images.
+void PreviewImagePanel::setActiveNode(int id) {
    if (lockNodeButton->isChecked()) {
       return;
    }
@@ -229,12 +186,9 @@ void PreviewImagePanel::setActiveNode(int id)
    loadNodeImage(id);
 }
 
-/**
- * @brief PreviewImagePanel::nodeRemoved
- * @param id
- */
-void PreviewImagePanel::nodeRemoved(int id)
-{
+/// @brief Called when a node has been removed from the graph.
+/// @param id Node id
+void PreviewImagePanel::nodeRemoved(int id) {
    if (currId != id) {
       return;
    }
@@ -243,13 +197,11 @@ void PreviewImagePanel::nodeRemoved(int id)
    cubeWidget->hide();
 }
 
-/**
- * @brief PreviewImagePanel::tilePixmap
- * @param pixmap Image
- * Draws the image tiled 2*2 times.
- */
-QPixmap PreviewImagePanel::tilePixmap(const QPixmap& pixmap, int number)
-{
+/// @brief Tiles a pixmap.
+/// @param pixmap Image
+/// @param number Number of tiles
+/// @return Tiled pixmap
+QPixmap PreviewImagePanel::tilePixmap(const QPixmap& pixmap, int number) {
    QPixmap newPixmap(pixmap.size() * number);
    newPixmap.fill(QColor(255, 255, 255, 255));
    QPainter painter(&newPixmap);
@@ -258,13 +210,9 @@ QPixmap PreviewImagePanel::tilePixmap(const QPixmap& pixmap, int number)
    return newPixmap;
 }
 
-/**
- * @brief PreviewImagePanel::settingsUpdated
- * Called whenever a project setting has been changed.
- * Might not just be the background color.
- */
-void PreviewImagePanel::settingsUpdated()
-{
+/// @brief Called whenever a project setting has been changed.
+/// @details Might not just be the background color.
+void PreviewImagePanel::settingsUpdated() {
    QColor bg = project->getSettingsManager()->getPreviewBackgroundColor();
    cubeWidget->setBackgroundColor(bg);
    int newNumTiles = combobox->currentData().toInt();

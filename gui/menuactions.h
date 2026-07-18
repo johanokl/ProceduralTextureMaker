@@ -1,16 +1,14 @@
-/**
- * Part of the ProceduralTextureMaker project.
- * http://github.com/johanokl/ProceduralTextureMaker
- * Released under GPLv3.
- * Johan Lindqvist (johan.lindqvist@gmail.com)
- */
+
+// Part of the ProceduralTextureMaker project.
+// http://github.com/johanokl/ProceduralTextureMaker
+// Released under GPLv3.
+// Johan Lindqvist (johan.lindqvist@gmail.com)
 
 #ifndef MENUACTIONS_H
 #define MENUACTIONS_H
 
 #include <QObject>
 #include <QVector>
-
 class QMainWindow;
 class TextureProject;
 class TextureGenerator;
@@ -24,23 +22,18 @@ class ItemInfoPanel;
 class SettingsPanel;
 class QToolBar;
 
-/**
- * @brief The MenuActions class
- *
- * Sets up the MainWindow's menus and toolbars and
- * the respective actions.
- *
- * Upon destruction the panel and toolbar visiblity settings are written
- * to persistant storage and loaded the next time the application is started.
- */
-class MenuActions : public QObject
-{
+/// @brief The MenuActions class
+///
+/// Sets up the MainWindow's menus and toolbars and the respective actions.
+/// Upon destruction the panel and toolbar visiblity settings are written
+/// to persistant storage and loaded the next time the application is started.
+class MenuActions : public QObject {
    Q_OBJECT
 
 public:
    explicit MenuActions(MainWindow* parentwindow);
    MainWindow* parent() { return parentwindow; }
-    ~MenuActions() override;
+   ~MenuActions() override;
    void setAddNodePanel(AddNodePanel* addNodePanel);
    void setPreviewImagePanel(PreviewImagePanel* previewImagePanel);
    void setSettingsPanel(SettingsPanel* settingsPanel);
@@ -84,10 +77,12 @@ private:
    QAction* copyAct;
    QAction* cutAct;
    QAction* pasteAct;
+   QAction* zoomInAct;
+   QAction* zoomOutAct;
    QAction* helpAct;
    QAction* aboutAct;
+   QAction* showAllNodesAct;
    QAction* resetZoomAct;
-   QAction* resetSceneAct;
    QAction* displayAddNodePanelAct;
    QAction* displayPreviewImagePanelAct;
    QAction* displayPreview3dPanelAct;
@@ -95,6 +90,7 @@ private:
    QAction* displaySettingsPanelAct;
    QAction* displayToolbarsAct;
    QAction* toggleItemInfoPanelAct;
+   QAction* toggleSettingsPanelAct;
    QAction* togglePreviewImagePanelAct;
    QAction* togglePreview3dPanelAct;
    QAction* toggleAddNodePanelAct;
@@ -103,4 +99,4 @@ private:
    QString lastOpenedDirectory;
 };
 
-#endif // MENUACTIONS_H
+#endif  // MENUACTIONS_H

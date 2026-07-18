@@ -1,26 +1,20 @@
-/**
- * Part of the ProceduralTextureMaker project.
- * http://github.com/johanokl/ProceduralTextureMaker
- * Released under GPLv3.
- * Johan Lindqvist (johan.lindqvist@gmail.com)
- */
+
+// Part of the ProceduralTextureMaker project.
+// http://github.com/johanokl/ProceduralTextureMaker
+// Released under GPLv3.
+// Johan Lindqvist (johan.lindqvist@gmail.com)
 
 #ifndef BRICKSTEXTUREGENERATOR_H
 #define BRICKSTEXTUREGENERATOR_H
 
 #include "texturegenerator.h"
 
-/**
- * @brief The BricksTextureGenerator class
- */
-class BricksTextureGenerator : public TextureGenerator
-{
+/// @brief The BricksTextureGenerator class
+class BricksTextureGenerator : public TextureGenerator {
 public:
    BricksTextureGenerator();
    ~BricksTextureGenerator() override = default;
-   void generate(QSize size,
-                 TexturePixel* destimage,
-                 QMap<int, TextureImagePtr> sourceimages,
+   void generate(QSize size, TexturePixel* destimage, QMap<int, TextureImagePtr> sourceimages,
                  TextureNodeSettings* settings) const override;
    int getNumSourceSlots() const override { return 1; }
    QString getName() const override { return QString("Bricks"); }
@@ -32,4 +26,4 @@ private:
    TextureGeneratorSettings configurables;
 };
 
-#endif // BRICKSTEXTUREGENERATOR_H
+#endif  // BRICKSTEXTUREGENERATOR_H

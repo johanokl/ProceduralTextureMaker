@@ -1,20 +1,16 @@
-/**
- * Part of the ProceduralTextureMaker project.
- * http://github.com/johanokl/ProceduralTextureMaker
- * Released under GPLv3.
- * Johan Lindqvist (johan.lindqvist@gmail.com)
- */
+
+// Part of the ProceduralTextureMaker project.
+// http://github.com/johanokl/ProceduralTextureMaker
+// Released under GPLv3.
+// Johan Lindqvist (johan.lindqvist@gmail.com)
 
 #ifndef SETCHANNELSTEXTUREGENERATOR_H
 #define SETCHANNELSTEXTUREGENERATOR_H
 
 #include "texturegenerator.h"
 
-/**
- * @brief The SetChannelsTextureGenerator class
- */
-class SetChannelsTextureGenerator : public TextureGenerator
-{
+/// @brief The SetChannelsTextureGenerator class
+class SetChannelsTextureGenerator : public TextureGenerator {
 public:
    enum Channels {
       none = 1,
@@ -31,9 +27,7 @@ public:
 
    SetChannelsTextureGenerator();
    ~SetChannelsTextureGenerator() override = default;
-   void generate(QSize size,
-                 TexturePixel* destimage,
-                 QMap<int, TextureImagePtr> sourceimages,
+   void generate(QSize size, TexturePixel* destimage, QMap<int, TextureImagePtr> sourceimages,
                  TextureNodeSettings* settings) const override;
    int getNumSourceSlots() const override { return 2; }
    QString getName() const override { return QString("Set channels"); }
@@ -45,9 +39,7 @@ private:
    TextureGeneratorSettings configurables;
    Channels getChannelFromName(const QString& name) const;
    quint8 getColorFromChannel(const TexturePixel& firstColor, const TexturePixel& secondColor,
-                                     Channels channel) const;
+                              Channels channel) const;
 };
 
-#endif // SETCHANNELSTEXTUREGENERATOR_H
-
-
+#endif  // SETCHANNELSTEXTUREGENERATOR_H

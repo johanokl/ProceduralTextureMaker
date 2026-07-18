@@ -1,9 +1,8 @@
-/**
- * Part of the ProceduralTextureMaker project.
- * http://github.com/johanokl/ProceduralTextureMaker
- * Released under GPLv3.
- * Johan Lindqvist (johan.lindqvist@gmail.com)
- */
+
+// Part of the ProceduralTextureMaker project.
+// http://github.com/johanokl/ProceduralTextureMaker
+// Released under GPLv3.
+// Johan Lindqvist (johan.lindqvist@gmail.com)
 
 #ifndef JSTEXGENMANAGER_H
 #define JSTEXGENMANAGER_H
@@ -11,16 +10,13 @@
 #include "texturegenerator.h"
 #include <QObject>
 #include <QReadWriteLock>
-
+#include <atomic>
 class GeneratorFileFinder;
 class JsTexGen;
 class TextureProject;
 
-/**
- * @brief The JSTexGenManager class
- */
-class JSTexGenManager : public QObject
-{
+/// @brief The JSTexGenManager class
+class JSTexGenManager : public QObject {
    Q_OBJECT
 
 public:
@@ -28,7 +24,7 @@ public:
    ~JSTexGenManager() override;
 
 public slots:
-   void setDirectory(const QString& path, bool forceScan=false);
+   void setDirectory(const QString& path, bool forceScan = false);
    void addGenerator(JsTexGen* generator);
    void setEnabled(bool);
    void settingsUpdated();
@@ -47,16 +43,12 @@ private:
    bool hasScannedDirectory;
 };
 
-/**
- * @brief The JsTexGen class
- */
-class JsTexGen : public TextureGenerator
-{
+/// @brief The JsTexGen class
+class JsTexGen : public TextureGenerator {
 public:
    explicit JsTexGen(const QString& jsContent);
-    ~JsTexGen() override = default;
-   void generate(QSize size, TexturePixel* destimage,
-                 QMap<int, TextureImagePtr> sourceimages,
+   ~JsTexGen() override = default;
+   void generate(QSize size, TexturePixel* destimage, QMap<int, TextureImagePtr> sourceimages,
                  TextureNodeSettings* settings) const override;
 
    int getNumSourceSlots() const override { return numSlots; }
@@ -77,11 +69,8 @@ private:
    bool separateColorChannels;
 };
 
-/**
- * @brief The GeneratorFileFinder class
- */
-class GeneratorFileFinder : public QObject
-{
+/// @brief The GeneratorFileFinder class
+class GeneratorFileFinder : public QObject {
    Q_OBJECT
 public slots:
    void abort();
@@ -89,8 +78,9 @@ public slots:
 signals:
    void scanFinished();
    void generatorFound(JsTexGen* filename);
+
 private:
-   bool aborted;
+   std::atomic_bool aborted = false;
 };
 
-#endif // JSTEXGENMANAGER_H
+#endif  // JSTEXGENMANAGER_H

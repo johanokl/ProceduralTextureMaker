@@ -1,9 +1,8 @@
-/**
- * Part of the ProceduralTextureMaker project.
- * http://github.com/johanokl/ProceduralTextureMaker
- * Released under GPLv3.
- * Johan Lindqvist (johan.lindqvist@gmail.com)
- */
+
+// Part of the ProceduralTextureMaker project.
+// http://github.com/johanokl/ProceduralTextureMaker
+// Released under GPLv3.
+// Johan Lindqvist (johan.lindqvist@gmail.com)
 
 #include "base/settingsmanager.h"
 #include "gui/mainwindow.h"
@@ -12,24 +11,26 @@
 #include <QCheckBox>
 #include <QColorDialog>
 #include <QComboBox>
+#include <QDir>
 #include <QFileDialog>
 #include <QGroupBox>
 #include <QLabel>
 #include <QLineEdit>
 #include <QPushButton>
 #include <QScrollArea>
+#include <QSettings>
 #include <QShowEvent>
+#include <QSlider>
 #include <QSpinBox>
 #include <QVBoxLayout>
 
-/**
- * @brief SettingsPanel::SettingsPanel
- * @param parent
- * @param settingsmanager
- */
-SettingsPanel::SettingsPanel(MainWindow *parent, SettingsManager* settingsmanager) : QWidget(parent)
-{
+/// @brief SettingsPanel constructor. Creates the settings panel and all its child widgets.
+/// @param parent Parent widget.
+/// @param settingsmanager Pointer to the SettingsManager that this widget will showtings for.
+SettingsPanel::SettingsPanel(MainWindow* parent, SettingsManager* settingsmanager)
+    : QWidget(parent) {
    this->settingsmanager = settingsmanager;
+   this->mainwindow = parent;
    blockSlot = false;
    layout = new QVBoxLayout(this);
    area = new QScrollArea;
@@ -42,26 +43,13 @@ SettingsPanel::SettingsPanel(MainWindow *parent, SettingsManager* settingsmanage
    layout->addWidget(area);
    area->setWidget(contents);
    setMinimumWidth(350);
+   setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Expanding);
 
-   QGroupBox* sceneviewWidget = new QGroupBox("Scene View");
-   auto* sceneviewLayout = new QGridLayout;
-   sceneviewWidget->setLayout(sceneviewLayout);
-   sceneviewWidget->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Preferred);
-   contentsLayout->addWidget(sceneviewWidget);
-
-   QLabel* thumbnailWidthLabel = new QLabel("Thumbnail width:");
-   thumbnailWidthSpinbox = new QSpinBox(this);
-   thumbnailWidthSpinbox->setMinimum(50);
-   thumbnailWidthSpinbox->setMaximum(2000);
-   sceneviewLayout->addWidget(thumbnailWidthLabel, 0, 0);
-   sceneviewLayout->addWidget(thumbnailWidthSpinbox, 0, 1);
-
-   QLabel* thumbnailHeightLabel = new QLabel("Thumbnail height:");
-   thumbnailHeightSpinbox = new QSpinBox(this);
-   thumbnailHeightSpinbox->setMinimum(50);
-   thumbnailHeightSpinbox->setMaximum(2000);
-   sceneviewLayout->addWidget(thumbnailHeightLabel, 1, 0);
-   sceneviewLayout->addWidget(thumbnailHeightSpinbox, 1, 1);
+   QGroupBox* sceneWidget = new QGroupBox("Scene");
+   auto* sceneLayout = new QGridLayout;
+   sceneWidget->setLayout(sceneLayout);
+   sceneWidget->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Preferred);
+   contentsLayout->addWidget(sceneWidget);
 
    QLabel* backgroundColorLabel = new QLabel("Background color:");
    backgroundColorButton = new QPushButton("");
@@ -69,8 +57,8 @@ SettingsPanel::SettingsPanel(MainWindow *parent, SettingsManager* settingsmanage
                     static_cast<void (QPushButton::*)(bool)>(&QPushButton::clicked),
                     [=](bool) { this->colorDialog(backgroundColorButton); });
 
-   sceneviewLayout->addWidget(backgroundColorLabel, 2, 0);
-   sceneviewLayout->addWidget(backgroundColorButton, 2, 1);
+   sceneLayout->addWidget(backgroundColorLabel, 0, 0);
+   sceneLayout->addWidget(backgroundColorButton, 0, 1);
 
    QLabel* backgroundBrushLabel = new QLabel("Background brush:");
    backgroundBrushCombobox = new QComboBox;
@@ -89,15 +77,74 @@ SettingsPanel::SettingsPanel(MainWindow *parent, SettingsManager* settingsmanage
    backgroundBrushCombobox->addItem("Dense 6", static_cast<int>(Qt::Dense6Pattern));
    backgroundBrushCombobox->addItem("Dense 7", static_cast<int>(Qt::Dense7Pattern));
    backgroundBrushCombobox->setCurrentIndex(0);
-   sceneviewLayout->addWidget(backgroundBrushLabel, 3, 0);
-   sceneviewLayout->addWidget(backgroundBrushCombobox, 3, 1);
+   sceneLayout->addWidget(backgroundBrushLabel, 1, 0);
+   sceneLayout->addWidget(backgroundBrushCombobox, 1, 1);
 
-   QLabel* defaultZoomLabel = new QLabel("Zoom:");
-   defaultZoomSpinbox = new QSpinBox(this);
-   defaultZoomSpinbox->setMinimum(5);
-   defaultZoomSpinbox->setMaximum(300);
-   sceneviewLayout->addWidget(defaultZoomLabel, 4, 0);
-   sceneviewLayout->addWidget(defaultZoomSpinbox, 4, 1);
+   QLabel* zoomSpeedLabel = new QLabel("Zoom speed:");
+   zoomSpeedSlider = new QSlider(Qt::Horizontal, this);
+   zoomSpeedSlider->setMinimum(0);
+   zoomSpeedSlider->setMaximum(4);
+   zoomSpeedSlider->setSingleStep(1);
+   zoomSpeedValueLabel = new QLabel(this);
+   sceneLayout->addWidget(zoomSpeedLabel, 2, 0);
+   sceneLayout->addWidget(zoomSpeedSlider, 2, 1);
+   sceneLayout->addWidget(zoomSpeedValueLabel, 2, 2);
+
+   QGroupBox* nodeWidget = new QGroupBox("Node");
+   auto* nodeLayout = new QGridLayout;
+   nodeWidget->setLayout(nodeLayout);
+   nodeWidget->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Preferred);
+   contentsLayout->addWidget(nodeWidget);
+
+   QLabel* thumbnailWidthLabel = new QLabel("Node width (px):");
+   thumbnailWidthSpinbox = new QSpinBox(this);
+   thumbnailWidthSpinbox->setMinimum(50);
+   thumbnailWidthSpinbox->setMaximum(2000);
+   nodeLayout->addWidget(thumbnailWidthLabel, 0, 0);
+   nodeLayout->addWidget(thumbnailWidthSpinbox, 0, 1);
+
+   QLabel* thumbnailHeightLabel = new QLabel("Node height (px):");
+   thumbnailHeightSpinbox = new QSpinBox(this);
+   thumbnailHeightSpinbox->setMinimum(50);
+   thumbnailHeightSpinbox->setMaximum(2000);
+   nodeLayout->addWidget(thumbnailHeightLabel, 1, 0);
+   nodeLayout->addWidget(thumbnailHeightSpinbox, 1, 1);
+
+   QLabel* headerSizeLabel = new QLabel("Header size:");
+   headerSizeSlider = new QSlider(Qt::Horizontal, this);
+   headerSizeSlider->setMinimum(0);
+   headerSizeSlider->setMaximum(6);
+   headerSizeSlider->setSingleStep(1);
+   headerSizeValueLabel = new QLabel(this);
+   nodeLayout->addWidget(headerSizeLabel, 2, 0);
+   nodeLayout->addWidget(headerSizeSlider, 2, 1);
+   nodeLayout->addWidget(headerSizeValueLabel, 2, 2);
+
+   QGroupBox* connectionsWidget = new QGroupBox("Connections");
+   auto* connectionsLayout = new QGridLayout;
+   connectionsWidget->setLayout(connectionsLayout);
+   connectionsWidget->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Preferred);
+   contentsLayout->addWidget(connectionsWidget);
+
+   QLabel* lineWidthLabel = new QLabel("Line width:");
+   lineWidthSlider = new QSlider(Qt::Horizontal, this);
+   lineWidthSlider->setMinimum(2);
+   lineWidthSlider->setMaximum(6);
+   lineWidthSlider->setSingleStep(1);
+   lineWidthValueLabel = new QLabel(this);
+   connectionsLayout->addWidget(lineWidthLabel, 0, 0);
+   connectionsLayout->addWidget(lineWidthSlider, 0, 1);
+   connectionsLayout->addWidget(lineWidthValueLabel, 0, 2);
+
+   QLabel* arrowSizeLabel = new QLabel("Arrow size:");
+   arrowSizeSlider = new QSlider(Qt::Horizontal, this);
+   arrowSizeSlider->setMinimum(4);
+   arrowSizeSlider->setMaximum(8);
+   arrowSizeSlider->setSingleStep(1);
+   arrowSizeValueLabel = new QLabel(this);
+   connectionsLayout->addWidget(arrowSizeLabel, 1, 0);
+   connectionsLayout->addWidget(arrowSizeSlider, 1, 1);
+   connectionsLayout->addWidget(arrowSizeValueLabel, 1, 2);
 
    QGroupBox* exportWidget = new QGroupBox("Exporting");
    auto* exportLayout = new QGridLayout;
@@ -158,16 +205,32 @@ SettingsPanel::SettingsPanel(MainWindow *parent, SettingsManager* settingsmanage
    auto* saveButtonLayout = new QGridLayout;
    saveButtonBox->setLayout(saveButtonLayout);
    QPushButton* saveButton = new QPushButton("Save");
-   QPushButton* closeButton = new QPushButton("Close");
+   QPushButton* resetButton = new QPushButton("Reset");
+   QPushButton* cancelButton = new QPushButton("Cancel");
    saveButtonLayout->addWidget(saveButton, 0, 0);
-   saveButtonLayout->addWidget(closeButton, 0, 1);
-   QObject::connect(saveButton, &QPushButton::clicked,
-                    this, &SettingsPanel::saveSettings);
-   QObject::connect(closeButton, &QPushButton::clicked,
-                    parent->getMenu(), &MenuActions::toggleSettingsPanel);
+   saveButtonLayout->addWidget(resetButton, 0, 1);
+   saveButtonLayout->addWidget(cancelButton, 0, 2);
+   QObject::connect(saveButton, &QPushButton::clicked, this, &SettingsPanel::saveSettings);
+   QObject::connect(resetButton, &QPushButton::clicked, this, &SettingsPanel::resetSettings);
+   QObject::connect(cancelButton, &QPushButton::clicked, this, &SettingsPanel::cancelSettings);
    contentsLayout->addWidget(saveButtonBox);
 
-   QWidget *spacerWidget = new QWidget;
+   void (QSpinBox::*spinboxChanged)(int) = &QSpinBox::valueChanged;
+   void (QSlider::*sliderChanged)(int) = &QSlider::valueChanged;
+   void (QComboBox::*comboboxChanged)(int) = &QComboBox::currentIndexChanged;
+   QObject::connect(thumbnailWidthSpinbox, spinboxChanged, this, &SettingsPanel::applySettings);
+   QObject::connect(thumbnailHeightSpinbox, spinboxChanged, this, &SettingsPanel::applySettings);
+   QObject::connect(exportImageWidthSpinbox, spinboxChanged, this, &SettingsPanel::applySettings);
+   QObject::connect(exportImageHeightSpinbox, spinboxChanged, this, &SettingsPanel::applySettings);
+   QObject::connect(lineWidthSlider, sliderChanged, this, &SettingsPanel::applySettings);
+   QObject::connect(arrowSizeSlider, sliderChanged, this, &SettingsPanel::applySettings);
+   QObject::connect(headerSizeSlider, sliderChanged, this, &SettingsPanel::applySettings);
+   QObject::connect(zoomSpeedSlider, sliderChanged, this, &SettingsPanel::applySettings);
+   QObject::connect(backgroundBrushCombobox, comboboxChanged, this, &SettingsPanel::applySettings);
+   QObject::connect(jsGeneratorEnabledCheckbox, &QCheckBox::toggled, this,
+                    &SettingsPanel::applySettings);
+
+   QWidget* spacerWidget = new QWidget;
    spacerWidget->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
    spacerWidget->setVisible(true);
    contentsLayout->addWidget(spacerWidget);
@@ -175,26 +238,21 @@ SettingsPanel::SettingsPanel(MainWindow *parent, SettingsManager* settingsmanage
    settingsUpdated();
 }
 
-/**
- * @brief SettingsPanel::colorDialog
- * @param button
- */
-void SettingsPanel::colorDialog(QPushButton* button)
-{
+/// @brief Opens a color dialog and applies the selected color to the button and the settings.
+/// @param button
+void SettingsPanel::colorDialog(QPushButton* button) {
    QColor initColor(button->text());
    QColor color = QColorDialog::getColor(initColor, this, "Select Color");
    if (color.isValid()) {
       styleColorButton(button, color);
+      applySettings();
    }
 }
 
-/**
- * @brief SettingsPanel::styleColorButton
- * @param button
- * @param color
- */
-void SettingsPanel::styleColorButton(QPushButton* button, const QColor& color)
-{
+/// @brief Styles a color button with the given color.
+/// @param button Button to style
+/// @param color Color to use
+void SettingsPanel::styleColorButton(QPushButton* button, const QColor& color) {
    QString fontColor("#ffffff");
    if ((color.red() * 0.299 + color.green() * 0.587 + color.blue() * 0.114) > 170) {
       fontColor = "#000000";
@@ -203,68 +261,248 @@ void SettingsPanel::styleColorButton(QPushButton* button, const QColor& color)
    button->setText(color.name());
 }
 
-/**
- * @brief SettingsPanel::selectDirectoryPath
- * @param lineWidget
- */
-void SettingsPanel::selectDirectoryPath(QLineEdit* lineWidget)
-{
+/// @brief Opens a directory selection dialog and applies the selected path to the line edit and the
+/// settings.
+/// @param lineWidget Line edit to update with the selected path
+void SettingsPanel::selectDirectoryPath(QLineEdit* lineWidget) {
    QString startDir = lineWidget->text();
    if (startDir.isEmpty()) {
       startDir = QDir::homePath();
    }
-   QString dir = QFileDialog::getExistingDirectory(this, "Select Directory", startDir,
-                                                   QFileDialog::ShowDirsOnly | QFileDialog::DontResolveSymlinks);
+   QString dir = QFileDialog::getExistingDirectory(
+       this, "Select Directory", startDir,
+       QFileDialog::ShowDirsOnly | QFileDialog::DontResolveSymlinks);
    if (!dir.isNull()) {
       lineWidget->setText(dir);
+      applySettings();
    }
 }
 
-/**
- * @brief SettingsPanel::showEvent
- * @param event
- * Reload the settings when the panel is opened.
- */
-void SettingsPanel::showEvent(QShowEvent* event)
-{
+/// @brief Updates the style labels for the scene settings.
+void SettingsPanel::updateSceneStyleLabels() {
+   int lineWidth = lineWidthSlider->value();
+   int arrowSize = arrowSizeSlider->value() * 2;
+   int headerSize = headerSizeForSlider(headerSizeSlider->value());
+   double zoomFactor = zoomFactorForSlider(zoomSpeedSlider->value());
+
+   lineWidthValueLabel->setText(QString("%1/%2 px").arg(lineWidth).arg(lineWidth + 1));
+   arrowSizeValueLabel->setText(QString("%1 px").arg(arrowSize));
+   if (headerSize == 0) {
+      headerSizeValueLabel->setText("None");
+   } else {
+      headerSizeValueLabel->setText(QString("%1 px").arg(headerSize));
+   }
+   zoomSpeedValueLabel->setText(QString::number(zoomFactor, 'f', 2) + "x");
+}
+
+/// @brief Applies the current settings to the application.
+void SettingsPanel::applySettings() {
+   updateSceneStyleLabels();
+   if (blockSlot) {
+      return;
+   }
+
+   settingsmanager->setPreviewSize(
+       QSize(exportImageWidthSpinbox->value(), exportImageHeightSpinbox->value()));
+   settingsmanager->setThumbnailSize(
+       QSize(thumbnailWidthSpinbox->value(), thumbnailHeightSpinbox->value()));
+   settingsmanager->setPreviewBackgroundColor(QColor(previewBackgroundColorButton->text()));
+   settingsmanager->setBackgroundColor(QColor(backgroundColorButton->text()));
+   settingsmanager->setBackgroundBrush(backgroundBrushCombobox->currentData().toInt());
+   settingsmanager->setJSTextureGeneratorsPath(jsGeneratorPathEdit->text());
+   settingsmanager->setJSTextureGeneratorsEnabled(jsGeneratorEnabledCheckbox->isChecked());
+
+   int lineWidth = lineWidthSlider->value();
+   int arrowSize = arrowSizeSlider->value() * 2;
+   int headerSize = headerSizeForSlider(headerSizeSlider->value());
+   double zoomFactor = zoomFactorForSlider(zoomSpeedSlider->value());
+
+   mainwindow->setLineWidths(lineWidth, lineWidth + 1);
+   mainwindow->setArrowSize(arrowSize);
+   mainwindow->setHeaderSize(headerSize);
+   mainwindow->setZoomStepFactor(zoomFactor);
+}
+
+/// @brief Converts a slider value to the corresponding header size.
+/// @param value Slider value.
+/// @return Header size in pixels.
+int SettingsPanel::headerSizeForSlider(int value) const {
+   switch (value) {
+      case 0:
+         return 0;
+      case 1:
+         return 16;
+      case 2:
+         return 20;
+      case 4:
+         return 28;
+      case 5:
+         return 32;
+      case 6:
+         return 40;
+      case 3:
+      default:
+         return 24;
+   }
+}
+
+/// @brief Converts a header size to the corresponding slider value.
+/// @param size Header size in pixels.
+/// @return Slider value.
+int SettingsPanel::headerSliderForSize(int size) const {
+   switch (size) {
+      case 0:
+         return 0;
+      case 16:
+         return 1;
+      case 20:
+         return 2;
+      case 28:
+         return 4;
+      case 32:
+         return 5;
+      case 40:
+         return 6;
+      case 24:
+      default:
+         return 3;
+   }
+}
+
+/// @brief Converts a slider value to the corresponding zoom factor.
+/// @param value Slider value.
+/// @return Zoom factor for one zoom step.
+double SettingsPanel::zoomFactorForSlider(int value) const {
+   switch (value) {
+      case 0:
+         return 1.25;
+      case 2:
+         return 1.65;
+      case 3:
+         return 1.85;
+      case 4:
+         return 2.05;
+      case 1:
+      default:
+         return 1.45;
+   }
+}
+
+/// @brief Converts a zoom factor to the corresponding slider value.
+/// @param factor Zoom factor.
+/// @return Slider value.
+int SettingsPanel::zoomSliderForFactor(double factor) const {
+   if (factor < 1.35) {
+      return 0;
+   }
+   if (factor < 1.55) {
+      return 1;
+   }
+   if (factor < 1.75) {
+      return 2;
+   }
+   if (factor < 1.95) {
+      return 3;
+   }
+   return 4;
+}
+
+/// @brief Handles the show event for the settings panel.
+/// @param event Show event.
+/// Reload the settings when the panel is opened.
+void SettingsPanel::showEvent(QShowEvent* event) {
    QWidget::showEvent(event);
    if (!event->spontaneous() && !isHidden()) {
       settingsUpdated();
    }
 }
 
-/**
- * @brief SettingsPanel::settingsUpdated
- */
-void SettingsPanel::settingsUpdated()
-{
-   if (!blockSlot) {
-      jsGeneratorPathEdit->setText(settingsmanager->getJSTextureGeneratorsPath());
-      exportImageWidthSpinbox->setValue(settingsmanager->getPreviewSize().width());
-      exportImageHeightSpinbox->setValue(settingsmanager->getPreviewSize().height());
-      thumbnailWidthSpinbox->setValue(settingsmanager->getThumbnailSize().width());
-      thumbnailHeightSpinbox->setValue(settingsmanager->getThumbnailSize().height());
-      defaultZoomSpinbox->setValue(settingsmanager->getDefaultZoom());
-      jsGeneratorEnabledCheckbox->setChecked(settingsmanager->getJSTextureGeneratorsEnabled());
-      styleColorButton(backgroundColorButton, settingsmanager->getBackgroundColor());
-      styleColorButton(previewBackgroundColorButton, settingsmanager->getPreviewBackgroundColor());
-      int index = backgroundBrushCombobox->findData(settingsmanager->getBackgroundBrush());
-      if (index != -1) {
-         backgroundBrushCombobox->setCurrentIndex(index);
-      }
+/// @brief Updates the settings in the panel.
+void SettingsPanel::settingsUpdated() {
+   if (blockSlot) {
+      return;
    }
+
+   blockSlot = true;
+   QSettings settings;
+   int lineWidth = settings.value("lineWidth", 3).toInt();
+   if (lineWidth < 2 || lineWidth > 6) {
+      lineWidth = 3;
+   }
+   int arrowSize = settings.value("arrowSize", 12).toInt();
+   if (arrowSize < 8 || arrowSize > 16) {
+      arrowSize = 12;
+   }
+   int headerSize = settings.value("headerSize", 24).toInt();
+   if (headerSize != 0 && (headerSize < 8 || headerSize > 48)) {
+      headerSize = 24;
+   }
+   double zoomFactor = settings.value("zoomStepFactor", 1.45).toDouble();
+   if (zoomFactor <= 1.0 || zoomFactor > 3.0) {
+      zoomFactor = 1.45;
+   }
+
+   jsGeneratorPathEdit->setText(settingsmanager->getJSTextureGeneratorsPath());
+   exportImageWidthSpinbox->setValue(settingsmanager->getPreviewSize().width());
+   exportImageHeightSpinbox->setValue(settingsmanager->getPreviewSize().height());
+   thumbnailWidthSpinbox->setValue(settingsmanager->getThumbnailSize().width());
+   thumbnailHeightSpinbox->setValue(settingsmanager->getThumbnailSize().height());
+   lineWidthSlider->setValue(lineWidth);
+   arrowSizeSlider->setValue(arrowSize / 2);
+   headerSizeSlider->setValue(headerSliderForSize(headerSize));
+   zoomSpeedSlider->setValue(zoomSliderForFactor(zoomFactor));
+   jsGeneratorEnabledCheckbox->setChecked(settingsmanager->getJSTextureGeneratorsEnabled());
+   styleColorButton(backgroundColorButton, settingsmanager->getBackgroundColor());
+   styleColorButton(previewBackgroundColorButton, settingsmanager->getPreviewBackgroundColor());
+   int index = backgroundBrushCombobox->findData(settingsmanager->getBackgroundBrush());
+   if (index != -1) {
+      backgroundBrushCombobox->setCurrentIndex(index);
+   }
+   blockSlot = false;
+   applySettings();
 }
 
-/**
- * @brief SettingsPanel::saveSettings
- */
-void SettingsPanel::saveSettings()
-{
+/// @brief Resets the settings to their default values.
+void SettingsPanel::resetSettings() {
+   blockSlot = true;
+   exportImageWidthSpinbox->setValue(800);
+   exportImageHeightSpinbox->setValue(800);
+   thumbnailWidthSpinbox->setValue(300);
+   thumbnailHeightSpinbox->setValue(300);
+   lineWidthSlider->setValue(3);
+   arrowSizeSlider->setValue(6);
+   headerSizeSlider->setValue(3);
+   zoomSpeedSlider->setValue(1);
+   jsGeneratorPathEdit->setText(QDir::toNativeSeparators(QDir::homePath() + "/TexGen"));
+   jsGeneratorEnabledCheckbox->setChecked(false);
+   styleColorButton(backgroundColorButton, QColor("#c8c8c8"));
+   styleColorButton(previewBackgroundColorButton, QColor("#c8c8c8"));
+   int index = backgroundBrushCombobox->findData(static_cast<int>(Qt::SolidPattern));
+   if (index != -1) {
+      backgroundBrushCombobox->setCurrentIndex(index);
+   }
+   blockSlot = false;
+   applySettings();
+}
+
+/// @brief Cancels the current settings and reverts to the previously saved settings.
+void SettingsPanel::cancelSettings() {
+   settingsmanager->loadSettings();
+   settingsUpdated();
+   mainwindow->getMenu()->toggleSettingsPanel();
+}
+
+/// @brief Saves the current settings.
+void SettingsPanel::saveSettings() {
    blockSlot = true;
    int exportImageWidth = exportImageWidthSpinbox->value();
    int exportImageHeight = exportImageHeightSpinbox->value();
    int thumbnailWidth = thumbnailWidthSpinbox->value();
    int thumbnailHeight = thumbnailHeightSpinbox->value();
+   int lineWidth = lineWidthSlider->value();
+   int arrowSize = arrowSizeSlider->value() * 2;
+   int headerSize = headerSizeForSlider(headerSizeSlider->value());
+   double zoomFactor = zoomFactorForSlider(zoomSpeedSlider->value());
    exportImageWidth = (exportImageWidth % 2) ? (exportImageWidth + 1) : exportImageWidth;
    exportImageHeight = (exportImageHeight % 2) ? (exportImageHeight + 1) : exportImageHeight;
    thumbnailWidth = (thumbnailWidth % 2) ? (thumbnailWidth + 1) : thumbnailWidth;
@@ -273,10 +511,19 @@ void SettingsPanel::saveSettings()
    settingsmanager->setThumbnailSize(QSize(thumbnailWidth, thumbnailHeight));
    settingsmanager->setJSTextureGeneratorsPath(jsGeneratorPathEdit->text());
    settingsmanager->setJSTextureGeneratorsEnabled(jsGeneratorEnabledCheckbox->isChecked());
-   settingsmanager->setDefaultZoom(defaultZoomSpinbox->value());
    settingsmanager->setPreviewBackgroundColor(QColor(previewBackgroundColorButton->text()));
    settingsmanager->setBackgroundColor(QColor(backgroundColorButton->text()));
    settingsmanager->setBackgroundBrush(backgroundBrushCombobox->currentData().toInt());
+   settingsmanager->saveSettings();
+   QSettings settings;
+   settings.setValue("lineWidth", lineWidth);
+   settings.setValue("arrowSize", arrowSize);
+   settings.setValue("headerSize", headerSize);
+   settings.setValue("zoomStepFactor", zoomFactor);
+   mainwindow->setLineWidths(lineWidth, lineWidth + 1);
+   mainwindow->setArrowSize(arrowSize);
+   mainwindow->setHeaderSize(headerSize);
+   mainwindow->setZoomStepFactor(zoomFactor);
    blockSlot = false;
    settingsUpdated();
 }

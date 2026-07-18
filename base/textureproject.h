@@ -1,9 +1,8 @@
-/**
- * Part of the ProceduralTextureMaker project.
- * http://github.com/johanokl/ProceduralTextureMaker
- * Released under GPLv3.
- * Johan Lindqvist (johan.lindqvist@gmail.com)
- */
+
+// Part of the ProceduralTextureMaker project.
+// http://github.com/johanokl/ProceduralTextureMaker
+// Released under GPLv3.
+// Johan Lindqvist (johan.lindqvist@gmail.com)
 
 #ifndef TEXTUREPROJECT_H
 #define TEXTUREPROJECT_H
@@ -14,19 +13,15 @@
 #include <QReadWriteLock>
 #include <QSize>
 #include <QThread>
-
 class TextureRenderThread;
 class TextureGenerator;
 class SettingsManager;
 
-/**
- * @brief The TextureProject class
- *
- * Manages all the texture generators, TextureNode instances and
- * the connections between them.
- */
-class TextureProject : public QObject
-{
+/// @brief The TextureProject class
+///
+/// Manages all the texture generators, TextureNode instances and
+/// the connections between them.
+class TextureProject : public QObject {
    Q_OBJECT
    friend class TextureNode;
 
@@ -95,4 +90,4 @@ private:
    bool modified;
 };
 
-#endif // TEXTUREPROJECT_H
+#endif  // TEXTUREPROJECT_H

@@ -1,18 +1,16 @@
-/**
- * Part of the ProceduralTextureMaker project.
- * http://github.com/johanokl/ProceduralTextureMaker
- * Released under GPLv3.
- * Johan Lindqvist (johan.lindqvist@gmail.com)
- */
+
+// Part of the ProceduralTextureMaker project.
+// http://github.com/johanokl/ProceduralTextureMaker
+// Released under GPLv3.
+// Johan Lindqvist (johan.lindqvist@gmail.com)
 
 #include "gaussianblur.h"
 #include <QtMath>
 #include <cmath>
 
-GaussianBlurTextureGenerator::GaussianBlurTextureGenerator()
-{
+GaussianBlurTextureGenerator::GaussianBlurTextureGenerator() {
    TextureGeneratorSetting neighbourssetting;
-   neighbourssetting.defaultvalue = QVariant((int) 1);
+   neighbourssetting.defaultvalue = QVariant((int)1);
    neighbourssetting.name = "Neighbours";
    neighbourssetting.description = "Number of neighbours";
    neighbourssetting.min = QVariant(1);
@@ -21,7 +19,7 @@ GaussianBlurTextureGenerator::GaussianBlurTextureGenerator()
    configurables.insert("numneighbours", neighbourssetting);
 
    TextureGeneratorSetting weightsetting;
-   weightsetting.defaultvalue = QVariant((double) 1);
+   weightsetting.defaultvalue = QVariant((double)1);
    weightsetting.name = "Weight";
    weightsetting.description = "";
    weightsetting.min = QVariant(0);
@@ -30,9 +28,8 @@ GaussianBlurTextureGenerator::GaussianBlurTextureGenerator()
    configurables.insert("weight", weightsetting);
 }
 
-
-float* GaussianBlurTextureGenerator::ComputeGaussianKernel(const int inRadius, const float radiusModifier) const
-{
+float* GaussianBlurTextureGenerator::ComputeGaussianKernel(const int inRadius,
+                                                           const float radiusModifier) const {
    int mem_amount = (inRadius * 2) + 1;
    auto* gaussian_kernel = new float[mem_amount];
 
@@ -45,7 +42,7 @@ float* GaussianBlurTextureGenerator::ComputeGaussianKernel(const int inRadius, c
    for (int i = 0; i < mem_amount; i++) {
       float x = r * radiusModifier;
       x = x * x;
-      float v = sqrtTwoPiTimesRadiusRecip * exp(-x * twoRadiusSquaredRecip);
+      float v = sqrtTwoPiTimesRadiusRecip * std::exp(-x * twoRadiusSquaredRecip);
       gaussian_kernel[i] = v;
       sum += v;
       r++;
@@ -58,13 +55,10 @@ float* GaussianBlurTextureGenerator::ComputeGaussianKernel(const int inRadius, c
    return gaussian_kernel;
 }
 
-
-// Calculates the Gaussian Blur and stores the result on the height map given
-void GaussianBlurTextureGenerator::generate(QSize size,
-                                            TexturePixel* destimage,
+/// @brief Calculates the Gaussian Blur and stores the result on the height map given
+void GaussianBlurTextureGenerator::generate(QSize size, TexturePixel* destimage,
                                             QMap<int, TextureImagePtr> sourceimages,
-                                            TextureNodeSettings* settings) const
-{
+                                            TextureNodeSettings* settings) const {
    if (!settings || !destimage || !size.isValid()) {
       return;
    }
@@ -90,7 +84,7 @@ void GaussianBlurTextureGenerator::generate(QSize size,
             int sx = x - numNeightbours + xoffset;
             if (sx < 0) {
                sx = 0;
-            } else if (sx > size.width() - 1){
+            } else if (sx > size.width() - 1) {
                sx = size.width() - 1;
             }
             // Calculate newly blurred value
@@ -104,14 +98,14 @@ void GaussianBlurTextureGenerator::generate(QSize size,
          destimage[y * size.width() + x] = blurred_value;
       }
    }
-   for(int y = 0; y < size.height(); y++) {
-      for(int x = 0; x < size.width(); x++) {
+   for (int y = 0; y < size.height(); y++) {
+      for (int x = 0; x < size.width(); x++) {
          TexturePixel blurred_value(0, 0, 0, 0);
          for (int yoffset = 0; yoffset < pixels_on_row; yoffset++) {
             int sy = y - numNeightbours + yoffset;
             if (sy < 0) {
                sy = 0;
-            } else if (sy > size.height() - 1){
+            } else if (sy > size.height() - 1) {
                sy = size.height() - 1;
             }
             int pixelPos = sy * size.width() + x;

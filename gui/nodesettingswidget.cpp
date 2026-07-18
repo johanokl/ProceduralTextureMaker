@@ -1,9 +1,8 @@
-/**
- * Part of the ProceduralTextureMaker project.
- * http://github.com/johanokl/ProceduralTextureMaker
- * Released under GPLv3.
- * Johan Lindqvist (johan.lindqvist@gmail.com)
- */
+
+// Part of the ProceduralTextureMaker project.
+// http://github.com/johanokl/ProceduralTextureMaker
+// Released under GPLv3.
+// Johan Lindqvist (johan.lindqvist@gmail.com)
 
 #include "base/textureproject.h"
 #include "gui/iteminfopanel.h"
@@ -15,19 +14,21 @@
 #include <QDoubleSpinBox>
 #include <QFormLayout>
 #include <QGroupBox>
+#include <QHBoxLayout>
 #include <QLabel>
 #include <QLineEdit>
+#include <QMetaType>
 #include <QPushButton>
+#include <QPlainTextEdit>
 #include <QScrollArea>
 #include <QVBoxLayout>
 
-/**
- * @brief NodeSettingsWidget::NodeSettingsWidget
- * @param widgetmanager
- * @param id Node id
- */
-NodeSettingsWidget::NodeSettingsWidget(ItemInfoPanel* widgetmanager, int id)
-{
+/// @brief NodeSettingsWidget constructor. Creates the node settings widget and all its child
+/// widgets.
+/// @param widgetmanager Pointer to the ItemInfoPanel that manages this widget.
+/// @param id Node id
+NodeSettingsWidget::NodeSettingsWidget(ItemInfoPanel* widgetmanager, int id) {
+   setObjectName("nodeSettingsInspector");
    this->widgetmanager = widgetmanager;
    this->id = id;
    saveDisabled = false;
@@ -40,29 +41,41 @@ NodeSettingsWidget::NodeSettingsWidget(ItemInfoPanel* widgetmanager, int id)
    scrollarea->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
    scrollarea->setWidgetResizable(true);
    contents = new QWidget;
+   contents->setObjectName("nodeSettingsContents");
    contentsLayout = new QVBoxLayout(contents);
-   contentsLayout->setContentsMargins(0, 0, 0, 0);
+   contentsLayout->setContentsMargins(12, 4, 12, 12);
+   contentsLayout->setSpacing(4);
    layout->setContentsMargins(0, 0, 0, 0);
    scrollarea->setFrameShape(QFrame::NoFrame);
    layout->addWidget(scrollarea);
    scrollarea->setWidget(contents);
 
-   nodeInfoWidget = new QGroupBox("Node info");
+   nodeInfoWidget = new QGroupBox("Node");
+   nodeInfoWidget->setProperty("inspectorSection", true);
    nodeInfoLayout = createGroupLayout();
    nodeInfoWidget->setLayout(nodeInfoLayout);
    nodeNameLineEdit = new QLineEdit;
    nodeInfoLayout->addRow("Name:", nodeNameLineEdit);
 
    generatorNameLabel = new QLabel;
+   generatorNameLabel->setObjectName("generatorBadge");
    nodeInfoLayout->addRow("Generator:", generatorNameLabel);
 
    contentsLayout->addWidget(nodeInfoWidget);
    QObject::connect(static_cast<QLineEdit*>(nodeNameLineEdit),
-                    static_cast<void (QLineEdit::*)(void)>(&QLineEdit::returnPressed),
-                    [=]() { if (texNode->getName() != nodeNameLineEdit->text()) { this->saveSettings(); }});
+                    static_cast<void (QLineEdit::*)(void)>(&QLineEdit::returnPressed), [=]() {
+                       if (texNode->getName() != nodeNameLineEdit->text()) {
+                          this->saveSettings();
+                       }
+                    });
 
-   sourceButtonsWidget = new QGroupBox("Source nodes");
+   sourceButtonsWidget = new QGroupBox("Inputs");
+   sourceButtonsWidget->setProperty("inspectorSection", true);
    sourceButtonsLayout = new QGridLayout;
+   sourceButtonsLayout->setContentsMargins(0, 4, 0, 2);
+   sourceButtonsLayout->setHorizontalSpacing(10);
+   sourceButtonsLayout->setVerticalSpacing(8);
+   sourceButtonsLayout->setColumnStretch(1, 1);
    sourceButtonsWidget->setLayout(sourceButtonsLayout);
    contentsLayout->addWidget(sourceButtonsWidget);
 
@@ -71,8 +84,7 @@ NodeSettingsWidget::NodeSettingsWidget(ItemInfoPanel* widgetmanager, int id)
       sourceButtonsLayout->addWidget(slotLabel, i, 0);
       auto* slotButton = new QPushButton;
       sourceButtonsLayout->addWidget(slotButton, i, 1);
-      QObject::connect(slotButton, &QPushButton::clicked,
-                       [=]() { texNode->setSourceSlot(i, 0); });
+      QObject::connect(slotButton, &QPushButton::clicked, [=]() { texNode->setSourceSlot(i, 0); });
       sourceSlotButtons.push_back(slotButton);
       sourceSlotLabels.push_back(slotLabel);
       slotButton->hide();
@@ -80,12 +92,14 @@ NodeSettingsWidget::NodeSettingsWidget(ItemInfoPanel* widgetmanager, int id)
    }
    swapSlotButton = new QPushButton("Swap slots");
    sourceButtonsLayout->addWidget(swapSlotButton, sourceSlotButtons.size(), 1);
-   QObject::connect(swapSlotButton, &QPushButton::clicked,
-                    this, &NodeSettingsWidget::swapSlots);
+   QObject::connect(swapSlotButton, &QPushButton::clicked, this, &NodeSettingsWidget::swapSlots);
    swapSlotButton->hide();
 
-   settingsWidget = new QGroupBox("Generator settings");
-   settingsLayout = createGroupLayout();
+   settingsWidget = new QGroupBox("Properties");
+   settingsWidget->setProperty("inspectorSection", true);
+   settingsLayout = new QVBoxLayout;
+   settingsLayout->setContentsMargins(0, 4, 0, 2);
+   settingsLayout->setSpacing(2);
    settingsWidget->setLayout(settingsLayout);
    contentsLayout->addWidget(settingsWidget);
 
@@ -97,32 +111,64 @@ NodeSettingsWidget::NodeSettingsWidget(ItemInfoPanel* widgetmanager, int id)
    slotsUpdated();
 }
 
-/**
- * @brief NodeSettingsWidget::createGroupLayout
- * @return New layout
- *
- * Creates and styles a new layout.
- */
-QFormLayout* NodeSettingsWidget::createGroupLayout()
-{
+/// @brief Creates and styles a new layout.
+/// @return New layout
+QFormLayout* NodeSettingsWidget::createGroupLayout() {
    auto* layout = new QFormLayout;
    layout->setRowWrapPolicy(QFormLayout::DontWrapRows);
    layout->setFieldGrowthPolicy(QFormLayout::ExpandingFieldsGrow);
-   layout->setFormAlignment(Qt::AlignHCenter | Qt::AlignTop);
-   layout->setLabelAlignment(Qt::AlignRight);
+   layout->setFormAlignment(Qt::AlignTop);
+   layout->setLabelAlignment(Qt::AlignLeft | Qt::AlignVCenter);
+   layout->setHorizontalSpacing(12);
+   layout->setVerticalSpacing(9);
    return layout;
 }
 
-/**
- * @brief NodeSettingsWidget::saveSettings
- *
- * Reads all widget's values and sends them to the
- * TextureNode object's set settings function.
- */
-void NodeSettingsWidget::saveSettings()
-{
+/// @brief Creates a property editor row for the inspector.
+/// @param label Property label.
+/// @param editor Property value editor.
+/// @param slider Optional slider displayed below the label and numeric value.
+/// @return New property row widget.
+QWidget* NodeSettingsWidget::createPropertyRow(QLabel* label, QWidget* editor, QWidget* slider) {
+   auto* propertyWidget = new QWidget;
+   propertyWidget->setProperty("inspectorProperty", true);
+   auto* propertyLayout = new QVBoxLayout(propertyWidget);
+   propertyLayout->setContentsMargins(0, 4, 0, 7);
+   propertyLayout->setSpacing(6);
+   label->setProperty("inspectorLabel", true);
+
+   if (slider != nullptr) {
+      auto* valueLayout = new QHBoxLayout;
+      valueLayout->setContentsMargins(0, 0, 0, 0);
+      valueLayout->setSpacing(8);
+      valueLayout->addWidget(label);
+      valueLayout->addStretch();
+      editor->setMinimumWidth(108);
+      editor->setMaximumWidth(128);
+      valueLayout->addWidget(editor);
+      propertyLayout->addLayout(valueLayout);
+      propertyLayout->addWidget(slider);
+   } else if (auto* checkbox = dynamic_cast<QCheckBox*>(editor)) {
+      QString text = label->text();
+      if (text.endsWith(':')) {
+         text.chop(1);
+      }
+      checkbox->setText(text);
+      label->hide();
+      propertyLayout->addWidget(checkbox);
+   } else {
+      propertyLayout->addWidget(label);
+      propertyLayout->addWidget(editor);
+   }
+   return propertyWidget;
+}
+
+/// @brief Reads all widget's values and sends them to the TextureNode object's set settings
+/// function.
+/// @return @c true if the settings were saved successfully, false otherwise.
+bool NodeSettingsWidget::saveSettings() {
    if (saveDisabled) {
-      return;
+      return false;
    }
    if (texNode->getName() != nodeNameLineEdit->text()) {
       texNode->setName(nodeNameLineEdit->text());
@@ -140,62 +186,61 @@ void NodeSettingsWidget::saveSettings()
          continue;
       }
       QWidget* settingWidget = settingElementIterator.value();
-      switch (texNode->getGenerator()->getSettings().value(settingsId).defaultvalue.type()) {
-      case QVariant::Type::Int: {
-         QSpinBox *spinbox = dynamic_cast<QSpinBox*>(settingWidget);
-         if (spinbox) {
-            nodeSettings[settingsId] = spinbox->value();
+      switch (texNode->getGenerator()->getSettings().value(settingsId).defaultvalue.typeId()) {
+         case QMetaType::Int: {
+            QSpinBox* spinbox = dynamic_cast<QSpinBox*>(settingWidget);
+            if (spinbox) {
+               nodeSettings[settingsId] = spinbox->value();
+            }
+            break;
          }
-         break;
-      }
-      case QVariant::Type::Double: {
-         QDoubleSpinBox *doublespinbox = dynamic_cast<QDoubleSpinBox*>(settingWidget);
-         if (doublespinbox) {
-            nodeSettings[settingsId] = doublespinbox->value();
+         case QMetaType::Double: {
+            QDoubleSpinBox* doublespinbox = dynamic_cast<QDoubleSpinBox*>(settingWidget);
+            if (doublespinbox) {
+               nodeSettings[settingsId] = doublespinbox->value();
+            }
+            break;
          }
-         break;
-      }
-      case QVariant::Type::Bool: {
-         QCheckBox *checkbox = dynamic_cast<QCheckBox*>(settingWidget);
-         if (checkbox) {
-            nodeSettings[settingsId] = checkbox->isChecked();
+         case QMetaType::Bool: {
+            QCheckBox* checkbox = dynamic_cast<QCheckBox*>(settingWidget);
+            if (checkbox) {
+               nodeSettings[settingsId] = checkbox->isChecked();
+            }
+            break;
          }
-         break;
-      }
-      case QVariant::Type::Color: {
-         QPushButton *pushbutton = dynamic_cast<QPushButton*>(settingWidget);
-         if (pushbutton) {
-            nodeSettings[settingsId] = QColor(settingValues[settingsId]);
+         case QMetaType::QColor: {
+            QPushButton* pushbutton = dynamic_cast<QPushButton*>(settingWidget);
+            if (pushbutton) {
+               nodeSettings[settingsId] = QColor(settingValues[settingsId]);
+            }
+            break;
          }
-         break;
-      }
-      case QVariant::Type::String: {
-         QLineEdit *lineedit = dynamic_cast<QLineEdit*>(settingWidget);
-         if (lineedit) {
-            nodeSettings[settingsId] = lineedit->text();
+         case QMetaType::QString: {
+            QLineEdit* lineedit = dynamic_cast<QLineEdit*>(settingWidget);
+            if (lineedit) {
+               nodeSettings[settingsId] = lineedit->text();
+            } else if (auto* textedit = dynamic_cast<QPlainTextEdit*>(settingWidget)) {
+               nodeSettings[settingsId] = textedit->toPlainText();
+            }
+            break;
          }
-         break;
-      }
-      case QVariant::Type::StringList: {
-         QComboBox *combobox  = dynamic_cast<QComboBox*>(settingWidget);
-         if (combobox) {
-            nodeSettings[settingsId] = combobox->currentText();
+         case QMetaType::QStringList: {
+            QComboBox* combobox = dynamic_cast<QComboBox*>(settingWidget);
+            if (combobox) {
+               nodeSettings[settingsId] = combobox->currentText();
+            }
+            break;
          }
-         break;
-      }
-      default:
-        INFO_MSG("Type not found. Property id=" + settingsId);
+         default:
+            INFO_MSG("Type not found. Property id=" + settingsId);
       }
    }
    texNode->setSettings(nodeSettings);
+   return true;
 }
 
-/**
- * @brief NodeSettingsWidget::swapSlots
- * Moves the sources around between the slots.
- */
-void NodeSettingsWidget::swapSlots()
-{
+/// @brief Moves the sources around between the slots.
+void NodeSettingsWidget::swapSlots() {
    QMap<int, int> sources = texNode->getSources();
    for (int i = 0; i < texNode->getNumSourceSlots(); i++) {
       texNode->setSourceSlot(i, 0);
@@ -206,19 +251,15 @@ void NodeSettingsWidget::swapSlots()
    }
 }
 
-/**
- * @brief NodeSettingsWidget::colorDialog
- * @param settingsId The name of the setting.
- *
- * Opens a color selection dialog popup and saves the result.
- */
-void NodeSettingsWidget::colorDialog(const QString& settingsId)
-{
+/// @brief Opens a color selection dialog popup and saves the result.
+/// @param settingsId The name of the setting.
+void NodeSettingsWidget::colorDialog(const QString& settingsId) {
    QColor initColor = Qt::white;
    if (settingValues.contains(settingsId)) {
       initColor = QColor(settingValues[settingsId]);
    }
-   const QColor color = QColorDialog::getColor(initColor, this, "Select Color", QColorDialog::ShowAlphaChannel);
+   const QColor color =
+       QColorDialog::getColor(initColor, this, "Select Color", QColorDialog::ShowAlphaChannel);
    if (color.isValid()) {
       auto* button = dynamic_cast<QPushButton*>(settingElements[settingsId]);
       settingValues[settingsId] = color.name(QColor::HexArgb);
@@ -227,54 +268,38 @@ void NodeSettingsWidget::colorDialog(const QString& settingsId)
    }
 }
 
-/**
- * @brief NodeSettingsWidget::styleButton
- * @param button The QPushButton to be styled.
- * @param color Background color
- *
- * Styles the color selection buttons. The foreground text color is
- * white or black depending on the background color.
- */
-void NodeSettingsWidget::styleButton(QPushButton* button, const QColor& color)
-{
+/// @brief Styles the color selection buttons. The foreground text color is white or black depending
+/// on the background color.
+/// @param button The QPushButton to be styled.
+/// @param color Background color
+void NodeSettingsWidget::styleButton(QPushButton* button, const QColor& color) {
    if (button) {
       QString fontColor("#ffffff");
       // Cool formula for how humans percieve colors, if they are dark or light.
       if ((color.red() * 0.299 + color.green() * 0.587 + color.blue() * 0.114) > 170) {
          fontColor = "#000000";
       }
-      button->setStyleSheet(QString("background-color: %1; color: %2")
-                            .arg(color.name(), fontColor));
-      button->setText(color.name().append(QString("%1").arg(color.alpha(), 2, 16, QLatin1Char('0'))));
+      button->setStyleSheet(
+          QString("background-color: %1; color: %2").arg(color.name(), fontColor));
+      button->setText(
+          color.name().append(QString("%1").arg(color.alpha(), 2, 16, QLatin1Char('0'))));
    }
 }
 
-/**
- * @brief settingsComperator
- * Comparator function for qSort, used for sorting the settings based on the order attribute.
- */
-bool settingsComperator(const TextureGeneratorSetting& v1, const TextureGeneratorSetting& v2)
-{
+/// @brief Comparator function for qSort, used for sorting the settings based on the order
+/// attribute.
+bool settingsComperator(const TextureGeneratorSetting& v1, const TextureGeneratorSetting& v2) {
    return v1.order < v2.order;
 }
 
-/**
- * @brief operator ==
- * Helper function needed for QMap.
- */
-bool operator==(const TextureGeneratorSetting& lhs, const TextureGeneratorSetting& rhs)
-{
+/// @brief Helper function needed for QMap.
+bool operator==(const TextureGeneratorSetting& lhs, const TextureGeneratorSetting& rhs) {
    return lhs.name == rhs.name && lhs.order == rhs.order;
 }
 
-/**
- * @brief NodeSettingsWidget::generatorUpdated
- *
- * A generator has been defined for the node. Creates all the settings
- * value widgets for the generator.
- */
-void NodeSettingsWidget::generatorUpdated()
-{
+/// @brief A generator has been defined for the node. Creates all the settings
+/// value widgets for the generator.
+void NodeSettingsWidget::generatorUpdated() {
    TextureGeneratorPtr generator = texNode->getGenerator();
    generatorNameLabel->setText(generator->getName());
 
@@ -283,27 +308,20 @@ void NodeSettingsWidget::generatorUpdated()
    } else {
       sourceButtonsWidget->hide();
    }
-   for (int i = 0; i < generator->getNumSourceSlots() &&
-        i <  (sourceSlotLabels.count() - 1); i++) {
+   for (int i = 0; i < generator->getNumSourceSlots() && i < (sourceSlotLabels.count() - 1); i++) {
       sourceSlotLabels[i]->setText(generator->getSlotName(i) + ":");
    }
 
-   // Remove all previous settings value widget, if any.
-   QMapIterator<QString, QLabel*> settingLabelIterator(settingLabels);
-   while (settingLabelIterator.hasNext()) {
-      settingsLayout->removeWidget(settingLabelIterator.next().value());
+   // Remove all previous property rows, if any.
+   while (settingsLayout->count() > 0) {
+      QLayoutItem* item = settingsLayout->takeAt(0);
+      delete item->widget();
+      delete item;
    }
    settingLabels.clear();
-   QMapIterator<QString, QWidget*> settingElementIterator(settingElements);
-   while (settingElementIterator.hasNext()) {
-      settingsLayout->removeWidget(settingElementIterator.next().value());
-   }
    settingElements.clear();
-   QMapIterator<QString, QWidget*> settingSlidersIterator(settingSliders);
-   while (settingSlidersIterator.hasNext()) {
-      settingsLayout->removeWidget(settingSlidersIterator.next().value());
-   }
    settingSliders.clear();
+   settingValues.clear();
 
    TextureGeneratorSettings settings = generator->getSettings();
    QList<TextureGeneratorSetting> settingsvalues = settings.values();
@@ -314,94 +332,122 @@ void NodeSettingsWidget::generatorUpdated()
       TextureGeneratorSetting currSetting = settingsIterator.next();
       QString settingsId = settings.key(currSetting);
       QWidget* newWidget;
-      switch (currSetting.defaultvalue.type()) {
-      case QVariant::Type::String:
-         newWidget = new QLineEdit;
-         QObject::connect(static_cast<QLineEdit*>(newWidget), &QLineEdit::returnPressed,
-                          this, &NodeSettingsWidget::saveSettings);
-         break;
-      case QVariant::Type::StringList:
-         newWidget = new QComboBox;
-         static_cast<QComboBox*>(newWidget)->addItems(currSetting.defaultvalue.toStringList());
-         static_cast<QComboBox*>(newWidget)->setCurrentIndex(currSetting.defaultindex);
-         QObject::connect(static_cast<QComboBox*>(newWidget),
-                          static_cast<void (QComboBox::*)(int)>(&QComboBox::currentIndexChanged),
-                          [=](int i) { Q_UNUSED(i); this->saveSettings(); });
-         break;
-      case QVariant::Type::Bool:
-         newWidget = new QCheckBox;
-         QObject::connect(static_cast<QCheckBox*>(newWidget),
-                          static_cast<void (QCheckBox::*)(bool)>(&QCheckBox::toggled),
-                          [=](bool i) { Q_UNUSED(i); this->saveSettings(); });
-         break;
-      case QVariant::Type::Double:
-         newWidget = new QDoubleSpinBox;
-         static_cast<QDoubleSpinBox*>(newWidget)->setSingleStep(0.1);
-         QObject::connect(static_cast<QDoubleSpinBox*>(newWidget),
-                          static_cast<void (QDoubleSpinBox::*)(double)>(&QDoubleSpinBox::valueChanged),
-                          [=](double i) { Q_UNUSED(i); this->saveSettings(); });
-         break;
-      case QVariant::Type::Color:
-         newWidget = new QPushButton("Color");
-         QObject::connect(static_cast<QPushButton*>(newWidget),
-                          static_cast<void (QPushButton::*)(bool)>(&QPushButton::clicked),
-                          [=](bool) {
-            this->colorDialog(settingsId);
-            static_cast<QPushButton*>(newWidget)->setChecked(false);
-            static_cast<QPushButton*>(newWidget)->setDown(false);
-         });
-         break;
-      default:
-         newWidget = new QSpinBox;
-         QObject::connect(static_cast<QSpinBox*>(newWidget),
-                          static_cast<void (QSpinBox::*)(int)>(&QSpinBox::valueChanged),
-                          [=](int i) { Q_UNUSED(i); this->saveSettings(); });
+      switch (currSetting.defaultvalue.typeId()) {
+         case QMetaType::QString:
+            if (currSetting.multiline) {
+               auto* textedit = new QPlainTextEdit;
+               const int textEditHeight = textedit->fontMetrics().lineSpacing() * 4 + 18;
+               textedit->setFixedHeight(textEditHeight);
+               newWidget = textedit;
+               QObject::connect(textedit, &QPlainTextEdit::textChanged, this,
+                                &NodeSettingsWidget::saveSettings);
+            } else {
+               newWidget = new QLineEdit;
+               QObject::connect(static_cast<QLineEdit*>(newWidget), &QLineEdit::returnPressed, this,
+                                &NodeSettingsWidget::saveSettings);
+            }
+            break;
+         case QMetaType::QStringList:
+            newWidget = new QComboBox;
+            static_cast<QComboBox*>(newWidget)->addItems(currSetting.defaultvalue.toStringList());
+            static_cast<QComboBox*>(newWidget)->setCurrentIndex(currSetting.defaultindex);
+            QObject::connect(static_cast<QComboBox*>(newWidget),
+                             static_cast<void (QComboBox::*)(int)>(&QComboBox::currentIndexChanged),
+                             [=](int i) {
+                                Q_UNUSED(i);
+                                this->saveSettings();
+                             });
+            break;
+         case QMetaType::Bool:
+            newWidget = new QCheckBox;
+            QObject::connect(static_cast<QCheckBox*>(newWidget),
+                             static_cast<void (QCheckBox::*)(bool)>(&QCheckBox::toggled),
+                             [=](bool i) {
+                                Q_UNUSED(i);
+                                this->saveSettings();
+                             });
+            break;
+         case QMetaType::Double:
+            newWidget = new QDoubleSpinBox;
+            static_cast<QDoubleSpinBox*>(newWidget)->setSingleStep(0.1);
+            QObject::connect(
+                static_cast<QDoubleSpinBox*>(newWidget),
+                static_cast<void (QDoubleSpinBox::*)(double)>(&QDoubleSpinBox::valueChanged),
+                [=](double i) {
+                   Q_UNUSED(i);
+                   this->saveSettings();
+                });
+            break;
+         case QMetaType::QColor:
+            newWidget = new QPushButton("Color");
+            newWidget->setProperty("colorControl", true);
+            QObject::connect(static_cast<QPushButton*>(newWidget),
+                             static_cast<void (QPushButton::*)(bool)>(&QPushButton::clicked),
+                             [=](bool) {
+                                this->colorDialog(settingsId);
+                                static_cast<QPushButton*>(newWidget)->setChecked(false);
+                                static_cast<QPushButton*>(newWidget)->setDown(false);
+                             });
+            break;
+         default:
+            newWidget = new QSpinBox;
+            QObject::connect(static_cast<QSpinBox*>(newWidget),
+                             static_cast<void (QSpinBox::*)(int)>(&QSpinBox::valueChanged),
+                             [=](int i) {
+                                Q_UNUSED(i);
+                                this->saveSettings();
+                             });
       }
-      QLabel* newLabel = new QLabel(currSetting.name + ":");
-      settingLabels[settingsId] = newLabel;
-      settingElements[settingsId] = newWidget;
-      settingsLayout->addRow(newLabel, newWidget);
+      newWidget->setProperty("inspectorEditor", true);
+      QWidget* newSlider = nullptr;
       if (!currSetting.max.isNull()) {
          auto* doubleSpinBox = dynamic_cast<QDoubleSpinBox*>(newWidget);
          auto* spinBox = dynamic_cast<QSpinBox*>(newWidget);
          if (doubleSpinBox) {
-            auto* newSlider = new QDoubleSlider();
-            newSlider->blockSignals(true);
+            auto* doubleSlider = new QDoubleSlider();
+            newSlider = doubleSlider;
+            doubleSlider->blockSignals(true);
             doubleSpinBox->blockSignals(true);
-            newSlider->setDoubleMinimum(currSetting.min.toDouble());
-            newSlider->setDoubleMaximum(currSetting.max.toDouble());
-            settingsLayout->addRow("", newSlider);
-            settingSliders[settingsId] = newSlider;
+            doubleSlider->setDoubleMinimum(currSetting.min.toDouble());
+            doubleSlider->setDoubleMaximum(currSetting.max.toDouble());
             doubleSpinBox->setMinimum(currSetting.min.toDouble());
             doubleSpinBox->setMaximum(currSetting.max.toDouble());
-            QObject::connect(newSlider, &QDoubleSlider::doubleValueChanged,
-                             doubleSpinBox, &QDoubleSpinBox::setValue);
-            QObject::connect(doubleSpinBox, static_cast<void (QDoubleSpinBox::*)(double)>(&QDoubleSpinBox::valueChanged),
-                             [=](double value) {
-               newSlider->blockSignals(true);
-               newSlider->setDoubleValue(value);
-               newSlider->blockSignals(false);
-            });
+            QObject::connect(doubleSlider, &QDoubleSlider::doubleValueChanged, doubleSpinBox,
+                             &QDoubleSpinBox::setValue);
+            QObject::connect(
+                doubleSpinBox,
+                static_cast<void (QDoubleSpinBox::*)(double)>(&QDoubleSpinBox::valueChanged),
+                [=](double value) {
+                   doubleSlider->blockSignals(true);
+                   doubleSlider->setDoubleValue(value);
+                   doubleSlider->blockSignals(false);
+                });
             doubleSpinBox->blockSignals(false);
-            newSlider->blockSignals(false);
+            doubleSlider->blockSignals(false);
          } else if (spinBox) {
-            auto* newSlider = new QSlider(Qt::Horizontal);
+            auto* intSlider = new QSlider(Qt::Horizontal);
+            newSlider = intSlider;
             spinBox->blockSignals(true);
-            newSlider->blockSignals(true);
-            newSlider->setMinimum(currSetting.min.toInt());
-            newSlider->setMaximum(currSetting.max.toInt());
-            settingsLayout->addRow("", newSlider);
-            settingSliders[settingsId] = newSlider;
+            intSlider->blockSignals(true);
+            intSlider->setMinimum(currSetting.min.toInt());
+            intSlider->setMaximum(currSetting.max.toInt());
             spinBox->setMinimum(currSetting.min.toInt());
             spinBox->setMaximum(currSetting.max.toInt());
             QObject::connect(spinBox, static_cast<void (QSpinBox::*)(int)>(&QSpinBox::valueChanged),
-                             newSlider, &QSlider::setValue);
-            QObject::connect(newSlider, &QSlider::valueChanged,
-                             spinBox, &QSpinBox::setValue);
+                             intSlider, &QSlider::setValue);
+            QObject::connect(intSlider, &QSlider::valueChanged, spinBox, &QSpinBox::setValue);
             spinBox->blockSignals(false);
-            newSlider->blockSignals(false);
+            intSlider->blockSignals(false);
          }
       }
+      auto* newLabel = new QLabel(currSetting.name + ":");
+      settingLabels[settingsId] = newLabel;
+      settingElements[settingsId] = newWidget;
+      if (newSlider != nullptr) {
+         newSlider->setProperty("inspectorSlider", true);
+         settingSliders[settingsId] = newSlider;
+      }
+      settingsLayout->addWidget(createPropertyRow(newLabel, newWidget, newSlider));
       QString groupId;
       if (!(currSetting.group.isEmpty()) &&
           ((settingsIterator.hasNext() && settingsIterator.peekNext().group != currSetting.group) ||
@@ -411,28 +457,27 @@ void NodeSettingsWidget::generatorUpdated()
          QLabel* newLabel = new QLabel(QString("Align ").append(currSetting.group).append(":"));
          settingLabels[groupId] = newLabel;
          settingElements[groupId] = groupCheckbox;
-         settingsLayout->addRow(newLabel, groupCheckbox);
+         settingsLayout->addWidget(createPropertyRow(newLabel, groupCheckbox));
          QObject::connect(groupCheckbox, &QCheckBox::toggled,
                           [=](bool val) { this->setGroupAlignment(currSetting.group, val); });
-
       }
       if (!currSetting.enabler.isEmpty()) {
          auto* enablerWidget = dynamic_cast<QCheckBox*>(settingElements[currSetting.enabler]);
          if (enablerWidget) {
             if (settingElements[settingsId]) {
                settingElements[settingsId]->setEnabled(enablerWidget->isChecked());
-               QObject::connect(enablerWidget, &QCheckBox::toggled,
-                                settingElements[settingsId], &QWidget::setEnabled);
+               QObject::connect(enablerWidget, &QCheckBox::toggled, settingElements[settingsId],
+                                &QWidget::setEnabled);
             }
             if (settingSliders[settingsId]) {
                settingSliders[settingsId]->setEnabled(enablerWidget->isChecked());
-               QObject::connect(enablerWidget, &QCheckBox::toggled,
-                                settingSliders[settingsId], &QWidget::setEnabled);
+               QObject::connect(enablerWidget, &QCheckBox::toggled, settingSliders[settingsId],
+                                &QWidget::setEnabled);
             }
             if (settingElements[groupId]) {
                settingElements[groupId]->setEnabled(enablerWidget->isChecked());
-               QObject::connect(enablerWidget, &QCheckBox::toggled,
-                                settingElements[groupId], &QWidget::setEnabled);
+               QObject::connect(enablerWidget, &QCheckBox::toggled, settingElements[groupId],
+                                &QWidget::setEnabled);
             }
          }
       }
@@ -440,13 +485,9 @@ void NodeSettingsWidget::generatorUpdated()
    this->settingsUpdated();
 }
 
-/**
- * @brief NodeSettingsWidget::toogleAligned
- * @param group
- * @param aligned
- */
-void NodeSettingsWidget::setGroupAlignment(const QString& group, bool aligned)
-{
+/// @brief @param group
+/// @param aligned
+void NodeSettingsWidget::setGroupAlignment(const QString& group, bool aligned) {
    TextureGeneratorSettings settings = texNode->getGenerator()->getSettings();
    QList<TextureGeneratorSetting> settingsvalues = settings.values();
    std::sort(settingsvalues.begin(), settingsvalues.end(), settingsComperator);
@@ -466,20 +507,28 @@ void NodeSettingsWidget::setGroupAlignment(const QString& group, bool aligned)
             firstwidget->disconnect(currwidget);
             firstwidget->disconnect(this);
             if (aligned) {
-               if (currSetting.defaultvalue.type() == QVariant::Type::Int) {
+               if (currSetting.defaultvalue.typeId() == QMetaType::Int) {
                   QObject::connect(static_cast<QSpinBox*>(firstwidget),
                                    static_cast<void (QSpinBox::*)(int)>(&QSpinBox::valueChanged),
                                    static_cast<QSpinBox*>(currwidget), &QSpinBox::setValue);
                   QObject::connect(static_cast<QSpinBox*>(firstwidget),
                                    static_cast<void (QSpinBox::*)(int)>(&QSpinBox::valueChanged),
-                                   [=](int i) { Q_UNUSED(i); this->saveSettings(); });
-               } else if (currSetting.defaultvalue.type() == QVariant::Type::Double) {
-                  QObject::connect(static_cast<QDoubleSpinBox*>(firstwidget),
-                                   static_cast<void (QDoubleSpinBox::*)(double)>(&QDoubleSpinBox::valueChanged),
-                                   static_cast<QDoubleSpinBox*>(currwidget), &QDoubleSpinBox::setValue);
-                  QObject::connect(static_cast<QDoubleSpinBox*>(firstwidget),
-                                   static_cast<void (QDoubleSpinBox::*)(double)>(&QDoubleSpinBox::valueChanged),
-                                   [=](double i) { Q_UNUSED(i); this->saveSettings(); });
+                                   [=](int i) {
+                                      Q_UNUSED(i);
+                                      this->saveSettings();
+                                   });
+               } else if (currSetting.defaultvalue.typeId() == QMetaType::Double) {
+                  QObject::connect(
+                      static_cast<QDoubleSpinBox*>(firstwidget),
+                      static_cast<void (QDoubleSpinBox::*)(double)>(&QDoubleSpinBox::valueChanged),
+                      static_cast<QDoubleSpinBox*>(currwidget), &QDoubleSpinBox::setValue);
+                  QObject::connect(
+                      static_cast<QDoubleSpinBox*>(firstwidget),
+                      static_cast<void (QDoubleSpinBox::*)(double)>(&QDoubleSpinBox::valueChanged),
+                      [=](double i) {
+                         Q_UNUSED(i);
+                         this->saveSettings();
+                      });
                }
             }
             currwidget->setEnabled(!aligned);
@@ -490,12 +539,13 @@ void NodeSettingsWidget::setGroupAlignment(const QString& group, bool aligned)
          if (currslider && firstslider) {
             firstslider->disconnect(currslider);
             if (aligned) {
-               if (currSetting.defaultvalue.type() == QVariant::Type::Int) {
+               if (currSetting.defaultvalue.typeId() == QMetaType::Int) {
                   QObject::connect(static_cast<QSlider*>(firstslider), &QSlider::valueChanged,
                                    static_cast<QSlider*>(currslider), &QSlider::setValue);
-               } else if (currSetting.defaultvalue.type() == QVariant::Type::Double) {
-                  QObject::connect(static_cast<QDoubleSlider*>(firstslider), &QDoubleSlider::doubleValueChanged,
-                                   static_cast<QDoubleSlider*>(currslider), &QDoubleSlider::setDoubleValue);
+               } else if (currSetting.defaultvalue.typeId() == QMetaType::Double) {
+                  QObject::connect(
+                      static_cast<QDoubleSlider*>(firstslider), &QDoubleSlider::doubleValueChanged,
+                      static_cast<QDoubleSlider*>(currslider), &QDoubleSlider::setDoubleValue);
                }
             }
             currslider->setEnabled(!aligned);
@@ -505,12 +555,8 @@ void NodeSettingsWidget::setGroupAlignment(const QString& group, bool aligned)
    }
 }
 
-/**
- * @brief NodeSettingsWidget::slotsUpdated
- * A sources has been added or removed. Updates the slot buttons and labels.
- */
-void NodeSettingsWidget::slotsUpdated()
-{
+/// @brief A sources has been added or removed. Updates the slot buttons and labels.
+void NodeSettingsWidget::slotsUpdated() {
    int numInList = sourceSlotButtons.count();
    int numSlots = texNode->getNumSourceSlots();
    int numConnected = 0;
@@ -526,9 +572,8 @@ void NodeSettingsWidget::slotsUpdated()
          currLabel->setText(texNode->getGenerator()->getSlotName(i) + ":");
          int connectedNode = texNode->getSources().value(i);
          if (connectedNode != 0) {
-            currLabel->setText(currLabel->text().append(" ")
-                               .append(widgetmanager->getTextureProject()->
-                                       getNode(connectedNode)->getName()));
+            currLabel->setText(currLabel->text().append(" ").append(
+                widgetmanager->getTextureProject()->getNode(connectedNode)->getName()));
             currButton->setText("Clear");
             currButton->setFlat(false);
             numConnected++;
@@ -545,14 +590,9 @@ void NodeSettingsWidget::slotsUpdated()
    }
 }
 
-/**
- * @brief NodeSettingsWidget::settingsUpdated
- *
- * Called when the node's settings have been changed.
- * Updates the widgets' values.
- */
-void NodeSettingsWidget::settingsUpdated()
-{
+/// @brief Called when the node's settings have been changed.
+/// Updates the widgets' values.
+void NodeSettingsWidget::settingsUpdated() {
    nodeNameLineEdit->setText(texNode->getName());
 
    QMapIterator<QString, QWidget*> settingElementIterator(settingElements);
@@ -571,56 +611,58 @@ void NodeSettingsWidget::settingsUpdated()
       QWidget* settingsWidget = settingElementIterator.value();
       saveDisabled = true;
       int index;
-      switch (defaultvalue.type()) {
-      case QVariant::Type::Int: {
-         QSpinBox *spinbox = dynamic_cast<QSpinBox*>(settingsWidget);
-         if (spinbox) {
-            spinbox->setValue(nodevalue.toInt());
-         }
-         break;
-      }
-      case QVariant::Type::Double: {
-         QDoubleSpinBox *doublespinbox = dynamic_cast<QDoubleSpinBox*>(settingsWidget);
-         if (doublespinbox) {
-            doublespinbox->setValue(nodevalue.toDouble());
-         }
-         break;
-      }
-      case QVariant::Type::Color: {
-         QPushButton *pushbutton = dynamic_cast<QPushButton*>(settingsWidget);
-         if (pushbutton) {
-            settingValues[settingsId] = nodevalue.toString();
-            styleButton(pushbutton, QColor(nodevalue.toString()));
-         }
-         break;
-      }
-      case QVariant::Type::Bool: {
-         QCheckBox *checkbox = dynamic_cast<QCheckBox*>(settingsWidget);
-         if (checkbox) {
-            checkbox->setChecked(nodevalue.toBool());
-         }
-         break;
-      }
-      case QVariant::Type::String: {
-         QLineEdit *lineedit = dynamic_cast<QLineEdit*>(settingsWidget);
-         if (lineedit) {
-            lineedit->setText(nodevalue.toString());
-         }
-         break;
-      }
-      case QVariant::Type::StringList: {
-         QComboBox *combobox = dynamic_cast<QComboBox*>(settingsWidget);
-         if (combobox) {
-            index = combobox->findText(nodevalue.toString());
-            if (index >= 0) {
-               combobox->setCurrentIndex(index);
+      switch (defaultvalue.typeId()) {
+         case QMetaType::Int: {
+            QSpinBox* spinbox = dynamic_cast<QSpinBox*>(settingsWidget);
+            if (spinbox) {
+               spinbox->setValue(nodevalue.toInt());
             }
+            break;
          }
-         break;
-      }
-      default: {
-         INFO_MSG("Type not found. Property id=" + settingsId);
-      }
+         case QMetaType::Double: {
+            QDoubleSpinBox* doublespinbox = dynamic_cast<QDoubleSpinBox*>(settingsWidget);
+            if (doublespinbox) {
+               doublespinbox->setValue(nodevalue.toDouble());
+            }
+            break;
+         }
+         case QMetaType::QColor: {
+            QPushButton* pushbutton = dynamic_cast<QPushButton*>(settingsWidget);
+            if (pushbutton) {
+               settingValues[settingsId] = nodevalue.toString();
+               styleButton(pushbutton, QColor(nodevalue.toString()));
+            }
+            break;
+         }
+         case QMetaType::Bool: {
+            QCheckBox* checkbox = dynamic_cast<QCheckBox*>(settingsWidget);
+            if (checkbox) {
+               checkbox->setChecked(nodevalue.toBool());
+            }
+            break;
+         }
+         case QMetaType::QString: {
+            QLineEdit* lineedit = dynamic_cast<QLineEdit*>(settingsWidget);
+            if (lineedit) {
+               lineedit->setText(nodevalue.toString());
+            } else if (auto* textedit = dynamic_cast<QPlainTextEdit*>(settingsWidget)) {
+               textedit->setPlainText(nodevalue.toString());
+            }
+            break;
+         }
+         case QMetaType::QStringList: {
+            QComboBox* combobox = dynamic_cast<QComboBox*>(settingsWidget);
+            if (combobox) {
+               index = combobox->findText(nodevalue.toString());
+               if (index >= 0) {
+                  combobox->setCurrentIndex(index);
+               }
+            }
+            break;
+         }
+         default: {
+            INFO_MSG("Type not found. Property id=" + settingsId);
+         }
       }
       saveDisabled = false;
    }

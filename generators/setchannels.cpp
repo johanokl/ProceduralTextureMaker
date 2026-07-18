@@ -1,17 +1,15 @@
-/**
- * Part of the ProceduralTextureMaker project.
- * http://github.com/johanokl/ProceduralTextureMaker
- * Released under GPLv3.
- * Johan Lindqvist (johan.lindqvist@gmail.com)
- */
+
+// Part of the ProceduralTextureMaker project.
+// http://github.com/johanokl/ProceduralTextureMaker
+// Released under GPLv3.
+// Johan Lindqvist (johan.lindqvist@gmail.com)
 
 #include "setchannels.h"
 #include <QColor>
 #include <QtMath>
 #include <cmath>
 
-SetChannelsTextureGenerator::SetChannelsTextureGenerator()
-{
+SetChannelsTextureGenerator::SetChannelsTextureGenerator() {
    QStringList channels;
    channels.append("None");
    channels.append("Fill");
@@ -53,39 +51,36 @@ SetChannelsTextureGenerator::SetChannelsTextureGenerator()
    configurables.insert("channelAlpha", channelAlpha);
 }
 
-
-quint8 SetChannelsTextureGenerator::getColorFromChannel(const TexturePixel& firstColor,
-                                                        const TexturePixel& secondColor,
-                                                        SetChannelsTextureGenerator::Channels channel) const
-{
+quint8 SetChannelsTextureGenerator::getColorFromChannel(
+    const TexturePixel& firstColor, const TexturePixel& secondColor,
+    SetChannelsTextureGenerator::Channels channel) const {
    switch (channel) {
-   case Channels::none:
-      return 0;
-   case Channels::fill:
-      return 255;
-   case Channels::node1red:
-      return firstColor.r;
-   case Channels::node1green:
-      return firstColor.g;
-   case Channels::node1blue:
-      return firstColor.b;
-   case Channels::node1alpha:
-      return firstColor.a;
-   case Channels::node2red:
-      return secondColor.r;
-   case Channels::node2green:
-      return secondColor.g;
-   case Channels::node2blue:
-      return secondColor.b;
-   case Channels::node2alpha:
-      return secondColor.a;
+      case Channels::none:
+         return 0;
+      case Channels::fill:
+         return 255;
+      case Channels::node1red:
+         return firstColor.r;
+      case Channels::node1green:
+         return firstColor.g;
+      case Channels::node1blue:
+         return firstColor.b;
+      case Channels::node1alpha:
+         return firstColor.a;
+      case Channels::node2red:
+         return secondColor.r;
+      case Channels::node2green:
+         return secondColor.g;
+      case Channels::node2blue:
+         return secondColor.b;
+      case Channels::node2alpha:
+         return secondColor.a;
    }
    return 0;
 }
 
-
-SetChannelsTextureGenerator::Channels SetChannelsTextureGenerator::getChannelFromName(const QString& name) const
-{
+SetChannelsTextureGenerator::Channels SetChannelsTextureGenerator::getChannelFromName(
+    const QString& name) const {
    if (name == "Fill") {
       return Channels::fill;
    }
@@ -115,12 +110,9 @@ SetChannelsTextureGenerator::Channels SetChannelsTextureGenerator::getChannelFro
    }
    return Channels::none;
 }
-
-
 void SetChannelsTextureGenerator::generate(QSize size, TexturePixel* destimage,
                                            QMap<int, TextureImagePtr> sourceimages,
-                                           TextureNodeSettings* settings) const
-{
+                                           TextureNodeSettings* settings) const {
    if (!settings || !destimage || !size.isValid()) {
       return;
    }
@@ -158,10 +150,14 @@ void SetChannelsTextureGenerator::generate(QSize size, TexturePixel* destimage,
       secondAllocated = true;
    }
    for (int thisPos = 0; thisPos < numPixels; thisPos++) {
-      destimage[thisPos].r = getColorFromChannel(firstSource[thisPos], secondSource[thisPos], channelRed);
-      destimage[thisPos].g = getColorFromChannel(firstSource[thisPos], secondSource[thisPos], channelGreen);
-      destimage[thisPos].b = getColorFromChannel(firstSource[thisPos], secondSource[thisPos], channelBlue);
-      destimage[thisPos].a = getColorFromChannel(firstSource[thisPos], secondSource[thisPos], channelAlpha);
+      destimage[thisPos].r =
+          getColorFromChannel(firstSource[thisPos], secondSource[thisPos], channelRed);
+      destimage[thisPos].g =
+          getColorFromChannel(firstSource[thisPos], secondSource[thisPos], channelGreen);
+      destimage[thisPos].b =
+          getColorFromChannel(firstSource[thisPos], secondSource[thisPos], channelBlue);
+      destimage[thisPos].a =
+          getColorFromChannel(firstSource[thisPos], secondSource[thisPos], channelAlpha);
    }
    if (firstAllocated) {
       delete[] firstSource;

@@ -1,20 +1,16 @@
-/**
- * Part of the ProceduralTextureMaker project.
- * http://github.com/johanokl/ProceduralTextureMaker
- * Released under GPLv3.
- * Johan Lindqvist (johan.lindqvist@gmail.com)
- */
+
+// Part of the ProceduralTextureMaker project.
+// http://github.com/johanokl/ProceduralTextureMaker
+// Released under GPLv3.
+// Johan Lindqvist (johan.lindqvist@gmail.com)
 
 #ifndef BLENDINGTEXTUREGENERATOR_H
 #define BLENDINGTEXTUREGENERATOR_H
 
 #include "texturegenerator.h"
 
-/**
- * @brief The BlendingTextureGenerator class
- */
-class BlendingTextureGenerator : public TextureGenerator
-{
+/// @brief The BlendingTextureGenerator class
+class BlendingTextureGenerator : public TextureGenerator {
 public:
    enum BlendModes {
       Normal = 1,
@@ -33,9 +29,7 @@ public:
 
    BlendingTextureGenerator();
    ~BlendingTextureGenerator() override = default;
-   void generate(QSize size,
-                 TexturePixel* destimage,
-                 QMap<int, TextureImagePtr> sourceimages,
+   void generate(QSize size, TexturePixel* destimage, QMap<int, TextureImagePtr> sourceimages,
                  TextureNodeSettings* settings) const override;
    int getNumSourceSlots() const override { return 2; }
    QString getName() const override { return QString("Blending"); }
@@ -46,10 +40,8 @@ public:
 private:
    TextureGeneratorSettings configurables;
    double blendColors(BlendModes mode, double originColor, double addColor) const;
-   int alphaCompose(double originAlpha, double addAlpha, double compositeAlpha,
-                    double originColor, double addColor, double compositeColor) const;
+   int alphaCompose(double originAlpha, double addAlpha, double compositeAlpha, double originColor,
+                    double addColor, double compositeColor) const;
 };
 
-#endif // BLENDINGTEXTUREGENERATOR_H
-
-
+#endif  // BLENDINGTEXTUREGENERATOR_H

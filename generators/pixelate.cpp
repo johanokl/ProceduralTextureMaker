@@ -1,16 +1,14 @@
-/**
- * Part of the ProceduralTextureMaker project.
- * http://github.com/johanokl/ProceduralTextureMaker
- * Released under GPLv3.
- * Johan Lindqvist (johan.lindqvist@gmail.com)
- */
+
+// Part of the ProceduralTextureMaker project.
+// http://github.com/johanokl/ProceduralTextureMaker
+// Released under GPLv3.
+// Johan Lindqvist (johan.lindqvist@gmail.com)
 
 #include "pixelate.h"
 
-PixelateTextureGenerator::PixelateTextureGenerator()
-{
+PixelateTextureGenerator::PixelateTextureGenerator() {
    TextureGeneratorSetting width;
-   width.defaultvalue = QVariant((double) 5);
+   width.defaultvalue = QVariant((double)5);
    width.name = "Width";
    width.min = QVariant(0);
    width.max = QVariant(50);
@@ -19,7 +17,7 @@ PixelateTextureGenerator::PixelateTextureGenerator()
    configurables.insert("width", width);
 
    TextureGeneratorSetting height;
-   height.defaultvalue = QVariant((double) 5);
+   height.defaultvalue = QVariant((double)5);
    height.name = "Height";
    height.min = QVariant(0);
    height.max = QVariant(50);
@@ -28,7 +26,7 @@ PixelateTextureGenerator::PixelateTextureGenerator()
    configurables.insert("height", height);
 
    TextureGeneratorSetting offsetx;
-   offsetx.defaultvalue = QVariant((double) 0);
+   offsetx.defaultvalue = QVariant((double)0);
    offsetx.name = "Offset left";
    offsetx.min = QVariant(-50);
    offsetx.max = QVariant(50);
@@ -36,25 +34,21 @@ PixelateTextureGenerator::PixelateTextureGenerator()
    configurables.insert("offsetx", offsetx);
 
    TextureGeneratorSetting offsety;
-   offsety.defaultvalue = QVariant((double) 0);
+   offsety.defaultvalue = QVariant((double)0);
    offsety.name = "Offset top";
    offsety.min = QVariant(-50);
    offsety.max = QVariant(50);
    offsety.order = 4;
    configurables.insert("offsety", offsety);
 }
-
-
-void PixelateTextureGenerator::generate(QSize size,
-                                        TexturePixel* destimage,
+void PixelateTextureGenerator::generate(QSize size, TexturePixel* destimage,
                                         QMap<int, TextureImagePtr> sourceimages,
-                                        TextureNodeSettings* settings) const
-{
+                                        TextureNodeSettings* settings) const {
    if (!settings || !destimage || !size.isValid()) {
       return;
    }
-   int width = qMax(settings->value("width").toDouble() / 100 * size.width(), (double) 1);
-   int height = qMax(settings->value("height").toDouble() / 100 * size.height(), (double) 1);
+   int width = qMax(settings->value("width").toDouble() / 100 * size.width(), (double)1);
+   int height = qMax(settings->value("height").toDouble() / 100 * size.height(), (double)1);
    int offsetx = settings->value("offsetx").toDouble() / 100 * size.width();
    int offsety = settings->value("offsety").toDouble() / 100 * size.height();
    if (!sourceimages.contains(0)) {
@@ -95,8 +89,8 @@ void PixelateTextureGenerator::generate(QSize size,
                   }
                }
                if (totalPixels > 0) {
-                  TexturePixel color(red / totalPixels, green / totalPixels,
-                                     blue / totalPixels, alpha / totalPixels);
+                  TexturePixel color(red / totalPixels, green / totalPixels, blue / totalPixels,
+                                     alpha / totalPixels);
                   int stopY = qMin(y + height, size.height());
                   for (int ypos = qMax(y, 0); ypos < stopY; ypos++) {
                      int linestart = ypos * size.width();

@@ -1,16 +1,14 @@
-/**
- * Part of the ProceduralTextureMaker project.
- * http://github.com/johanokl/ProceduralTextureMaker
- * Released under GPLv3.
- * Johan Lindqvist (johan.lindqvist@gmail.com)
- */
+
+// Part of the ProceduralTextureMaker project.
+// http://github.com/johanokl/ProceduralTextureMaker
+// Released under GPLv3.
+// Johan Lindqvist (johan.lindqvist@gmail.com)
 
 #include "checkboard.h"
 #include <QColor>
 #include <QPainter>
 
-CheckboardTextureGenerator::CheckboardTextureGenerator()
-{
+CheckboardTextureGenerator::CheckboardTextureGenerator() {
    TextureGeneratorSetting color;
    color.name = "Color";
    color.defaultvalue = QVariant(QColor(0, 0, 0, 255));
@@ -19,7 +17,7 @@ CheckboardTextureGenerator::CheckboardTextureGenerator()
 
    TextureGeneratorSetting brickwidth;
    brickwidth.name = "Brick width";
-   brickwidth.defaultvalue = QVariant((int) 10);
+   brickwidth.defaultvalue = QVariant((int)10);
    brickwidth.min = QVariant(1);
    brickwidth.max = QVariant(300);
    brickwidth.order = 2;
@@ -27,7 +25,7 @@ CheckboardTextureGenerator::CheckboardTextureGenerator()
 
    TextureGeneratorSetting brickheight;
    brickheight.name = "Brick height";
-   brickheight.defaultvalue = QVariant((int) 10);
+   brickheight.defaultvalue = QVariant((int)10);
    brickheight.min = QVariant(1);
    brickheight.max = QVariant(300);
    brickheight.order = 3;
@@ -35,7 +33,7 @@ CheckboardTextureGenerator::CheckboardTextureGenerator()
 
    TextureGeneratorSetting offsetx;
    offsetx.name = "Offset left";
-   offsetx.defaultvalue = QVariant((int) 0);
+   offsetx.defaultvalue = QVariant((int)0);
    offsetx.min = QVariant(-100);
    offsetx.max = QVariant(100);
    offsetx.order = 4;
@@ -43,19 +41,15 @@ CheckboardTextureGenerator::CheckboardTextureGenerator()
 
    TextureGeneratorSetting offsety;
    offsety.name = "Offset top";
-   offsety.defaultvalue = QVariant((int) 0);
+   offsety.defaultvalue = QVariant((int)0);
    offsety.min = QVariant(-100);
    offsety.max = QVariant(100);
    offsety.order = 5;
    configurables.insert("offsety", offsety);
 }
-
-
-void CheckboardTextureGenerator::generate(QSize size,
-                                          TexturePixel* destimage,
+void CheckboardTextureGenerator::generate(QSize size, TexturePixel* destimage,
                                           QMap<int, TextureImagePtr> sourceimages,
-                                          TextureNodeSettings* settings) const
-{
+                                          TextureNodeSettings* settings) const {
    if (!settings || !destimage || !size.isValid()) {
       return;
    }
@@ -66,7 +60,8 @@ void CheckboardTextureGenerator::generate(QSize size,
    int offsety = settings->value("offsety").toDouble() * size.height() / 100;
 
    if (sourceimages.contains(0)) {
-      memcpy(destimage, sourceimages.value(0)->getData(), size.width() * size.height() * sizeof(TexturePixel));
+      memcpy(destimage, sourceimages.value(0)->getData(),
+             size.width() * size.height() * sizeof(TexturePixel));
    } else {
       memset(destimage, 0, size.width() * size.height() * sizeof(TexturePixel));
    }

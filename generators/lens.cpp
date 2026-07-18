@@ -1,18 +1,16 @@
-/**
- * Part of the ProceduralTextureMaker project.
- * http://github.com/johanokl/ProceduralTextureMaker
- * Released under GPLv3.
- * Johan Lindqvist (johan.lindqvist@gmail.com)
- */
+
+// Part of the ProceduralTextureMaker project.
+// http://github.com/johanokl/ProceduralTextureMaker
+// Released under GPLv3.
+// Johan Lindqvist (johan.lindqvist@gmail.com)
 
 #include "lens.h"
 #include <QPoint>
 #include <cmath>
 
-LensTextureGenerator::LensTextureGenerator()
-{
+LensTextureGenerator::LensTextureGenerator() {
    TextureGeneratorSetting offsetleft;
-   offsetleft.defaultvalue = QVariant((int) 0);
+   offsetleft.defaultvalue = QVariant((int)0);
    offsetleft.name = "Offset left";
    offsetleft.min = QVariant(-100);
    offsetleft.max = QVariant(100);
@@ -20,7 +18,7 @@ LensTextureGenerator::LensTextureGenerator()
    configurables.insert("offsetleft", offsetleft);
 
    TextureGeneratorSetting offsettop;
-   offsettop.defaultvalue = QVariant((int) 0);
+   offsettop.defaultvalue = QVariant((int)0);
    offsettop.name = "Offset top";
    offsettop.min = QVariant(-100);
    offsettop.max = QVariant(100);
@@ -28,7 +26,7 @@ LensTextureGenerator::LensTextureGenerator()
    configurables.insert("offsettop", offsettop);
 
    TextureGeneratorSetting size;
-   size.defaultvalue = QVariant((double) 50);
+   size.defaultvalue = QVariant((double)50);
    size.name = "Size";
    size.min = QVariant(0);
    size.max = QVariant(300);
@@ -36,20 +34,16 @@ LensTextureGenerator::LensTextureGenerator()
    configurables.insert("size", size);
 
    TextureGeneratorSetting strength;
-   strength.defaultvalue = QVariant((double) 200);
+   strength.defaultvalue = QVariant((double)200);
    strength.name = "Strength";
    strength.min = QVariant(0);
    strength.max = QVariant(300);
    strength.order = 3;
    configurables.insert("strength", strength);
 }
-
-
-void LensTextureGenerator::generate(QSize size,
-                                    TexturePixel* destimage,
+void LensTextureGenerator::generate(QSize size, TexturePixel* destimage,
                                     QMap<int, TextureImagePtr> sourceimages,
-                                    TextureNodeSettings* settings) const
-{
+                                    TextureNodeSettings* settings) const {
    if (!settings || !destimage || !size.isValid()) {
       return;
    }
@@ -76,8 +70,7 @@ void LensTextureGenerator::generate(QSize size,
          int ix = 0;
          int iy = 0;
          if ((x * x + y * y) < (r * r)) {
-            double shift = (double) strength /
-                  sqrt(strength * strength - (x * x + y * y - r * r));
+            double shift = (double)strength / sqrt(strength * strength - (x * x + y * y - r * r));
             ix = x * shift - x;
             iy = y * shift - y;
          }

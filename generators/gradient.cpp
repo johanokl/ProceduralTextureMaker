@@ -1,9 +1,8 @@
-/**
- * Part of the ProceduralTextureMaker project.
- * http://github.com/johanokl/ProceduralTextureMaker
- * Released under GPLv3.
- * Johan Lindqvist (johan.lindqvist@gmail.com)
- */
+
+// Part of the ProceduralTextureMaker project.
+// http://github.com/johanokl/ProceduralTextureMaker
+// Released under GPLv3.
+// Johan Lindqvist (johan.lindqvist@gmail.com)
 
 #include "gradient.h"
 #include <QColor>
@@ -11,9 +10,7 @@
 #include <QGraphicsOpacityEffect>
 #include <QPainter>
 
-
-GradientTextureGenerator::GradientTextureGenerator()
-{
+GradientTextureGenerator::GradientTextureGenerator() {
    QStringList gradients;
    gradients.append("Linear Gradient");
    gradients.append("Radial Gradient");
@@ -54,7 +51,7 @@ GradientTextureGenerator::GradientTextureGenerator()
 
    TextureGeneratorSetting startposx;
    startposx.name = "Start pos X";
-   startposx.defaultvalue = QVariant((double) -20);
+   startposx.defaultvalue = QVariant((double)-20);
    startposx.min = QVariant(-100);
    startposx.max = QVariant(100);
    startposx.order = 6;
@@ -62,7 +59,7 @@ GradientTextureGenerator::GradientTextureGenerator()
 
    TextureGeneratorSetting startposy;
    startposy.name = "Start pos Y";
-   startposy.defaultvalue = QVariant((double) -20);
+   startposy.defaultvalue = QVariant((double)-20);
    startposy.min = QVariant(-100);
    startposy.max = QVariant(100);
    startposy.order = 7;
@@ -70,7 +67,7 @@ GradientTextureGenerator::GradientTextureGenerator()
 
    TextureGeneratorSetting middleposition;
    middleposition.name = "Middle position (%)";
-   middleposition.defaultvalue = QVariant((double) 50);
+   middleposition.defaultvalue = QVariant((double)50);
    middleposition.min = QVariant(0);
    middleposition.max = QVariant(100);
    middleposition.order = 8;
@@ -78,7 +75,7 @@ GradientTextureGenerator::GradientTextureGenerator()
 
    TextureGeneratorSetting endposx;
    endposx.name = "End pos X";
-   endposx.defaultvalue = QVariant((double) 0);
+   endposx.defaultvalue = QVariant((double)0);
    endposx.min = QVariant(-100);
    endposx.max = QVariant(100);
    endposx.order = 9;
@@ -86,7 +83,7 @@ GradientTextureGenerator::GradientTextureGenerator()
 
    TextureGeneratorSetting endposy;
    endposy.name = "End pos Y";
-   endposy.defaultvalue = QVariant((double) 20);
+   endposy.defaultvalue = QVariant((double)20);
    endposy.min = QVariant(-100);
    endposy.max = QVariant(100);
    endposy.order = 10;
@@ -94,19 +91,15 @@ GradientTextureGenerator::GradientTextureGenerator()
 
    TextureGeneratorSetting radius;
    radius.name = "Radius (%)";
-   radius.defaultvalue = QVariant((double) 50);
+   radius.defaultvalue = QVariant((double)50);
    radius.min = QVariant(0);
    radius.max = QVariant(200);
    radius.order = 11;
    configurables.insert("radius", radius);
 }
-
-
-void GradientTextureGenerator::generate(QSize size,
-                                        TexturePixel* destimage,
+void GradientTextureGenerator::generate(QSize size, TexturePixel* destimage,
                                         QMap<int, TextureImagePtr> sourceimages,
-                                        TextureNodeSettings* settings) const
-{
+                                        TextureNodeSettings* settings) const {
    if (!settings || !destimage || !size.isValid()) {
       return;
    }
@@ -124,15 +117,16 @@ void GradientTextureGenerator::generate(QSize size,
 
    QImage tempimage = QImage(size.width(), size.height(), QImage::Format_RGB32);
    if (sourceimages.contains(0)) {
-      memcpy(tempimage.bits(), sourceimages.value(0)->getData(), size.width() * size.height() * sizeof(TexturePixel));
+      memcpy(tempimage.bits(), sourceimages.value(0)->getData(),
+             size.width() * size.height() * sizeof(TexturePixel));
    } else {
       memset(tempimage.bits(), 0, size.width() * size.height() * sizeof(TexturePixel));
    }
 
-   startposx += (double) 50 * size.width() / 100;
-   startposy += (double) 50 * size.height() / 100;
-   endposx += (double) 50 * size.width() / 100;
-   endposy += (double) 50 * size.height() / 100;
+   startposx += (double)50 * size.width() / 100;
+   startposy += (double)50 * size.height() / 100;
+   endposx += (double)50 * size.width() / 100;
+   endposy += (double)50 * size.height() / 100;
 
    QGradient gradient;
    if (gradientmode == "Linear Gradient") {

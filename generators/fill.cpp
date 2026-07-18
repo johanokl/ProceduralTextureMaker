@@ -1,27 +1,22 @@
-/**
- * Part of the ProceduralTextureMaker project.
- * http://github.com/johanokl/ProceduralTextureMaker
- * Released under GPLv3.
- * Johan Lindqvist (johan.lindqvist@gmail.com)
- */
+
+// Part of the ProceduralTextureMaker project.
+// http://github.com/johanokl/ProceduralTextureMaker
+// Released under GPLv3.
+// Johan Lindqvist (johan.lindqvist@gmail.com)
 
 #include "fill.h"
 #include <QColor>
 
-FillTextureGenerator::FillTextureGenerator()
-{
+FillTextureGenerator::FillTextureGenerator() {
    TextureGeneratorSetting colorsetting;
    colorsetting.defaultvalue = QVariant(QColor(255, 255, 255, 255));
    colorsetting.name = "Color";
    colorsetting.description = "Color to fill the texture with.";
    configurables.insert("color", colorsetting);
 }
-
-
 void FillTextureGenerator::generate(QSize size, TexturePixel* destimage,
-                           QMap<int, TextureImagePtr> sourceimages,
-                           TextureNodeSettings* settings) const
-{
+                                    QMap<int, TextureImagePtr> sourceimages,
+                                    TextureNodeSettings* settings) const {
    Q_UNUSED(sourceimages);
 
    if (!settings || !destimage || !size.isValid()) {
@@ -35,5 +30,3 @@ void FillTextureGenerator::generate(QSize size, TexturePixel* destimage,
       destimage[i] = filler;
    }
 }
-
-

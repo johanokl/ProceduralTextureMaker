@@ -1,14 +1,12 @@
-/**
- * Part of the ProceduralTextureMaker project.
- * http://github.com/johanokl/ProceduralTextureMaker
- * Released under GPLv3.
- * Johan Lindqvist (johan.lindqvist@gmail.com)
- */
+
+// Part of the ProceduralTextureMaker project.
+// http://github.com/johanokl/ProceduralTextureMaker
+// Released under GPLv3.
+// Johan Lindqvist (johan.lindqvist@gmail.com)
 
 #include "mirror.h"
 
-MirrorTextureGenerator::MirrorTextureGenerator()
-{
+MirrorTextureGenerator::MirrorTextureGenerator() {
    QStringList directions;
    directions.append("Flip horizentally");
    directions.append("Flip vertically");
@@ -20,13 +18,9 @@ MirrorTextureGenerator::MirrorTextureGenerator()
    direction.defaultvalue = QVariant(directions);
    configurables.insert("direction", direction);
 }
-
-
-void MirrorTextureGenerator::generate(QSize size,
-                                      TexturePixel* destimage,
+void MirrorTextureGenerator::generate(QSize size, TexturePixel* destimage,
                                       QMap<int, TextureImagePtr> sourceimages,
-                                      TextureNodeSettings* settings) const
-{
+                                      TextureNodeSettings* settings) const {
    if (!settings || !destimage || !size.isValid()) {
       return;
    }
@@ -44,7 +38,7 @@ void MirrorTextureGenerator::generate(QSize size,
          int destrowstart = y * size.width();
          if (horizontal) {
             for (int x = 0; x < size.width(); x++) {
-               int sourcepos = destrowstart + size.width() - x;
+               int sourcepos = destrowstart + size.width() - x - 1;
                destimage[destrowstart + x] = sourceImage[sourcepos];
             }
          } else {
@@ -54,33 +48,43 @@ void MirrorTextureGenerator::generate(QSize size,
             }
          }
       }
-   } else if (size.width() % 2 == 0) {
-      if (direction == "Mirror horizentally") {
-         for (int y = 0; y < size.height(); y++) {
-            int destrowstart = y * size.width();
-            for (int x = 0; x < size.width(); x+=2) {
-               TexturePixel color;
-               color.r = (int) (sourceImage[destrowstart + x].r + sourceImage[destrowstart + x + 1].r) / 2;
-               color.g = (int) (sourceImage[destrowstart + x].g + sourceImage[destrowstart + x + 1].g) / 2;
-               color.b = (int) (sourceImage[destrowstart + x].b + sourceImage[destrowstart + x + 1].b) / 2;
-               color.a = (int) (sourceImage[destrowstart + x].a + sourceImage[destrowstart + x + 1].a) / 2;
-               destimage[destrowstart + x / 2] = color;
-               destimage[destrowstart + size.width() - 1 - x / 2] = color;
-            }
+   } else if (direction == "Mirror horizentally") {
+      for (int y = 0; y < size.height(); y++) {
+         int destrowstart = y * size.width();
+         for (int x = 0; x + 1 < size.width(); x += 2) {
+            TexturePixel color(0, 0, 0, 0);
+            color.r =
+                (int)(sourceImage[destrowstart + x].r + sourceImage[destrowstart + x + 1].r) / 2;
+            color.g =
+                (int)(sourceImage[destrowstart + x].g + sourceImage[destrowstart + x + 1].g) / 2;
+            color.b =
+                (int)(sourceImage[destrowstart + x].b + sourceImage[destrowstart + x + 1].b) / 2;
+            color.a =
+                (int)(sourceImage[destrowstart + x].a + sourceImage[destrowstart + x + 1].a) / 2;
+            destimage[destrowstart + x / 2] = color;
+            destimage[destrowstart + size.width() - 1 - x / 2] = color;
          }
-      } else if (direction == "Mirror vertically") {
-         int height = size.height();
-         int width = size.width();
-         for (int x = 0; x < size.width(); x++) {
-            for (int y = 0; y < size.height(); y+=2) {
-               TexturePixel color;
-               color.r = (int) (sourceImage[y * width + x].r + sourceImage[(y + 1) * width + x].r) / 2;
-               color.g = (int) (sourceImage[y * width + x].g + sourceImage[(y + 1) * width + x].g) / 2;
-               color.b = (int) (sourceImage[y * width + x].b + sourceImage[(y + 1) * width + x].b) / 2;
-               color.a = (int) (sourceImage[y * width + x].a + sourceImage[(y + 1) * width + x].a) / 2;
-               destimage[y * width / 2 + x] = color;
-               destimage[(height - 1 - y / 2) * width + x] = color;
-            }
+         if (size.width() % 2) {
+            int middle = size.width() / 2;
+            destimage[destrowstart + middle] = sourceImage[destrowstart + middle];
+         }
+      }
+   } else if (direction == "Mirror vertically") {
+      int height = size.height();
+      int width = size.width();
+      for (int x = 0; x < size.width(); x++) {
+         for (int y = 0; y + 1 < size.height(); y += 2) {
+            TexturePixel color(0, 0, 0, 0);
+            color.r = (int)(sourceImage[y * width + x].r + sourceImage[(y + 1) * width + x].r) / 2;
+            color.g = (int)(sourceImage[y * width + x].g + sourceImage[(y + 1) * width + x].g) / 2;
+            color.b = (int)(sourceImage[y * width + x].b + sourceImage[(y + 1) * width + x].b) / 2;
+            color.a = (int)(sourceImage[y * width + x].a + sourceImage[(y + 1) * width + x].a) / 2;
+            destimage[y * width / 2 + x] = color;
+            destimage[(height - 1 - y / 2) * width + x] = color;
+         }
+         if (size.height() % 2) {
+            int middle = size.height() / 2;
+            destimage[middle * width + x] = sourceImage[middle * width + x];
          }
       }
    }

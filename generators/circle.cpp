@@ -1,16 +1,14 @@
-/**
- * Part of the ProceduralTextureMaker project.
- * http://github.com/johanokl/ProceduralTextureMaker
- * Released under GPLv3.
- * Johan Lindqvist (johan.lindqvist@gmail.com)
- */
+
+// Part of the ProceduralTextureMaker project.
+// http://github.com/johanokl/ProceduralTextureMaker
+// Released under GPLv3.
+// Johan Lindqvist (johan.lindqvist@gmail.com)
 
 #include "circle.h"
 #include <QColor>
 #include <cmath>
 
-CircleTextureGenerator::CircleTextureGenerator()
-{
+CircleTextureGenerator::CircleTextureGenerator() {
    TextureGeneratorSetting colorsetting;
    colorsetting.name = "Color";
    colorsetting.description = "Color of the circle";
@@ -21,7 +19,7 @@ CircleTextureGenerator::CircleTextureGenerator()
    TextureGeneratorSetting innerRadius;
    innerRadius.name = "Inner radius";
    innerRadius.description = "Inner radius of the circle in percent of width";
-   innerRadius.defaultvalue = QVariant((double) 0);
+   innerRadius.defaultvalue = QVariant((double)0);
    innerRadius.min = QVariant(0);
    innerRadius.max = QVariant(200);
    innerRadius.order = 2;
@@ -30,7 +28,7 @@ CircleTextureGenerator::CircleTextureGenerator()
    TextureGeneratorSetting outerRadius;
    outerRadius.name = "Outer radius";
    outerRadius.description = "Outer radius of the circle in percent of width";
-   outerRadius.defaultvalue = QVariant((double) 100);
+   outerRadius.defaultvalue = QVariant((double)100);
    outerRadius.min = QVariant(0);
    outerRadius.max = QVariant(200);
    outerRadius.order = 3;
@@ -39,7 +37,7 @@ CircleTextureGenerator::CircleTextureGenerator()
    TextureGeneratorSetting offsetLeft;
    offsetLeft.name = "Offset left";
    offsetLeft.description = "Inner radius of the circle in percent of width";
-   offsetLeft.defaultvalue = QVariant((double) 0);
+   offsetLeft.defaultvalue = QVariant((double)0);
    offsetLeft.min = QVariant(-100);
    offsetLeft.max = QVariant(100);
    offsetLeft.order = 4;
@@ -48,19 +46,15 @@ CircleTextureGenerator::CircleTextureGenerator()
    TextureGeneratorSetting offsetTop;
    offsetTop.name = "Offset top";
    offsetTop.description = "Outer radius of the circle in percent of width";
-   offsetTop.defaultvalue = QVariant((double) 0);
+   offsetTop.defaultvalue = QVariant((double)0);
    offsetTop.min = QVariant(-100);
    offsetTop.max = QVariant(100);
    offsetTop.order = 5;
    configurables.insert("offsettop", offsetTop);
 }
-
-
-void CircleTextureGenerator::generate(QSize size,
-                                      TexturePixel* destimage,
+void CircleTextureGenerator::generate(QSize size, TexturePixel* destimage,
                                       QMap<int, TextureImagePtr> sourceimages,
-                                      TextureNodeSettings* settings) const
-{
+                                      TextureNodeSettings* settings) const {
    if (!settings || !destimage || !size.isValid()) {
       return;
    }
@@ -72,7 +66,8 @@ void CircleTextureGenerator::generate(QSize size,
 
    bool blend = false;
    if (sourceimages.contains(0)) {
-      memcpy(destimage, sourceimages.value(0)->getData(), size.width() * size.height() * sizeof(TexturePixel));
+      memcpy(destimage, sourceimages.value(0)->getData(),
+             size.width() * size.height() * sizeof(TexturePixel));
       blend = true;
    } else {
       memset(destimage, 0, size.width() * size.height() * sizeof(TexturePixel));
@@ -84,17 +79,19 @@ void CircleTextureGenerator::generate(QSize size,
    double srcAlpha = 1 - alpha;
    for (int y = 0; y < size.height(); y++) {
       for (int x = 0; x < size.width(); x++) {
-         if (((pow(abs(size.width() / 2 - x + offsetLeft), 2)
-               + pow(abs(size.height() / 2 - y + offsetTop), 2))
-              >= (pow(innerRadius, 2))) &&
-             ((pow(abs(size.width() / 2 - x + offsetLeft), 2)
-               + pow(abs(size.height() / 2 - y + offsetTop), 2))
-              <= (pow(outerRadius, 2)))) {
+         if (((pow(abs(size.width() / 2 - x + offsetLeft), 2) +
+               pow(abs(size.height() / 2 - y + offsetTop), 2)) >= (pow(innerRadius, 2))) &&
+             ((pow(abs(size.width() / 2 - x + offsetLeft), 2) +
+               pow(abs(size.height() / 2 - y + offsetTop), 2)) <= (pow(outerRadius, 2)))) {
             int thisPos = y * size.width() + x;
-            destimage[thisPos].r = static_cast<quint8>(alpha * color.red() + (blend ? (srcAlpha * destimage[thisPos].r) : 0));
-            destimage[thisPos].g = static_cast<quint8>(alpha * color.green() + (blend ? (srcAlpha * destimage[thisPos].g) : 0));
-            destimage[thisPos].b = static_cast<quint8>(alpha * color.blue() + (blend ? (srcAlpha * destimage[thisPos].b) : 0));
-            destimage[thisPos].a = static_cast<quint8>(color.alpha() + (blend ? (srcAlpha * destimage[thisPos].a) : 0));
+            destimage[thisPos].r = static_cast<quint8>(
+                alpha * color.red() + (blend ? (srcAlpha * destimage[thisPos].r) : 0));
+            destimage[thisPos].g = static_cast<quint8>(
+                alpha * color.green() + (blend ? (srcAlpha * destimage[thisPos].g) : 0));
+            destimage[thisPos].b = static_cast<quint8>(
+                alpha * color.blue() + (blend ? (srcAlpha * destimage[thisPos].b) : 0));
+            destimage[thisPos].a = static_cast<quint8>(
+                color.alpha() + (blend ? (srcAlpha * destimage[thisPos].a) : 0));
          }
       }
    }

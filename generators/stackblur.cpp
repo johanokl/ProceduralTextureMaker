@@ -1,28 +1,22 @@
-/**
- * Part of the ProceduralTextureMaker project.
- * http://github.com/johanokl/ProceduralTextureMaker
- * Released under GPLv3.
- * Johan Lindqvist (johan.lindqvist@gmail.com)
- */
+
+// Part of the ProceduralTextureMaker project.
+// http://github.com/johanokl/ProceduralTextureMaker
+// Released under GPLv3.
+// Johan Lindqvist (johan.lindqvist@gmail.com)
 
 #include "stackblur.h"
 
-StackBlurTextureGenerator::StackBlurTextureGenerator()
-{
+StackBlurTextureGenerator::StackBlurTextureGenerator() {
    TextureGeneratorSetting level;
-   level.defaultvalue = QVariant((double) 10);
+   level.defaultvalue = QVariant((double)10);
    level.name = "Blur level";
    level.min = QVariant(0);
    level.max = QVariant(20);
    configurables.insert("level", level);
 }
-
-
-void StackBlurTextureGenerator::generate(QSize size,
-                                         TexturePixel* destimage,
+void StackBlurTextureGenerator::generate(QSize size, TexturePixel* destimage,
                                          QMap<int, TextureImagePtr> sourceimages,
-                                         TextureNodeSettings* settings) const
-{
+                                         TextureNodeSettings* settings) const {
    if (!settings || !destimage || !size.isValid()) {
       return;
    }
@@ -33,8 +27,11 @@ void StackBlurTextureGenerator::generate(QSize size,
    }
    TexturePixel* sourceImage = sourceimages.value(0).data()->getData();
    memcpy(destimage, sourceImage, size.width() * size.height() * sizeof(TexturePixel));
-   if (level == 0) {
+   if (level <= 0) {
       return;
+   }
+   if (level > 254) {
+      level = 254;
    }
 
    // The Stack Blur Algorithm was invented by Mario Klingemann,
@@ -44,50 +41,41 @@ void StackBlurTextureGenerator::generate(QSize size,
    // Victor Laskin (victor.laskin@gmail.com)
    // http://vitiy.info/stackblur-algorithm-multi-threaded-blur-for-cpp
 
-   quint16 stackblur_mul[255] =
-   {
-      512, 512, 456, 512, 328, 456, 335, 512, 405, 328, 271, 456, 388, 335, 292, 512,
-      454, 405, 364, 328, 298, 271, 496, 456, 420, 388, 360, 335, 312, 292, 273, 512,
-      482, 454, 428, 405, 383, 364, 345, 328, 312, 298, 284, 271, 259, 496, 475, 456,
-      437, 420, 404, 388, 374, 360, 347, 335, 323, 312, 302, 292, 282, 273, 265, 512,
-      497, 482, 468, 454, 441, 428, 417, 405, 394, 383, 373, 364, 354, 345, 337, 328,
-      320, 312, 305, 298, 291, 284, 278, 271, 265, 259, 507, 496, 485, 475, 465, 456,
-      446, 437, 428, 420, 412, 404, 396, 388, 381, 374, 367, 360, 354, 347, 341, 335,
-      329, 323, 318, 312, 307, 302, 297, 292, 287, 282, 278, 273, 269, 265, 261, 512,
-      505, 497, 489, 482, 475, 468, 461, 454, 447, 441, 435, 428, 422, 417, 411, 405,
-      399, 394, 389, 383, 378, 373, 368, 364, 359, 354, 350, 345, 341, 337, 332, 328,
-      324, 320, 316, 312, 309, 305, 301, 298, 294, 291, 287, 284, 281, 278, 274, 271,
-      268, 265, 262, 259, 257, 507, 501, 496, 491, 485, 480, 475, 470, 465, 460, 456,
-      451, 446, 442, 437, 433, 428, 424, 420, 416, 412, 408, 404, 400, 396, 392, 388,
-      385, 381, 377, 374, 370, 367, 363, 360, 357, 354, 350, 347, 344, 341, 338, 335,
-      332, 329, 326, 323, 320, 318, 315, 312, 310, 307, 304, 302, 299, 297, 294, 292,
-      289, 287, 285, 282, 280, 278, 275, 273, 271, 269, 267, 265, 263, 261, 259
-   };
+   quint16 stackblur_mul[255] = {
+       512, 512, 456, 512, 328, 456, 335, 512, 405, 328, 271, 456, 388, 335, 292, 512, 454,
+       405, 364, 328, 298, 271, 496, 456, 420, 388, 360, 335, 312, 292, 273, 512, 482, 454,
+       428, 405, 383, 364, 345, 328, 312, 298, 284, 271, 259, 496, 475, 456, 437, 420, 404,
+       388, 374, 360, 347, 335, 323, 312, 302, 292, 282, 273, 265, 512, 497, 482, 468, 454,
+       441, 428, 417, 405, 394, 383, 373, 364, 354, 345, 337, 328, 320, 312, 305, 298, 291,
+       284, 278, 271, 265, 259, 507, 496, 485, 475, 465, 456, 446, 437, 428, 420, 412, 404,
+       396, 388, 381, 374, 367, 360, 354, 347, 341, 335, 329, 323, 318, 312, 307, 302, 297,
+       292, 287, 282, 278, 273, 269, 265, 261, 512, 505, 497, 489, 482, 475, 468, 461, 454,
+       447, 441, 435, 428, 422, 417, 411, 405, 399, 394, 389, 383, 378, 373, 368, 364, 359,
+       354, 350, 345, 341, 337, 332, 328, 324, 320, 316, 312, 309, 305, 301, 298, 294, 291,
+       287, 284, 281, 278, 274, 271, 268, 265, 262, 259, 257, 507, 501, 496, 491, 485, 480,
+       475, 470, 465, 460, 456, 451, 446, 442, 437, 433, 428, 424, 420, 416, 412, 408, 404,
+       400, 396, 392, 388, 385, 381, 377, 374, 370, 367, 363, 360, 357, 354, 350, 347, 344,
+       341, 338, 335, 332, 329, 326, 323, 320, 318, 315, 312, 310, 307, 304, 302, 299, 297,
+       294, 292, 289, 287, 285, 282, 280, 278, 275, 273, 271, 269, 267, 265, 263, 261, 259};
 
-   quint8 stackblur_shr[255] =
-   {
-      9,  11, 12, 13, 13, 14, 14, 15, 15, 15, 15, 16, 16, 16, 16, 17,
-      17, 17, 17, 17, 17, 17, 18, 18, 18, 18, 18, 18, 18, 18, 18, 19,
-      19, 19, 19, 19, 19, 19, 19, 19, 19, 19, 19, 19, 19, 20, 20, 20,
-      20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 21,
-      21, 21, 21, 21, 21, 21, 21, 21, 21, 21, 21, 21, 21, 21, 21, 21,
-      21, 21, 21, 21, 21, 21, 21, 21, 21, 21, 22, 22, 22, 22, 22, 22,
-      22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22,
-      22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 23,
-      23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23,
-      23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23,
-      23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23,
-      23, 23, 23, 23, 23, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24,
-      24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24,
-      24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24,
-      24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24,
-      24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24
-   };
+   quint8 stackblur_shr[255] = {
+       9,  11, 12, 13, 13, 14, 14, 15, 15, 15, 15, 16, 16, 16, 16, 17, 17, 17, 17, 17, 17, 17,
+       18, 18, 18, 18, 18, 18, 18, 18, 18, 19, 19, 19, 19, 19, 19, 19, 19, 19, 19, 19, 19, 19,
+       19, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 21, 21, 21,
+       21, 21, 21, 21, 21, 21, 21, 21, 21, 21, 21, 21, 21, 21, 21, 21, 21, 21, 21, 21, 21, 21,
+       21, 21, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22,
+       22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 23, 23, 23, 23, 23,
+       23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23,
+       23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23,
+       23, 23, 23, 23, 23, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24,
+       24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24,
+       24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24,
+       24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24};
 
    /// Stackblur algorithm body
    unsigned int radius = level;
    unsigned int div = (radius * 2) + 1;
-   auto* stack = new unsigned char [div * 4];
+   auto* stack = new unsigned char[div * 4];
    memset(stack, 0, div * 4);
    auto* src = reinterpret_cast<unsigned char*>(destimage);
 
@@ -140,7 +128,7 @@ void StackBlurTextureGenerator::generate(QSize size,
       src_ptr = src + w4 * y;
 
       for (i = 0; i <= radius; i++) {
-         stack_ptr    =& stack[ 4 * i ];
+         stack_ptr = &stack[4 * i];
          stack_ptr[0] = src_ptr[0];
          stack_ptr[1] = src_ptr[1];
          stack_ptr[2] = src_ptr[2];
@@ -158,7 +146,7 @@ void StackBlurTextureGenerator::generate(QSize size,
          if (i <= wm) {
             src_ptr += 4;
          }
-         stack_ptr =& stack[ 4 * (i + radius) ];
+         stack_ptr = &stack[4 * (i + radius)];
          stack_ptr[0] = src_ptr[0];
          stack_ptr[1] = src_ptr[1];
          stack_ptr[2] = src_ptr[2];
@@ -195,7 +183,7 @@ void StackBlurTextureGenerator::generate(QSize size,
          if (stack_start >= div) {
             stack_start -= div;
          }
-         stack_ptr =& stack[4 * stack_start];
+         stack_ptr = &stack[4 * stack_start];
 
          sum_out_r -= stack_ptr[0];
          sum_out_g -= stack_ptr[1];
@@ -224,7 +212,7 @@ void StackBlurTextureGenerator::generate(QSize size,
          if (sp >= div) {
             sp = 0;
          }
-         stack_ptr =& stack[sp*4];
+         stack_ptr = &stack[sp * 4];
          sum_out_r += stack_ptr[0];
          sum_out_g += stack_ptr[1];
          sum_out_b += stack_ptr[2];
@@ -253,9 +241,9 @@ void StackBlurTextureGenerator::generate(QSize size,
       sum_out_g = 0;
       sum_out_b = 0;
       sum_out_a = 0;
-      src_ptr = src + 4 * x; // x,0
+      src_ptr = src + 4 * x;  // x,0
       for (i = 0; i <= radius; i++) {
-         stack_ptr    =& stack[i * 4];
+         stack_ptr = &stack[i * 4];
          stack_ptr[0] = src_ptr[0];
          stack_ptr[1] = src_ptr[1];
          stack_ptr[2] = src_ptr[2];
@@ -273,7 +261,7 @@ void StackBlurTextureGenerator::generate(QSize size,
          if (i <= hm) {
             src_ptr += w4;
          }
-         stack_ptr =& stack[4 * (i + radius)];
+         stack_ptr = &stack[4 * (i + radius)];
          stack_ptr[0] = src_ptr[0];
          stack_ptr[1] = src_ptr[1];
          stack_ptr[2] = src_ptr[2];
@@ -310,7 +298,7 @@ void StackBlurTextureGenerator::generate(QSize size,
          if (stack_start >= div) {
             stack_start -= div;
          }
-         stack_ptr =& stack[4 * stack_start];
+         stack_ptr = &stack[4 * stack_start];
 
          sum_out_r -= stack_ptr[0];
          sum_out_g -= stack_ptr[1];
@@ -318,7 +306,7 @@ void StackBlurTextureGenerator::generate(QSize size,
          sum_out_a -= stack_ptr[3];
 
          if (yp < hm) {
-            src_ptr += w4; // stride
+            src_ptr += w4;  // stride
             ++yp;
          }
 
@@ -340,7 +328,7 @@ void StackBlurTextureGenerator::generate(QSize size,
          if (sp >= div) {
             sp = 0;
          }
-         stack_ptr =& stack[sp * 4];
+         stack_ptr = &stack[sp * 4];
 
          sum_out_r += stack_ptr[0];
          sum_out_g += stack_ptr[1];

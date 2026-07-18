@@ -1,16 +1,15 @@
-/**
- * Part of the ProceduralTextureMaker project.
- * http://github.com/johanokl/ProceduralTextureMaker
- * Released under GPLv3.
- * Johan Lindqvist (johan.lindqvist@gmail.com)
- */
+
+// Part of the ProceduralTextureMaker project.
+// http://github.com/johanokl/ProceduralTextureMaker
+// Released under GPLv3.
+// Johan Lindqvist (johan.lindqvist@gmail.com)
 
 #ifndef MAINWINDOW_H
 #define MAINWINDOW_H
 
 #include "generators/texturegenerator.h"
 #include <QMainWindow>
-
+#include <memory>
 class TexGenApplication;
 class TextureProject;
 class ViewNodeScene;
@@ -25,22 +24,17 @@ class SettingsPanel;
 class SettingsManager;
 class JSTexGenManager;
 
-/**
- * @brief The MainWindow class
- *
- * The application's main window, containing all the scenes and panels.
- *
- * It initializes and configures the TextureProject with its submodules,
- * including which texture generators should be loaded.
- */
-class MainWindow : public QMainWindow
-{
+/// @brief The application's main window, containing all the scenes and panels.
+///
+/// It initializes and configures the TextureProject with its submodules,
+/// including which texture generators should be loaded.
+class MainWindow : public QMainWindow {
    Q_OBJECT
 
 public:
    explicit MainWindow(TexGenApplication* parent = nullptr);
    ~MainWindow() override;
-   TextureProject* getTextureProject() { return project; }
+   TextureProject* getTextureProject() { return project.get(); }
    TexGenApplication* parent() { return parentapp; }
    MenuActions* getMenu() { return menuactions; }
 
@@ -59,6 +53,13 @@ public slots:
    void reloadSceneView();
    void moveToFront();
    void resetViewZoom();
+   void showAllNodesAndResetSceneView();
+   void zoomInView();
+   void zoomOutView();
+   void setLineWidths(int normalWidth, int highlightedWidth);
+   void setArrowSize(int arrowSize);
+   void setHeaderSize(int headerSize);
+   void setZoomStepFactor(double factor);
    void generatorNameCollision(const TextureGeneratorPtr&, const TextureGeneratorPtr&);
 
 private:
@@ -68,14 +69,14 @@ private:
    ViewNodeScene* createScene(ViewNodeScene* source = nullptr);
 
    TexGenApplication* parentapp;
-   TextureProject* project;
+   std::unique_ptr<TextureProject> project;
    QString savedFileName;
    MenuActions* menuactions;
 
    ViewNodeScene* scene;
    ViewNodeView* view;
-   SettingsManager* settingsManager;
-   JSTexGenManager* jstexgenManager;
+   std::unique_ptr<SettingsManager> settingsManager;
+   std::unique_ptr<JSTexGenManager> jstexgenManager;
    ItemInfoPanel* iteminfopanel;
    SettingsPanel* settingspanel;
    AddNodePanel* addnodewidget;
@@ -83,4 +84,4 @@ private:
    Preview3dPanel* preview3dwidget;
 };
 
-#endif // MAINWINDOW_H
+#endif  // MAINWINDOW_H

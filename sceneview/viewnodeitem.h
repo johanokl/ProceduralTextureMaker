@@ -1,36 +1,31 @@
-/**
- * Part of the ProceduralTextureMaker project.
- * http://github.com/johanokl/ProceduralTextureMaker
- * Released under GPLv3.
- * Johan Lindqvist (johan.lindqvist@gmail.com)
- */
+
+// Part of the ProceduralTextureMaker project.
+// http://github.com/johanokl/ProceduralTextureMaker
+// Released under GPLv3.
+// Johan Lindqvist (johan.lindqvist@gmail.com)
 
 #ifndef VIEWNODEITEM_H
 #define VIEWNODEITEM_H
 
 #include "base/texturenode.h"
 #include <QGraphicsItem>
-
 class ViewNodeScene;
 class TextureNode;
 class ViewNodeLine;
 
-/**
- * @brief The ViewNodeItem class
- *
- * Renders the node as a widget in a ViewNodeView scene.
- * Contains functions that let the user interact with the node and
- * change connections, positions etc.
- */
-class ViewNodeItem : public QGraphicsItem
-{
+/// @brief The ViewNodeItem class
+///
+/// Renders the node as a widget in a ViewNodeView scene.
+/// Contains functions that let the user interact with the node and
+/// change connections, positions etc.
+class ViewNodeItem : public QGraphicsItem {
    friend class ViewNodeLine;
    friend class ViewNodeScene;
 
 public:
    ViewNodeItem(ViewNodeScene* scene, const TextureNodePtr& newNode);
    ~ViewNodeItem() override = default;
-   void paint (QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget) override;
+   void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget) override;
    int getId() const { return id; }
    TextureNodePtr getTextureNode() { return texNode; }
    bool posInImage(QPointF pos) const;
@@ -52,17 +47,20 @@ public slots:
    void imageAvailable(QSize size);
    void generatorUpdated();
    void setThumbnailSize(QSize);
+   void setHeaderSize(int size);
 
 protected:
    void mousePressEvent(QGraphicsSceneMouseEvent* event) override;
    void mouseMoveEvent(QGraphicsSceneMouseEvent* mouseEvent) override;
-   void mouseReleaseEvent(QGraphicsSceneMouseEvent*  event) override;
+   void mouseReleaseEvent(QGraphicsSceneMouseEvent* event) override;
    void hoverMoveEvent(QGraphicsSceneHoverEvent* event) override;
    void hoverEnterEvent(QGraphicsSceneHoverEvent* event) override;
    void hoverLeaveEvent(QGraphicsSceneHoverEvent* event) override;
    void contextMenuEvent(QGraphicsSceneContextMenuEvent* event) override;
 
 private:
+   void updateConnectionLines();
+
    int id;
 
    ViewNodeScene* scene;
@@ -76,6 +74,7 @@ private:
    QPointF mousePressedItemPos;
    int highlighterWidth;
    int borderWidth;
+   int headerSize;
 
    QSet<ViewNodeLine*> startLines;
    QMap<int, ViewNodeLine*> endLines;
@@ -86,4 +85,4 @@ private:
    bool mousePressed;
 };
 
-#endif // VIEWNODEITEM_H
+#endif  // VIEWNODEITEM_H

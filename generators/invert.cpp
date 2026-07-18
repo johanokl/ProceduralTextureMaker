@@ -1,14 +1,12 @@
-/**
- * Part of the ProceduralTextureMaker project.
- * http://github.com/johanokl/ProceduralTextureMaker
- * Released under GPLv3.
- * Johan Lindqvist (johan.lindqvist@gmail.com)
- */
+
+// Part of the ProceduralTextureMaker project.
+// http://github.com/johanokl/ProceduralTextureMaker
+// Released under GPLv3.
+// Johan Lindqvist (johan.lindqvist@gmail.com)
 
 #include "invert.h"
 
-InvertTextureGenerator::InvertTextureGenerator()
-{
+InvertTextureGenerator::InvertTextureGenerator() {
    QStringList options;
    options.append("Yes");
    options.append("No");
@@ -41,11 +39,9 @@ InvertTextureGenerator::InvertTextureGenerator()
    channelAlpha.defaultvalue = QVariant(options);
    configurables.insert("channelAlpha", channelAlpha);
 }
-
 void InvertTextureGenerator::generate(QSize size, TexturePixel* destimage,
                                       QMap<int, TextureImagePtr> sourceimages,
-                                      TextureNodeSettings* settings) const
-{
+                                      TextureNodeSettings* settings) const {
    if (!settings || !destimage || !size.isValid()) {
       return;
    }

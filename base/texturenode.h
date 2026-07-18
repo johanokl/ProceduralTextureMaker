@@ -1,9 +1,8 @@
-/**
- * Part of the ProceduralTextureMaker project.
- * http://github.com/johanokl/ProceduralTextureMaker
- * Released under GPLv3.
- * Johan Lindqvist (johan.lindqvist@gmail.com)
- */
+
+// Part of the ProceduralTextureMaker project.
+// http://github.com/johanokl/ProceduralTextureMaker
+// Released under GPLv3.
+// Johan Lindqvist (johan.lindqvist@gmail.com)
 
 #ifndef TEXTURENODE_H
 #define TEXTURENODE_H
@@ -16,24 +15,15 @@
 #include <QPoint>
 #include <QReadWriteLock>
 #include <QSet>
-
 class TextureProject;
 class TextureNode;
 
-/**
- * @brief TextureNodePtr
- * Thread-safe smart pointer for TextureNode objects.
- */
+/// @brief Thread-safe smart pointer for TextureNode objects.
 using TextureNodePtr = QSharedPointer<TextureNode>;
 
-/**
- * @brief The TextureNode class
- *
- * A node in the graph with its settings, attributes
- * and links to its source and receiver nodes.
- */
-class TextureNode : public QObject
-{
+/// @brief The TextureNode class
+/// A node in the graph with its settings, attributes and links to its source and receiver nodes.
+class TextureNode : public QObject {
    Q_OBJECT
    friend class TextureProject;
 
@@ -48,8 +38,8 @@ public:
    TextureGeneratorPtr getGenerator() const { return gen; }
    QString getGeneratorName() const;
    int getNumSourceSlots() const;
-   int getNumReceivers() const { return receivers.size(); }
-   QSetIterator<int> getReceivers() const { return QSetIterator<int>(receivers); }
+   int getNumReceivers() const;
+   QSetIterator<int> getReceivers() const;
    bool slotAvailable(int slot) const;
    bool setSourceSlot(int slot, int value);
    bool findLoop() const;
@@ -104,4 +94,4 @@ private:
    mutable QReadWriteLock settingsmutex;
 };
 
-#endif // TEXTURENODE_H
+#endif  // TEXTURENODE_H

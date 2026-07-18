@@ -1,9 +1,8 @@
-/**
- * Part of the ProceduralTextureMaker project.
- * http://github.com/johanokl/ProceduralTextureMaker
- * Released under GPLv3.
- * Johan Lindqvist (johan.lindqvist@gmail.com)
- */
+
+// Part of the ProceduralTextureMaker project.
+// http://github.com/johanokl/ProceduralTextureMaker
+// Released under GPLv3.
+// Johan Lindqvist (johan.lindqvist@gmail.com)
 
 #include "base/textureimage.h"
 #include "star.h"
@@ -12,8 +11,7 @@
 #include <QtMath>
 #include <cmath>
 
-StarTextureGenerator::StarTextureGenerator()
-{
+StarTextureGenerator::StarTextureGenerator() {
    TextureGeneratorSetting colorsetting;
    colorsetting.name = "Color";
    colorsetting.defaultvalue = QVariant(QColor(200, 100, 0));
@@ -23,7 +21,7 @@ StarTextureGenerator::StarTextureGenerator()
    TextureGeneratorSetting shapeWidth;
    shapeWidth.name = "Width";
    shapeWidth.description = "";
-   shapeWidth.defaultvalue = QVariant((double) 80);
+   shapeWidth.defaultvalue = QVariant((double)80);
    shapeWidth.min = QVariant(0);
    shapeWidth.max = QVariant(200);
    shapeWidth.group = "size";
@@ -33,7 +31,7 @@ StarTextureGenerator::StarTextureGenerator()
    TextureGeneratorSetting shapeHeight;
    shapeHeight.name = "Height";
    shapeHeight.description = "";
-   shapeHeight.defaultvalue = QVariant((double) 80);
+   shapeHeight.defaultvalue = QVariant((double)80);
    shapeHeight.min = QVariant(0);
    shapeHeight.max = QVariant(200);
    shapeHeight.group = "size";
@@ -43,7 +41,7 @@ StarTextureGenerator::StarTextureGenerator()
    TextureGeneratorSetting rotation;
    rotation.name = "Rotation";
    rotation.description = "";
-   rotation.defaultvalue = QVariant((double) 50);
+   rotation.defaultvalue = QVariant((double)50);
    rotation.min = QVariant(0);
    rotation.max = QVariant(360);
    rotation.order = 4;
@@ -52,7 +50,7 @@ StarTextureGenerator::StarTextureGenerator()
    TextureGeneratorSetting offsetLeft;
    offsetLeft.name = "Offset left";
    offsetLeft.description = "";
-   offsetLeft.defaultvalue = QVariant((double) 0);
+   offsetLeft.defaultvalue = QVariant((double)0);
    offsetLeft.min = QVariant(-100);
    offsetLeft.max = QVariant(100);
    offsetLeft.order = 5;
@@ -61,7 +59,7 @@ StarTextureGenerator::StarTextureGenerator()
    TextureGeneratorSetting offsetTop;
    offsetTop.name = "Offset top";
    offsetTop.description = "";
-   offsetTop.defaultvalue = QVariant((double) 0);
+   offsetTop.defaultvalue = QVariant((double)0);
    offsetTop.min = QVariant(-100);
    offsetTop.max = QVariant(100);
    offsetTop.order = 6;
@@ -70,7 +68,7 @@ StarTextureGenerator::StarTextureGenerator()
    TextureGeneratorSetting arms;
    arms.name = "Number of points";
    arms.description = "";
-   arms.defaultvalue = QVariant((int) 6);
+   arms.defaultvalue = QVariant((int)6);
    arms.min = QVariant(3);
    arms.max = QVariant(13);
    arms.order = 7;
@@ -79,7 +77,7 @@ StarTextureGenerator::StarTextureGenerator()
    TextureGeneratorSetting innerRadius;
    innerRadius.name = "Innner radius";
    innerRadius.description = "";
-   innerRadius.defaultvalue = QVariant((double) 25);
+   innerRadius.defaultvalue = QVariant((double)25);
    innerRadius.min = QVariant(0);
    innerRadius.max = QVariant(100);
    innerRadius.order = 8;
@@ -88,7 +86,7 @@ StarTextureGenerator::StarTextureGenerator()
    TextureGeneratorSetting outerRadius;
    outerRadius.name = "Outer radius";
    outerRadius.description = "";
-   outerRadius.defaultvalue = QVariant((double) 100);
+   outerRadius.defaultvalue = QVariant((double)100);
    outerRadius.min = QVariant(0);
    outerRadius.max = QVariant(100);
    outerRadius.order = 9;
@@ -97,7 +95,7 @@ StarTextureGenerator::StarTextureGenerator()
    TextureGeneratorSetting cutoutInnerRadius;
    cutoutInnerRadius.name = "Cutout innner radius";
    cutoutInnerRadius.description = "";
-   cutoutInnerRadius.defaultvalue = QVariant((double) 15);
+   cutoutInnerRadius.defaultvalue = QVariant((double)15);
    cutoutInnerRadius.min = QVariant(0);
    cutoutInnerRadius.max = QVariant(100);
    cutoutInnerRadius.order = 10;
@@ -106,25 +104,21 @@ StarTextureGenerator::StarTextureGenerator()
    TextureGeneratorSetting cutoutOuterRadius;
    cutoutOuterRadius.name = "Cutout outer radius";
    cutoutOuterRadius.description = "";
-   cutoutOuterRadius.defaultvalue = QVariant((double) 65);
+   cutoutOuterRadius.defaultvalue = QVariant((double)65);
    cutoutOuterRadius.min = QVariant(0);
    cutoutOuterRadius.max = QVariant(100);
    cutoutOuterRadius.order = 11;
    configurables.insert("cutoutouterradius", cutoutOuterRadius);
 
    TextureGeneratorSetting antialiasing;
-   antialiasing.defaultvalue = QVariant((bool) true);
+   antialiasing.defaultvalue = QVariant((bool)true);
    antialiasing.name = "Antialiasing";
    antialiasing.order = 12;
    configurables.insert("antialiasing", antialiasing);
 }
-
-
-void StarTextureGenerator::generate(QSize size,
-                                    TexturePixel* destimage,
+void StarTextureGenerator::generate(QSize size, TexturePixel* destimage,
                                     QMap<int, TextureImagePtr> sourceimages,
-                                    TextureNodeSettings* settings) const
-{
+                                    TextureNodeSettings* settings) const {
    if (!settings || !destimage || !size.isValid()) {
       return;
    }
@@ -143,7 +137,8 @@ void StarTextureGenerator::generate(QSize size,
    bool antialiasing = settings->value("antialiasing").toBool();
 
    if (sourceimages.contains(0)) {
-      memcpy(destimage, sourceimages.value(0)->getData(), size.width() * size.height() * sizeof(TexturePixel));
+      memcpy(destimage, sourceimages.value(0)->getData(),
+             size.width() * size.height() * sizeof(TexturePixel));
    } else {
       memset(destimage, 0, size.width() * size.height() * sizeof(TexturePixel));
    }
@@ -151,8 +146,8 @@ void StarTextureGenerator::generate(QSize size,
    QImage tempimage = QImage(size.width(), size.height(), QImage::Format_RGB32);
    memcpy(tempimage.bits(), destimage, size.width() * size.height() * sizeof(TexturePixel));
 
-   offsetLeft += (double) 50 * size.width() / 100;
-   offsetTop += (double) 50 * size.height() / 100;
+   offsetLeft += (double)50 * size.width() / 100;
+   offsetTop += (double)50 * size.height() / 100;
 
    QPainter painter(&tempimage);
    painter.translate(offsetLeft, offsetTop);
@@ -165,7 +160,7 @@ void StarTextureGenerator::generate(QSize size,
    QPolygonF starPolygon;
    for (int i = 0; i < 2 * arms; i++) {
       // Use outer or inner radius depending on what iteration we are in.
-      double r = (i&  1) == 0 ? outerRadius : innerRadius;
+      double r = (i & 1) == 0 ? outerRadius : innerRadius;
       starPolygon << QPointF(0.5 + 0.5 * cos(i * M_PI / arms) * r,
                              0.5 + 0.5 * sin(i * M_PI / arms) * r);
    }
@@ -173,7 +168,7 @@ void StarTextureGenerator::generate(QSize size,
    QPolygonF removeStarPolygon;
    for (int i = 0; i < 2 * arms; i++) {
       // Use outer or inner radius depending on what iteration we are in.
-      double r = (i&  1) == 0 ? cutoutOuterRadius : cutoutInnerRadius;
+      double r = (i & 1) == 0 ? cutoutOuterRadius : cutoutInnerRadius;
       removeStarPolygon << QPointF(0.5 + 0.5 * cos(i * M_PI / arms) * r,
                                    0.5 + 0.5 * sin(i * M_PI / arms) * r);
    }

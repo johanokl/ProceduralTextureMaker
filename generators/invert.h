@@ -1,26 +1,20 @@
-/**
- * Part of the ProceduralTextureMaker project.
- * http://github.com/johanokl/ProceduralTextureMaker
- * Released under GPLv3.
- * Johan Lindqvist (johan.lindqvist@gmail.com)
- */
+
+// Part of the ProceduralTextureMaker project.
+// http://github.com/johanokl/ProceduralTextureMaker
+// Released under GPLv3.
+// Johan Lindqvist (johan.lindqvist@gmail.com)
 
 #ifndef INVERTTEXTUREGENERATOR_H
 #define INVERTTEXTUREGENERATOR_H
 
 #include "texturegenerator.h"
 
-/**
- * @brief The InvertTextureGenerator class
- */
-class InvertTextureGenerator : public TextureGenerator
-{
+/// @brief The InvertTextureGenerator class
+class InvertTextureGenerator : public TextureGenerator {
 public:
    InvertTextureGenerator();
    ~InvertTextureGenerator() override = default;
-   void generate(QSize size,
-                 TexturePixel* destimage,
-                 QMap<int, TextureImagePtr> sourceimages,
+   void generate(QSize size, TexturePixel* destimage, QMap<int, TextureImagePtr> sourceimages,
                  TextureNodeSettings* settings) const override;
    int getNumSourceSlots() const override { return 1; }
    QString getName() const override { return QString("Invert"); }
@@ -32,4 +26,4 @@ private:
    TextureGeneratorSettings configurables;
 };
 
-#endif // INVERTTEXTUREGENERATOR_H
+#endif  // INVERTTEXTUREGENERATOR_H

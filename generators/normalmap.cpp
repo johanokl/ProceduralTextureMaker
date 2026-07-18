@@ -1,18 +1,14 @@
-/**
- * Part of the ProceduralTextureMaker project.
- * http://github.com/johanokl/ProceduralTextureMaker
- * Released under GPLv3.
- * Johan Lindqvist (johan.lindqvist@gmail.com)
- */
+
+// Part of the ProceduralTextureMaker project.
+// http://github.com/johanokl/ProceduralTextureMaker
+// Released under GPLv3.
+// Johan Lindqvist (johan.lindqvist@gmail.com)
 
 #include "normalmap.h"
 #include <QVector3D>
-
-void NormalMapTextureGenerator::generate(QSize size,
-                                         TexturePixel* destimage,
+void NormalMapTextureGenerator::generate(QSize size, TexturePixel* destimage,
                                          QMap<int, TextureImagePtr> sourceimages,
-                                         TextureNodeSettings* settings) const
-{
+                                         TextureNodeSettings* settings) const {
    if (!settings || !destimage || !size.isValid()) {
       return;
    }
@@ -38,8 +34,10 @@ void NormalMapTextureGenerator::generate(QSize size,
 
          double pStrength = 2;
 
-         const double dX = (topright + 2.0 * middleright + lowerright) - (topleft + 2.0 * middleleft + lowerleft);
-         const double dY = (lowerleft + 2.0 * lowermiddle + lowerright) - (topleft + 2.0 * topmiddle + topright);
+         const double dX =
+             (topright + 2.0 * middleright + lowerright) - (topleft + 2.0 * middleleft + lowerleft);
+         const double dY =
+             (lowerleft + 2.0 * lowermiddle + lowerright) - (topleft + 2.0 * topmiddle + topright);
          const double dZ = 1.0 / pStrength;
 
          QVector3D vect(dX, dY, dZ);

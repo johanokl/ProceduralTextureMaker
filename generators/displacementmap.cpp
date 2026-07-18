@@ -1,9 +1,8 @@
-/**
- * Part of the ProceduralTextureMaker project.
- * http://github.com/johanokl/ProceduralTextureMaker
- * Released under GPLv3.
- * Johan Lindqvist (johan.lindqvist@gmail.com)
- */
+
+// Part of the ProceduralTextureMaker project.
+// http://github.com/johanokl/ProceduralTextureMaker
+// Released under GPLv3.
+// Johan Lindqvist (johan.lindqvist@gmail.com)
 
 #include <cmath>
 #include <QtMath>
@@ -11,11 +10,10 @@
 
 using namespace std;
 
-DisplacementMapTextureGenerator::DisplacementMapTextureGenerator()
-{
+DisplacementMapTextureGenerator::DisplacementMapTextureGenerator() {
    TextureGeneratorSetting angle;
    angle.name = "Angle";
-   angle.defaultvalue = QVariant((double) 45);
+   angle.defaultvalue = QVariant((double)45);
    angle.min = QVariant(-360);
    angle.max = QVariant(360);
    angle.order = 1;
@@ -23,7 +21,7 @@ DisplacementMapTextureGenerator::DisplacementMapTextureGenerator()
 
    TextureGeneratorSetting strength;
    strength.name = "Strength";
-   strength.defaultvalue = QVariant((double) 0.5);
+   strength.defaultvalue = QVariant((double)0.5);
    strength.min = QVariant(0);
    strength.max = QVariant(3);
    strength.order = 3;
@@ -31,20 +29,15 @@ DisplacementMapTextureGenerator::DisplacementMapTextureGenerator()
 
    TextureGeneratorSetting offset;
    offset.name = "Offset";
-   offset.defaultvalue = QVariant((double) 0);
+   offset.defaultvalue = QVariant((double)0);
    offset.min = QVariant(-360);
    offset.max = QVariant(360);
    offset.order = 4;
    configurables.insert("offset", offset);
-
 }
-
-
-void DisplacementMapTextureGenerator::generate(QSize size,
-                                     TexturePixel* destimage,
-                                     QMap<int, TextureImagePtr> sourceimages,
-                                     TextureNodeSettings* settings) const
-{
+void DisplacementMapTextureGenerator::generate(QSize size, TexturePixel* destimage,
+                                               QMap<int, TextureImagePtr> sourceimages,
+                                               TextureNodeSettings* settings) const {
    if (!settings || !destimage || !size.isValid()) {
       return;
    }
@@ -62,7 +55,7 @@ void DisplacementMapTextureGenerator::generate(QSize size,
    double strength = settings->value("strength").toDouble() * size.width() / 500;
    double offset = settings->value("offset").toDouble() * size.width() / 100;
    double angle = settings->value("angle").toDouble();
-   angle = (angle / 180.0) * ((double) M_PI);
+   angle = (angle / 180.0) * ((double)M_PI);
 
    for (int y = 0; y < size.height(); y++) {
       for (int x = 0; x < size.width(); x++) {
@@ -71,10 +64,10 @@ void DisplacementMapTextureGenerator::generate(QSize size,
          srcDistance -= offset;
          int xpos = x + srcDistance * sin(angle);
          int ypos = y - srcDistance * cos(angle);
-         xpos = xpos > size.height() ? xpos % size.height() :
-                                       (xpos < 0 ? xpos + size.width() : xpos);
-         ypos = ypos > size.height() ? ypos % size.height() :
-                                       (ypos < 0 ? ypos + size.height() : ypos);
+         xpos =
+             xpos > size.height() ? xpos % size.height() : (xpos < 0 ? xpos + size.width() : xpos);
+         ypos =
+             ypos > size.height() ? ypos % size.height() : (ypos < 0 ? ypos + size.height() : ypos);
          xpos = qMax(qMin(xpos, size.width() - 1), 0);
          ypos = qMax(qMin(ypos, size.height() - 1), 0);
          destimage[y * size.width() + x] = sourceImage[ypos * size.width() + xpos];

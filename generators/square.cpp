@@ -1,18 +1,15 @@
-/**
- * Part of the ProceduralTextureMaker project.
- * http://github.com/johanokl/ProceduralTextureMaker
- * Released under GPLv3.
- * Johan Lindqvist (johan.lindqvist@gmail.com)
- */
 
+// Part of the ProceduralTextureMaker project.
+// http://github.com/johanokl/ProceduralTextureMaker
+// Released under GPLv3.
+// Johan Lindqvist (johan.lindqvist@gmail.com)
 
 #include "square.h"
 #include <QPainter>
 #include <QPainterPath>
 #include <cmath>
 
-SquareTextureGenerator::SquareTextureGenerator()
-{
+SquareTextureGenerator::SquareTextureGenerator() {
    TextureGeneratorSetting colorsetting;
    colorsetting.name = "Color";
    colorsetting.defaultvalue = QVariant(QColor(200, 100, 0));
@@ -22,7 +19,7 @@ SquareTextureGenerator::SquareTextureGenerator()
    TextureGeneratorSetting shapeWidth;
    shapeWidth.name = "Width";
    shapeWidth.description = "";
-   shapeWidth.defaultvalue = QVariant((double) 80);
+   shapeWidth.defaultvalue = QVariant((double)80);
    shapeWidth.min = QVariant(0);
    shapeWidth.max = QVariant(200);
    shapeWidth.order = 2;
@@ -32,7 +29,7 @@ SquareTextureGenerator::SquareTextureGenerator()
    TextureGeneratorSetting shapeHeight;
    shapeHeight.name = "Height";
    shapeHeight.description = "";
-   shapeHeight.defaultvalue = QVariant((double) 80);
+   shapeHeight.defaultvalue = QVariant((double)80);
    shapeHeight.min = QVariant(0);
    shapeHeight.max = QVariant(200);
    shapeHeight.order = 3;
@@ -42,7 +39,7 @@ SquareTextureGenerator::SquareTextureGenerator()
    TextureGeneratorSetting rotation;
    rotation.name = "Rotation";
    rotation.description = "";
-   rotation.defaultvalue = QVariant((double) 50);
+   rotation.defaultvalue = QVariant((double)50);
    rotation.min = QVariant(0);
    rotation.max = QVariant(360);
    rotation.order = 4;
@@ -51,7 +48,7 @@ SquareTextureGenerator::SquareTextureGenerator()
    TextureGeneratorSetting offsetLeft;
    offsetLeft.name = "Offset left";
    offsetLeft.description = "";
-   offsetLeft.defaultvalue = QVariant((double) 0);
+   offsetLeft.defaultvalue = QVariant((double)0);
    offsetLeft.min = QVariant(-100);
    offsetLeft.max = QVariant(100);
    offsetLeft.order = 5;
@@ -60,7 +57,7 @@ SquareTextureGenerator::SquareTextureGenerator()
    TextureGeneratorSetting offsetTop;
    offsetTop.name = "Offset top";
    offsetTop.description = "";
-   offsetTop.defaultvalue = QVariant((double) 0);
+   offsetTop.defaultvalue = QVariant((double)0);
    offsetTop.min = QVariant(-100);
    offsetTop.max = QVariant(100);
    offsetTop.order = 6;
@@ -69,7 +66,7 @@ SquareTextureGenerator::SquareTextureGenerator()
    TextureGeneratorSetting cutoutInnerRadius;
    cutoutInnerRadius.name = "Cutout width";
    cutoutInnerRadius.description = "";
-   cutoutInnerRadius.defaultvalue = QVariant((double) 0);
+   cutoutInnerRadius.defaultvalue = QVariant((double)0);
    cutoutInnerRadius.min = QVariant(0);
    cutoutInnerRadius.max = QVariant(100);
    cutoutInnerRadius.order = 7;
@@ -79,7 +76,7 @@ SquareTextureGenerator::SquareTextureGenerator()
    TextureGeneratorSetting cutoutOuterRadius;
    cutoutOuterRadius.name = "Cutout height";
    cutoutOuterRadius.description = "";
-   cutoutOuterRadius.defaultvalue = QVariant((double) 0);
+   cutoutOuterRadius.defaultvalue = QVariant((double)0);
    cutoutOuterRadius.min = QVariant(0);
    cutoutOuterRadius.max = QVariant(100);
    cutoutOuterRadius.order = 8;
@@ -87,18 +84,14 @@ SquareTextureGenerator::SquareTextureGenerator()
    configurables.insert("cutoutheight", cutoutOuterRadius);
 
    TextureGeneratorSetting antialiasing;
-   antialiasing.defaultvalue = QVariant((bool) true);
+   antialiasing.defaultvalue = QVariant((bool)true);
    antialiasing.name = "Antialiasing";
    antialiasing.order = 9;
    configurables.insert("antialiasing", antialiasing);
 }
-
-
-void SquareTextureGenerator::generate(QSize size,
-                                      TexturePixel* destimage,
+void SquareTextureGenerator::generate(QSize size, TexturePixel* destimage,
                                       QMap<int, TextureImagePtr> sourceimages,
-                                      TextureNodeSettings* settings) const
-{
+                                      TextureNodeSettings* settings) const {
    if (!settings || !destimage || !size.isValid()) {
       return;
    }
@@ -114,7 +107,8 @@ void SquareTextureGenerator::generate(QSize size,
    bool antialiasing = settings->value("antialiasing").toBool();
 
    if (sourceimages.contains(0)) {
-      memcpy(destimage, sourceimages.value(0)->getData(), size.width() * size.height() * sizeof(TexturePixel));
+      memcpy(destimage, sourceimages.value(0)->getData(),
+             size.width() * size.height() * sizeof(TexturePixel));
    } else {
       memset(destimage, 0, size.width() * size.height() * sizeof(TexturePixel));
    }
@@ -122,8 +116,8 @@ void SquareTextureGenerator::generate(QSize size,
    QImage tempimage = QImage(size.width(), size.height(), QImage::Format_RGB32);
    memcpy(tempimage.bits(), destimage, size.width() * size.height() * sizeof(TexturePixel));
 
-   offsetLeft += (double) 50 * size.width() / 100;
-   offsetTop += (double) 50 * size.height() / 100;
+   offsetLeft += (double)50 * size.width() / 100;
+   offsetTop += (double)50 * size.height() / 100;
 
    QPainter painter(&tempimage);
    painter.translate(offsetLeft, offsetTop);

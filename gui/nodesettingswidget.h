@@ -1,9 +1,8 @@
-/**
- * Part of the ProceduralTextureMaker project.
- * http://github.com/johanokl/ProceduralTextureMaker
- * Released under GPLv3.
- * Johan Lindqvist (johan.lindqvist@gmail.com)
- */
+
+// Part of the ProceduralTextureMaker project.
+// http://github.com/johanokl/ProceduralTextureMaker
+// Released under GPLv3.
+// Johan Lindqvist (johan.lindqvist@gmail.com)
 
 #ifndef NODESETTINGSWIDGET_H
 #define NODESETTINGSWIDGET_H
@@ -12,7 +11,6 @@
 #include <QList>
 #include <QMap>
 #include <QWidget>
-
 class ItemInfoPanel;
 class QLabel;
 class QPushButton;
@@ -26,18 +24,13 @@ class QDoubleSlider;
 class QScrollArea;
 class QVBoxLayout;
 
-/**
- * @brief The NodeSettingsWidget class
- *
- * Vertical panel for changing the values sent to the node's generator.
- * Has widgets for displaying and setting integer, double, color and
- * string/enum values.
- */
-class NodeSettingsWidget : public QWidget
-{
+/// @brief Vertical panel for changing the values sent to the node's generator.
+/// Has widgets for displaying and setting integer, double, color and
+/// string/enum values.
+class NodeSettingsWidget : public QWidget {
    Q_OBJECT
 
- public:
+public:
    NodeSettingsWidget(ItemInfoPanel* widgetmanager, int id);
    ~NodeSettingsWidget() override = default;
 
@@ -45,12 +38,13 @@ public slots:
    void settingsUpdated();
    void slotsUpdated();
    void generatorUpdated();
-   void saveSettings();
+   bool saveSettings();
    void colorDialog(const QString&);
    void swapSlots();
 
 private:
    QFormLayout* createGroupLayout();
+   QWidget* createPropertyRow(QLabel* label, QWidget* editor, QWidget* slider = nullptr);
    void styleButton(QPushButton* button, const QColor& color);
    void setGroupAlignment(const QString& group, bool aligned);
    ItemInfoPanel* widgetmanager;
@@ -67,7 +61,7 @@ private:
    QWidget* contents;
    QVBoxLayout* contentsLayout;
 
-   QFormLayout* settingsLayout;
+   QVBoxLayout* settingsLayout;
    QGroupBox* settingsWidget;
 
    QLabel* generatorNameLabel;
@@ -83,4 +77,4 @@ private:
    QVBoxLayout* layout;
 };
 
-#endif // NODESETTINGSWIDGET_H
+#endif  // NODESETTINGSWIDGET_H

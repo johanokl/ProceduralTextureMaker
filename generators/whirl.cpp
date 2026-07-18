@@ -1,19 +1,17 @@
-/**
- * Part of the ProceduralTextureMaker project.
- * http://github.com/johanokl/ProceduralTextureMaker
- * Released under GPLv3.
- * Johan Lindqvist (johan.lindqvist@gmail.com)
- */
+
+// Part of the ProceduralTextureMaker project.
+// http://github.com/johanokl/ProceduralTextureMaker
+// Released under GPLv3.
+// Johan Lindqvist (johan.lindqvist@gmail.com)
 
 #include "whirl.h"
 #include <QtMath>
 #include <cmath>
 
-WhirlTextureGenerator::WhirlTextureGenerator()
-{
+WhirlTextureGenerator::WhirlTextureGenerator() {
    TextureGeneratorSetting radius;
    radius.name = "Radius";
-   radius.defaultvalue = QVariant((double) 50);
+   radius.defaultvalue = QVariant((double)50);
    radius.min = QVariant(0);
    radius.max = QVariant(200);
    radius.order = 1;
@@ -21,7 +19,7 @@ WhirlTextureGenerator::WhirlTextureGenerator()
 
    TextureGeneratorSetting strength;
    strength.name = "Strength";
-   strength.defaultvalue = QVariant((double) 40);
+   strength.defaultvalue = QVariant((double)40);
    strength.min = QVariant(-500);
    strength.max = QVariant(500);
    strength.order = 2;
@@ -29,7 +27,7 @@ WhirlTextureGenerator::WhirlTextureGenerator()
 
    TextureGeneratorSetting offsetleft;
    offsetleft.name = "Offset left";
-   offsetleft.defaultvalue = QVariant((double) 0);
+   offsetleft.defaultvalue = QVariant((double)0);
    offsetleft.min = QVariant(-100);
    offsetleft.max = QVariant(100);
    offsetleft.order = 3;
@@ -37,19 +35,15 @@ WhirlTextureGenerator::WhirlTextureGenerator()
 
    TextureGeneratorSetting offsettop;
    offsettop.name = "Offset top";
-   offsettop.defaultvalue = QVariant((double) 0);
+   offsettop.defaultvalue = QVariant((double)0);
    offsettop.min = QVariant(-100);
    offsettop.max = QVariant(100);
    offsettop.order = 4;
    configurables.insert("offsettop", offsettop);
 }
-
-
-void WhirlTextureGenerator::generate(QSize size,
-                                     TexturePixel* destimage,
+void WhirlTextureGenerator::generate(QSize size, TexturePixel* destimage,
                                      QMap<int, TextureImagePtr> sourceimages,
-                                     TextureNodeSettings* settings) const
-{
+                                     TextureNodeSettings* settings) const {
    if (!settings || !destimage || !size.isValid()) {
       return;
    }
@@ -64,6 +58,10 @@ void WhirlTextureGenerator::generate(QSize size,
    double offsettop = settings->value("offsettop").toDouble() * size.height() / 100;
 
    TexturePixel* source = sourceimages.value(0)->getData();
+   if (radius <= 0 || strength == 0) {
+      memcpy(destimage, source, size.width() * size.height() * sizeof(TexturePixel));
+      return;
+   }
    int centerx = size.width() / 2 + offsetleft;
    int centery = size.height() / 2 + offsettop;
 
@@ -78,10 +76,9 @@ void WhirlTextureGenerator::generate(QSize size,
          double angle = 2 * M_PI * distortion / (radius / strength);
          int xpos = ((x - centerx) * cos(angle)) - ((y - centery) * sin(angle)) + centerx;
          int ypos = ((y - centery) * cos(angle)) + ((x - centerx) * sin(angle)) + centery;
-         xpos = xpos > size.height() ? xpos % size.height() :
-                                       (xpos < 0 ? xpos + size.width() : xpos);
-         ypos = ypos > size.height() ? ypos % size.height() :
-                                       (ypos < 0 ? ypos + size.height() : ypos);
+         xpos = xpos > size.width() ? xpos % size.width() : (xpos < 0 ? xpos + size.width() : xpos);
+         ypos =
+             ypos > size.height() ? ypos % size.height() : (ypos < 0 ? ypos + size.height() : ypos);
          xpos = qMax(qMin(xpos, size.width() - 1), 0);
          ypos = qMax(qMin(ypos, size.height() - 1), 0);
          destimage[y * size.width() + x] = source[ypos * size.width() + xpos];

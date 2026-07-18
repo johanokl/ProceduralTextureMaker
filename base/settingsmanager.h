@@ -1,9 +1,8 @@
-/**
- * Part of the ProceduralTextureMaker project.
- * http://github.com/johanokl/ProceduralTextureMaker
- * Released under GPLv3.
- * Johan Lindqvist (johan.lindqvist@gmail.com)
- */
+
+// Part of the ProceduralTextureMaker project.
+// http://github.com/johanokl/ProceduralTextureMaker
+// Released under GPLv3.
+// Johan Lindqvist (johan.lindqvist@gmail.com)
 
 #ifndef SETTINGSMANAGER_H
 #define SETTINGSMANAGER_H
@@ -11,19 +10,17 @@
 #include <QColor>
 #include <QObject>
 #include <QSize>
+#include <QString>
 
-/**
- * @brief The SettingsManager class
- *
- * Manages the global settings. Settings are written to
- * and loaded from persistent storage using the QSettings class.
- */
-class SettingsManager : public QObject
-{
+/// @brief The SettingsManager class
+///
+/// Manages the global settings. The current settings can be previewed
+/// before they are written to persistent storage using QSettings.
+class SettingsManager : public QObject {
    Q_OBJECT
 
 public:
-   SettingsManager() = default;
+   SettingsManager();
    ~SettingsManager() override = default;
    QSize getPreviewSize() const;
    QSize getThumbnailSize() const;
@@ -32,13 +29,13 @@ public:
    QColor getPreviewBackgroundColor() const;
    QColor getBackgroundColor() const;
    int getBackgroundBrush() const;
-   int getDefaultZoom() const;
+   void loadSettings();
+   void saveSettings() const;
 
 signals:
    void settingsUpdated();
 
 public slots:
-   void setDefaultZoom(int);
    void setPreviewSize(const QSize&);
    void setThumbnailSize(const QSize&);
    void setPreviewBackgroundColor(const QColor&);
@@ -46,6 +43,17 @@ public slots:
    void setBackgroundBrush(int val);
    void setJSTextureGeneratorsPath(const QString&);
    void setJSTextureGeneratorsEnabled(bool);
+
+private:
+   bool readSettings();
+
+   QSize previewSize;
+   QSize thumbnailSize;
+   QString jsTextureGeneratorsPath;
+   bool jsTextureGeneratorsEnabled;
+   QColor previewBackgroundColor;
+   QColor backgroundColor;
+   int backgroundBrush;
 };
 
-#endif // SETTINGSMANAGER_H
+#endif  // SETTINGSMANAGER_H

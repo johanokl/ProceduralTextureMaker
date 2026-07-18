@@ -1,9 +1,8 @@
-/**
- * Part of the ProceduralTextureMaker project.
- * http://github.com/johanokl/ProceduralTextureMaker
- * Released under GPLv3.
- * Johan Lindqvist (johan.lindqvist@gmail.com)
- */
+
+// Part of the ProceduralTextureMaker project.
+// http://github.com/johanokl/ProceduralTextureMaker
+// Released under GPLv3.
+// Johan Lindqvist (johan.lindqvist@gmail.com)
 
 #include "base/textureproject.h"
 #include "generators/texturegenerator.h"
@@ -25,50 +24,40 @@
 #include <QVBoxLayout>
 #include <utility>
 
-/**
- * @brief The AddNodeButton class
- *
- * Extended QPushButton class with functions for enabling
- * drag and drop of generator names.
- */
-class AddNodeButton : public QPushButton
-{
+/// @brief Extended QPushButton class with functions for enabling drag and drop of generator names.
+class AddNodeButton : public QPushButton {
 public:
    AddNodeButton(QWidget* parent, QString _generatorName)
-      : QPushButton(parent), generatorName(std::move(_generatorName)) {}
+       : QPushButton(parent), generatorName(std::move(_generatorName)) {}
    ~AddNodeButton() override;
-   void mousePressEvent(QMouseEvent *event) override;
-   void mouseMoveEvent(QMouseEvent *event) override;
+   void mousePressEvent(QMouseEvent* event) override;
+   void mouseMoveEvent(QMouseEvent* event) override;
+
 private:
    QPoint dragStartPosition;
    QString generatorName;
 };
 
-/**
- * @brief AddNodeButton::~AddNodeButton
- */
+/// @brief Default destructor.
 AddNodeButton::~AddNodeButton() = default;
 
-/**
- * @brief AddNodeButton::mousePressEvent
- * @param event
- */
-void AddNodeButton::mousePressEvent(QMouseEvent *event)
-{
+/// @brief Mouse press event handler.
+/// @details If the left mouse button is pressed, the position is stored for later use in
+/// mouseMoveEvent to determine if a drag operation should be started.
+/// @param event
+void AddNodeButton::mousePressEvent(QMouseEvent* event) {
    if (event->button() == Qt::LeftButton) {
       dragStartPosition = event->pos();
    }
 }
 
-/**
- * @brief AddNodeButton::mouseMoveEvent
- * @param event
- */
-void AddNodeButton::mouseMoveEvent(QMouseEvent *event)
-{
-   if (((event->buttons()&  Qt::LeftButton) > 0)
-       && (event->pos() - dragStartPosition).manhattanLength()
-       > QApplication::startDragDistance()) {
+/// @brief Mouse move event handler.
+/// @details If the left mouse button is pressed and the mouse has moved a certain distance, a drag
+/// operation is started with the generator name as the mime data.
+/// @param event
+void AddNodeButton::mouseMoveEvent(QMouseEvent* event) {
+   if (((event->buttons() & Qt::LeftButton) > 0) &&
+       (event->pos() - dragStartPosition).manhattanLength() > QApplication::startDragDistance()) {
       auto* drag = new QDrag(this);
       auto* mimeData = new QMimeData;
       mimeData->setText(generatorName);
@@ -77,14 +66,9 @@ void AddNodeButton::mouseMoveEvent(QMouseEvent *event)
    }
 }
 
-
-/**
- * @brief AddNodePanel::AddNodePanel
- * @param project
- * Displays the texgen classes in three groups, Generator, Filter and Combiner.
- */
-AddNodePanel::AddNodePanel(TextureProject* project)
-{
+/// @brief Displays the texgen classes in three groups, Generator, Filter and Combiner.
+/// @param project
+AddNodePanel::AddNodePanel(TextureProject* project) {
    this->project = project;
 
    auto* layout = new QVBoxLayout(this);
@@ -98,8 +82,13 @@ AddNodePanel::AddNodePanel(TextureProject* project)
    area->setFrameShape(QFrame::NoFrame);
    layout->addWidget(area);
    area->setWidget(contents);
+#ifdef Q_OS_MAC
+   // Leave room for the larger macOS UI font without truncating longer generator names.
+   setFixedWidth(280);
+#else
    setFixedWidth(250);
-   setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
+#endif
+   setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Expanding);
    setLayout(layout);
 
    generatorsWidget = new QGroupBox("Generators");
@@ -123,37 +112,27 @@ AddNodePanel::AddNodePanel(TextureProject* project)
    combinersWidget->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Preferred);
    contentsLayout->addWidget(combinersWidget);
 
-   QWidget *spacerWidget = new QWidget;
+   QWidget* spacerWidget = new QWidget;
    spacerWidget->setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::Expanding);
    spacerWidget->setVisible(true);
    contentsLayout->addWidget(spacerWidget);
-   QObject::connect(project, &TextureProject::generatorAdded,
-                    this, &AddNodePanel::addGenerator);
-   QObject::connect(project, &TextureProject::generatorRemoved,
-                    this, &AddNodePanel::removeGenerator);
+   QObject::connect(project, &TextureProject::generatorAdded, this, &AddNodePanel::addGenerator);
+   QObject::connect(project, &TextureProject::generatorRemoved, this,
+                    &AddNodePanel::removeGenerator);
 }
 
-/**
- * @brief AddNodePanel::removeGenerator
- * @param generator
- * Removes a button.
- */
-void AddNodePanel::removeGenerator(const TextureGeneratorPtr& generator)
-{
+/// @brief Removes a button.
+/// @param generator
+void AddNodePanel::removeGenerator(const TextureGeneratorPtr& generator) {
    if (widgets.contains(generator)) {
       delete widgets.value(generator);
    }
 }
 
-/**
- * @brief AddNodePanel::addGenerator
- * @param generator
- *
- * Slot called when a generator has been added. Creates a new draggable
- * button and adds it to the generator types's widget group.
- */
-void AddNodePanel::addGenerator(const TextureGeneratorPtr& generator)
-{
+/// @brief Slot called when a generator has been added.
+/// @details Creates a new draggable button and adds it to the generator types's widget group.
+/// @param generator
+void AddNodePanel::addGenerator(const TextureGeneratorPtr& generator) {
    if (widgets.contains(generator)) {
       return;
    }
@@ -166,26 +145,41 @@ void AddNodePanel::addGenerator(const TextureGeneratorPtr& generator)
    }
    auto* newButton = new AddNodeButton(this, generatorName);
    widgets.insert(generator, newButton);
+#ifdef Q_OS_MAC
+   newButton->setFixedSize(112, 56);
+#else
    newButton->setFixedSize(100, 60);
+#endif
    newButton->setSizePolicy(QSizePolicy::Maximum, QSizePolicy::Preferred);
    unsigned int hash = qHash(generatorName);
-   QColor buttonColor(((hash&  0xFF0000) >> 16), ((hash&  0x00FF00) >> 8), (hash&  0x0000FF));
+   QColor buttonColor(((hash & 0xFF0000) >> 16), ((hash & 0x00FF00) >> 8), (hash & 0x0000FF));
    QString fontColor("#ffffff");
-   if ((buttonColor.red() * 0.299 + buttonColor.green() * 0.587 + buttonColor.blue() * 0.114) > 170) {
+   if ((buttonColor.red() * 0.299 + buttonColor.green() * 0.587 + buttonColor.blue() * 0.114) >
+       170) {
       fontColor = "#000000";
    }
-   newButton->setStyleSheet(QString("background-color: %1; color: %2")
-                            .arg(buttonColor.name(), fontColor));
+   newButton->setStyleSheet(QString("QPushButton {"
+                                    "  background-color: %1;"
+                                    "  color: %2;"
+                                    "  border: 1px solid rgba(255, 255, 255, 32);"
+                                    "  border-radius: 7px;"
+                                    "  font-weight: 600;"
+                                    "  padding: 6px;"
+                                    "}"
+                                    "QPushButton:hover { background-color: %3; }"
+                                    "QPushButton:pressed { background-color: %4; }")
+                                .arg(buttonColor.name(), fontColor, buttonColor.lighter(112).name(),
+                                     buttonColor.darker(120).name()));
    QGridLayout* destLayout;
    switch (generator->getType()) {
-   case TextureGenerator::Type::Combiner:
-      destLayout = combinersLayout;
-      break;
-   case TextureGenerator::Type::Filter:
-      destLayout = filtersLayout;
-      break;
-   default:
-      destLayout = generatorsLayout;
+      case TextureGenerator::Type::Combiner:
+         destLayout = combinersLayout;
+         break;
+      case TextureGenerator::Type::Filter:
+         destLayout = filtersLayout;
+         break;
+      default:
+         destLayout = generatorsLayout;
    }
    int numButtons = destLayout->count();
    int row = numButtons / 2;

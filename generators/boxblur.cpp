@@ -1,28 +1,22 @@
-/**
- * Part of the ProceduralTextureMaker project.
- * http://github.com/johanokl/ProceduralTextureMaker
- * Released under GPLv3.
- * Johan Lindqvist (johan.lindqvist@gmail.com)
- */
+
+// Part of the ProceduralTextureMaker project.
+// http://github.com/johanokl/ProceduralTextureMaker
+// Released under GPLv3.
+// Johan Lindqvist (johan.lindqvist@gmail.com)
 
 #include "boxblur.h"
 
-BoxBlurTextureGenerator::BoxBlurTextureGenerator()
-{
+BoxBlurTextureGenerator::BoxBlurTextureGenerator() {
    TextureGeneratorSetting neighbourssetting;
-   neighbourssetting.defaultvalue = QVariant((int) 5);
+   neighbourssetting.defaultvalue = QVariant((int)5);
    neighbourssetting.name = "Blur level";
    neighbourssetting.min = QVariant(0);
    neighbourssetting.max = QVariant(30);
    configurables.insert("numneighbours", neighbourssetting);
 }
-
-
-void BoxBlurTextureGenerator::generate(QSize size,
-                                       TexturePixel* destimage,
+void BoxBlurTextureGenerator::generate(QSize size, TexturePixel* destimage,
                                        QMap<int, TextureImagePtr> sourceimages,
-                                       TextureNodeSettings* settings) const
-{
+                                       TextureNodeSettings* settings) const {
    if (!settings || !destimage || !size.isValid()) {
       return;
    }

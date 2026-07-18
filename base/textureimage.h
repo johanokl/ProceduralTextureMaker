@@ -1,9 +1,8 @@
-/**
- * Part of the ProceduralTextureMaker project.
- * http://github.com/johanokl/ProceduralTextureMaker
- * Released under GPLv3.
- * Johan Lindqvist (johan.lindqvist@gmail.com)
- */
+
+// Part of the ProceduralTextureMaker project.
+// http://github.com/johanokl/ProceduralTextureMaker
+// Released under GPLv3.
+// Johan Lindqvist (johan.lindqvist@gmail.com)
 
 #ifndef TEXTUREIMAGE_H
 #define TEXTUREIMAGE_H
@@ -11,31 +10,25 @@
 #include "global.h"
 #include <QSharedPointer>
 #include <QSize>
+#include <memory>
 
-/**
- * @brief The TextureImage class
- *
- * Holds the data for an image
- */
-class TextureImage
-{
+class TextureImage;
+using TextureImagePtr = QSharedPointer<TextureImage>;
+
+/// @brief The TextureImage class
+///
+/// Holds the data for an image
+class TextureImage {
 public:
-   TextureImage(QSize size, TexturePixel* data);
-   virtual ~TextureImage();
+   explicit TextureImage(QSize size);
+   ~TextureImage() = default;
+   static TextureImagePtr create(QSize size);
    QSize getSize() const { return size; }
-   TexturePixel* getData() const { return data; }
+   TexturePixel* getData() const { return data.get(); }
 
 private:
    QSize size;
-   TexturePixel* data;
+   std::unique_ptr<TexturePixel[]> data;
 };
 
-/**
- * @brief TextureImagePtr
- *
- * Thread-safe smart pointer for TextureImage
- */
-using TextureImagePtr = QSharedPointer<TextureImage>;
-
-
-#endif // TEXTUREIMAGE_H
+#endif  // TEXTUREIMAGE_H

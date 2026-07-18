@@ -1,9 +1,8 @@
-/**
- * Part of the ProceduralTextureMaker project.
- * http://github.com/johanokl/ProceduralTextureMaker
- * Released under GPLv3.
- * Johan Lindqvist (johan.lindqvist@gmail.com)
- */
+
+// Part of the ProceduralTextureMaker project.
+// http://github.com/johanokl/ProceduralTextureMaker
+// Released under GPLv3.
+// Johan Lindqvist (johan.lindqvist@gmail.com)
 
 #ifndef PREVIEW3DPANEL_H
 #define PREVIEW3DPANEL_H
@@ -16,12 +15,11 @@
 #include <QOpenGLTexture>
 #include <QOpenGLFunctions>
 #include <QOpenGLBuffer>
+#include <QPixmap>
+#include <QQuaternion>
 
-/**
- * @brief The CubeWidget class
- */
-class CubeWidget : public QOpenGLWidget, protected QOpenGLFunctions
-{
+/// @brief The CubeWidget class
+class CubeWidget : public QOpenGLWidget, protected QOpenGLFunctions {
    Q_OBJECT
    struct VertexData {
       QVector3D position;
@@ -29,8 +27,8 @@ class CubeWidget : public QOpenGLWidget, protected QOpenGLFunctions
    };
 
 public:
-   explicit CubeWidget(QWidget *parent = nullptr);
-    ~CubeWidget() override;
+   explicit CubeWidget(QWidget* parent = nullptr);
+   ~CubeWidget() override;
    void setTexture(const QPixmap& pixmap);
 
 public slots:
@@ -38,30 +36,32 @@ public slots:
    void setBackgroundColor(const QColor& color);
 
 protected:
-    void mousePressEvent(QMouseEvent *e) override;
-    void mouseReleaseEvent(QMouseEvent *e) override;
-    void timerEvent(QTimerEvent *e) override;
-    void initializeGL() override;
-    void resizeGL(int width, int height) override;
-    void paintGL() override;
-    void initShaders();
+   void mousePressEvent(QMouseEvent* e) override;
+   void mouseReleaseEvent(QMouseEvent* e) override;
+   void timerEvent(QTimerEvent* e) override;
+   void initializeGL() override;
+   void resizeGL(int width, int height) override;
+   void paintGL() override;
+   void initShaders();
 
 private:
-    QBasicTimer timer;
-    QOpenGLShaderProgram program;
-    QOpenGLTexture* texture;
-    bool textureUpdated;
-    QMatrix4x4 projection;
-    QVector2D mousePressPosition;
-    QVector3D rotationAxis;
-    double angularSpeed;
-    QQuaternion rotation;
-    bool textureAvailable;
-    QOpenGLBuffer arrayBuf;
-    QOpenGLBuffer indexBuf;
-    QColor backgroundcolor;
-    bool initialized;
+   void uploadTexture();
+
+   QBasicTimer timer;
+   QOpenGLShaderProgram program;
+   QOpenGLTexture* texture;
+   QPixmap pendingTexture;
+   bool textureUpdated;
+   QMatrix4x4 projection;
+   QVector2D mousePressPosition;
+   QVector3D rotationAxis;
+   double angularSpeed;
+   QQuaternion rotation;
+   bool textureAvailable;
+   QOpenGLBuffer arrayBuf;
+   QOpenGLBuffer indexBuf;
+   QColor backgroundcolor;
+   bool initialized;
 };
 
-
-#endif // PREVIEW3DPANEL_H
+#endif  // PREVIEW3DPANEL_H

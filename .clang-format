@@ -1,0 +1,17 @@
+---
+Language: Cpp
+BasedOnStyle: Google
+IndentWidth: 3
+TabWidth: 3
+UseTab: Never
+AccessModifierOffset: -3
+SortIncludes: false
+ColumnLimit: 100
+LineEnding: LF
+DerivePointerAlignment: false
+PointerAlignment: Left
+ReflowComments: Always
+SpacesInLineCommentPrefix:
+  Minimum: 1
+  Maximum: 1
+...
