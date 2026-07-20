@@ -25,10 +25,11 @@ For more general information about procedural textures, see
 
 ## Examples
 
-Two example textures have been added to the repository:
+Three example textures have been added to the repository:
 
 - [Rose](examples/rose.txl)
 - [Wall](examples/wall.txl)
+- [Space](examples/space.txl)
 
 ## Technical Details
 
