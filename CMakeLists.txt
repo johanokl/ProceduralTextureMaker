@@ -31,6 +31,7 @@ find_package(Qt6 REQUIRED COMPONENTS
     Widgets
     Xml
 )
+find_package(Threads REQUIRED)
 
 if(PROCEDURAL_TEXTURE_MAKER_STATIC_BUILD)
     get_target_property(PROCEDURAL_TEXTURE_MAKER_QT_CORE_TYPE Qt6::Core TYPE)
@@ -59,8 +60,8 @@ set(PROCEDURAL_TEXTURE_MAKER_SOURCES
     base/texturenode.h
     base/textureproject.cpp
     base/textureproject.h
-    base/texturerenderthread.cpp
-    base/texturerenderthread.h
+    base/texturerendermanager.cpp
+    base/texturerendermanager.h
 
     gui/addnodepanel.cpp
     gui/addnodepanel.h
@@ -213,6 +214,7 @@ target_include_directories(ProceduralTextureMaker PRIVATE
 )
 
 target_link_libraries(ProceduralTextureMaker PRIVATE
+    Threads::Threads
     Qt6::Core
     Qt6::Gui
     Qt6::OpenGL

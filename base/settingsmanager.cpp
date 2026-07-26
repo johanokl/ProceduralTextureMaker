@@ -9,6 +9,9 @@
 #include <QDir>
 #include <QSettings>
 #include <QSize>
+#include <QString>
+#include <QVariant>
+#include <QtCore/qtmetamacros.h>
 
 SettingsManager::SettingsManager() : jsTextureGeneratorsEnabled(false), backgroundBrush(0) {
    readSettings();

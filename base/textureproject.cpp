@@ -4,35 +4,66 @@
 // Released under GPLv3.
 // Johan Lindqvist (johan.lindqvist@gmail.com)
 
-#include "generators/empty.h"
-#include "settingsmanager.h"
 #include "textureproject.h"
-#include "texturerenderthread.h"
+#include "generators/empty.h"
+#include "generators/texturegenerator.h"
+#include "global.h"
+#include "texturenode.h"
+#include "texturerendermanager.h"
+#include "settingsmanager.h"
 #include <QApplication>
 #include <QClipboard>
 #include <QDebug>
+#include <QDomDocument>
+#include <QDomElement>
+#include <QDomNode>
+#include <QDomNodeList>
+#include <QMap>
+#include <QMapIterator>
+#include <QMetaObject>
+#include <QObject>
+#include <QPointF>
+#include <QSize>
+#include <QString>
+#include <QVariant>
+#include <Qt>
+#include <QtLogging>
+#include <QtCore/qtmetamacros.h>
+#include <cstddef>
+#include <memory>
 #include <mutex>
 #include <shared_mutex>
+#include <utility>
 
-TextureProject::TextureProject() {
-   settingsManager = nullptr;
-   nodes.clear();
-   generators.clear();
-   newIdCounter = 0;
-   emptygenerator = TextureGeneratorPtr(new EmptyGenerator());
-   modified = false;
-   thumbnailSize = QSize(250, 250);
-   startRenderThread(getThumbnailSize());
+TextureProject::TextureProject()
+    : newIdCounter(0),
+      emptygenerator(new EmptyGenerator()),
+      thumbnailSize(250, 250),
+      settingsManager(nullptr),
+      modified(false) {
+   renderManager = std::make_unique<TextureRenderManager>(
+       [this](TextureRenderResult result) {
+          QMetaObject::invokeMethod(
+              this,
+              [this, result = std::move(result)]() mutable {
+                 publishRenderResult(std::move(result));
+              },
+              Qt::QueuedConnection);
+       },
+       [this](TextureRenderFailure failure) {
+          QMetaObject::invokeMethod(
+              this,
+              [this, failure = std::move(failure)]() mutable {
+                 publishRenderFailure(std::move(failure));
+              },
+              Qt::QueuedConnection);
+       });
+   scheduleThumbnailRender();
 }
 
 TextureProject::~TextureProject() {
-   while (!renderThreads.isEmpty()) {
-      QStringList values = renderThreads.firstKey().split("_");
-      if (values.length() > 1) {
-         stopRenderThread(QSize(values.at(0).toInt(), values.at(1).toInt()));
-      }
-   }
-   this->clear();
+   renderManager.reset();
+   clear();
 }
 
 void TextureProject::setSettingsManager(SettingsManager* manager) {
@@ -50,61 +81,25 @@ void TextureProject::setSettingsManager(SettingsManager* manager) {
 }
 
 void TextureProject::settingsUpdated() {
-   previewSize = settingsManager->getPreviewSize();
-   if (settingsManager->getThumbnailSize() != getThumbnailSize()) {
-      stopRenderThread(getThumbnailSize());
+   if (!settingsManager) {
+      return;
    }
-   this->thumbnailSize = settingsManager->getThumbnailSize();
-   startRenderThread(getThumbnailSize());
+   previewSize = settingsManager->getPreviewSize();
+   const QSize previousThumbnailSize = thumbnailSize;
+   thumbnailSize = settingsManager->getThumbnailSize();
+   if (previousThumbnailSize != thumbnailSize) {
+      renderManager->cancel();
+      const QMap<int, TextureNodePtr> nodesCopy = nodesSnapshot();
+      for (const TextureNodePtr& node : nodesCopy) {
+         node->discardCachedImage(previousThumbnailSize);
+      }
+   }
+   scheduleThumbnailRender();
 }
 
 void TextureProject::setName(const QString& newname) {
    name = newname;
    emit nameUpdated(name);
-}
-
-void TextureProject::startRenderThread(QSize renderSize, QThread::Priority prio) {
-   QString key = QString("%1_%2").arg(renderSize.width()).arg(renderSize.height());
-   if (!renderThreads.contains(key)) {
-      auto* renderThread = new QThread;
-      TextureRenderThread* renderer = new TextureRenderThread(renderSize, nodesSnapshot());
-      renderer->moveToThread(renderThread);
-      renderThread->start();
-      renderThread->setPriority(prio);
-      QObject::connect(this, &TextureProject::nodeAdded, renderer, &TextureRenderThread::nodeAdded);
-      QObject::connect(this, &TextureProject::nodeRemoved, renderer,
-                       &TextureRenderThread::nodeRemoved);
-      QObject::connect(this, &TextureProject::imageUpdated, renderer,
-                       &TextureRenderThread::imageUpdated);
-      QObject::connect(renderThread, &QThread::finished, renderThread, &QThread::deleteLater);
-      QObject::connect(renderThread, &QThread::finished, renderer,
-                       &TextureRenderThread::deleteLater);
-      renderThreads.insert(key, renderer);
-      emit imageUpdated(0);
-   }
-}
-
-void TextureProject::stopRenderThread(QSize renderSize) {
-   QString key = QString("%1_%2").arg(renderSize.width()).arg(renderSize.height());
-   if (renderThreads.contains(key)) {
-      TextureRenderThread* renderThread = renderThreads.take(key);
-      QThread* workerThread = renderThread->thread();
-      QObject::disconnect(this, &TextureProject::nodeAdded, renderThread,
-                          &TextureRenderThread::nodeAdded);
-      QObject::disconnect(this, &TextureProject::nodeRemoved, renderThread,
-                          &TextureRenderThread::nodeRemoved);
-      QObject::disconnect(this, &TextureProject::imageUpdated, renderThread,
-                          &TextureRenderThread::imageUpdated);
-      renderThread->abort();
-      workerThread->quit();
-      workerThread->wait();
-      const QMap<int, TextureNodePtr> nodesCopy = nodesSnapshot();
-      QMapIterator<int, TextureNodePtr> nodeiterator(nodesCopy);
-      while (nodeiterator.hasNext()) {
-         // Remove all images to prevent memory leaks
-         nodeiterator.next().value()->setUpdated();
-      }
-   }
 }
 
 void TextureProject::loadFromXML(const QDomDocument& xmlfile) {
@@ -213,6 +208,42 @@ QMap<int, TextureNodePtr> TextureProject::nodesSnapshot() const {
    return nodes;
 }
 
+TextureGraphSnapshot TextureProject::createTextureGraphSnapshot(QSize renderSize) const {
+   const QMap<int, TextureNodePtr> nodesCopy = nodesSnapshot();
+   TextureGraphSnapshot snapshot;
+   snapshot.size = renderSize;
+   snapshot.nodes.reserve(static_cast<std::size_t>(nodesCopy.size()));
+   for (const TextureNodePtr& node : nodesCopy) {
+      snapshot.nodes.push_back(node->createTextureNodeSnapshot(renderSize));
+   }
+   return snapshot;
+}
+
+void TextureProject::scheduleThumbnailRender() {
+   if (renderManager) {
+      renderManager->render(createTextureGraphSnapshot(thumbnailSize));
+   }
+}
+
+void TextureProject::publishRenderResult(TextureRenderResult result) {
+   if (result.size != thumbnailSize) {
+      return;
+   }
+   const TextureNodePtr node = getNode(result.nodeId);
+   if (!node.isNull()) {
+      node->publishRenderedImage(result.size, result.revision, result.image);
+   }
+}
+
+void TextureProject::publishRenderFailure(TextureRenderFailure failure) {
+   qWarning().noquote() << QStringLiteral("Texture render failed for node %1 at %2x%3: %4")
+                               .arg(failure.nodeId)
+                               .arg(failure.size.width())
+                               .arg(failure.size.height())
+                               .arg(failure.message);
+   emit renderFailed(failure.nodeId, failure.size, failure.message);
+}
+
 TextureNodePtr TextureProject::getNode(int id) const {
    std::shared_lock lock(nodesMutex);
    return nodes.value(id);
@@ -256,6 +287,7 @@ TextureNodePtr TextureProject::newNode(int id, TextureGeneratorPtr generator) {
    // document change and must be recorded explicitly.
    modified = true;
    emit nodeAdded(newNode);
+   scheduleThumbnailRender();
    return newNode;
 }
 
@@ -344,10 +376,12 @@ void TextureProject::removeNode(int id) {
    // Removing an unconnected node emits no disconnection or image update signals.
    modified = true;
    emit nodeRemoved(id);
+   scheduleThumbnailRender();
 }
 
 void TextureProject::notifyImageUpdated(int id) {
    modified = true;
+   scheduleThumbnailRender();
    emit imageUpdated(id);
 }
 

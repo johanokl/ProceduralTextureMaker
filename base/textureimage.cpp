@@ -5,6 +5,9 @@
 // Johan Lindqvist (johan.lindqvist@gmail.com)
 
 #include "textureimage.h"
+#include "global.h"
+#include <QSize>
+#include <cstddef>
 #include <limits>
 #include <stdexcept>
 

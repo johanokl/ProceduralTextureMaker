@@ -195,11 +195,14 @@ void ViewNodeItem::removeConnectionLine(ViewNodeLine* line) {
 /// @details If the image size is the one used by the scene then the widget is redrawn with the
 /// updated image.
 void ViewNodeItem::imageAvailable(QSize size) {
-   if (size == thumbnailSize && texNode->isTextureInCache(thumbnailSize)) {
+   if (size == thumbnailSize) {
+      const TextureImagePtr image = texNode->cachedImage(thumbnailSize);
+      if (image.isNull()) {
+         return;
+      }
       QImage tempimage =
           QImage(thumbnailSize.width(), thumbnailSize.height(), QImage::Format_ARGB32);
-      memcpy(tempimage.bits(), texNode->getImage(thumbnailSize)->getData(),
-             thumbnailSize.width() * thumbnailSize.height() * sizeof(TexturePixel));
+      memcpy(tempimage.bits(), image->data(), image->byteSize());
       pixmap = QPixmap::fromImage(tempimage);
       imageValid = true;
       update();

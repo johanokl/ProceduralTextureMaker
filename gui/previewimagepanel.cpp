@@ -125,12 +125,12 @@ bool PreviewImagePanel::loadNodeImage(int id) {
       return false;
    }
    imageSize = project->getThumbnailSize();
-   if (!texNode->isTextureInCache(imageSize)) {
+   const TextureImagePtr image = texNode->cachedImage(imageSize);
+   if (image.isNull()) {
       return false;
    }
    QImage tempimage = QImage(imageSize.width(), imageSize.height(), QImage::Format_ARGB32);
-   memcpy(tempimage.bits(), texNode->getImage(imageSize)->getData(),
-          sizeof(TexturePixel) * imageSize.width() * imageSize.height());
+   memcpy(tempimage.bits(), image->data(), image->byteSize());
    QPixmap newImage = QPixmap::fromImage(tempimage);
    if (numTiles > 1) {
       newImage = tilePixmap(newImage, numTiles);

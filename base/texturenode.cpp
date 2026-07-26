@@ -5,10 +5,31 @@
 // Johan Lindqvist (johan.lindqvist@gmail.com)
 
 #include "texturenode.h"
+#include "generators/texturegenerator.h"
+#include "global.h"
+#include "texturerendermanager.h"
+#include "textureimage.h"
 #include "textureproject.h"
 #include <QColor>
+#include <QDomDocument>
+#include <QDomElement>
+#include <QDomNode>
+#include <QDomNodeList>
+#include <QList>
 #include <QLocale>
+#include <QMap>
+#include <QMapIterator>
 #include <QMetaType>
+#include <QObject>
+#include <QPointF>
+#include <QSet>
+#include <QSetIterator>
+#include <QSize>
+#include <QString>
+#include <QVariant>
+#include <QtCore/qcontainerfwd.h>
+#include <QtCore/qtmetamacros.h>
+#include <cstdint>
 #include <mutex>
 #include <shared_mutex>
 #include <utility>
@@ -334,7 +355,7 @@ void TextureNode::propagateImageUpdate() {
    emit imageUpdated(id);
 }
 
-TextureImagePtr TextureNode::getImage(QSize size) {
+TextureImagePtr TextureNode::renderImage(QSize size) {
    for (;;) {
       std::uint64_t renderRevision = 0;
       {
@@ -361,7 +382,7 @@ TextureImagePtr TextureNode::getImage(QSize size) {
          if (slotSource != 0) {
             TextureNodePtr sourceNode = project->getNode(slotSource);
             if (!sourceNode.isNull()) {
-               sourceImages.insert(i, sourceNode->getImage(size));
+               sourceImages.insert(i, sourceNode->renderImage(size));
             }
          }
       }
@@ -456,28 +477,34 @@ int TextureNode::getNumSourceSlots() const {
    return generator.isNull() ? 0 : generator->getNumSourceSlots();
 }
 
-bool TextureNode::isTextureInCache(QSize size) const {
+TextureImagePtr TextureNode::cachedImage(QSize size) const {
    std::shared_lock lock(imageMutex);
-   return texturecache.contains(size);
+   return texturecache.value(size);
 }
 
-int TextureNode::waitingFor(QSize size) const {
-   if (isTextureInCache(size)) {
-      return 0;
-   }
-   const QMap<int, int> sourcesCopy = getSources();
-   int numwaitingFor = 0;
-   QListIterator<int> sourceiterator(sourcesCopy.values());
-   while (sourceiterator.hasNext()) {
-      int currNode = sourceiterator.next();
-      if (currNode != 0) {
-         const TextureNodePtr sourceNode = project->getNode(currNode);
-         if (!sourceNode.isNull()) {
-            numwaitingFor += sourceNode->waitingFor(size);
-         }
+TextureNodeSnapshot TextureNode::createTextureNodeSnapshot(QSize size) const {
+   std::shared_lock settingsLock(settingsMutex);
+   std::shared_lock sourceLock(sourceMutex);
+   std::shared_lock imageLock(imageMutex);
+   return TextureNodeSnapshot{id, imageRevision, gen, settings, sources, texturecache.value(size)};
+}
+
+bool TextureNode::publishRenderedImage(QSize size, std::uint64_t revision,
+                                       const TextureImagePtr& image) {
+   {
+      std::unique_lock lock(imageMutex);
+      if (image.isNull() || revision != imageRevision || texturecache.contains(size)) {
+         return false;
       }
+      texturecache.insert(size, image);
    }
-   return numwaitingFor;
+   emit imageAvailable(id, size);
+   return true;
+}
+
+void TextureNode::discardCachedImage(QSize size) {
+   std::unique_lock lock(imageMutex);
+   texturecache.remove(size);
 }
 
 bool TextureNode::findLoop() const {

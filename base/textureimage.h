@@ -24,6 +24,8 @@ public:
    /// @throws std::invalid_argument if either dimension is not positive.
    /// @throws std::length_error if the required pixel storage cannot be represented.
    explicit TextureImage(QSize size);
+
+   /// @brief Destroys the image and releases its pixel buffer.
    ~TextureImage() = default;
 
    /// @brief Disables copy construction to prevent accidental duplication of the pixel buffer.
@@ -67,7 +69,9 @@ public:
    const TexturePixel* getData() const noexcept { return data(); }
 
 private:
+   /// @brief Image width and height in pixels.
    QSize size;
+   /// @brief Contiguous storage for the image pixels.
    std::vector<TexturePixel> pixels;
 };
 

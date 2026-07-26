@@ -329,8 +329,8 @@ void MainWindow::saveImage(int id) {
    }
    QSize outSize = project->getPreviewSize();
    QImage tempimage = QImage(outSize.width(), outSize.height(), QImage::Format_ARGB32);
-   memcpy(tempimage.bits(), texNode->getImage(outSize)->getData(),
-          outSize.width() * outSize.height() * sizeof(TexturePixel));
+   const TextureImagePtr image = texNode->renderImage(outSize);
+   memcpy(tempimage.bits(), image->data(), image->byteSize());
    tempimage.save(fileName, "PNG", 100);
 }
 

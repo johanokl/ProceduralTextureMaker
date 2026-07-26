@@ -21,10 +21,12 @@ class SettingsManager : public QObject {
 public:
    /// @brief Constructs the settings manager and loads persisted settings.
    SettingsManager();
+
+   /// @brief Destroys the settings manager.
    ~SettingsManager() override = default;
 
-   /// @brief Gets the image dimensions used for exports.
-   /// @return The configured export image dimensions.
+   /// @brief Gets the image dimensions used for previews and exports.
+   /// @return The configured preview and export image dimensions.
    QSize getPreviewSize() const;
 
    /// @brief Gets the thumbnail size used in the scene widget.
@@ -58,11 +60,12 @@ public:
    void saveSettings() const;
 
 signals:
+   /// @brief Emitted after one or more application settings change.
    void settingsUpdated();
 
 public slots:
-   /// @brief Sets the image dimensions used for exports.
-   /// @param size The new export image dimensions.
+   /// @brief Sets the image dimensions used for previews and exports.
+   /// @param size The new preview and export image dimensions.
    void setPreviewSize(const QSize& size);
 
    /// @brief Sets the thumbnail dimensions used in the scene widget.
@@ -94,12 +97,19 @@ private:
    /// @return @c true if at least one value changes.
    bool readSettings();
 
+   /// @brief Width and height of preview and export images.
    QSize previewSize;
+   /// @brief Width and height of node thumbnail images.
    QSize thumbnailSize;
+   /// @brief Directory containing JavaScript texture generators.
    QString jsTextureGeneratorsPath;
+   /// @brief Whether JavaScript texture generators are enabled.
    bool jsTextureGeneratorsEnabled;
+   /// @brief Background color used by the preview view.
    QColor previewBackgroundColor;
+   /// @brief Background color used by the node graph view.
    QColor backgroundColor;
+   /// @brief Integer value of the node graph's Qt brush style.
    int backgroundBrush;
 };
 

@@ -10,14 +10,24 @@
 #include "generators/texturegenerator.h"
 #include "global.h"
 #include "textureimage.h"
+#include <QDomDocument>
+#include <QDomElement>
 #include <QDomNode>
+#include <QList>
 #include <QMap>
-#include <QPoint>
+#include <QObject>
+#include <QPointF>
 #include <QSet>
+#include <QSetIterator>
+#include <QSharedPointer>
+#include <QSize>
+#include <QString>
 #include <cstdint>
 #include <shared_mutex>
+
 class TextureProject;
 class TextureNode;
+struct TextureNodeSnapshot;
 
 /// @brief Shared-pointer type for `TextureNode` objects.
 using TextureNodePtr = QSharedPointer<TextureNode>;
@@ -82,13 +92,13 @@ public:
 
    /// @brief Checks whether a source slot is empty.
    /// @param slot The slot index, or `-1` to check for any available slot.
-   /// @return @c true if the requested slot, or at least one slot, is available.
+   /// @return @c true if the given slot, or at least one slot, is available.
    bool slotAvailable(int slot) const;
 
    /// @brief Connects a source node to a slot or disconnects the current source.
    /// @param slot The slot index, or `-1` to select the first available slot.
    /// @param sourceId The source node ID, or `0` to disconnect the slot.
-   /// @return @c true if the requested connection state was accepted.
+   /// @return @c true if the connection change was accepted.
    /// @details The change is rejected if the slot is invalid, the source does not exist, or the
    /// proposed edge would introduce a cycle in the graph.
    bool setSourceSlot(int slot, int sourceId);
@@ -105,26 +115,23 @@ public:
    /// @param pos The new scene position.
    void setPos(QPointF pos);
 
-   /// @brief Retrieves or renders the image with the requested dimensions.
-   /// @param size The requested image dimensions.
+   /// @brief Synchronously retrieves or renders an image at the given size.
+   /// @param size The width and height of the image to render.
    /// @return A thread-safe shared pointer to the current image.
    /// @details Cached images are returned immediately. Missing source images are rendered first.
    /// If the node changes during rendering, obsolete output is discarded and rendering restarts
    /// using the new revision.
-   TextureImagePtr getImage(QSize size);
+   /// @note This potentially expensive operation is intended for explicit synchronous workflows,
+   /// such as image export. Interactive previews use the background render manager.
+   [[nodiscard]] TextureImagePtr renderImage(QSize size);
+
+   /// @brief Returns the cached image for the given size without rendering.
+   /// @param size The width and height of the cached image.
+   /// @return The cached image, or a null pointer if no image is available.
+   [[nodiscard]] TextureImagePtr cachedImage(QSize size) const;
 
    /// @brief Invalidates this node and all downstream image caches.
    void setUpdated();
-
-   /// @brief Checks whether an image is cached for the requested size.
-   /// @param size The dimensions of the cache entry to locate.
-   /// @return @c true if the cache contains the requested image.
-   bool isTextureInCache(QSize size) const;
-
-   /// @brief Counts the prerequisite node images needed before rendering this node.
-   /// @param size The requested image dimensions.
-   /// @return The number of prerequisite node images.
-   int waitingFor(QSize size) const;
 
    /// @brief Returns a thread-safe snapshot of the current settings.
    /// @return A copy of all setting keys and values used by the node.
@@ -139,13 +146,28 @@ public:
    QMap<int, int> getSources() const;
 
 signals:
+   /// @brief Emitted when the node position changes.
    void positionUpdated(int id);
+
+   /// @brief Emitted when the node image cache becomes outdated.
    void imageUpdated(int id);
+
+   /// @brief Emitted when the available source slots change.
    void slotsUpdated(int id);
+
+   /// @brief Emitted when a rendered image is added to the cache.
    void imageAvailable(int id, QSize size);
+
+   /// @brief Emitted when the generator settings change.
    void settingsUpdated(int id);
+
+   /// @brief Emitted when the node generator changes.
    void generatorUpdated(int id);
+
+   /// @brief Emitted after a source is connected to this node.
    void nodesConnected(int sourceId, int receiverId, int slot);
+
+   /// @brief Emitted after a source is disconnected from this node.
    void nodesDisconnected(int sourceId, int receiverId, int slot);
 
 private:
@@ -183,27 +205,51 @@ private:
    /// @param id The source node ID to disconnect.
    void removeSource(int id);
 
+   /// @brief Copies the node state needed for background rendering.
+   /// @param size The width and height of the image to render.
+   /// @return A synchronized copy of the node's render state and any matching cached image.
+   TextureNodeSnapshot createTextureNodeSnapshot(QSize size) const;
+
+   /// @brief Publishes a rendered image if its captured revision is still current.
+   /// @param size The rendered image dimensions.
+   /// @param revision The node revision captured before rendering.
+   /// @param image The completed image.
+   /// @return @c true if the image was added to the cache.
+   bool publishRenderedImage(QSize size, std::uint64_t revision, const TextureImagePtr& image);
+
+   /// @brief Removes the cached image for the specified dimensions.
+   /// @param size The dimensions to remove from the cache.
+   void discardCachedImage(QSize size);
+
+   /// @brief Stable ID assigned by the project.
    int id;
+   /// @brief Name shown to the user.
    QString name;
+   /// @brief Position in graph scene coordinates.
    QPointF pos;
-
+   /// @brief Source node ID assigned to each generator input slot.
    QMap<int, int> sources;
+   /// @brief IDs of nodes that use this node as a source.
    QSet<int> receivers;
+   /// @brief Current generator setting values.
    TextureNodeSettings settings;
-
+   /// @brief Generator used to produce this node's image.
    TextureGeneratorPtr gen;
+   /// @brief Project that owns this node.
    TextureProject* project;
-
-   // Contains all the generated images
+   /// @brief Generated images stored by image dimensions.
    QMap<QSize, TextureImagePtr> texturecache;
+   /// @brief Version increased whenever the rendered output becomes outdated.
    std::uint64_t imageRevision = 0;
-   // Set to true after releasing all connections, before delete
+   /// @brief Whether all graph connections have been released before deletion.
    bool deleted;
-
-   // Mutexes to make it thread-safe.
+   /// @brief Protects the source slot map.
    mutable std::shared_mutex sourceMutex;
+   /// @brief Protects the receiver set.
    mutable std::shared_mutex receiverMutex;
+   /// @brief Protects cached images and the image revision.
    mutable std::shared_mutex imageMutex;
+   /// @brief Protects the generator and its setting values.
    mutable std::shared_mutex settingsMutex;
 };
 

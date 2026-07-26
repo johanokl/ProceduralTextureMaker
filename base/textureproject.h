@@ -7,15 +7,22 @@
 #ifndef TEXTUREPROJECT_H
 #define TEXTUREPROJECT_H
 
+#include "generators/texturegenerator.h"
 #include "texturenode.h"
 #include <QDomDocument>
 #include <QMap>
+#include <QObject>
 #include <QSize>
-#include <QThread>
+#include <QString>
+#include <memory>
 #include <shared_mutex>
-class TextureRenderThread;
+
+class TextureRenderManager;
 class TextureGenerator;
 class SettingsManager;
+struct TextureRenderFailure;
+struct TextureGraphSnapshot;
+struct TextureRenderResult;
 
 /// @brief Manages all texture generators, nodes, and connections between them.
 class TextureProject : public QObject {
@@ -60,9 +67,9 @@ public:
    void removeNode(int id);
 
    /// @brief Creates and inserts a node into the graph.
-   /// @param id The requested ID, or `0` to allocate a new ID.
+   /// @param id The node ID, or `0` to allocate a new ID.
    /// @param generator The initial generator, or null to use the empty generator.
-   /// @return The newly created node, or the existing node if the requested ID is already present.
+   /// @return The newly created node, or the existing node if the same ID is already present.
    TextureNodePtr newNode(int id = 0, TextureGeneratorPtr generator = TextureGeneratorPtr(nullptr));
 
    /// @brief Removes every node and resets automatic ID allocation.
@@ -89,7 +96,7 @@ public:
    /// @return The thumbnail dimensions.
    QSize getThumbnailSize() const { return thumbnailSize; }
 
-   /// @brief Gets the configured export image dimensions.
+   /// @brief Gets the configured preview and export image dimensions.
    /// @return The configured preview and export dimensions.
    QSize getPreviewSize() const { return previewSize; }
 
@@ -146,30 +153,46 @@ public slots:
    void settingsUpdated();
 
 signals:
+   /// @brief Emitted after a node is added to the project.
    void nodeAdded(TextureNodePtr);
+
+   /// @brief Emitted after a node is removed from the project.
    void nodeRemoved(int);
+
+   /// @brief Emitted after two nodes are connected.
    void nodesConnected(int, int, int);
+
+   /// @brief Emitted after two nodes are disconnected.
    void nodesDisconnected(int, int, int);
+
+   /// @brief Emitted when a node image cache becomes outdated.
    void imageUpdated(int);
+
+   /// @brief Emitted when a rendered node image becomes available.
    void imageAvailable(int, QSize);
+
+   /// @brief Reports a background render failure on the project owner thread.
+   /// @param id The failed node ID, or `0` for a graph-level failure.
+   /// @param size The image dimensions that failed to render.
+   /// @param message A message describing the error.
+   void renderFailed(int id, QSize size, QString message);
+
+   /// @brief Emitted when the project name changes.
    void nameUpdated(QString);
+
+   /// @brief Emitted after a texture generator is registered.
    void generatorAdded(TextureGeneratorPtr);
+
+   /// @brief Emitted after a texture generator is removed.
    void generatorRemoved(TextureGeneratorPtr);
+
+   /// @brief Emitted when two generators use the same public name.
    void generatorNameCollision(TextureGeneratorPtr, TextureGeneratorPtr);
 
 private:
    /// @brief Gets the fallback generator used by nodes without a configured generator.
    /// @return A shared empty-generator instance.
    TextureGeneratorPtr getEmptyGenerator() const { return emptygenerator; }
-
-   /// @brief Starts a render worker for an image size if one is not already active.
-   /// @param renderSize The image dimensions handled by the worker.
-   /// @param priority The worker thread's scheduling priority.
-   void startRenderThread(QSize renderSize, QThread::Priority priority = QThread::NormalPriority);
-
-   /// @brief Stops and removes the render worker for an image size.
-   /// @param renderSize The image dimensions identifying the worker.
-   void stopRenderThread(QSize renderSize);
 
    /// @brief Allocates a node ID that does not collide with the current graph.
    /// @return A newly allocated node ID.
@@ -179,17 +202,43 @@ private:
    /// @return A copy whose shared pointers keep the snapshot nodes alive.
    QMap<int, TextureNodePtr> nodesSnapshot() const;
 
-   QString name;
-   int newIdCounter;
-   TextureGeneratorPtr emptygenerator;
-   QMap<QString, TextureRenderThread*> renderThreads;
-   QMap<int, TextureNodePtr> nodes;
-   QMap<QString, TextureGeneratorPtr> generators;
-   mutable std::shared_mutex nodesMutex;
+   /// @brief Copies the render state needed for all project nodes.
+   /// @param renderSize The width and height of the images to render.
+   /// @return A graph snapshot that does not retain live nodes or the project.
+   TextureGraphSnapshot createTextureGraphSnapshot(QSize renderSize) const;
 
+   /// @brief Starts a thumbnail render using the latest graph state.
+   void scheduleThumbnailRender();
+
+   /// @brief Adds a completed image to the node cache on the project thread.
+   /// @param result The completed image and its captured node revision.
+   void publishRenderResult(TextureRenderResult result);
+
+   /// @brief Reports a render failure on the project thread.
+   /// @param failure The failed node, image dimensions, and error message.
+   void publishRenderFailure(TextureRenderFailure failure);
+
+   /// @brief Name shown to the user.
+   QString name;
+   /// @brief Next value considered when assigning a node ID.
+   int newIdCounter;
+   /// @brief Fallback generator used by nodes without another generator.
+   TextureGeneratorPtr emptygenerator;
+   /// @brief Background render manager owned by the project.
+   std::unique_ptr<TextureRenderManager> renderManager;
+   /// @brief Project nodes stored by ID.
+   QMap<int, TextureNodePtr> nodes;
+   /// @brief Registered texture generators stored by public name.
+   QMap<QString, TextureGeneratorPtr> generators;
+   /// @brief Protects the project node map.
+   mutable std::shared_mutex nodesMutex;
+   /// @brief Width and height of node thumbnail images.
    QSize thumbnailSize;
+   /// @brief Width and height of preview and export images.
    QSize previewSize;
+   /// @brief Non-owning pointer to the application settings manager.
    SettingsManager* settingsManager;
+   /// @brief Whether the project has unsaved changes.
    bool modified;
 };
 
