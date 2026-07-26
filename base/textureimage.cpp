@@ -5,17 +5,31 @@
 // Johan Lindqvist (johan.lindqvist@gmail.com)
 
 #include "textureimage.h"
-#include <cstdlib>
-#include <exception>
+#include <limits>
+#include <stdexcept>
 
-/// @brief Constructor for the TextureImage class.
-/// @details The TextureImage class is a simple wrapper for a 2D array of TexturePixel objects. It
-/// stores the size of the image and a pointer to the pixel data. The pixel data is expected to be
-/// allocated by the caller and will be deleted in the destructor of this class.
-/// @param size Image pixel dimensions
-/// @param data TexturePixels, size must be at least width*height
-TextureImage::TextureImage(QSize size)
-    : size(size), data(std::make_unique<TexturePixel[]>(size.width() * size.height())) {}
+namespace {
 
-/// @brief Creates a shared texture image with an owned pixel buffer.
+/// @brief Validates image dimensions and computes their pixel count without overflowing.
+/// @param size The image width and height in pixels.
+/// @return The number of pixels required by the image.
+/// @throws std::invalid_argument if either dimension is not positive.
+/// @throws std::length_error if the required pixel storage cannot be represented.
+std::size_t checkedPixelCount(const QSize size) {
+   if (size.width() <= 0 || size.height() <= 0) {
+      throw std::invalid_argument("Texture image dimensions must be positive");
+   }
+   const auto width = static_cast<std::size_t>(size.width());
+   const auto height = static_cast<std::size_t>(size.height());
+   constexpr auto maxPixelCount = std::numeric_limits<std::size_t>::max() / sizeof(TexturePixel);
+   if (width > maxPixelCount / height) {
+      throw std::length_error("Texture image dimensions exceed addressable memory");
+   }
+   return width * height;
+}
+
+}  // namespace
+
+TextureImage::TextureImage(QSize size) : size(size), pixels(checkedPixelCount(size)) {}
+
 TextureImagePtr TextureImage::create(QSize size) { return TextureImagePtr::create(size); }

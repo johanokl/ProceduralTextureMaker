@@ -9,19 +9,12 @@
 #include "global.h"
 #include "texturenode.h"
 
-/// @brief TextureRenderThread constructor.
-/// @param renderSize Static rendersize.
-/// @param nodes
 TextureRenderThread::TextureRenderThread(const QSize inRendersize,
                                          QMap<int, TextureNodePtr> inNodesMap)
     : renderSize(inRendersize), nodes(std::move(inNodesMap)), aborted(false) {}
 
-/// @brief Stops a thread from rendering more images.
-/// Finishes the current one and then stops.
 void TextureRenderThread::abort() { aborted.store(true); }
 
-/// @brief Loops through the node list and generates images until all nodes have an image this
-/// thread's image size in their cache.
 void TextureRenderThread::generate() {
    bool someGenerated;
    do {
@@ -37,13 +30,8 @@ void TextureRenderThread::generate() {
    } while (!aborted.load() && someGenerated);
 }
 
-/// @brief Callback function for when a node has been updated
-/// and a new image needs to be rendered for it.
-/// @param id Node id.
 void TextureRenderThread::imageUpdated() { generate(); }
 
-/// @brief Adds a node to the internal node list.
-/// @param newNode
 void TextureRenderThread::nodeAdded(const TextureNodePtr& newNode) {
    if (!nodes.contains(newNode->getId())) {
       nodes.insert(newNode->getId(), newNode);
@@ -51,9 +39,6 @@ void TextureRenderThread::nodeAdded(const TextureNodePtr& newNode) {
    }
 }
 
-/// @brief Removes a node from the internal node list, thus no longer
-/// rendering images for that node.
-/// @param id Node id
 void TextureRenderThread::nodeRemoved(int id) {
    if (nodes.contains(id)) {
       nodes.remove(id);
