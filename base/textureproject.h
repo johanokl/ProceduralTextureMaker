@@ -10,6 +10,7 @@
 #include "generators/texturegenerator.h"
 #include "texturenode.h"
 #include <QDomDocument>
+#include <QList>
 #include <QMap>
 #include <QObject>
 #include <QSize>
@@ -18,6 +19,7 @@
 #include <shared_mutex>
 
 class TextureRenderManager;
+class ProjectFileService;
 class TextureGenerator;
 class SettingsManager;
 struct TextureRenderFailure;
@@ -28,10 +30,11 @@ struct TextureRenderResult;
 class TextureProject : public QObject {
    Q_OBJECT
    friend class TextureNode;
+   friend class ProjectFileService;
 
 public:
    /// @brief Constructs an empty project and starts thumbnail rendering with default settings.
-   TextureProject();
+   explicit TextureProject(bool automaticThumbnailRendering = true);
 
    /// @brief Stops render workers and releases all project nodes.
    ~TextureProject() override;
@@ -83,13 +86,18 @@ public:
    /// @return The number of nodes.
    int getNumNodes() const;
 
+   /// @brief Returns all node IDs in ascending order.
+   QList<int> getNodeIds() const;
+
+   /// @brief Returns nodes that are not used as a source by another node.
+   QList<int> getSinkNodeIds() const;
+
    /// @brief Gets a registered generator by its public name.
    /// @param name The generator name.
    /// @return A shared generator pointer, or null if no matching generator exists.
    TextureGeneratorPtr getGenerator(const QString& name) const;
 
-   /// @brief Gets a snapshot of all registered generators keyed by public name.
-   /// @return A copy of the generator registry.
+   /// Returns the registered generators keyed by name.
    QMap<QString, TextureGeneratorPtr> getGenerators() const { return generators; }
 
    /// @brief Gets the configured graph thumbnail dimensions.
@@ -138,16 +146,15 @@ public slots:
    /// @param size The rendered image dimensions.
    void notifyImageAvailable(int id, QSize size);
 
-   /// @brief Serializes a node and writes it to the application clipboard.
-   /// @param id The ID of the node to copy.
-   void copyNode(int id);
+   /// @brief Serializes one node into the application's clipboard XML format.
+   /// @param id The node ID to serialize.
+   /// @return The XML payload, or an empty string when the node does not exist.
+   QString serializeNode(int id);
 
-   /// @brief Copies a node to the clipboard and removes it from the graph.
-   /// @param id The ID of the node to cut.
-   void cutNode(int id);
-
-   /// @brief Inserts node data from the application clipboard into the graph.
-   void pasteNode();
+   /// @brief Pastes texture nodes from an application clipboard XML payload.
+   /// @param xml The XML payload to parse.
+   /// @return The number of nodes added to the project.
+   int pasteNodes(const QString& xml);
 
    /// @brief Applies updated image sizes from the attached settings manager.
    void settingsUpdated();
@@ -218,6 +225,9 @@ private:
    /// @param failure The failed node, image dimensions, and error message.
    void publishRenderFailure(TextureRenderFailure failure);
 
+   /// @brief Marks the current project state as successfully persisted.
+   void markSaved();
+
    /// @brief Name shown to the user.
    QString name;
    /// @brief Next value considered when assigning a node ID.
@@ -240,6 +250,8 @@ private:
    SettingsManager* settingsManager;
    /// @brief Whether the project has unsaved changes.
    bool modified;
+   /// @brief Whether graph changes automatically schedule thumbnail rendering.
+   bool automaticThumbnailRendering;
 };
 
 #endif  // TEXTUREPROJECT_H

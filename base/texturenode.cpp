@@ -176,11 +176,20 @@ QDomElement TextureNode::saveAsXML(QDomDocument targetdoc) {
    return retXmlNode;
 }
 
-void TextureNode::setName(const QString& newname) { name = newname; }
+void TextureNode::setName(const QString& newname) {
+   if (name == newname) {
+      return;
+   }
+   name = newname;
+   emit nameUpdated(id);
+}
 
 void TextureNode::setSettings(const TextureNodeSettings& settings) {
    {
       std::unique_lock lock(settingsMutex);
+      if (this->settings == settings) {
+         return;
+      }
       this->settings = settings;
       invalidateImageCache();
    }

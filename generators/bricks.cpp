@@ -65,8 +65,10 @@ void BricksTextureGenerator::generate(QSize size, TexturePixel* destimage,
    }
    QColor color = settings->value("color").value<QColor>();
    int linewidth = settings->value("linewidth").toDouble() * size.height() / 300;
-   int brickheight = settings->value("brickheight").toDouble() * size.height() / 300;
-   int brickwidth = settings->value("brickwidth").toDouble() * size.width() / 300;
+   int brickheight =
+       qMax(1, static_cast<int>(settings->value("brickheight").toDouble() * size.height() / 300));
+   int brickwidth =
+       qMax(1, static_cast<int>(settings->value("brickwidth").toDouble() * size.width() / 300));
    int offsetx = settings->value("offsetx").toDouble() * size.width() / 100;
    int offsety = settings->value("offsety").toDouble() * size.height() / 100;
 

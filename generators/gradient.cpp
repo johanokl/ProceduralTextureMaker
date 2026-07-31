@@ -7,7 +7,6 @@
 #include "gradient.h"
 #include <QColor>
 #include <QGradient>
-#include <QGraphicsOpacityEffect>
 #include <QPainter>
 
 GradientTextureGenerator::GradientTextureGenerator() {

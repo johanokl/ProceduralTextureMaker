@@ -84,7 +84,8 @@ public:
    /// @brief Starts the render manager's bounded worker pool.
    /// @param resultHandler Receives successfully generated images from worker threads.
    /// @param failureHandler Receives render errors.
-   TextureRenderManager(ResultHandler resultHandler, FailureHandler failureHandler);
+   TextureRenderManager(ResultHandler resultHandler, FailureHandler failureHandler,
+                        std::size_t workerCount = 0);
 
    /// @brief Cancels queued work and joins all worker threads.
    ~TextureRenderManager();

@@ -141,6 +141,45 @@ To run the application:
 open build/release/ProceduralTextureMaker.app
 ```
 
+## Command-line export
+
+`ProceduralTextureMaker --no-gui` loads a project and writes a PNG without opening an application
+window. When the project has one final sink node, it is selected automatically:
+
+```sh
+ProceduralTextureMaker --no-gui --size 1024x1024 examples/rose.txl rose.png
+```
+
+Select an intermediate node by its persisted ID, or inspect available IDs first:
+
+```sh
+ProceduralTextureMaker --no-gui --list-nodes examples/rose.txl
+ProceduralTextureMaker --no-gui --node 10 --size 512x512 examples/rose.txl intermediate.png
+```
+
+The exporter refuses to replace an existing image unless `--force` is supplied. Projects using
+external JavaScript generators can load them explicitly with `--js-dir /path/to/generators`.
+`--help`, `--help-all`, and `--version` also use the non-window startup path without requiring
+`--no-gui`.
+
+## Tests
+
+Enable the Qt Test/CTest integration suite when configuring, then run the debug test preset:
+
+```sh
+cmake --preset debug -DBUILD_TESTING=ON
+cmake --build --preset debug
+ctest --preset debug
+```
+
+The suite covers the base graph model, XML compatibility, synchronous and background rendering,
+settings isolation, all built-in generators, JavaScript generators, PNG export, and command-line
+mode through separate application processes.
+
+The offscreen UI smoke test is enabled by default and verifies application startup and project
+loading. Environments that cannot run Qt offscreen tests can disable it with
+`-DPROCEDURAL_TEXTURE_MAKER_UI_TESTS=OFF`.
+
 ### Static release builds
 
 The Qt packages supplied by standard installers and package managers normally use shared libraries.
@@ -196,11 +235,16 @@ configuration.
 
 ## License
 
-Released under GPL version 3.
+ProceduralTextureMaker is licensed under the [GNU General Public License v3.0](LICENSE).
 
 ## Author
 
-Johan Lindqvist  
-<johan.lindqvist@gmail.com> <https://github.com/johanokl>
+[Johan Lindqvist](https://github.com/johanokl)
 
-Icon from <https://www.iconfinder.com/icons/28730/>
+<johan.lindqvist@gmail.com>
+
+## Acknowledgements
+
+The [Rose example](examples/rose.txl) was created by [Emil Bardh](https://www.hardh.com/).
+
+The application icon is from [Iconfinder](https://www.iconfinder.com/icons/28730/).

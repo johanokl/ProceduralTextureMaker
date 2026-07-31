@@ -11,8 +11,6 @@
 #include "texturenode.h"
 #include "texturerendermanager.h"
 #include "settingsmanager.h"
-#include <QApplication>
-#include <QClipboard>
 #include <QDebug>
 #include <QDomDocument>
 #include <QDomElement>
@@ -35,12 +33,13 @@
 #include <shared_mutex>
 #include <utility>
 
-TextureProject::TextureProject()
+TextureProject::TextureProject(const bool automaticThumbnailRendering)
     : newIdCounter(0),
       emptygenerator(new EmptyGenerator()),
       thumbnailSize(250, 250),
       settingsManager(nullptr),
-      modified(false) {
+      modified(false),
+      automaticThumbnailRendering(automaticThumbnailRendering) {
    renderManager = std::make_unique<TextureRenderManager>(
        [this](TextureRenderResult result) {
           QMetaObject::invokeMethod(
@@ -169,7 +168,6 @@ QDomDocument TextureProject::saveAsXML(bool includegenerators) {
    while (nodeiterator.hasNext()) {
       xmlNodes.appendChild(nodeiterator.next().value()->saveAsXML(xmldoc));
    }
-   modified = false;
    return xmldoc;
 }
 
@@ -192,6 +190,22 @@ void TextureProject::clear() {
 int TextureProject::getNumNodes() const {
    std::shared_lock lock(nodesMutex);
    return nodes.count();
+}
+
+QList<int> TextureProject::getNodeIds() const {
+   std::shared_lock lock(nodesMutex);
+   return nodes.keys();
+}
+
+QList<int> TextureProject::getSinkNodeIds() const {
+   const QMap<int, TextureNodePtr> nodesCopy = nodesSnapshot();
+   QList<int> sinkIds;
+   for (auto node = nodesCopy.cbegin(); node != nodesCopy.cend(); ++node) {
+      if (node.value()->getNumReceivers() == 0) {
+         sinkIds.append(node.key());
+      }
+   }
+   return sinkIds;
 }
 
 int TextureProject::getNewId() {
@@ -220,10 +234,12 @@ TextureGraphSnapshot TextureProject::createTextureGraphSnapshot(QSize renderSize
 }
 
 void TextureProject::scheduleThumbnailRender() {
-   if (renderManager) {
+   if (automaticThumbnailRendering && renderManager) {
       renderManager->render(createTextureGraphSnapshot(thumbnailSize));
    }
 }
+
+void TextureProject::markSaved() { modified = false; }
 
 void TextureProject::publishRenderResult(TextureRenderResult result) {
    if (result.size != thumbnailSize) {
@@ -281,6 +297,8 @@ TextureNodePtr TextureProject::newNode(int id, TextureGeneratorPtr generator) {
                     &TextureProject::notifyImageAvailable);
    QObject::connect(newNode.data(), &TextureNode::positionUpdated, this,
                     [this](int) { modified = true; });
+   QObject::connect(newNode.data(), &TextureNode::nameUpdated, this,
+                    [this](int) { modified = true; });
 
    // TextureNode initializes its generator before the signal connections above exist, so its
    // initial imageUpdated signal cannot mark the project as changed. Node creation is itself a
@@ -317,10 +335,10 @@ TextureGeneratorPtr TextureProject::getGenerator(const QString& name) const {
    return generators.value(name, TextureGeneratorPtr(nullptr));
 }
 
-void TextureProject::copyNode(int id) {
+QString TextureProject::serializeNode(int id) {
    TextureNodePtr copyNode = getNode(id);
    if (copyNode.isNull()) {
-      return;
+      return QString();
    }
    QDomDocument copyBuffer = QDomDocument("TextureSet");
    QDomElement rootNode = copyBuffer.createElement("TextureSet");
@@ -328,39 +346,43 @@ void TextureProject::copyNode(int id) {
    QDomElement xmlNodes = copyBuffer.createElement("Nodes");
    rootNode.appendChild(xmlNodes);
    xmlNodes.appendChild(copyNode->saveAsXML(copyBuffer));
-   QApplication::clipboard()->setText(copyBuffer.toString(2));
+   return copyBuffer.toString(2);
 }
 
-void TextureProject::cutNode(int id) {
-   copyNode(id);
-   removeNode(id);
-}
-
-void TextureProject::pasteNode() {
+int TextureProject::pasteNodes(const QString& xml) {
    QDomDocument copyBuffer;
-   copyBuffer.setContent(QApplication::clipboard()->text());
+   copyBuffer.setContent(xml);
    if (copyBuffer.isNull()) {
-      return;
+      return 0;
    }
    QDomNode rootNode = copyBuffer.namedItem("TextureSet");
    if (rootNode.isNull()) {
-      return;
+      return 0;
    }
    QDomNode nodeRoot = rootNode.namedItem("Nodes");
    if (nodeRoot.isNull()) {
-      return;
+      return 0;
    }
    QDomNodeList nodes = nodeRoot.childNodes();
+   int pastedNodeCount = 0;
    for (int i = 0; i < nodes.count(); i++) {
       QDomNode currNode = nodes.at(i);
+      if (!currNode.isElement() || currNode.nodeName() != QStringLiteral("Node")) {
+         continue;
+      }
       QDomElement generatornode = currNode.namedItem("generator").toElement();
       TextureNodePtr node =
           newNode(0, getGenerator(!generatornode.isNull() ? generatornode.attribute("name") : ""));
+      if (node.isNull()) {
+         continue;
+      }
       node->loadFromXML(currNode);
       const int nodeCount = getNumNodes();
       node->setPos(
           QPointF(node->getPos().x() + nodeCount * 15, node->getPos().y() + nodeCount * 15));
+      ++pastedNodeCount;
    }
+   return pastedNodeCount;
 }
 
 void TextureProject::removeNode(int id) {

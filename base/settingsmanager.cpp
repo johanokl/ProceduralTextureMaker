@@ -13,13 +13,41 @@
 #include <QVariant>
 #include <QtCore/qtmetamacros.h>
 
-SettingsManager::SettingsManager() : jsTextureGeneratorsEnabled(false), backgroundBrush(0) {
+namespace {
+
+bool isValidImageSize(const QSize value) {
+   constexpr qint64 maximumPixels = 64LL * 1024 * 1024;
+   const qint64 pixels = static_cast<qint64>(value.width()) * value.height();
+   return value.width() > 0 && value.height() > 0 && pixels <= maximumPixels;
+}
+
+QSize validSizeOrDefault(const QSize value, const QSize fallback) {
+   return isValidImageSize(value) ? value : fallback;
+}
+
+QColor validColorOrDefault(const QColor& value, const QColor& fallback) {
+   return value.isValid() ? value : fallback;
+}
+
+int validBrushOrDefault(const int value, const int fallback) {
+   return value >= static_cast<int>(Qt::NoBrush) && value <= static_cast<int>(Qt::TexturePattern)
+              ? value
+              : fallback;
+}
+
+}  // namespace
+
+SettingsManager::SettingsManager(QObject* parent)
+    : QObject(parent), jsTextureGeneratorsEnabled(false), backgroundBrush(0) {
    readSettings();
 }
 
 QSize SettingsManager::getPreviewSize() const { return previewSize; }
 
 void SettingsManager::setPreviewSize(const QSize& size) {
+   if (!isValidImageSize(size)) {
+      return;
+   }
    if (size != previewSize) {
       previewSize = size;
       emit settingsUpdated();
@@ -29,6 +57,9 @@ void SettingsManager::setPreviewSize(const QSize& size) {
 QSize SettingsManager::getThumbnailSize() const { return thumbnailSize; }
 
 void SettingsManager::setThumbnailSize(const QSize& size) {
+   if (!isValidImageSize(size)) {
+      return;
+   }
    if (size != thumbnailSize) {
       thumbnailSize = size;
       emit settingsUpdated();
@@ -57,6 +88,9 @@ void SettingsManager::setJSTextureGeneratorsEnabled(bool enabled) {
 QColor SettingsManager::getPreviewBackgroundColor() const { return previewBackgroundColor; }
 
 void SettingsManager::setPreviewBackgroundColor(const QColor& val) {
+   if (!val.isValid()) {
+      return;
+   }
    if (val != previewBackgroundColor) {
       previewBackgroundColor = val;
       emit settingsUpdated();
@@ -66,6 +100,9 @@ void SettingsManager::setPreviewBackgroundColor(const QColor& val) {
 QColor SettingsManager::getBackgroundColor() const { return backgroundColor; }
 
 void SettingsManager::setBackgroundColor(const QColor& val) {
+   if (!val.isValid()) {
+      return;
+   }
    if (val != backgroundColor) {
       backgroundColor = val;
       emit settingsUpdated();
@@ -75,6 +112,9 @@ void SettingsManager::setBackgroundColor(const QColor& val) {
 int SettingsManager::getBackgroundBrush() const { return backgroundBrush; }
 
 void SettingsManager::setBackgroundBrush(int val) {
+   if (val < static_cast<int>(Qt::NoBrush) || val > static_cast<int>(Qt::TexturePattern)) {
+      return;
+   }
    if (val != backgroundBrush) {
       backgroundBrush = val;
       emit settingsUpdated();
@@ -87,7 +127,7 @@ void SettingsManager::loadSettings() {
    }
 }
 
-void SettingsManager::saveSettings() const {
+bool SettingsManager::saveSettings() const {
    QSettings settings;
    settings.setValue("previewsize", previewSize);
    settings.setValue("thumbnailsize", thumbnailSize);
@@ -97,19 +137,28 @@ void SettingsManager::saveSettings() const {
    settings.setValue("backgroundcolor", backgroundColor.name());
    settings.setValue("backgroundbrush", backgroundBrush);
    settings.sync();
+   return settings.status() == QSettings::NoError;
 }
 
 bool SettingsManager::readSettings() {
    QSettings settings;
-   QSize newPreviewSize = settings.value("previewsize", QSize(800, 800)).toSize();
-   QSize newThumbnailSize = settings.value("thumbnailsize", QSize(300, 300)).toSize();
+   const QSize defaultPreviewSize(800, 800);
+   const QSize defaultThumbnailSize(300, 300);
+   QSize newPreviewSize = validSizeOrDefault(
+       settings.value("previewsize", defaultPreviewSize).toSize(), defaultPreviewSize);
+   QSize newThumbnailSize = validSizeOrDefault(
+       settings.value("thumbnailsize", defaultThumbnailSize).toSize(), defaultThumbnailSize);
    QString newJsTextureGeneratorsPath = QDir::toNativeSeparators(
        settings.value("jstexturegeneratorspath", QDir::homePath() + "/TexGen").toString());
    bool newJsTextureGeneratorsEnabled =
        settings.value("jstexturegeneratorsenabled", false).toBool();
-   QColor newPreviewBackgroundColor(settings.value("previewbackgroundcolor", "#c8c8c8").toString());
-   QColor newBackgroundColor(settings.value("backgroundcolor", "#c8c8c8").toString());
-   int newBackgroundBrush = settings.value("backgroundbrush", 1).toInt();
+   const QColor defaultBackgroundColor(QStringLiteral("#c8c8c8"));
+   QColor newPreviewBackgroundColor =
+       validColorOrDefault(QColor(settings.value("previewbackgroundcolor", "#c8c8c8").toString()),
+                           defaultBackgroundColor);
+   QColor newBackgroundColor = validColorOrDefault(
+       QColor(settings.value("backgroundcolor", "#c8c8c8").toString()), defaultBackgroundColor);
+   int newBackgroundBrush = validBrushOrDefault(settings.value("backgroundbrush", 1).toInt(), 1);
 
    bool changed = previewSize != newPreviewSize || thumbnailSize != newThumbnailSize ||
                   jsTextureGeneratorsPath != newJsTextureGeneratorsPath ||

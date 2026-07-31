@@ -5,6 +5,7 @@
 // Johan Lindqvist (johan.lindqvist@gmail.com)
 
 #include "base/textureproject.h"
+#include "gui/clipboardoperations.h"
 #include "gui/mainwindow.h"
 #include "sceneview/viewnodeitem.h"
 #include "sceneview/viewnodeline.h"
@@ -234,9 +235,9 @@ void ViewNodeItem::contextMenuEvent(QGraphicsSceneContextMenuEvent* event) {
    if (removeNodeAction == selectedAction) {
       scene->getTextureProject()->removeNode(id);
    } else if (copyNodeAction == selectedAction) {
-      scene->getTextureProject()->copyNode(id);
+      copyNodeToClipboard(*scene->getTextureProject(), id);
    } else if (cutNodeAction == selectedAction) {
-      scene->getTextureProject()->cutNode(id);
+      cutNodeToClipboard(*scene->getTextureProject(), id);
    } else if (exportImageAction == selectedAction) {
       scene->getParent()->saveImage(id);
    } else {

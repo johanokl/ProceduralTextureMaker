@@ -20,7 +20,7 @@ class SettingsManager : public QObject {
 
 public:
    /// @brief Constructs the settings manager and loads persisted settings.
-   SettingsManager();
+   explicit SettingsManager(QObject* parent = nullptr);
 
    /// @brief Destroys the settings manager.
    ~SettingsManager() override = default;
@@ -57,7 +57,7 @@ public:
    void loadSettings();
 
    /// @brief Saves the current settings using `QSettings`.
-   void saveSettings() const;
+   [[nodiscard]] bool saveSettings() const;
 
 signals:
    /// @brief Emitted after one or more application settings change.

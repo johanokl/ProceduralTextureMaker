@@ -5,46 +5,16 @@
 // Johan Lindqvist (johan.lindqvist@gmail.com)
 
 #include "base/settingsmanager.h"
+#include "base/projectfileservice.h"
+#include "base/textureexporter.h"
 #include "base/textureimage.h"
 #include "base/texturenode.h"
 #include "base/textureproject.h"
-#include "generators/blending.h"
-#include "generators/boxblur.h"
-#include "generators/bricks.h"
-#include "generators/checkboard.h"
-#include "generators/circle.h"
-#include "generators/cutout.h"
-#include "generators/displacementmap.h"
-#include "generators/fill.h"
-#include "generators/fire.h"
-#include "generators/gaussianblur.h"
-#include "generators/glow.h"
-#include "generators/gradient.h"
-#include "generators/greyscale.h"
-#include "generators/invert.h"
+#include "generators/builtinregistry.h"
 #include "generators/javascript.h"
-#include "generators/lens.h"
-#include "generators/lines.h"
-#include "generators/merge.h"
-#include "generators/mirror.h"
-#include "generators/modifylevels.h"
-#include "generators/noise.h"
-#include "generators/normalmap.h"
-#include "generators/perlinnoise.h"
-#include "generators/pixelate.h"
-#include "generators/pointillism.h"
-#include "generators/setchannels.h"
-#include "generators/shadow.h"
-#include "generators/sineplasma.h"
-#include "generators/sinetransform.h"
-#include "generators/square.h"
-#include "generators/stackblur.h"
-#include "generators/star.h"
-#include "generators/text.h"
-#include "generators/transform.h"
-#include "generators/whirl.h"
 #include "global.h"
 #include "gui/addnodepanel.h"
+#include "gui/clipboardoperations.h"
 #include "gui/cubewidget.h"
 #include "gui/iteminfopanel.h"
 #include "gui/menuactions.h"
@@ -58,7 +28,6 @@
 #include <QAction>
 #include <QCheckBox>
 #include <QCloseEvent>
-#include <QFile>
 #include <QFileDialog>
 #include <QFileInfo>
 #include <QMessageBox>
@@ -101,40 +70,7 @@ MainWindow::MainWindow(TexGenApplication* parent) {
    view->show();
    scene = createScene();
 
-   project->addGenerator(TextureGeneratorPtr(new BlendingTextureGenerator()));
-   project->addGenerator(TextureGeneratorPtr(new BoxBlurTextureGenerator()));
-   project->addGenerator(TextureGeneratorPtr(new BricksTextureGenerator()));
-   project->addGenerator(TextureGeneratorPtr(new CheckboardTextureGenerator()));
-   project->addGenerator(TextureGeneratorPtr(new CircleTextureGenerator()));
-   project->addGenerator(TextureGeneratorPtr(new CutoutTextureGenerator()));
-   project->addGenerator(TextureGeneratorPtr(new DisplacementMapTextureGenerator()));
-   project->addGenerator(TextureGeneratorPtr(new FillTextureGenerator()));
-   project->addGenerator(TextureGeneratorPtr(new FireTextureGenerator()));
-   project->addGenerator(TextureGeneratorPtr(new GaussianBlurTextureGenerator()));
-   project->addGenerator(TextureGeneratorPtr(new GlowTextureGenerator()));
-   project->addGenerator(TextureGeneratorPtr(new GradientTextureGenerator()));
-   project->addGenerator(TextureGeneratorPtr(new GreyscaleTextureGenerator()));
-   project->addGenerator(TextureGeneratorPtr(new InvertTextureGenerator()));
-   project->addGenerator(TextureGeneratorPtr(new LinesTextureGenerator()));
-   project->addGenerator(TextureGeneratorPtr(new LensTextureGenerator()));
-   project->addGenerator(TextureGeneratorPtr(new MergeTextureGenerator()));
-   project->addGenerator(TextureGeneratorPtr(new MirrorTextureGenerator()));
-   project->addGenerator(TextureGeneratorPtr(new ModifyLevelsTextureGenerator()));
-   project->addGenerator(TextureGeneratorPtr(new NoiseTextureGenerator()));
-   project->addGenerator(TextureGeneratorPtr(new NormalMapTextureGenerator()));
-   project->addGenerator(TextureGeneratorPtr(new PerlinNoiseTextureGenerator()));
-   project->addGenerator(TextureGeneratorPtr(new PixelateTextureGenerator()));
-   project->addGenerator(TextureGeneratorPtr(new PointillismTextureGenerator()));
-   project->addGenerator(TextureGeneratorPtr(new SetChannelsTextureGenerator()));
-   project->addGenerator(TextureGeneratorPtr(new ShadowTextureGenerator()));
-   project->addGenerator(TextureGeneratorPtr(new SinePlasmaTextureGenerator()));
-   project->addGenerator(TextureGeneratorPtr(new SineTransformTextureGenerator()));
-   project->addGenerator(TextureGeneratorPtr(new SquareTextureGenerator()));
-   project->addGenerator(TextureGeneratorPtr(new StarTextureGenerator()));
-   project->addGenerator(TextureGeneratorPtr(new StackBlurTextureGenerator()));
-   project->addGenerator(TextureGeneratorPtr(new TextTextureGenerator()));
-   project->addGenerator(TextureGeneratorPtr(new TransformTextureGenerator()));
-   project->addGenerator(TextureGeneratorPtr(new WhirlTextureGenerator()));
+   registerBuiltInGenerators(*project);
    project->clear();
 
    jstexgenManager = std::make_unique<JSTexGenManager>(project.get());
@@ -242,18 +178,15 @@ bool MainWindow::saveFile(bool newFileName) {
             return false;
       }
    }
-   QFile outputFile(fileName);
-   if (!outputFile.open(QIODevice::WriteOnly | QIODevice::Text)) {
-      QMessageBox::warning(this, "Error", "Could not save file to this location.");
+   const ProjectFileResult saveResult = ProjectFileService::save(fileName, *project, true);
+   if (!saveResult) {
+      QMessageBox::warning(this, "Error", saveResult.message);
       return false;
    }
-   QByteArray sceneFile = project->saveAsXML().toString(3).toLatin1();
-   outputFile.write(sceneFile);
-   outputFile.close();
 #ifdef Q_OS_MAC
-   setWindowTitle(QFileInfo(outputFile).fileName());
+   setWindowTitle(QFileInfo(fileName).fileName());
 #else
-   setWindowTitle(QString("%1 - ProceduralTextureMaker").arg(QFileInfo(outputFile).fileName()));
+   setWindowTitle(QString("%1 - ProceduralTextureMaker").arg(QFileInfo(fileName).fileName()));
 #endif
    savedFileName = fileName;
    return true;
@@ -285,14 +218,14 @@ bool MainWindow::maybeSave() {
 }
 
 /// @brief Copies the selected node to the OS's clipboard.
-void MainWindow::copyNode() { project->copyNode(scene->getSelectedNode()); }
+void MainWindow::copyNode() { copyNodeToClipboard(*project, scene->getSelectedNode()); }
 
 /// @brief Copies the selected node to the clipboard and removes it from the scene.
-void MainWindow::cutNode() { project->cutNode(scene->getSelectedNode()); }
+void MainWindow::cutNode() { cutNodeToClipboard(*project, scene->getSelectedNode()); }
 
 /// @brief Reads the OS's clipboard buffer and if it contains
 /// a texture node adds it to the scene.
-void MainWindow::pasteNode() { project->pasteNode(); }
+void MainWindow::pasteNode() { pasteNodesFromClipboard(*project); }
 
 /// @brief Saves the image of a node to a PNG file.
 /// @param id
@@ -327,11 +260,11 @@ void MainWindow::saveImage(int id) {
             return;
       }
    }
-   QSize outSize = project->getPreviewSize();
-   QImage tempimage = QImage(outSize.width(), outSize.height(), QImage::Format_ARGB32);
-   const TextureImagePtr image = texNode->renderImage(outSize);
-   memcpy(tempimage.bits(), image->data(), image->byteSize());
-   tempimage.save(fileName, "PNG", 100);
+   const TextureExportResult exportResult =
+       TextureExporter::exportPng(*project, id, project->getPreviewSize(), fileName, true);
+   if (!exportResult) {
+      QMessageBox::warning(this, "Error", exportResult.message);
+   }
 }
 
 /// @brief Creates a new scene instance.
@@ -423,26 +356,16 @@ void MainWindow::openFile(const QString& fileName) {
    if (!maybeSave()) {
       return;
    }
-   QFile inputFile(fileName);
-   if (!inputFile.open(QIODevice::ReadOnly | QIODevice::Text)) {
-      QMessageBox::warning(this, "Error", "Could not open the specified file.");
+   const ProjectFileResult loadResult = ProjectFileService::load(fileName, *project);
+   if (!loadResult) {
+      QMessageBox::warning(this, "Error", loadResult.message);
       return;
    }
-   if (QFileInfo(fileName).size() < 100) {
-      QMessageBox::warning(this, "Error", "File not a valid TXL file.");
-      return;
-   }
-   QString inputString(inputFile.readAll());
-   QDomDocument inputXmlDocument;
-   inputXmlDocument.setContent(inputString);
-
-   project->clear();
-   project->loadFromXML(inputXmlDocument);
    savedFileName = fileName;
 #ifdef Q_OS_MAC
-   setWindowTitle(QFileInfo(inputFile).fileName());
+   setWindowTitle(QFileInfo(fileName).fileName());
 #else
-   setWindowTitle(QString("%1 - ProceduralTextureMaker").arg(QFileInfo(inputFile).fileName()));
+   setWindowTitle(QString("%1 - ProceduralTextureMaker").arg(QFileInfo(fileName).fileName()));
 #endif
    showAllNodesAndResetSceneView();
 }

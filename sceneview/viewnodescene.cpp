@@ -6,6 +6,7 @@
 
 #include "base/settingsmanager.h"
 #include "base/textureproject.h"
+#include "gui/clipboardoperations.h"
 #include "gui/mainwindow.h"
 #include "sceneview/viewnodeitem.h"
 #include "sceneview/viewnodeline.h"
@@ -477,7 +478,7 @@ void ViewNodeScene::contextMenuEvent(QGraphicsSceneContextMenuEvent* event) {
    if (actions.contains(selectedAction)) {
       project->newNode(0, actions[selectedAction])->setPos(event->scenePos());
    } else if (selectedAction == pasteAction) {
-      project->pasteNode();
+      pasteNodesFromClipboard(*project);
    } else {
       QGraphicsScene::contextMenuEvent(event);
    }

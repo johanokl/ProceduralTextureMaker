@@ -16,7 +16,6 @@
 #include <memory>
 #include <mutex>
 #include <set>
-#include <stdexcept>
 #include <thread>
 #include <utility>
 
@@ -33,9 +32,11 @@ std::size_t defaultWorkerCount() {
 }  // namespace
 
 TextureRenderManager::TextureRenderManager(ResultHandler resultHandler,
-                                           FailureHandler failureHandler)
+                                           FailureHandler failureHandler, std::size_t workerCount)
     : resultHandler(std::move(resultHandler)), failureHandler(std::move(failureHandler)) {
-   const std::size_t workerCount = defaultWorkerCount();
+   if (workerCount == 0) {
+      workerCount = defaultWorkerCount();
+   }
    workers.reserve(workerCount);
    try {
       while (workers.size() < workerCount) {

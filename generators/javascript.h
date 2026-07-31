@@ -15,6 +15,10 @@ class GeneratorFileFinder;
 class JsTexGen;
 class TextureProject;
 
+/// Loads JavaScript generators synchronously for headless tools and tests.
+/// Returns an empty string on success or an error message on failure.
+[[nodiscard]] QString loadJavaScriptGenerators(TextureProject& project, const QString& directory);
+
 /// @brief The JSTexGenManager class
 class JSTexGenManager : public QObject {
    Q_OBJECT

@@ -2,6 +2,8 @@ cmake_minimum_required(VERSION 3.21)
 
 project(ProceduralTextureMaker VERSION 0.1.0 LANGUAGES CXX)
 
+include(CTest)
+
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
@@ -11,7 +13,10 @@ option(PROCEDURAL_TEXTURE_MAKER_STATIC_BUILD
     "Require static Qt libraries and link a self-contained release"
     OFF
 )
-
+option(PROCEDURAL_TEXTURE_MAKER_UI_TESTS
+    "Build the offscreen UI smoke test"
+    ON
+)
 find_program(CLANG_TIDY_EXE NAMES clang-tidy)
 find_program(CLANG_FORMAT_EXE NAMES clang-format)
 if(CLANG_TIDY_EXE)
@@ -31,6 +36,9 @@ find_package(Qt6 REQUIRED COMPONENTS
     Widgets
     Xml
 )
+if(BUILD_TESTING)
+    find_package(Qt6 REQUIRED COMPONENTS Test)
+endif()
 find_package(Threads REQUIRED)
 
 if(PROCEDURAL_TEXTURE_MAKER_STATIC_BUILD)
@@ -45,17 +53,25 @@ endif()
 
 set(PROCEDURAL_TEXTURE_MAKER_SOURCES
     main.cpp
+    cli/commandline.cpp
+    cli/commandline.h
     texgenapplication.cpp
     texgenapplication.h
     global.h
 
     gui/applicationtheme.cpp
     gui/applicationtheme.h
+    gui/clipboardoperations.cpp
+    gui/clipboardoperations.h
 
     base/settingsmanager.cpp
     base/settingsmanager.h
+    base/projectfileservice.cpp
+    base/projectfileservice.h
     base/textureimage.cpp
     base/textureimage.h
+    base/textureexporter.cpp
+    base/textureexporter.h
     base/texturenode.cpp
     base/texturenode.h
     base/textureproject.cpp
@@ -96,6 +112,8 @@ set(PROCEDURAL_TEXTURE_MAKER_SOURCES
 
     generators/blending.cpp
     generators/blending.h
+    generators/builtinregistry.cpp
+    generators/builtinregistry.h
     generators/boxblur.cpp
     generators/boxblur.h
     generators/bricks.cpp
@@ -176,16 +194,71 @@ set(PROCEDURAL_TEXTURE_MAKER_SOURCES
 set(PROCEDURAL_TEXTURE_MAKER_CLANG_TIDY_SOURCES ${PROCEDURAL_TEXTURE_MAKER_SOURCES})
 list(FILTER PROCEDURAL_TEXTURE_MAKER_CLANG_TIDY_SOURCES INCLUDE REGEX "\\.cpp$")
 set(PROCEDURAL_TEXTURE_MAKER_CLANG_TIDY_FILTER
-    ".*(base|generators|gui|sceneview)[/\\\\].*\\.cpp$|.*(main|texgenapplication)\\.cpp$"
+    ".*(base|cli|generators|gui|sceneview)[/\\\\].*\\.cpp$|.*(main|texgenapplication)\\.cpp$"
 )
 set(PROCEDURAL_TEXTURE_MAKER_FORMAT_SOURCES ${PROCEDURAL_TEXTURE_MAKER_SOURCES})
 list(FILTER PROCEDURAL_TEXTURE_MAKER_FORMAT_SOURCES INCLUDE REGEX "\\.(cpp|h)$")
+if(BUILD_TESTING)
+    file(GLOB_RECURSE PROCEDURAL_TEXTURE_MAKER_TEST_FORMAT_SOURCES
+        CONFIGURE_DEPENDS
+        "${CMAKE_CURRENT_SOURCE_DIR}/tests/*.cpp"
+        "${CMAKE_CURRENT_SOURCE_DIR}/tests/*.h"
+    )
+    list(APPEND PROCEDURAL_TEXTURE_MAKER_FORMAT_SOURCES
+        ${PROCEDURAL_TEXTURE_MAKER_TEST_FORMAT_SOURCES}
+    )
+endif()
+
+set(PROCEDURAL_TEXTURE_MAKER_ENGINE_SOURCES ${PROCEDURAL_TEXTURE_MAKER_SOURCES})
+list(FILTER PROCEDURAL_TEXTURE_MAKER_ENGINE_SOURCES INCLUDE REGEX
+    "^(base|generators)/.*|^global\\.h$"
+)
+
+set(PROCEDURAL_TEXTURE_MAKER_GUI_SOURCES ${PROCEDURAL_TEXTURE_MAKER_SOURCES})
+list(FILTER PROCEDURAL_TEXTURE_MAKER_GUI_SOURCES INCLUDE REGEX
+    "^(gui|sceneview)/.*|^texgenapplication\\.(cpp|h)$"
+)
+
+add_library(ptm_engine STATIC
+    ${PROCEDURAL_TEXTURE_MAKER_ENGINE_SOURCES}
+)
+
+target_include_directories(ptm_engine PUBLIC
+    ${CMAKE_CURRENT_SOURCE_DIR}
+)
+
+target_link_libraries(ptm_engine PUBLIC
+    Threads::Threads
+    Qt6::Core
+    Qt6::Gui
+    Qt6::Qml
+    Qt6::Xml
+)
+
+add_library(ptm_gui STATIC
+    ${PROCEDURAL_TEXTURE_MAKER_GUI_SOURCES}
+)
+
+target_include_directories(ptm_gui PUBLIC
+    ${CMAKE_CURRENT_SOURCE_DIR}
+)
+
+target_link_libraries(ptm_gui PUBLIC
+    ptm_engine
+    Qt6::OpenGL
+    Qt6::OpenGLWidgets
+    Qt6::Widgets
+)
 
 qt_add_executable(ProceduralTextureMaker
     MANUAL_FINALIZATION
     WIN32
     MACOSX_BUNDLE
-    ${PROCEDURAL_TEXTURE_MAKER_SOURCES}
+    main.cpp
+    cli/commandline.cpp
+    cli/commandline.h
+    texgen.qrc
+    shaders.qrc
 )
 
 if(APPLE)
@@ -214,14 +287,7 @@ target_include_directories(ProceduralTextureMaker PRIVATE
 )
 
 target_link_libraries(ProceduralTextureMaker PRIVATE
-    Threads::Threads
-    Qt6::Core
-    Qt6::Gui
-    Qt6::OpenGL
-    Qt6::OpenGLWidgets
-    Qt6::Qml
-    Qt6::Widgets
-    Qt6::Xml
+    ptm_gui
 )
 
 if(PROCEDURAL_TEXTURE_MAKER_STATIC_BUILD AND WIN32)
@@ -267,7 +333,11 @@ if(CLANG_TIDY_EXE)
             VERBATIM
         )
     endif()
-    add_dependencies(clang-tidy ProceduralTextureMaker_autogen)
+    add_dependencies(clang-tidy
+        ptm_engine_autogen
+        ptm_gui_autogen
+        ProceduralTextureMaker_autogen
+    )
 else()
     add_custom_target(clang-tidy
         COMMAND ${CMAKE_COMMAND} -E echo "clang-tidy was not found. Install clang-tidy and rerun CMake."
@@ -316,5 +386,9 @@ install(TARGETS ProceduralTextureMaker
     BUNDLE DESTINATION .
     RUNTIME DESTINATION bin
 )
+
+if(BUILD_TESTING)
+    add_subdirectory(tests)
+endif()
 
 qt_finalize_executable(ProceduralTextureMaker)

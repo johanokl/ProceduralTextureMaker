@@ -16,8 +16,11 @@
 #include <QJSEngine>
 #include <QJSValueIterator>
 #include <QMetaType>
+#include <QFile>
 #include <QString>
 #include <QThread>
+#include <QWriteLocker>
+#include <stdexcept>
 #include <utility>
 
 /// @brief Constructor.
@@ -124,13 +127,11 @@ bool JsTexGen::isValid() { return valid; }
 void JsTexGen::generate(QSize size, TexturePixel* destimage,
                         QMap<int, TextureImagePtr> sourceimages,
                         TextureNodeSettings* settings) const {
-   mutex.lockForWrite();
+   QWriteLocker lock(&mutex);
    QJSEngine jsEngine;
    QJSValue parseResult = jsEngine.evaluate(scriptContent);
    if (parseResult.isError()) {
-      qDebug() << "Error!";
-      mutex.unlock();
-      return;
+      throw std::runtime_error(parseResult.toString().toStdString());
    }
    QList<QString> keys = settings->keys();
    QListIterator<QString> listIterator(keys);
@@ -206,27 +207,27 @@ void JsTexGen::generate(QSize size, TexturePixel* destimage,
    try {
       retVal = jsEngine.globalObject().property("generate").call(args);
       if (retVal.isError()) {
-         qDebug() << "Error!";
-         qDebug() << retVal.toString();
-         memset(destimage, 0, imageSize * sizeof(TexturePixel));
-         mutex.unlock();
-         return;
+         throw std::runtime_error(retVal.toString().toStdString());
       }
+   } catch (const std::exception&) {
+      throw;
    } catch (...) {
-      qDebug() << "Exception";
-      memset(destimage, 0, imageSize * sizeof(TexturePixel));
-      mutex.unlock();
-      return;
+      throw std::runtime_error("Unknown JavaScript generator failure");
    }
    auto* dstchar = reinterpret_cast<unsigned char*>(destimage);
    if (retVal.property("image").isString()) {
       QString imgStr = retVal.property("image").toString();
       QJsonArray imgArray = QJsonDocument::fromJson(imgStr.toUtf8()).array();
-      int arraySize = qMin(static_cast<int>(imageSize * sizeof(TexturePixel)), imgArray.size());
+      const int requiredBytes = static_cast<int>(imageSize * sizeof(TexturePixel));
+      if (imgArray.size() < requiredBytes) {
+         throw std::runtime_error("JavaScript generator returned incomplete image JSON");
+      }
       memset(destimage, 0, imageSize * sizeof(TexturePixel));
-      for (int i = 0; i < arraySize; i++) {
+      for (int i = 0; i < requiredBytes; i++) {
          dstchar[i] = static_cast<unsigned char>(imgArray[i].toInt(0));
       }
+   } else if (!retVal.isArray() || retVal.property("length").toUInt() < arraySize) {
+      throw std::runtime_error("JavaScript generator returned an incomplete image array");
    } else if (separateColorChannels) {
       for (quint32 i = 0; i < arraySize; i++) {
          dstchar[i] = static_cast<unsigned char>(retVal.property(i).toUInt());
@@ -241,7 +242,6 @@ void JsTexGen::generate(QSize size, TexturePixel* destimage,
       }
    }
    jsEngine.collectGarbage();
-   mutex.unlock();
 }
 
 /// @brief Abort the scanning run from a different thread.
@@ -355,4 +355,35 @@ void JSTexGenManager::setDirectory(const QString& path, bool forceScan) {
       emit scanDirectory(path);
       hasScannedDirectory = true;
    }
+}
+
+QString loadJavaScriptGenerators(TextureProject& project, const QString& directory) {
+   const QDir sourceDirectory(directory);
+   if (!sourceDirectory.exists()) {
+      return QStringLiteral("JavaScript generator directory does not exist: %1").arg(directory);
+   }
+
+   QDirIterator iterator(directory, QStringList{QStringLiteral("*.js")}, QDir::Files,
+                         QDirIterator::Subdirectories);
+   while (iterator.hasNext()) {
+      const QString path = iterator.next();
+      QFile file(path);
+      if (!file.open(QIODevice::ReadOnly | QIODevice::Text)) {
+         return QStringLiteral("Could not read JavaScript generator '%1': %2")
+             .arg(path, file.errorString());
+      }
+      auto* generator = new JsTexGen(QString::fromUtf8(file.readAll()));
+      if (!generator->isValid()) {
+         delete generator;
+         return QStringLiteral("Invalid JavaScript generator: %1").arg(path);
+      }
+      if (!project.getGenerator(generator->getName()).isNull()) {
+         const QString error =
+             QStringLiteral("Duplicate generator name '%1' in %2").arg(generator->getName(), path);
+         delete generator;
+         return error;
+      }
+      project.addGenerator(TextureGeneratorPtr(generator));
+   }
+   return {};
 }

@@ -146,6 +146,9 @@ public:
    QMap<int, int> getSources() const;
 
 signals:
+   /// @brief Emitted when the node display name changes.
+   void nameUpdated(int id);
+
    /// @brief Emitted when the node position changes.
    void positionUpdated(int id);
 

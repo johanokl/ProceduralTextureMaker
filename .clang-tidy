@@ -22,5 +22,6 @@ Checks: >
   -performance-enum-size,
   -performance-unnecessary-value-param
 HeaderFilterRegex: '.*(base|generators|gui|sceneview|main\.cpp|texgenapplication\.(cpp|h)|global\.h).*'
+ExcludeHeaderFilterRegex: '.*_autogen.*'
 WarningsAsErrors: ''
 FormatStyle: file

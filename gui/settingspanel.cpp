@@ -15,6 +15,7 @@
 #include <QFileDialog>
 #include <QGroupBox>
 #include <QLabel>
+#include <QMessageBox>
 #include <QLineEdit>
 #include <QPushButton>
 #include <QScrollArea>
@@ -514,7 +515,10 @@ void SettingsPanel::saveSettings() {
    settingsmanager->setPreviewBackgroundColor(QColor(previewBackgroundColorButton->text()));
    settingsmanager->setBackgroundColor(QColor(backgroundColorButton->text()));
    settingsmanager->setBackgroundBrush(backgroundBrushCombobox->currentData().toInt());
-   settingsmanager->saveSettings();
+   if (!settingsmanager->saveSettings()) {
+      QMessageBox::warning(this, QStringLiteral("Settings error"),
+                           QStringLiteral("Could not save the application settings."));
+   }
    QSettings settings;
    settings.setValue("lineWidth", lineWidth);
    settings.setValue("arrowSize", arrowSize);
