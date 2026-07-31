@@ -9,7 +9,9 @@
 class QApplication;
 
 namespace ApplicationTheme {
+/// @brief Applies the shared application style and color palette.
+/// @param app Application to style.
 void apply(QApplication& app);
-}
+}  // namespace ApplicationTheme
 
 #endif  // APPLICATIONTHEME_H

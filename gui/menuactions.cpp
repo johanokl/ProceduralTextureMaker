@@ -17,8 +17,6 @@
 #include <QSettings>
 #include <QToolBar>
 
-/// @brief Constructor for the MenuActions class. Creates the main window's menus and toolbars.
-/// @param parent
 MenuActions::MenuActions(MainWindow* parent) : QObject(parent), parentwindow(parent) {
    nodepanel = nullptr;
    previewImagePanel = nullptr;
@@ -252,8 +250,6 @@ MenuActions::MenuActions(MainWindow* parent) : QObject(parent), parentwindow(par
    }
 }
 
-/// @brief Destructor for the MenuActions class.
-/// @details Saves the state of the main window's menus and toolbars.
 MenuActions::~MenuActions() {
    // Save state
    QSettings settings;
@@ -266,24 +262,18 @@ MenuActions::~MenuActions() {
    settings.sync();
 }
 
-/// @brief Connects a new add node panel and sets its visiblity.
-/// @param addNodePanel
 void MenuActions::setAddNodePanel(AddNodePanel* addNodePanel) {
    this->nodepanel = addNodePanel;
    displayAddNodePanelAct->setEnabled(true);
    addNodePanel->setVisible(displayAddNodePanelAct->isChecked());
 }
 
-/// @brief Connects a new node preview panel and sets its visiblity.
-/// @param previewImagePanel
 void MenuActions::setPreviewImagePanel(PreviewImagePanel* previewImagePanel) {
    this->previewImagePanel = previewImagePanel;
    displayPreviewImagePanelAct->setEnabled(true);
    previewImagePanel->setVisible(displayPreviewImagePanelAct->isChecked());
 }
 
-/// @brief Connects a new project settings panel and sets its visiblity.
-/// @param settingsPanel
 void MenuActions::setSettingsPanel(SettingsPanel* settingsPanel) {
    this->settingspanel = settingsPanel;
    displaySettingsPanelAct->setEnabled(true);
@@ -291,15 +281,12 @@ void MenuActions::setSettingsPanel(SettingsPanel* settingsPanel) {
    toggleSettingsPanelAct->setChecked(settingsPanel->isVisible());
 }
 
-/// @brief Connects a new item info panel and sets its visiblity.
-/// @param infopanel
 void MenuActions::setItemInfoPanel(ItemInfoPanel* infopanel) {
    this->nodesettings = infopanel;
    displayItemInfoPanelAct->setEnabled(true);
    nodesettings->setVisible(displayItemInfoPanelAct->isChecked());
 }
 
-/// @brief Displays or hides the add node panel depending on if visible or hidden.
 void MenuActions::toggleAddNodePanel() {
    if (!nodepanel) {
       return;
@@ -308,7 +295,6 @@ void MenuActions::toggleAddNodePanel() {
    displayAddNodePanelAct->setChecked(nodepanel->isVisible());
 }
 
-/// @brief Displays or hides the image preview panel depending on if visible or hidden.
 void MenuActions::togglePreviewImagePanel() {
    if (previewImagePanel != nullptr) {
       previewImagePanel->setVisible(!previewImagePanel->isVisible());
@@ -316,7 +302,6 @@ void MenuActions::togglePreviewImagePanel() {
    }
 }
 
-/// @brief MenuActions::toggleSettingsPanel
 void MenuActions::toggleSettingsPanel() {
    if (settingspanel != nullptr) {
       settingspanel->setVisible(!settingspanel->isVisible());
@@ -325,7 +310,6 @@ void MenuActions::toggleSettingsPanel() {
    }
 }
 
-/// @brief Displays or hides the item info panel depending on if visible or hidden.
 void MenuActions::toggleItemInfoPanel() {
    if (nodesettings != nullptr) {
       nodesettings->setVisible(!nodesettings->isVisible());
@@ -333,7 +317,6 @@ void MenuActions::toggleItemInfoPanel() {
    }
 }
 
-/// @brief Displays or hides all toolbars depending on if visible or hidden.
 void MenuActions::toogleToolbars() {
    if (settingsToolBar != nullptr) {
       settingsToolBar->setVisible(displayToolbarsAct->isChecked());
@@ -352,7 +335,6 @@ void MenuActions::toogleToolbars() {
    }
 }
 
-/// @brief Displays an open file dialog and opens the chosen project file.
 void MenuActions::openFile() {
    QString fileName = QFileDialog::getOpenFileName(parent(), tr("Open File"), lastOpenedDirectory,
                                                    "Texture Set (*.txl)");
@@ -363,8 +345,6 @@ void MenuActions::openFile() {
    parent()->openFile(fileName);
 }
 
-/// @brief Slot invoked when the window manager has closed a window.
-/// @details Updates the list of other windows in the window menu.
 void MenuActions::windowsChanged() {
    while (!windowlistActions.isEmpty()) {
       QAction* currAction = windowlistActions.last();

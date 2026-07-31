@@ -12,8 +12,6 @@
 #include <QPushButton>
 #include <QVBoxLayout>
 
-/// @brief Constructor. Creates the widget and its layout, but doesn't set any node ids yet.
-/// @param widgetmanager Parent widget that manages this widget and the node info widgets.
 ConnectionWidget::ConnectionWidget(ItemInfoPanel* widgetmanager) {
    this->widgetmanager = widgetmanager;
 
@@ -47,8 +45,6 @@ ConnectionWidget::ConnectionWidget(ItemInfoPanel* widgetmanager) {
    slot = -1;
 }
 
-/// @brief Disconnects the two nodes and hides the widget.
-/// @details Called when the user clicks the disconnect button.
 void ConnectionWidget::disconnectNodes() {
    TextureProject* project = widgetmanager->getTextureProject();
    if (project == nullptr) {
@@ -62,12 +58,6 @@ void ConnectionWidget::disconnectNodes() {
    this->hide();
 }
 
-/// @brief Updates the widget to display a new connection.
-/// @details Called when the user selects a different connection (so that we don't need to create a
-/// new widget for every single connection).
-/// @param sourceNodeId Source node id
-/// @param receiverNodeId Receiver node id
-/// @param slot Receiver's slot id
 void ConnectionWidget::setNodes(int sourceNodeId, int receiverNodeId, int slot) {
    this->sourceNodeId = sourceNodeId;
    this->receiverNodeId = receiverNodeId;

@@ -19,8 +19,6 @@
 #include <QMimeData>
 #include <QSettings>
 
-/// @brief ViewNodeScene::ViewNodeScene
-/// @param parent
 ViewNodeScene::ViewNodeScene(MainWindow* parent) {
    this->parent = parent;
    this->project = parent->getTextureProject();
@@ -61,9 +59,6 @@ ViewNodeScene::ViewNodeScene(MainWindow* parent) {
    settingsUpdated();
 }
 
-/// @brief Used for restarting with a new instance with clean QGraphicsScene properties.
-/// @return a new instance with the nodes copied.
-/// @note For now a quick hack for resetting the scene view region properties.
 ViewNodeScene* ViewNodeScene::clone() const {
    auto* newscene = new ViewNodeScene(parent);
    QMapIterator<int, ViewNodeItem*> nodesIter(nodeItems);
@@ -81,9 +76,6 @@ ViewNodeScene* ViewNodeScene::clone() const {
    return newscene;
 }
 
-/// @brief ViewNodeScene::getItem
-/// @param id Node id
-/// @return the ViewNodeItem if found, NULL if not.
 ViewNodeItem* ViewNodeScene::getItem(int id) const {
    if (id < 0) {
       return nullptr;
@@ -94,9 +86,6 @@ ViewNodeItem* ViewNodeScene::getItem(int id) const {
    return nodeItems.value(id);
 }
 
-/// @brief ViewNodeScene::setLineWidths
-/// @param normalWidth Width for regular lines.
-/// @param highlightedWidth Width for highlighted lines.
 void ViewNodeScene::setLineWidths(int normalWidth, int highlightedWidth) {
    lineWidth = normalWidth;
    highlightedLineWidth = highlightedWidth;
@@ -110,8 +99,6 @@ void ViewNodeScene::setLineWidths(int normalWidth, int highlightedWidth) {
    update();
 }
 
-/// @brief ViewNodeScene::setArrowSize
-/// @param arrowSize Size of the line arrow.
 void ViewNodeScene::setArrowSize(int arrowSize) {
    if (arrowSize < 8 || arrowSize > 16) {
       arrowSize = 12;
@@ -127,8 +114,6 @@ void ViewNodeScene::setArrowSize(int arrowSize) {
    update();
 }
 
-/// @brief ViewNodeScene::setHeaderSize
-/// @param headerSize Height of the node title area.
 void ViewNodeScene::setHeaderSize(int headerSize) {
    if (headerSize != 0 && (headerSize < 8 || headerSize > 48)) {
       headerSize = 24;
@@ -145,14 +130,8 @@ void ViewNodeScene::setHeaderSize(int headerSize) {
    update();
 }
 
-/// @brief ViewNodeScene::clearProject
-/// Clears the active TextureProject, removing all nodes.
 void ViewNodeScene::clearProject() { project->clear(); }
 
-/// @brief Called when nodes are connected. Adds a line between the nodes to the scene.
-/// @param sourceid Node id
-/// @param receiverid Node id
-/// @param slot
 void ViewNodeScene::nodesConnected(int sourceid, int receiverid, int slot) {
    ViewNodeItem* sourceNode = nodeItems.value(sourceid);
    ViewNodeItem* receiverNode = nodeItems.value(receiverid);
@@ -173,10 +152,6 @@ void ViewNodeScene::nodesConnected(int sourceid, int receiverid, int slot) {
    nodeConnections.insert(key, newLine);
 }
 
-/// @brief Called when nodes are disconnected. Removes the scene's line between the nodes.
-/// @param sourceid Node id
-/// @param receiverid Node id
-/// @param slot
 void ViewNodeScene::nodesDisconnected(int sourceid, int receiverid, int slot) {
    auto key = std::tuple<int, int, int>(sourceid, receiverid, slot);
    if (key == selectedLine) {
@@ -201,8 +176,6 @@ void ViewNodeScene::nodesDisconnected(int sourceid, int receiverid, int slot) {
    delete line;
 }
 
-/// @brief ViewNodeScene::addNode
-/// @param newNode
 void ViewNodeScene::addNode(const TextureNodePtr& newNode) {
    auto* newItem = new ViewNodeItem(this, newNode);
    newItem->setHeaderSize(headerSize);
@@ -222,8 +195,6 @@ void ViewNodeScene::addNode(const TextureNodePtr& newNode) {
    update();
 }
 
-/// @brief ViewNodeScene::positionUpdated
-/// @param id
 void ViewNodeScene::positionUpdated(int id) {
    ViewNodeItem* node = nodeItems.value(id);
    if (node) {
@@ -231,32 +202,20 @@ void ViewNodeScene::positionUpdated(int id) {
    }
 }
 
-/// @brief Highlights a specific node and sends a signal to the affected widgets.
-/// @param id
 void ViewNodeScene::setSelectedNode(int id) {
    selectedNode = id;
    selectedLine = std::tuple<int, int, int>(-1, 0, 0);
    emit nodeSelected(id);
 }
 
-/// @brief ViewNodeScene::setSelectedLine
-/// @param sourceNode The line's start node id.
-/// @param receiverNode The line's end node id.
-/// @param slot Source slot number.
-/// Highlights a specific line between nodes and sends a
-/// signal to the affected widgets.
 void ViewNodeScene::setSelectedLine(int sourceNode, int receiverNode, int slot) {
    selectedNode = -1;
    selectedLine = std::tuple<int, int, int>(sourceNode, receiverNode, slot);
    emit lineSelected(sourceNode, receiverNode, slot);
 }
 
-/// @brief ViewNodeScene::nodeSettingsUpdated
-/// @param id
 void ViewNodeScene::nodeSettingsUpdated(int id) { nodeItems.value(id)->settingsUpdated(); }
 
-/// @brief ViewNodeScene::generatorUpdated
-/// @param id
 void ViewNodeScene::generatorUpdated(int id) {
    ViewNodeItem* node = nodeItems.value(id);
    if (node) {
@@ -264,8 +223,6 @@ void ViewNodeScene::generatorUpdated(int id) {
    }
 }
 
-/// @brief ViewNodeScene::imageUpdated
-/// @param id
 void ViewNodeScene::imageUpdated(int id) {
    ViewNodeItem* node = nodeItems.value(id);
    if (node) {
@@ -273,8 +230,6 @@ void ViewNodeScene::imageUpdated(int id) {
    }
 }
 
-/// @brief ViewNodeScene::nodeRemoved
-/// @param id
 void ViewNodeScene::nodeRemoved(int id) {
    ViewNodeItem* nodeItem = nodeItems.value(id);
    if (!nodeItem) {
@@ -295,9 +250,6 @@ void ViewNodeScene::nodeRemoved(int id) {
    delete nodeItem;
 }
 
-/// @brief ViewNodeScene::imageAvailable
-/// @param id
-/// @param size
 void ViewNodeScene::imageAvailable(int id, QSize size) {
    ViewNodeItem* node = nodeItems.value(id);
    if (node) {
@@ -305,7 +257,6 @@ void ViewNodeScene::imageAvailable(int id, QSize size) {
    }
 }
 
-/// @brief ViewNodeScene::settingsUpdated
 void ViewNodeScene::settingsUpdated() {
    dropItem = nullptr;
    QMapIterator<int, ViewNodeItem*> nodeItemIterator(nodeItems);
@@ -327,8 +278,6 @@ void ViewNodeScene::settingsUpdated() {
    }
 }
 
-/// @brief ViewNodeScene::endLineDrawing
-/// @param endNodeId
 void ViewNodeScene::endLineDrawing(int endNodeId) {
    if (lineDrawing) {
       ViewNodeItem* startNode = getItem(startLineNode);
@@ -354,8 +303,6 @@ void ViewNodeScene::endLineDrawing(int endNodeId) {
    }
 }
 
-/// @brief ViewNodeScene::startLineDrawing
-/// @param nodeId
 void ViewNodeScene::startLineDrawing(int nodeId) {
    if (lineDrawing) {
       endLineDrawing(-1);
@@ -369,8 +316,6 @@ void ViewNodeScene::startLineDrawing(int nodeId) {
    getItem(nodeId)->showConnectable(true);
 }
 
-/// @brief ViewNodeScene::mousePressEvent
-/// @param mouseEvent
 void ViewNodeScene::mousePressEvent(QGraphicsSceneMouseEvent* mouseEvent) {
    if (lineDrawing && mouseEvent->button() == Qt::LeftButton) {
       endLineDrawing(-1);
@@ -378,8 +323,6 @@ void ViewNodeScene::mousePressEvent(QGraphicsSceneMouseEvent* mouseEvent) {
    QGraphicsScene::mousePressEvent(mouseEvent);
 }
 
-/// @brief ViewNodeScene::mouseMoveEvent
-/// @param mouseEvent
 void ViewNodeScene::mouseMoveEvent(QGraphicsSceneMouseEvent* mouseEvent) {
    if (lineDrawing) {
       QGraphicsItem* focusItem = itemAt(mouseEvent->scenePos(), QTransform());
@@ -414,8 +357,6 @@ void ViewNodeScene::mouseMoveEvent(QGraphicsSceneMouseEvent* mouseEvent) {
    QGraphicsScene::mouseMoveEvent(mouseEvent);
 }
 
-/// @brief ViewNodeScene::mouseReleaseEvent
-/// @param mouseEvent
 void ViewNodeScene::mouseReleaseEvent(QGraphicsSceneMouseEvent* mouseEvent) {
    if (mouseEvent->button() != Qt::LeftButton) {
       return;
@@ -433,8 +374,6 @@ void ViewNodeScene::mouseReleaseEvent(QGraphicsSceneMouseEvent* mouseEvent) {
    QGraphicsScene::mouseReleaseEvent(mouseEvent);
 }
 
-/// @brief ViewNodeScene::contextMenuEvent
-/// @param event
 void ViewNodeScene::contextMenuEvent(QGraphicsSceneContextMenuEvent* event) {
    QMapIterator<int, ViewNodeItem*> nodeItemsIterator(nodeItems);
    nodeItemsIterator.toBack();
@@ -484,8 +423,6 @@ void ViewNodeScene::contextMenuEvent(QGraphicsSceneContextMenuEvent* event) {
    }
 }
 
-/// @brief ViewNodeScene::dragEnterEvent
-/// @param event
 void ViewNodeScene::dragEnterEvent(QGraphicsSceneDragDropEvent* event) {
    if (!dropItem) {
       dropItem = new QGraphicsRectItem;
@@ -501,15 +438,12 @@ void ViewNodeScene::dragEnterEvent(QGraphicsSceneDragDropEvent* event) {
    }
 }
 
-/// @brief ViewNodeScene::dragMoveEvent
-/// @param event
 void ViewNodeScene::dragMoveEvent(QGraphicsSceneDragDropEvent* event) {
    if (dropItem) {
       dropItem->setPos(event->scenePos());
    }
 }
 
-/// @brief ViewNodeScene::dragLeaveEvent
 void ViewNodeScene::dragLeaveEvent(QGraphicsSceneDragDropEvent*) {
    if (dropItem) {
       removeItem(dropItem);
@@ -518,8 +452,6 @@ void ViewNodeScene::dragLeaveEvent(QGraphicsSceneDragDropEvent*) {
    }
 }
 
-/// @brief ViewNodeScene::dropEvent
-/// @param event
 void ViewNodeScene::dropEvent(QGraphicsSceneDragDropEvent* event) {
    event->acceptProposedAction();
    if (dropItem) {
@@ -535,8 +467,6 @@ void ViewNodeScene::dropEvent(QGraphicsSceneDragDropEvent* event) {
    project->newNode(0, generator)->setPos(event->scenePos());
 }
 
-/// @brief Called when the widget's in focus and the user presses a keyboard key.
-/// @param event
 void ViewNodeScene::keyPressEvent(QKeyEvent* event) {
    switch (event->key()) {
       case Qt::Key_Delete: {

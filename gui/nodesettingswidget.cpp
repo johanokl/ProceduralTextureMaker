@@ -23,10 +23,6 @@
 #include <QScrollArea>
 #include <QVBoxLayout>
 
-/// @brief NodeSettingsWidget constructor. Creates the node settings widget and all its child
-/// widgets.
-/// @param widgetmanager Pointer to the ItemInfoPanel that manages this widget.
-/// @param id Node id
 NodeSettingsWidget::NodeSettingsWidget(ItemInfoPanel* widgetmanager, int id) {
    setObjectName("nodeSettingsInspector");
    this->widgetmanager = widgetmanager;
@@ -111,8 +107,6 @@ NodeSettingsWidget::NodeSettingsWidget(ItemInfoPanel* widgetmanager, int id) {
    slotsUpdated();
 }
 
-/// @brief Creates and styles a new layout.
-/// @return New layout
 QFormLayout* NodeSettingsWidget::createGroupLayout() {
    auto* layout = new QFormLayout;
    layout->setRowWrapPolicy(QFormLayout::DontWrapRows);
@@ -124,11 +118,6 @@ QFormLayout* NodeSettingsWidget::createGroupLayout() {
    return layout;
 }
 
-/// @brief Creates a property editor row for the inspector.
-/// @param label Property label.
-/// @param editor Property value editor.
-/// @param slider Optional slider displayed below the label and numeric value.
-/// @return New property row widget.
 QWidget* NodeSettingsWidget::createPropertyRow(QLabel* label, QWidget* editor, QWidget* slider) {
    auto* propertyWidget = new QWidget;
    propertyWidget->setProperty("inspectorProperty", true);
@@ -163,9 +152,6 @@ QWidget* NodeSettingsWidget::createPropertyRow(QLabel* label, QWidget* editor, Q
    return propertyWidget;
 }
 
-/// @brief Reads all widget's values and sends them to the TextureNode object's set settings
-/// function.
-/// @return @c true if the settings were saved successfully, false otherwise.
 bool NodeSettingsWidget::saveSettings() {
    if (saveDisabled) {
       return false;
@@ -239,7 +225,6 @@ bool NodeSettingsWidget::saveSettings() {
    return true;
 }
 
-/// @brief Moves the sources around between the slots.
 void NodeSettingsWidget::swapSlots() {
    QMap<int, int> sources = texNode->getSources();
    for (int i = 0; i < texNode->getNumSourceSlots(); i++) {
@@ -251,8 +236,6 @@ void NodeSettingsWidget::swapSlots() {
    }
 }
 
-/// @brief Opens a color selection dialog popup and saves the result.
-/// @param settingsId The name of the setting.
 void NodeSettingsWidget::colorDialog(const QString& settingsId) {
    QColor initColor = Qt::white;
    if (settingValues.contains(settingsId)) {
@@ -268,14 +251,10 @@ void NodeSettingsWidget::colorDialog(const QString& settingsId) {
    }
 }
 
-/// @brief Styles the color selection buttons. The foreground text color is white or black depending
-/// on the background color.
-/// @param button The QPushButton to be styled.
-/// @param color Background color
 void NodeSettingsWidget::styleButton(QPushButton* button, const QColor& color) {
    if (button) {
       QString fontColor("#ffffff");
-      // Cool formula for how humans percieve colors, if they are dark or light.
+      // Estimate perceived brightness to choose readable foreground text.
       if ((color.red() * 0.299 + color.green() * 0.587 + color.blue() * 0.114) > 170) {
          fontColor = "#000000";
       }
@@ -286,19 +265,16 @@ void NodeSettingsWidget::styleButton(QPushButton* button, const QColor& color) {
    }
 }
 
-/// @brief Comparator function for qSort, used for sorting the settings based on the order
-/// attribute.
+/// @brief Compares generator settings by display order.
 bool settingsComperator(const TextureGeneratorSetting& v1, const TextureGeneratorSetting& v2) {
    return v1.order < v2.order;
 }
 
-/// @brief Helper function needed for QMap.
+/// @brief Compares the identifying fields of two generator settings.
 bool operator==(const TextureGeneratorSetting& lhs, const TextureGeneratorSetting& rhs) {
    return lhs.name == rhs.name && lhs.order == rhs.order;
 }
 
-/// @brief A generator has been defined for the node. Creates all the settings
-/// value widgets for the generator.
 void NodeSettingsWidget::generatorUpdated() {
    TextureGeneratorPtr generator = texNode->getGenerator();
    generatorNameLabel->setText(generator->getName());
@@ -485,8 +461,6 @@ void NodeSettingsWidget::generatorUpdated() {
    this->settingsUpdated();
 }
 
-/// @brief @param group
-/// @param aligned
 void NodeSettingsWidget::setGroupAlignment(const QString& group, bool aligned) {
    TextureGeneratorSettings settings = texNode->getGenerator()->getSettings();
    QList<TextureGeneratorSetting> settingsvalues = settings.values();
@@ -555,7 +529,6 @@ void NodeSettingsWidget::setGroupAlignment(const QString& group, bool aligned) {
    }
 }
 
-/// @brief A sources has been added or removed. Updates the slot buttons and labels.
 void NodeSettingsWidget::slotsUpdated() {
    int numInList = sourceSlotButtons.count();
    int numSlots = texNode->getNumSourceSlots();
@@ -590,8 +563,6 @@ void NodeSettingsWidget::slotsUpdated() {
    }
 }
 
-/// @brief Called when the node's settings have been changed.
-/// Updates the widgets' values.
 void NodeSettingsWidget::settingsUpdated() {
    nodeNameLineEdit->setText(texNode->getName());
 

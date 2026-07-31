@@ -15,11 +15,6 @@
 #include <QStyleOptionGraphicsItem>
 #include <QtMath>
 
-/// @brief Constructor for the ViewNodeLine class.
-/// @param scene
-/// @param sourceItem
-/// @param receiverItem
-/// @param slot
 ViewNodeLine::ViewNodeLine(ViewNodeScene* scene, int sourceItem, int receiverItem, int slot) {
    this->slot = slot;
    nodescene = scene;
@@ -41,18 +36,12 @@ ViewNodeLine::ViewNodeLine(ViewNodeScene* scene, int sourceItem, int receiverIte
    updatePos();
 }
 
-/// @brief ViewNodeLine::setNodes
-/// @param sourceItem
-/// @param receiverItem
 void ViewNodeLine::setNodes(int sourceItem, int receiverItem) {
    sourceItemId = sourceItem;
    receiverItemId = receiverItem;
    updatePos();
 }
 
-/// @brief Sets the line's position, to be used for lines where there's no start or end node.
-/// @param startPos Start position (optional)
-/// @param endPos End position (optional)
 void ViewNodeLine::setPos(QPointF startPos, QPointF endPos) {
    if (!startPos.isNull()) {
       sourcePos = startPos;
@@ -63,15 +52,11 @@ void ViewNodeLine::setPos(QPointF startPos, QPointF endPos) {
    updatePos();
 }
 
-/// @brief ViewNodeLine::boundingRect
-/// @return QRectF used for clipping.
 QRectF ViewNodeLine::boundingRect() const {
    qreal extra = qMax(256.0, arrowSize * 8.0);
    return linePath.controlPointRect().normalized().adjusted(-extra, -extra, extra, extra);
 }
 
-/// @brief If the line should be highlighted or not.
-/// @param highlighted
 void ViewNodeLine::setHighlighted(bool highlighted) {
    this->highlighted = highlighted;
    if (highlighted) {
@@ -81,8 +66,6 @@ void ViewNodeLine::setHighlighted(bool highlighted) {
    }
 }
 
-/// @brief Sets the line's width.
-/// @param width
 void ViewNodeLine::setWidth(int width) {
    normalWidth = width;
    highlightedWidth = width + 1;
@@ -91,9 +74,6 @@ void ViewNodeLine::setWidth(int width) {
    updatePos();
 }
 
-/// @brief ViewNodeLine::setLineWidths
-/// @param normalWidth Width for regular lines.
-/// @param highlightedWidth Width for highlighted lines.
 void ViewNodeLine::setLineWidths(int normalWidth, int highlightedWidth) {
    this->normalWidth = normalWidth;
    this->highlightedWidth = highlightedWidth;
@@ -102,8 +82,6 @@ void ViewNodeLine::setLineWidths(int normalWidth, int highlightedWidth) {
    update();
 }
 
-/// @brief ViewNodeLine::setArrowSize
-/// @param size Size of the line arrow.
 void ViewNodeLine::setArrowSize(int size) {
    if (size < 8 || size > 16) {
       size = 12;
@@ -115,8 +93,6 @@ void ViewNodeLine::setArrowSize(int size) {
    updatePos();
 }
 
-/// @brief Sets the line's color.
-/// @param color
 void ViewNodeLine::setColor(const QColor& color) {
    baseColor = color;
    myPen.setColor(infocus ? QColor("#4fc3f7") : baseColor);
@@ -124,8 +100,6 @@ void ViewNodeLine::setColor(const QColor& color) {
    update();
 }
 
-/// @brief Used for deciding which object to select when the user clicks in the ViewNodeView.
-/// @return The painter path surrounding this line.
 QPainterPath ViewNodeLine::shape() const {
    QPainterPath path = linePath;
    path.addPolygon(arrowHead);
@@ -138,9 +112,6 @@ QPainterPath ViewNodeLine::shape() const {
    return fullPath;
 }
 
-/// @brief ViewNodeLine::createArrowHead
-/// @param size Size of the arrow in scene coordinates.
-/// @return The arrowhead polygon.
 QPolygonF ViewNodeLine::createArrowHead(qreal size) const {
    if (arrowDirection.isNull()) {
       return QPolygonF();
@@ -154,11 +125,6 @@ QPolygonF ViewNodeLine::createArrowHead(qreal size) const {
    return arrowPolygon;
 }
 
-/// @brief ViewNodeLine::getNodeIntersection
-/// @param item The node item.
-/// @param insidePos Position inside the node.
-/// @param outsidePos Position outside the node.
-/// @return Intersection with the node outline.
 QPointF ViewNodeLine::getNodeIntersection(ViewNodeItem* item, const QPointF& insidePos,
                                           const QPointF& outsidePos) const {
    QLineF centerLine(insidePos, outsidePos);
@@ -189,8 +155,6 @@ QPointF ViewNodeLine::getNodeIntersection(ViewNodeItem* item, const QPointF& ins
    return intersection;
 }
 
-/// @brief ViewNodeLine::mousePressEvent
-/// @param mouseEvent
 void ViewNodeLine::mousePressEvent(QGraphicsSceneMouseEvent* mouseEvent) {
    if (mouseEvent->button() == Qt::LeftButton) {
       if (!isSelected()) {
@@ -202,8 +166,6 @@ void ViewNodeLine::mousePressEvent(QGraphicsSceneMouseEvent* mouseEvent) {
    QGraphicsLineItem::mousePressEvent(mouseEvent);
 }
 
-/// @brief Highlights the line.
-/// @param event
 void ViewNodeLine::hoverEnterEvent(QGraphicsSceneHoverEvent* event) {
    setCursor(Qt::ArrowCursor);
    infocus = true;
@@ -214,8 +176,6 @@ void ViewNodeLine::hoverEnterEvent(QGraphicsSceneHoverEvent* event) {
    update();
 }
 
-/// @brief Removes the highlight.
-/// @param event
 void ViewNodeLine::hoverLeaveEvent(QGraphicsSceneHoverEvent* event) {
    infocus = false;
    myPen.setWidth(highlighted ? highlightedWidth : normalWidth);
@@ -225,7 +185,6 @@ void ViewNodeLine::hoverLeaveEvent(QGraphicsSceneHoverEvent* event) {
    update();
 }
 
-/// @brief Updates the line's start and end positions to the node's current positions.
 void ViewNodeLine::updatePos() {
    prepareGeometryChange();
    ViewNodeItem* sourceItem = nodescene->getItem(sourceItemId);
@@ -284,8 +243,6 @@ void ViewNodeLine::updatePos() {
    update();
 }
 
-/// @brief Draws the line with the style set by the current state.
-/// @param painter Qt's painter instance
 void ViewNodeLine::paint(QPainter* painter, const QStyleOptionGraphicsItem*, QWidget*) {
    ViewNodeItem* sourceItem = nodescene->getItem(sourceItemId);
    ViewNodeItem* receiverItem = nodescene->getItem(receiverItemId);

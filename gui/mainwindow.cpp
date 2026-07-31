@@ -38,8 +38,6 @@
 #include <QTextEdit>
 #include <QVBoxLayout>
 
-/// @brief Constructor. Creates the main window and all its widgets.
-/// @param parent
 MainWindow::MainWindow(TexGenApplication* parent) {
    parentapp = parent;
    scene = nullptr;
@@ -108,7 +106,6 @@ MainWindow::MainWindow(TexGenApplication* parent) {
    }
 }
 
-/// @brief Will get called by the window manager when it tries to close this window.
 void MainWindow::closeEvent(QCloseEvent* event) {
    if (!maybeSave()) {
       event->ignore();
@@ -117,7 +114,6 @@ void MainWindow::closeEvent(QCloseEvent* event) {
    event->accept();
 }
 
-/// @brief Destructor. Cleans up the project and application managers.
 MainWindow::~MainWindow() {
    // MenuActions listens to application-wide window updates. Destroy it while this MainWindow and
    // its menus are still valid, before QObject emits MainWindow::destroyed.
@@ -125,14 +121,8 @@ MainWindow::~MainWindow() {
    menuactions = nullptr;
 }
 
-/// @brief Like saveFile with the difference that the user always gets prompted for a filename.
-/// @return @c true if saved succesfully.
 bool MainWindow::saveAs() { return saveFile(true); }
 
-/// @brief Called when the user is trying to add a texture generator with the same name as one
-/// already existing in the project. Displays a message box.
-/// @param oldGen The one existing in the project.
-/// @param newGen The new one.
 void MainWindow::generatorNameCollision(const TextureGeneratorPtr& oldGen,
                                         const TextureGeneratorPtr& newGen) {
    QString question;
@@ -146,9 +136,6 @@ void MainWindow::generatorNameCollision(const TextureGeneratorPtr& oldGen,
    }
 }
 
-/// @brief Saves the project as an XML file.
-/// @param newFileName Don't reuse the previous saved file, ask for a new location.
-/// @return @c true if suceesfully saved
 bool MainWindow::saveFile(bool newFileName) {
    QString fileName;
    if (!newFileName) {
@@ -192,11 +179,6 @@ bool MainWindow::saveFile(bool newFileName) {
    return true;
 }
 
-/// @brief Called before the project is closed.
-/// @details If it has been modified the user gets to answer if he wants to save the changes. it's
-/// not okay to close the file if the file isn't saved and the user hasn't chosen to discard the
-/// changes.
-/// @return @c true if now ok to close the project, @c false if not okay.
 bool MainWindow::maybeSave() {
    if (!project->isModified()) {
       return true;
@@ -217,18 +199,12 @@ bool MainWindow::maybeSave() {
    return true;
 }
 
-/// @brief Copies the selected node to the OS's clipboard.
 void MainWindow::copyNode() { copyNodeToClipboard(*project, scene->getSelectedNode()); }
 
-/// @brief Copies the selected node to the clipboard and removes it from the scene.
 void MainWindow::cutNode() { cutNodeToClipboard(*project, scene->getSelectedNode()); }
 
-/// @brief Reads the OS's clipboard buffer and if it contains
-/// a texture node adds it to the scene.
 void MainWindow::pasteNode() { pasteNodesFromClipboard(*project); }
 
-/// @brief Saves the image of a node to a PNG file.
-/// @param id
 void MainWindow::saveImage(int id) {
    if (id == 0) {
       id = scene->getSelectedNode();
@@ -267,11 +243,6 @@ void MainWindow::saveImage(int id) {
    }
 }
 
-/// @brief Creates a new scene instance.
-/// @details If a parameter is parsed the other scene's nodes and connections are copied to this
-/// one. Useful for debugging and resetting internal states.
-/// @param source Scene to be copied
-/// @return a new scene
 ViewNodeScene* MainWindow::createScene(ViewNodeScene* source) {
    ViewNodeScene* newscene;
    if (source != nullptr) {
@@ -289,66 +260,48 @@ ViewNodeScene* MainWindow::createScene(ViewNodeScene* source) {
    return newscene;
 }
 
-/// @brief Replaces the old node scene with a new one with the same content.
 void MainWindow::reloadSceneView() {
    ViewNodeScene* oldscene = scene;
    scene = createScene(oldscene);
    oldscene->deleteLater();
 }
 
-/// @brief Shows all nodes and recreates the scene view.
 void MainWindow::showAllNodesAndResetSceneView() {
    view->showAllNodes();
    reloadSceneView();
    view->showAllNodes();
 }
 
-/// @brief Reset the view zoom factor to default.
 void MainWindow::resetViewZoom() { view->resetZoom(); }
 
-/// @brief Zoom in on the node scene.
 void MainWindow::zoomInView() { view->zoomIn(); }
 
-/// @brief Zoom out on the node scene.
 void MainWindow::zoomOutView() { view->zoomOut(); }
 
-/// @brief Sets the line widths for the node connections in the scene view.
-/// @param normalWidth Width for regular lines.
-/// @param highlightedWidth Width for highlighted lines.
 void MainWindow::setLineWidths(int normalWidth, int highlightedWidth) {
    if (scene) {
       scene->setLineWidths(normalWidth, highlightedWidth);
    }
 }
 
-/// @brief Sets the size of the line arrows in the scene view.
-/// @param arrowSize Size of the line arrow.
 void MainWindow::setArrowSize(int arrowSize) {
    if (scene) {
       scene->setArrowSize(arrowSize);
    }
 }
 
-/// @brief Sets the size of the node title area in the scene view.
-/// @param headerSize Height of the node title area.
 void MainWindow::setHeaderSize(int headerSize) {
    if (scene) {
       scene->setHeaderSize(headerSize);
    }
 }
 
-/// @brief Sets the zoom factor for each zoom step in the scene view.
-/// @param factor Zoom factor.
 void MainWindow::setZoomStepFactor(double factor) {
    if (view) {
       view->setZoomStepFactor(factor);
    }
 }
 
-/// @brief Opens a file and loads it into the project.
-/// @details Before opening, check if the project has been modified and prompt the user to save it
-/// first.
-/// @param fileName
 void MainWindow::openFile(const QString& fileName) {
    if (fileName.isNull()) {
       return;
@@ -370,15 +323,12 @@ void MainWindow::openFile(const QString& fileName) {
    showAllNodesAndResetSceneView();
 }
 
-/// @brief Moves the window to the front, so that it lies on top of all other windows.
 void MainWindow::moveToFront() {
    this->raise();
    this->activateWindow();
    this->setWindowState((this->windowState() & ~Qt::WindowMinimized) | Qt::WindowActive);
 }
 
-/// @brief Displays an about popup with information about ProceduralTextureMaker and the build date
-/// of this version.
 void MainWindow::showAbout() {
    QString aboutText;
    QTextStream ts(&aboutText);
@@ -401,7 +351,6 @@ void MainWindow::showAbout() {
    QMessageBox::about(this, "About", aboutText.arg(__DATE__));
 }
 
-/// @brief Displays a help popup
 void MainWindow::showHelp() {
    QString helpText;
    QTextStream ts(&helpText);
@@ -454,8 +403,6 @@ void MainWindow::showHelp() {
    dialog->show();
 }
 
-/// @brief Clears the scene and removes all nodes and connections.
-/// @details If the project has been modified, the user will be prompted to save it first.
 void MainWindow::clearScene() {
    if (maybeSave()) {
       project->clear();

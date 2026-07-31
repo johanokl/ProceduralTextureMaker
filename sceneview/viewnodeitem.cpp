@@ -15,9 +15,6 @@
 #include <QMenu>
 #include <QPainter>
 
-/// @brief Constructor for the ViewNodeItem class.
-/// @param scene
-/// @param newNode
 ViewNodeItem::ViewNodeItem(ViewNodeScene* scene, const TextureNodePtr& newNode) {
    imageValid = false;
    setFlag(QGraphicsItem::ItemIsSelectable);
@@ -41,9 +38,6 @@ ViewNodeItem::ViewNodeItem(ViewNodeScene* scene, const TextureNodePtr& newNode) 
    settingsUpdated();
 }
 
-/// @brief Sets the image size to be used by this widget.
-/// @param size
-/// Sets the image size to be used by this widget.
 void ViewNodeItem::setThumbnailSize(QSize size) {
    prepareGeometryChange();
    pixmap = QPixmap();
@@ -52,8 +46,6 @@ void ViewNodeItem::setThumbnailSize(QSize size) {
    imageAvailable(thumbnailSize);
 }
 
-/// @brief Sets the height of the node title area.
-/// @param size Height of the node title area.
 void ViewNodeItem::setHeaderSize(int size) {
    if (size != 0 && (size < 8 || size > 48)) {
       size = 24;
@@ -66,8 +58,6 @@ void ViewNodeItem::setHeaderSize(int size) {
    update();
 }
 
-/// @brief Used for deciding which object to select when the user clicks in the ViewNodeView.
-/// @return The painter path surrounding this line.
 QPainterPath ViewNodeItem::shape() const {
    QPainterPath path;
    QRectF cardRect(0, -headerSize, thumbnailSize.width() + borderWidth * 2,
@@ -90,24 +80,18 @@ QPainterPath ViewNodeItem::shape() const {
    return path;
 }
 
-/// @brief Bounding rectangle of the widget.
-/// @return QRectF used for clipping.
 QRectF ViewNodeItem::boundingRect() const {
    return QRectF(-highlighterWidth, -highlighterWidth - headerSize,
                  thumbnailSize.width() + borderWidth * 2 + highlighterWidth * 2,
                  thumbnailSize.height() + borderWidth * 2 + highlighterWidth * 2 + headerSize);
 }
 
-/// @brief Checks if the given position is within the image section of the widget.
-/// @param pos Position in widget.
-/// @return @c true if the position is within the image section of the widget.
 bool ViewNodeItem::posInImage(QPointF pos) const {
    return QRectF(0, 0, thumbnailSize.width() + borderWidth * 2,
                  thumbnailSize.height() + borderWidth * 2)
        .contains(pos);
 }
 
-/// @brief Updates all lines connected to the node.
 void ViewNodeItem::updateConnectionLines() {
    QSetIterator<ViewNodeLine*> startIterator(startLines);
    while (startIterator.hasNext()) {
@@ -119,28 +103,21 @@ void ViewNodeItem::updateConnectionLines() {
    }
 }
 
-/// @brief Updates the node's and all connected lines' positions.
 void ViewNodeItem::positionUpdated() {
    setPos(texNode->getPos());
    updateConnectionLines();
 }
 
-/// @brief Called when the node's settings are updated.
 void ViewNodeItem::settingsUpdated() {
    titleString = texNode->getName().append(" (%1)").arg(texNode->getGeneratorName());
    setToolTip(titleString);
 }
 
-/// @brief Called when the old image is no longer valid.
 void ViewNodeItem::imageUpdated() {
    imageValid = false;
    update();
 }
 
-/// @brief Sets the node's state to indicate that it can be connected.
-/// @param isConnectable
-/// @details Adds or removes an overlay indicating to the user that this node can or can't be
-/// connected.
 void ViewNodeItem::showConnectable(bool isConnectable) {
    if (this->isConnectable != isConnectable) {
       this->isConnectable = isConnectable;
@@ -148,9 +125,6 @@ void ViewNodeItem::showConnectable(bool isConnectable) {
    }
 }
 
-/// @brief Sets the node's state to indicate that it can't be connected.
-/// @param isUnconnectable
-/// @details Adds or removes an overlay indicating to the user that this node can't be connected.
 void ViewNodeItem::showUnconnectable(bool isUnconnectable) {
    if (this->isUnconnectable != isUnconnectable) {
       this->isUnconnectable = isUnconnectable;
@@ -158,8 +132,6 @@ void ViewNodeItem::showUnconnectable(bool isUnconnectable) {
    }
 }
 
-/// @brief Resets the node's state.
-/// @details Removes all overlays from the node.
 void ViewNodeItem::clearOverlays() {
    if (this->isConnectable) {
       this->isConnectable = false;
@@ -171,8 +143,6 @@ void ViewNodeItem::clearOverlays() {
    }
 }
 
-/// @brief Called when nodes are connected.
-/// @param line
 void ViewNodeItem::addConnectionLine(ViewNodeLine* line) {
    if (line->getStartItemId() == id) {
       startLines.insert(line);
@@ -181,8 +151,6 @@ void ViewNodeItem::addConnectionLine(ViewNodeLine* line) {
    }
 }
 
-/// @brief Called when nodes are disconnected.
-/// @param line
 void ViewNodeItem::removeConnectionLine(ViewNodeLine* line) {
    if (line->getStartItemId() == id) {
       startLines.remove(line);
@@ -191,10 +159,6 @@ void ViewNodeItem::removeConnectionLine(ViewNodeLine* line) {
    }
 }
 
-/// @brief Called when an image is rendered.
-/// @param size Image size
-/// @details If the image size is the one used by the scene then the widget is redrawn with the
-/// updated image.
 void ViewNodeItem::imageAvailable(QSize size) {
    if (size == thumbnailSize) {
       const TextureImagePtr image = texNode->cachedImage(thumbnailSize);
@@ -210,10 +174,6 @@ void ViewNodeItem::imageAvailable(QSize size) {
    }
 }
 
-/// @brief Mouse right-click event callback function.
-/// @param event -
-/// @details Called when the user right-clicks on the node. Displays a context menu with various
-/// actions.
 void ViewNodeItem::contextMenuEvent(QGraphicsSceneContextMenuEvent* event) {
    event->accept();
    QMenu menu;
@@ -250,10 +210,6 @@ void ViewNodeItem::contextMenuEvent(QGraphicsSceneContextMenuEvent* event) {
    event->accept();
 }
 
-/// @brief Selects the node and updates the state.
-/// @param mouseEvent
-/// @details If the node is already selected and the user is holding the Ctrl key, the line drawing
-/// operation is started.
 void ViewNodeItem::mousePressEvent(QGraphicsSceneMouseEvent* mouseEvent) {
    if (mouseEvent->button() == Qt::LeftButton) {
       if (QApplication::keyboardModifiers() == Qt::ControlModifier) {
@@ -272,10 +228,6 @@ void ViewNodeItem::mousePressEvent(QGraphicsSceneMouseEvent* mouseEvent) {
    mouseEvent->accept();
 }
 
-/// @brief Item change event callback function.
-/// @param change -
-/// @param value 0 the node is no longer selected.
-/// @return -
 QVariant ViewNodeItem::itemChange(GraphicsItemChange change, const QVariant& value) {
    if (change == ItemSelectedChange && value.toInt() == 0) {
       scene->setSelectedNode(-1);
@@ -285,8 +237,6 @@ QVariant ViewNodeItem::itemChange(GraphicsItemChange change, const QVariant& val
    return QGraphicsItem::itemChange(change, value);
 }
 
-/// @brief Used for enabling changing the node's position by dragging.
-/// @param event
 void ViewNodeItem::mouseReleaseEvent(QGraphicsSceneMouseEvent* event) {
    if (mousePressed && QApplication::keyboardModifiers() != Qt::ControlModifier &&
        event->button() == Qt::LeftButton) {
@@ -294,8 +244,6 @@ void ViewNodeItem::mouseReleaseEvent(QGraphicsSceneMouseEvent* event) {
    }
 }
 
-/// @brief Changes the node's position when the user is dragging it.
-/// @param mouseEvent
 void ViewNodeItem::mouseMoveEvent(QGraphicsSceneMouseEvent* mouseEvent) {
    if (QApplication::keyboardModifiers() == Qt::ControlModifier) {
       return;
@@ -306,8 +254,6 @@ void ViewNodeItem::mouseMoveEvent(QGraphicsSceneMouseEvent* mouseEvent) {
    QGraphicsItem::mouseMoveEvent(mouseEvent);
 }
 
-/// @brief Highlights and changes colors on all lines connected to this node.
-/// @param event
 void ViewNodeItem::hoverEnterEvent(QGraphicsSceneHoverEvent* event) {
    setCursor(Qt::ArrowCursor);
    QSetIterator<ViewNodeLine*> startLineIterator(startLines);
@@ -321,9 +267,6 @@ void ViewNodeItem::hoverEnterEvent(QGraphicsSceneHoverEvent* event) {
    QGraphicsItem::hoverEnterEvent(event);
 }
 
-/// @brief ViewNodeItem::hoverLeaveEvent
-/// @param event
-/// Resets all lines connected to this node to their old states.
 void ViewNodeItem::hoverLeaveEvent(QGraphicsSceneHoverEvent* event) {
    QSetIterator<ViewNodeLine*> startLineIterator(startLines);
    while (startLineIterator.hasNext()) {
@@ -336,15 +279,10 @@ void ViewNodeItem::hoverLeaveEvent(QGraphicsSceneHoverEvent* event) {
    QGraphicsItem::hoverLeaveEvent(event);
 }
 
-/// @brief Callback function for when the mouse pointer's hovering over the node.
-/// @note Doesn't do anything but we need to define this to prevent Qt from using its own
-/// function.
 void ViewNodeItem::hoverMoveEvent(QGraphicsSceneHoverEvent*) {
    // Left empty
 }
 
-/// @brief Overloaded paint function for drawing the node.
-/// @param painter Qt's painter instance
 void ViewNodeItem::paint(QPainter* painter, const QStyleOptionGraphicsItem*, QWidget*) {
    const QRectF cardRect(0, -headerSize, thumbnailSize.width() + borderWidth * 2,
                          thumbnailSize.height() + borderWidth * 2 + headerSize);

@@ -27,47 +27,94 @@ class PreviewImagePanel : public QWidget {
    Q_OBJECT
 
 public:
-   explicit PreviewImagePanel(TextureProject*);
+   /// @brief Creates an image preview panel for a texture project.
+   /// @param project Project whose rendered images are displayed.
+   explicit PreviewImagePanel(TextureProject* project);
+
+   /// @brief Destroys the image preview panel.
    ~PreviewImagePanel() override = default;
+
+   /// @brief Reloads preview images when the panel becomes visible.
+   /// @param event Show event.
    void showEvent(QShowEvent* event) override;
-   bool loadNodeImage(int);
+
+   /// @brief Loads a cached thumbnail for a node when available.
+   /// @param id Node identifier.
+   /// @return True when a cached image was displayed.
+   bool loadNodeImage(int id);
 
 public slots:
-   void setActiveNode(int);
-   void imageAvailable(int, QSize);
-   void imageUpdated(int);
+   /// @brief Selects the node displayed by the preview panel.
+   /// @param id Node identifier.
+   void setActiveNode(int id);
+
+   /// @brief Displays a newly available thumbnail for the active node.
+   /// @param id Node identifier.
+   /// @param size Available image size.
+   void imageAvailable(int id, QSize size);
+
+   /// @brief Clears a preview whose cached image is no longer valid.
+   /// @param id Updated node identifier.
+   void imageUpdated(int id);
+
+   /// @brief Applies changed project settings to the preview widgets.
    void settingsUpdated();
-   void nodeRemoved(int);
+
+   /// @brief Clears the preview when its active node is removed.
+   /// @param id Removed node identifier.
+   void nodeRemoved(int id);
 
 private:
+   /// @brief Repeats a pixmap in a square tile arrangement.
+   /// @param pixmap Source image.
+   /// @param number Number of tiles along each dimension.
+   /// @return Tiled pixmap.
    QPixmap tilePixmap(const QPixmap& pixmap, int number);
+
+   /// @brief Project whose rendered images are displayed.
    TextureProject* project;
+   /// @brief Main vertical layout for the panel.
    QVBoxLayout* layout;
+   /// @brief Selector controlling the preview tile count.
    QComboBox* combobox;
+   /// @brief Widget displaying the two-dimensional preview.
    ImageLabel* imageLabel;
+   /// @brief Widget displaying the texture on a cube.
    CubeWidget* cubeWidget;
+   /// @brief Button that prevents selection changes from replacing the active node.
    QPushButton* lockNodeButton;
+   /// @brief Identifier of the node currently displayed.
    int currId;
+   /// @brief Number of tiles along each preview dimension.
    int numTiles;
+   /// @brief Cached thumbnail size requested from the project.
    QSize imageSize;
 };
 
-/// @brief QLabel with added functions to handle automatic
-/// scaling of QPixmap images to fit them in inside a QWidget.
-/// Supports 2x2 tiled drawing.
+/// @brief Automatically scales a pixmap to fit inside a widget.
 class ImageLabel : public QWidget {
    Q_OBJECT
 public:
+   /// @brief Creates an automatically scaling image widget.
+   /// @param parent Parent widget.
    explicit ImageLabel(QWidget* parent = nullptr);
+
 public slots:
-   void setPixmap(const QPixmap&);
+   /// @brief Sets the image and scales it to fill the widget.
+   /// @param pixmap Image to display.
+   void setPixmap(const QPixmap& pixmap);
 
 protected:
-   void resizeEvent(QResizeEvent*) override;
+   /// @brief Rescales the image after the widget size changes.
+   /// @param event Resize event.
+   void resizeEvent(QResizeEvent* event) override;
+
 private slots:
+   /// @brief Updates the image transformation for the current widget size.
    void resizeImage();
 
 private:
+   /// @brief Label that renders the current pixmap.
    QLabel* label;
 };
 

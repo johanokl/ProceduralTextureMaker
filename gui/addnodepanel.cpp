@@ -27,34 +27,38 @@
 /// @brief Extended QPushButton class with functions for enabling drag and drop of generator names.
 class AddNodeButton : public QPushButton {
 public:
-   AddNodeButton(QWidget* parent, QString _generatorName)
-       : QPushButton(parent), generatorName(std::move(_generatorName)) {}
+   /// @brief Creates a button that starts drags containing a generator name.
+   /// @param parent Parent widget.
+   /// @param generatorName Generator name placed in the drag data.
+   AddNodeButton(QWidget* parent, QString generatorName)
+       : QPushButton(parent), generatorName(std::move(generatorName)) {}
+
+   /// @brief Destroys the draggable generator button.
    ~AddNodeButton() override;
+
+   /// @brief Stores the starting position of a possible drag operation.
+   /// @param event Mouse press event.
    void mousePressEvent(QMouseEvent* event) override;
+
+   /// @brief Starts a generator-name drag after the pointer moves far enough.
+   /// @param event Mouse move event.
    void mouseMoveEvent(QMouseEvent* event) override;
 
 private:
+   /// @brief Position where the current mouse press began.
    QPoint dragStartPosition;
+   /// @brief Generator name placed in drag mime data.
    QString generatorName;
 };
 
-/// @brief Default destructor.
 AddNodeButton::~AddNodeButton() = default;
 
-/// @brief Mouse press event handler.
-/// @details If the left mouse button is pressed, the position is stored for later use in
-/// mouseMoveEvent to determine if a drag operation should be started.
-/// @param event
 void AddNodeButton::mousePressEvent(QMouseEvent* event) {
    if (event->button() == Qt::LeftButton) {
       dragStartPosition = event->pos();
    }
 }
 
-/// @brief Mouse move event handler.
-/// @details If the left mouse button is pressed and the mouse has moved a certain distance, a drag
-/// operation is started with the generator name as the mime data.
-/// @param event
 void AddNodeButton::mouseMoveEvent(QMouseEvent* event) {
    if (((event->buttons() & Qt::LeftButton) > 0) &&
        (event->pos() - dragStartPosition).manhattanLength() > QApplication::startDragDistance()) {
@@ -66,8 +70,6 @@ void AddNodeButton::mouseMoveEvent(QMouseEvent* event) {
    }
 }
 
-/// @brief Displays the texgen classes in three groups, Generator, Filter and Combiner.
-/// @param project
 AddNodePanel::AddNodePanel(TextureProject* project) {
    this->project = project;
 
@@ -121,17 +123,12 @@ AddNodePanel::AddNodePanel(TextureProject* project) {
                     &AddNodePanel::removeGenerator);
 }
 
-/// @brief Removes a button.
-/// @param generator
 void AddNodePanel::removeGenerator(const TextureGeneratorPtr& generator) {
    if (widgets.contains(generator)) {
       delete widgets.value(generator);
    }
 }
 
-/// @brief Slot called when a generator has been added.
-/// @details Creates a new draggable button and adds it to the generator types's widget group.
-/// @param generator
 void AddNodePanel::addGenerator(const TextureGeneratorPtr& generator) {
    if (widgets.contains(generator)) {
       return;

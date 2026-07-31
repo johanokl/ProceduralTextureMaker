@@ -15,7 +15,6 @@
 #include <QWheelEvent>
 #include <QtMath>
 
-/// @brief ViewNodeView::ViewNodeView
 ViewNodeView::ViewNodeView() : scrollZoomFactor(1.0), zoomStepFactor(1.45) {
    setMouseTracking(true);
    setRenderHints(QPainter::Antialiasing | QPainter::SmoothPixmapTransform |
@@ -36,8 +35,6 @@ ViewNodeView::ViewNodeView() : scrollZoomFactor(1.0), zoomStepFactor(1.45) {
    scale(defaultZoomFactor, defaultZoomFactor);
 }
 
-/// @brief ViewNodeView::setZoomStepFactor
-/// @param factor Zoom factor for one button press or mouse wheel step.
 void ViewNodeView::setZoomStepFactor(double factor) {
    if (factor <= 1.0 || factor > 3.0) {
       factor = 1.45;
@@ -46,8 +43,6 @@ void ViewNodeView::setZoomStepFactor(double factor) {
    scrollZoomFactor = qPow(zoomStepFactor, 1.0 / 120.0);
 }
 
-/// @brief ViewNodeView::setNodeScene
-/// @param scene New scene to display.
 void ViewNodeView::setNodeScene(QGraphicsScene* scene) {
    if (sceneChangedConnection) {
       QObject::disconnect(sceneChangedConnection);
@@ -62,8 +57,6 @@ void ViewNodeView::setNodeScene(QGraphicsScene* scene) {
    }
 }
 
-/// @brief ViewNodeView::showAllNodes
-/// Zooms to show all scene items.
 void ViewNodeView::showAllNodes() {
    QGraphicsScene* currentScene = scene();
    if (!currentScene) {
@@ -97,8 +90,6 @@ void ViewNodeView::showAllNodes() {
    setTransformationAnchor(anchor);
 }
 
-/// @brief ViewNodeView::resetZoom
-/// Resets the zoom to 100%.
 void ViewNodeView::resetZoom() {
    const ViewportAnchor anchor = transformationAnchor();
    setTransformationAnchor(QGraphicsView::AnchorViewCenter);
@@ -108,16 +99,10 @@ void ViewNodeView::resetZoom() {
    setTransformationAnchor(anchor);
 }
 
-/// @brief ViewNodeView::zoomIn
-/// Zooms in while keeping the current view center.
 void ViewNodeView::zoomIn() { zoomCentered(zoomStepFactor); }
 
-/// @brief ViewNodeView::zoomOut
-/// Zooms out while keeping the current view center.
 void ViewNodeView::zoomOut() { zoomCentered(1.0 / zoomStepFactor); }
 
-/// @brief ViewNodeView::applyAnimatedZoom
-/// @param value Animation value where 1.0 is the starting zoom level.
 void ViewNodeView::applyAnimatedZoom(double value) {
    double step = value / zoomAnimationLastFactor;
    zoomAnimationLastFactor = value;
@@ -140,10 +125,6 @@ void ViewNodeView::applyAnimatedZoom(double value) {
    setTransformationAnchor(anchor);
 }
 
-/// @brief ViewNodeView::startZoomAnimation
-/// @param factor Final zoom factor.
-/// @param viewportPos Viewport point to keep fixed.
-/// @param useViewportAnchor If true, keep viewportPos fixed instead of the center.
 void ViewNodeView::startZoomAnimation(double factor, const QPoint& viewportPos,
                                       bool useViewportAnchor) {
    zoomAnimation->stop();
@@ -161,25 +142,16 @@ void ViewNodeView::startZoomAnimation(double factor, const QPoint& viewportPos,
    zoomAnimation->start();
 }
 
-/// @brief ViewNodeView::zoomAt
-/// @param viewportPos Viewport point to keep fixed.
-/// @param factor Zoom factor.
 void ViewNodeView::zoomAt(const QPoint& viewportPos, double factor) {
    startZoomAnimation(factor, viewportPos, true);
 }
 
-/// @brief ViewNodeView::zoomCentered
-/// @param factor Zoom factor.
 void ViewNodeView::zoomCentered(double factor) {
    startZoomAnimation(factor, viewport()->rect().center(), false);
 }
 
-/// @brief ViewNodeView::updateSceneRect
-/// Updates the scrollable scene area around the current view center.
 void ViewNodeView::updateSceneRect() { updateSceneRect(mapToScene(viewport()->rect().center())); }
 
-/// @brief ViewNodeView::updateSceneRect
-/// @param center Scene position that should remain reachable.
 void ViewNodeView::updateSceneRect(const QPointF& center) {
    QGraphicsScene* currentScene = scene();
    if (!currentScene || updatingSceneRect) {
@@ -216,18 +188,11 @@ void ViewNodeView::updateSceneRect(const QPointF& center) {
    updatingSceneRect = false;
 }
 
-/// @brief ViewNodeView::resizeEvent
-/// @param event Qt resize event.
 void ViewNodeView::resizeEvent(QResizeEvent* event) {
    QGraphicsView::resizeEvent(event);
    updateSceneRect();
 }
 
-/// @brief ViewNodeView::wheelEvent
-/// @param event
-///
-/// Zooms in and out from the screen when the user scrolls the
-/// mouse wheel while pressing the Shift or Alt keys.
 void ViewNodeView::wheelEvent(QWheelEvent* event) {
    if (event->modifiers() & (Qt::ShiftModifier | Qt::AltModifier)) {
       double angle = event->angleDelta().y();

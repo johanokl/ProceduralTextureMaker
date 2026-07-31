@@ -12,9 +12,6 @@
 #include <QPushButton>
 #include <QVBoxLayout>
 
-/// @brief ItemInfoPanel constructor.
-/// @param parent MainWindow parent
-/// @param project Pointer to the TextureProject that this widget will display info for.
 ItemInfoPanel::ItemInfoPanel(QWidget* parent, TextureProject* project) : QWidget(parent) {
    texproject = project;
    currWidget = nullptr;
@@ -37,17 +34,11 @@ ItemInfoPanel::ItemInfoPanel(QWidget* parent, TextureProject* project) : QWidget
    QObject::connect(texproject, &TextureProject::nodeAdded, this, &ItemInfoPanel::addNode);
 }
 
-/// @brief Called when a node has been added to the graph.
-/// @param unused The added node.
 void ItemInfoPanel::addNode(const TextureNodePtr&) {
    // Update the scene info widget's labels.
    sceneWidget->updateNumNodes();
 }
 
-/// @brief Called when lines have been disconnected.
-/// @param sourceNodeId Source node's id.
-/// @param receiverNodeId Receiver node's id.
-/// @param slot Slot id
 void ItemInfoPanel::nodesDisconnected(int sourceNodeId, int receiverNodeId, int slot) {
    if (currLine == std::tuple<int, int, int>(sourceNodeId, receiverNodeId, slot)) {
       // The removed connection is currently visible
@@ -55,8 +46,6 @@ void ItemInfoPanel::nodesDisconnected(int sourceNodeId, int receiverNodeId, int 
    }
 }
 
-/// @brief Called when a node has been removed from the graph.
-/// @param id Node id
 void ItemInfoPanel::removeNode(int id) {
    if (currNodeId == id) {
       // The removed node is currently visible
@@ -72,8 +61,6 @@ void ItemInfoPanel::removeNode(int id) {
    sceneWidget->updateNumNodes();
 }
 
-/// @brief Called when the slot widget for a node needs to be updated.
-/// @param id Node id
 void ItemInfoPanel::sourceUpdated(int id) {
    auto* nodeptr = nodes.value(id, nullptr);
    if (nodeptr != nullptr) {
@@ -81,10 +68,6 @@ void ItemInfoPanel::sourceUpdated(int id) {
    }
 }
 
-/// @brief Displays a widget with info and properties for a node or the scene.
-/// @details If no info widget exists for a node a new one is created and stored
-/// in a cache for faster display the next time.
-/// @param id Node id
 void ItemInfoPanel::setActiveNode(int id) {
    if (currNodeId == id) {
       return;
@@ -117,10 +100,6 @@ void ItemInfoPanel::setActiveNode(int id) {
    currWidget->show();
 }
 
-/// @brief Displays the connection widget with data for the selected node.
-/// @param sourceNodeId
-/// @param receiverNodeId
-/// @param slot Receiver's slot id
 void ItemInfoPanel::setActiveLine(int sourceNodeId, int receiverNodeId, int slot) {
    if (sourceNodeId == -1 || receiverNodeId == -1) {
       return;

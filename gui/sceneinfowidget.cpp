@@ -10,8 +10,6 @@
 #include <QGroupBox>
 #include <QLabel>
 
-/// @brief Constructor for SceneInfoWidget.
-/// @param widgetmanager Parent widget manager.
 SceneInfoWidget::SceneInfoWidget(ItemInfoPanel* widgetmanager) {
    this->widgetmanager = widgetmanager;
 
@@ -29,7 +27,6 @@ SceneInfoWidget::SceneInfoWidget(ItemInfoPanel* widgetmanager) {
    layout->addItem(new QSpacerItem(0, 0, QSizePolicy::Minimum, QSizePolicy::Expanding));
 }
 
-/// @brief Updates the text label with the number of nodes.
 void SceneInfoWidget::updateNumNodes() {
    int num = widgetmanager->getTextureProject()->getNumNodes();
    numNodesLabel->setText(QString("%1").arg(num));

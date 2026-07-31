@@ -8,8 +8,6 @@
 #include <QDebug>
 #include <QMouseEvent>
 
-/// @brief Constructor for the CubeWidget class.
-/// @param parent
 CubeWidget::CubeWidget(QWidget* parent)
     : QOpenGLWidget(parent), indexBuf(QOpenGLBuffer::IndexBuffer) {
    initialized = false;
@@ -22,7 +20,6 @@ CubeWidget::CubeWidget(QWidget* parent)
    setSizePolicy(sizePolicy);
 }
 
-/// @brief Destructor for the CubeWidget class.
 CubeWidget::~CubeWidget() {
    // Make sure the context is current when deleting the texture
    if (initialized) {
@@ -38,10 +35,8 @@ CubeWidget::~CubeWidget() {
    }
 }
 
-/// @brief Event handler for mouse press events. Saves the mouse press position
 void CubeWidget::mousePressEvent(QMouseEvent* e) { mousePressPosition = QVector2D(e->position()); }
 
-/// @brief Event handler for mouse release events. Change rotation based on difference.
 void CubeWidget::mouseReleaseEvent(QMouseEvent* e) {
    // Mouse release position - mouse press position
    QVector2D diff = QVector2D(e->position()) - mousePressPosition;
@@ -55,7 +50,6 @@ void CubeWidget::mouseReleaseEvent(QMouseEvent* e) {
    angularSpeed += acc;
 }
 
-/// @brief Event handler for timer events. Updates the cube's rotation based on its angular speed.
 void CubeWidget::timerEvent(QTimerEvent*) {
    // Decrease angular speed (friction)
    angularSpeed *= 0.99;
@@ -67,7 +61,6 @@ void CubeWidget::timerEvent(QTimerEvent*) {
    }
 }
 
-/// @brief Initializes OpenGL and creates the 3D cube.
 void CubeWidget::initializeGL() {
    initializeOpenGLFunctions();
    // Compile shaders
@@ -111,12 +104,8 @@ void CubeWidget::initializeGL() {
    uploadTexture();
 }
 
-/// @brief Event handler for image updates
-/// @details Called when a node's settings have been changed and the current image is invalid.
 void CubeWidget::imageUpdated() { update(); }
 
-/// @brief CubeWidget::setBackgroundColor
-/// Set the widget's background color.
 void CubeWidget::setBackgroundColor(const QColor& bg) {
    backgroundcolor = bg;
    if (initialized) {
@@ -126,8 +115,6 @@ void CubeWidget::setBackgroundColor(const QColor& bg) {
    }
 }
 
-/// @brief Displays the QPixmap on all six sides of the cube.
-/// @param pixmap The texture
 void CubeWidget::setTexture(const QPixmap& pixmap) {
    pendingTexture = pixmap;
    if (!initialized) {
@@ -140,7 +127,6 @@ void CubeWidget::setTexture(const QPixmap& pixmap) {
    doneCurrent();
 }
 
-/// @brief Uploads the pending texture to the GPU and creates a new QOpenGLTexture object.
 void CubeWidget::uploadTexture() {
    if (texture != nullptr) {
       texture->release();
@@ -162,7 +148,6 @@ void CubeWidget::uploadTexture() {
    }
 }
 
-/// @brief Resizes the widget's perspective.
 void CubeWidget::resizeGL(int width, int height) {
    float aspectRatio = static_cast<float>(width) / static_cast<float>(height ? height : 1);
    // Reset projection
@@ -172,7 +157,6 @@ void CubeWidget::resizeGL(int width, int height) {
    projection.perspective(45.0, aspectRatio, 3.0, 7.0);
 }
 
-/// @brief Qt's paint function.
 void CubeWidget::paintGL() {
    // Clear color and depth buffer
    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);

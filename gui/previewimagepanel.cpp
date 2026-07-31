@@ -16,7 +16,6 @@
 #include <QPushButton>
 #include <QVBoxLayout>
 
-/// @brief @param parent
 ImageLabel::ImageLabel(QWidget* parent) : QWidget(parent) {
    label = new QLabel(this);
    label->setPixmap(QPixmap(0, 0));
@@ -30,31 +29,22 @@ ImageLabel::ImageLabel(QWidget* parent) : QWidget(parent) {
    setSizePolicy(sizePolicy);
 }
 
-/// @brief Called by Qt when widget's size changed.
-/// Updates the image transform to match the new size.
-/// @param event
 void ImageLabel::resizeEvent(QResizeEvent* event) {
    QWidget::resizeEvent(event);
    resizeImage();
 }
 
-/// @brief Sets the pixmap to fill the whole widget.
-/// @param pixmap background image
 void ImageLabel::setPixmap(const QPixmap& pixmap) {
    label->setPixmap(pixmap);
    resizeImage();
 }
 
-/// @brief Updates the image rescale transform.
-/// Calling it multiple times doesn't lead to artifacts.
 void ImageLabel::resizeImage() {
    QSize pixSize = label->pixmap(Qt::ReturnByValue).size();
    pixSize.scale(size(), Qt::KeepAspectRatio);
    label->setFixedSize(pixSize);
 }
 
-///
-/// @param project
 PreviewImagePanel::PreviewImagePanel(TextureProject* project) {
    this->project = project;
    imageSize = project->getThumbnailSize();
@@ -104,8 +94,6 @@ PreviewImagePanel::PreviewImagePanel(TextureProject* project) {
    settingsUpdated();
 }
 
-/// @brief Removes the no longer valid image from the pixmap widgets.
-/// @param id Node id
 void PreviewImagePanel::imageUpdated(int id) {
    if (id != currId) {
       return;
@@ -115,10 +103,6 @@ void PreviewImagePanel::imageUpdated(int id) {
    }
 }
 
-/// @brief Checks if there is an image with the thumbnail size in the node's texture cache.
-/// If found, displays it in the pixmap widgets.
-/// @param id Node id
-/// @return @c true if could load image
 bool PreviewImagePanel::loadNodeImage(int id) {
    TextureNodePtr texNode = project->getNode(id);
    if (texNode.isNull()) {
@@ -142,10 +126,6 @@ bool PreviewImagePanel::loadNodeImage(int id) {
    return true;
 }
 
-/// @brief Called when an image is available for the preview.
-/// @details If the panel is visible loads a new image to the pixmap widgets.
-/// @param id Node id
-/// @param size Image size
 void PreviewImagePanel::imageAvailable(int id, QSize size) {
    if (id != currId || size != imageSize) {
       return;
@@ -156,9 +136,6 @@ void PreviewImagePanel::imageAvailable(int id, QSize size) {
    loadNodeImage(id);
 }
 
-/// @brief Called when the panel is shown.
-/// @param event Show event
-/// @details Load the images when the panel is opened.
 void PreviewImagePanel::showEvent(QShowEvent* event) {
    QWidget::showEvent(event);
    if (!loadNodeImage(currId)) {
@@ -167,9 +144,6 @@ void PreviewImagePanel::showEvent(QShowEvent* event) {
    }
 }
 
-/// @brief Sets the active node for the preview.
-/// @param id Node id
-/// @details Updates the images.
 void PreviewImagePanel::setActiveNode(int id) {
    if (lockNodeButton->isChecked()) {
       return;
@@ -186,8 +160,6 @@ void PreviewImagePanel::setActiveNode(int id) {
    loadNodeImage(id);
 }
 
-/// @brief Called when a node has been removed from the graph.
-/// @param id Node id
 void PreviewImagePanel::nodeRemoved(int id) {
    if (currId != id) {
       return;
@@ -197,10 +169,6 @@ void PreviewImagePanel::nodeRemoved(int id) {
    cubeWidget->hide();
 }
 
-/// @brief Tiles a pixmap.
-/// @param pixmap Image
-/// @param number Number of tiles
-/// @return Tiled pixmap
 QPixmap PreviewImagePanel::tilePixmap(const QPixmap& pixmap, int number) {
    QPixmap newPixmap(pixmap.size() * number);
    newPixmap.fill(QColor(255, 255, 255, 255));
@@ -210,8 +178,6 @@ QPixmap PreviewImagePanel::tilePixmap(const QPixmap& pixmap, int number) {
    return newPixmap;
 }
 
-/// @brief Called whenever a project setting has been changed.
-/// @details Might not just be the background color.
 void PreviewImagePanel::settingsUpdated() {
    QColor bg = project->getSettingsManager()->getPreviewBackgroundColor();
    cubeWidget->setBackgroundColor(bg);

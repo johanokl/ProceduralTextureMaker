@@ -16,32 +16,65 @@ class NodeSettingsWidget;
 class ConnectionWidget;
 class SceneInfoWidget;
 
-/// @brief Controls which info widget to display at a given moment. Either the scene node, when no
-/// node is selected in the graph, the node settings widget or the line node connection info widget.
+/// @brief Displays scene, node, or connection information for the current graph selection.
 class ItemInfoPanel : public QWidget {
    Q_OBJECT
 
 public:
+   /// @brief Creates an information panel for a texture project.
+   /// @param parent Parent widget.
+   /// @param textureProject Project whose graph information is displayed.
    ItemInfoPanel(QWidget* parent, TextureProject* textureProject);
+
+   /// @brief Destroys the information panel and its cached widgets.
    ~ItemInfoPanel() override = default;
+
+   /// @brief Returns the project displayed by this panel.
    TextureProject* getTextureProject() { return texproject; }
 
 public slots:
+   /// @brief Displays the scene information or settings for the selected node.
+   /// @param id Node identifier, or 0 to display scene information.
    void setActiveNode(int id);
+
+   /// @brief Displays information about a selected connection.
+   /// @param sourceNodeId Source node identifier.
+   /// @param receiverNodeId Receiver node identifier.
+   /// @param slot Receiver input slot identifier.
    void setActiveLine(int sourceNodeId, int receiverNodeId, int slot);
+
+   /// @brief Removes cached information for a deleted node.
+   /// @param id Deleted node identifier.
    void removeNode(int id);
-   void addNode(const TextureNodePtr&);
+
+   /// @brief Refreshes the scene information after a node is added.
+   /// @param node Added node.
+   void addNode(const TextureNodePtr& node);
+
+   /// @brief Refreshes source controls for a changed node.
+   /// @param id Changed node identifier.
    void sourceUpdated(int id);
+
+   /// @brief Refreshes the panel after a connection is removed.
+   /// @param sourceNodeId Source node identifier.
+   /// @param receiverNodeId Receiver node identifier.
+   /// @param slot Receiver input slot identifier.
    void nodesDisconnected(int sourceNodeId, int receiverNodeId, int slot);
 
 private:
+   /// @brief Project whose selection details are displayed.
    TextureProject* texproject;
+   /// @brief Cached settings widgets indexed by node identifier.
    QMap<int, NodeSettingsWidget*> nodes;
-
+   /// @brief Widget displaying the selected connection.
    ConnectionWidget* lineWidget;
+   /// @brief Currently displayed node settings widget.
    NodeSettingsWidget* currWidget;
+   /// @brief Widget displayed when no graph item is selected.
    SceneInfoWidget* sceneWidget;
+   /// @brief Identifier of the currently displayed node.
    int currNodeId;
+   /// @brief Source, receiver, and slot of the currently displayed connection.
    std::tuple<int, int, int> currLine;
 };
 

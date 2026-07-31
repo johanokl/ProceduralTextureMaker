@@ -25,9 +25,6 @@
 #include <QSpinBox>
 #include <QVBoxLayout>
 
-/// @brief SettingsPanel constructor. Creates the settings panel and all its child widgets.
-/// @param parent Parent widget.
-/// @param settingsmanager Pointer to the SettingsManager that this widget will showtings for.
 SettingsPanel::SettingsPanel(MainWindow* parent, SettingsManager* settingsmanager)
     : QWidget(parent) {
    this->settingsmanager = settingsmanager;
@@ -239,8 +236,6 @@ SettingsPanel::SettingsPanel(MainWindow* parent, SettingsManager* settingsmanage
    settingsUpdated();
 }
 
-/// @brief Opens a color dialog and applies the selected color to the button and the settings.
-/// @param button
 void SettingsPanel::colorDialog(QPushButton* button) {
    QColor initColor(button->text());
    QColor color = QColorDialog::getColor(initColor, this, "Select Color");
@@ -250,9 +245,6 @@ void SettingsPanel::colorDialog(QPushButton* button) {
    }
 }
 
-/// @brief Styles a color button with the given color.
-/// @param button Button to style
-/// @param color Color to use
 void SettingsPanel::styleColorButton(QPushButton* button, const QColor& color) {
    QString fontColor("#ffffff");
    if ((color.red() * 0.299 + color.green() * 0.587 + color.blue() * 0.114) > 170) {
@@ -262,9 +254,6 @@ void SettingsPanel::styleColorButton(QPushButton* button, const QColor& color) {
    button->setText(color.name());
 }
 
-/// @brief Opens a directory selection dialog and applies the selected path to the line edit and the
-/// settings.
-/// @param lineWidget Line edit to update with the selected path
 void SettingsPanel::selectDirectoryPath(QLineEdit* lineWidget) {
    QString startDir = lineWidget->text();
    if (startDir.isEmpty()) {
@@ -279,7 +268,6 @@ void SettingsPanel::selectDirectoryPath(QLineEdit* lineWidget) {
    }
 }
 
-/// @brief Updates the style labels for the scene settings.
 void SettingsPanel::updateSceneStyleLabels() {
    int lineWidth = lineWidthSlider->value();
    int arrowSize = arrowSizeSlider->value() * 2;
@@ -296,7 +284,6 @@ void SettingsPanel::updateSceneStyleLabels() {
    zoomSpeedValueLabel->setText(QString::number(zoomFactor, 'f', 2) + "x");
 }
 
-/// @brief Applies the current settings to the application.
 void SettingsPanel::applySettings() {
    updateSceneStyleLabels();
    if (blockSlot) {
@@ -324,9 +311,6 @@ void SettingsPanel::applySettings() {
    mainwindow->setZoomStepFactor(zoomFactor);
 }
 
-/// @brief Converts a slider value to the corresponding header size.
-/// @param value Slider value.
-/// @return Header size in pixels.
 int SettingsPanel::headerSizeForSlider(int value) const {
    switch (value) {
       case 0:
@@ -347,9 +331,6 @@ int SettingsPanel::headerSizeForSlider(int value) const {
    }
 }
 
-/// @brief Converts a header size to the corresponding slider value.
-/// @param size Header size in pixels.
-/// @return Slider value.
 int SettingsPanel::headerSliderForSize(int size) const {
    switch (size) {
       case 0:
@@ -370,9 +351,6 @@ int SettingsPanel::headerSliderForSize(int size) const {
    }
 }
 
-/// @brief Converts a slider value to the corresponding zoom factor.
-/// @param value Slider value.
-/// @return Zoom factor for one zoom step.
 double SettingsPanel::zoomFactorForSlider(int value) const {
    switch (value) {
       case 0:
@@ -389,9 +367,6 @@ double SettingsPanel::zoomFactorForSlider(int value) const {
    }
 }
 
-/// @brief Converts a zoom factor to the corresponding slider value.
-/// @param factor Zoom factor.
-/// @return Slider value.
 int SettingsPanel::zoomSliderForFactor(double factor) const {
    if (factor < 1.35) {
       return 0;
@@ -408,9 +383,6 @@ int SettingsPanel::zoomSliderForFactor(double factor) const {
    return 4;
 }
 
-/// @brief Handles the show event for the settings panel.
-/// @param event Show event.
-/// Reload the settings when the panel is opened.
 void SettingsPanel::showEvent(QShowEvent* event) {
    QWidget::showEvent(event);
    if (!event->spontaneous() && !isHidden()) {
@@ -418,7 +390,6 @@ void SettingsPanel::showEvent(QShowEvent* event) {
    }
 }
 
-/// @brief Updates the settings in the panel.
 void SettingsPanel::settingsUpdated() {
    if (blockSlot) {
       return;
@@ -463,7 +434,6 @@ void SettingsPanel::settingsUpdated() {
    applySettings();
 }
 
-/// @brief Resets the settings to their default values.
 void SettingsPanel::resetSettings() {
    blockSlot = true;
    exportImageWidthSpinbox->setValue(800);
@@ -486,14 +456,12 @@ void SettingsPanel::resetSettings() {
    applySettings();
 }
 
-/// @brief Cancels the current settings and reverts to the previously saved settings.
 void SettingsPanel::cancelSettings() {
    settingsmanager->loadSettings();
    settingsUpdated();
    mainwindow->getMenu()->toggleSettingsPanel();
 }
 
-/// @brief Saves the current settings.
 void SettingsPanel::saveSettings() {
    blockSlot = true;
    int exportImageWidth = exportImageWidthSpinbox->value();
