@@ -5,6 +5,7 @@
 // Johan Lindqvist (johan.lindqvist@gmail.com)
 
 #include "base/textureproject.h"
+#include "base/editmanager.h"
 #include "gui/connectionwidget.h"
 #include "gui/iteminfopanel.h"
 #include <QGroupBox>
@@ -45,11 +46,10 @@ void ConnectionWidget::disconnectNodes() {
    if (project == nullptr) {
       return;
    }
-   TextureNodePtr node = project->getNode(receiverNodeId);
-   if (node.isNull()) {
-      return;
+   auto editManager = widgetmanager.getEditManager();
+   if (editManager != nullptr) {
+      editManager->setConnection(receiverNodeId, slot, 0);
    }
-   node.data()->setSourceSlot(slot, 0);
    this->hide();
 }
 

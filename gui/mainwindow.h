@@ -24,6 +24,7 @@ class PreviewImagePanel;
 class SettingsPanel;
 class SettingsManager;
 class JSTexGenManager;
+class EditManager;
 
 /// @brief The application's main window, containing all the scenes and panels.
 ///
@@ -48,6 +49,9 @@ public:
 
    /// @brief Returns the window's menu and toolbar manager.
    MenuActions* getMenu() { return menuactions.get(); }
+
+   /// @brief Returns the manager for user-initiated project edits in this window.
+   EditManager& getEditManager() { return *editManager; }
 
 public slots:
    /// @brief Prompts for a destination and saves the current project.
@@ -153,6 +157,8 @@ private:
    TexGenApplication* parentapp{nullptr};
    /// @brief Texture project displayed by the window.
    std::unique_ptr<TextureProject> project;
+   /// @brief Manager and undo history for user-initiated project edits.
+   std::unique_ptr<EditManager> editManager;
    /// @brief Path last used to save the current project.
    QString savedFileName;
    /// @brief Manager for the window's menus, toolbars, and actions.

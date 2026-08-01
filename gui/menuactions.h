@@ -121,6 +121,10 @@ private:
    QAction* exitAct{nullptr};
    /// @brief Action that clears the current project.
    QAction* clearAct{nullptr};
+   /// @brief Action that undoes the most recent graph edit.
+   QAction* undoAct{nullptr};
+   /// @brief Action that redoes the most recently undone graph edit.
+   QAction* redoAct{nullptr};
    /// @brief Action that copies the selected node.
    QAction* copyAct{nullptr};
    /// @brief Action that cuts the selected node.

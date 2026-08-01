@@ -5,6 +5,7 @@
 
 #include "clipboardoperations.h"
 #include "base/textureproject.h"
+#include "base/editmanager.h"
 #include <QApplication>
 #include <QClipboard>
 #include <QString>
@@ -18,14 +19,13 @@ bool copyNodeToClipboard(TextureProject& project, const int id) {
    return QApplication::clipboard()->text() == payload;
 }
 
-bool cutNodeToClipboard(TextureProject& project, const int id) {
+bool cutNodeToClipboard(TextureProject& project, EditManager& editManager, const int id) {
    if (!copyNodeToClipboard(project, id)) {
       return false;
    }
-   project.removeNode(id);
-   return true;
+   return editManager.removeNode(id);
 }
 
-int pasteNodesFromClipboard(TextureProject& project) {
-   return project.pasteNodes(QApplication::clipboard()->text());
+int pasteNodesFromClipboard(EditManager& editManager) {
+   return editManager.pasteNodes(QApplication::clipboard()->text());
 }

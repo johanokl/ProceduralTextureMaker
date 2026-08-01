@@ -7,6 +7,7 @@
 #include "base/textureproject.h"
 #include "gui/clipboardoperations.h"
 #include "gui/mainwindow.h"
+#include "base/editmanager.h"
 #include "sceneview/viewnodeitem.h"
 #include "sceneview/viewnodeline.h"
 #include "sceneview/viewnodescene.h"
@@ -191,17 +192,17 @@ void ViewNodeItem::contextMenuEvent(QGraphicsSceneContextMenuEvent* event) {
 
    QAction* selectedAction = menu.exec(event->screenPos());
    if (removeNodeAction == selectedAction) {
-      scene.getTextureProject().removeNode(id);
+      scene.getMainWindow().getEditManager().removeNode(id);
    } else if (copyNodeAction == selectedAction) {
       copyNodeToClipboard(scene.getTextureProject(), id);
    } else if (cutNodeAction == selectedAction) {
-      cutNodeToClipboard(scene.getTextureProject(), id);
+      cutNodeToClipboard(scene.getTextureProject(), scene.getMainWindow().getEditManager(), id);
    } else if (exportImageAction == selectedAction) {
       scene.getMainWindow().saveImage(id);
    } else {
       for (int i = 0; i < texNode->getNumSourceSlots(); i++) {
          if (actions[i] == selectedAction) {
-            texNode->setSourceSlot(i, 0);
+            scene.getMainWindow().getEditManager().setConnection(id, i, 0);
          }
       }
    }
@@ -239,6 +240,7 @@ void ViewNodeItem::mouseReleaseEvent(QGraphicsSceneMouseEvent* event) {
    if (mousePressed && QApplication::keyboardModifiers() != Qt::ControlModifier &&
        event->button() == Qt::LeftButton) {
       mousePressed = false;
+      scene.getMainWindow().getEditManager().moveNode(id, mousePressedItemPos, texNode->getPos());
    }
 }
 

@@ -5,6 +5,7 @@
 // Johan Lindqvist (johan.lindqvist@gmail.com)
 
 #include "base/textureproject.h"
+#include "base/editmanager.h"
 #include "gui/iteminfopanel.h"
 #include "gui/nodesettingswidget.h"
 #include "gui/qdoubleslider.h"
@@ -56,12 +57,12 @@ NodeSettingsWidget::NodeSettingsWidget(ItemInfoPanel& widgetmanager, int id)
    nodeInfoLayout->addRow("Generator:", generatorNameLabel);
 
    contentsLayout->addWidget(nodeInfoWidget);
-   QObject::connect(static_cast<QLineEdit*>(nodeNameLineEdit),
-                    static_cast<void (QLineEdit::*)(void)>(&QLineEdit::returnPressed), [=]() {
-                       if (texNode->getName() != nodeNameLineEdit->text()) {
-                          this->saveSettings();
-                       }
-                    });
+   QObject::connect(nodeNameLineEdit, &QLineEdit::editingFinished, [this]() {
+      auto editManager = this->widgetmanager.getEditManager();
+      if (editManager != nullptr) {
+         editManager->renameNode(this->id, nodeNameLineEdit->text());
+      }
+   });
 
    sourceButtonsWidget = new QGroupBox("Inputs");
    sourceButtonsWidget->setProperty("inspectorSection", true);
@@ -78,7 +79,12 @@ NodeSettingsWidget::NodeSettingsWidget(ItemInfoPanel& widgetmanager, int id)
       sourceButtonsLayout->addWidget(slotLabel, i, 0);
       auto* slotButton = new QPushButton;
       sourceButtonsLayout->addWidget(slotButton, i, 1);
-      QObject::connect(slotButton, &QPushButton::clicked, [=]() { texNode->setSourceSlot(i, 0); });
+      QObject::connect(slotButton, &QPushButton::clicked, [this, i]() {
+         auto editManager = this->widgetmanager.getEditManager();
+         if (editManager != nullptr) {
+            editManager->setConnection(this->id, i, 0);
+         }
+      });
       sourceSlotButtons.push_back(slotButton);
       sourceSlotLabels.push_back(slotLabel);
       slotButton->hide();
@@ -154,14 +160,8 @@ bool NodeSettingsWidget::saveSettings() {
    if (saveDisabled) {
       return false;
    }
-   if (texNode->getName() != nodeNameLineEdit->text()) {
-      texNode->setName(nodeNameLineEdit->text());
-      QSetIterator<int> receiveriter = texNode->getReceivers();
-      while (receiveriter.hasNext()) {
-         widgetmanager.sourceUpdated(receiveriter.next());
-      }
-   }
    TextureNodeSettings nodeSettings = texNode->getSettings();
+   const TextureNodeSettings oldSettings = nodeSettings;
    QMapIterator<QString, QWidget*> settingElementIterator(settingElements);
    while (settingElementIterator.hasNext()) {
       settingElementIterator.next();
@@ -219,18 +219,24 @@ bool NodeSettingsWidget::saveSettings() {
             INFO_MSG("Type not found. Property id=" + settingsId);
       }
    }
-   texNode->setSettings(nodeSettings);
+   auto editManager = widgetmanager.getEditManager();
+   if (editManager == nullptr) {
+      return false;
+   }
+   for (auto setting = nodeSettings.cbegin(); setting != nodeSettings.cend(); ++setting) {
+      if (oldSettings.value(setting.key()) == setting.value()) {
+         continue;
+      }
+      const bool merge = setting.value().typeId() != QMetaType::QColor;
+      editManager->changeSetting(id, setting.key(), setting.value(), merge);
+   }
    return true;
 }
 
 void NodeSettingsWidget::swapSlots() {
-   QMap<int, int> sources = texNode->getSources();
-   for (int i = 0; i < texNode->getNumSourceSlots(); i++) {
-      texNode->setSourceSlot(i, 0);
-   }
-   for (int i = 0; i < texNode->getNumSourceSlots(); i++) {
-      int source = sources.value((i + 1) % (texNode->getNumSourceSlots()));
-      texNode->setSourceSlot(i, source);
+   auto editManager = widgetmanager.getEditManager();
+   if (editManager != nullptr) {
+      editManager->swapSources(id);
    }
 }
 

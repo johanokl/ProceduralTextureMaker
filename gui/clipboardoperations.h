@@ -7,6 +7,7 @@
 #define CLIPBOARDOPERATIONS_H
 
 class TextureProject;
+class EditManager;
 
 /// @brief Serializes a project node and places it on the application clipboard.
 /// @param project Project containing the node.
@@ -18,11 +19,11 @@ bool copyNodeToClipboard(TextureProject& project, int id);
 /// @param project Project containing the node.
 /// @param id Identifier of the node to cut.
 /// @return True when the node was copied and removed.
-bool cutNodeToClipboard(TextureProject& project, int id);
+bool cutNodeToClipboard(TextureProject& project, EditManager& editManager, int id);
 
 /// @brief Adds nodes serialized on the application clipboard to a project.
 /// @param project Project that receives the pasted nodes.
 /// @return Number of nodes added to the project.
-int pasteNodesFromClipboard(TextureProject& project);
+int pasteNodesFromClipboard(EditManager& editManager);
 
 #endif  // CLIPBOARDOPERATIONS_H

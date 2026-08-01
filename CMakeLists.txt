@@ -78,6 +78,8 @@ set(PROCEDURAL_TEXTURE_MAKER_SOURCES
     base/textureproject.h
     base/texturerendermanager.cpp
     base/texturerendermanager.h
+    base/editmanager.cpp
+    base/editmanager.h
 
     gui/addnodepanel.cpp
     gui/addnodepanel.h

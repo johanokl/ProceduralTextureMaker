@@ -22,6 +22,7 @@ class TextureRenderManager;
 class ProjectFileService;
 class TextureGenerator;
 class SettingsManager;
+class EditManager;
 struct TextureRenderFailure;
 struct TextureGraphSnapshot;
 struct TextureRenderResult;
@@ -31,6 +32,7 @@ class TextureProject : public QObject {
    Q_OBJECT
    friend class TextureNode;
    friend class ProjectFileService;
+   friend class EditManager;
 
 public:
    /// @brief Constructs an empty project and starts thumbnail rendering with default settings.

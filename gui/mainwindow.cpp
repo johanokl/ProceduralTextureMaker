@@ -10,6 +10,7 @@
 #include "base/textureimage.h"
 #include "base/texturenode.h"
 #include "base/textureproject.h"
+#include "base/editmanager.h"
 #include "generators/builtinregistry.h"
 #include "generators/javascript.h"
 #include "global.h"
@@ -41,13 +42,14 @@
 MainWindow::MainWindow(TexGenApplication* parent) {
    parentapp = parent;
    project = std::make_unique<TextureProject>();
+   editManager = std::make_unique<EditManager>(*project);
    settingsManager = std::make_unique<SettingsManager>();
    project->setSettingsManager(settingsManager.get());
 
    QObject::connect(project.get(), &TextureProject::generatorNameCollision, this,
                     &MainWindow::generatorNameCollision);
 
-   iteminfopanel = new ItemInfoPanel(this, project.get());
+   iteminfopanel = new ItemInfoPanel(this, project.get(), editManager.get());
    iteminfopanel->hide();
    iteminfopanel->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
    iteminfopanel->setMaximumWidth(560);
@@ -67,6 +69,7 @@ MainWindow::MainWindow(TexGenApplication* parent) {
 
    registerBuiltInGenerators(*project);
    project->clear();
+   editManager->reset();
 
    jstexgenManager = std::make_unique<JSTexGenManager>(project.get());
 
@@ -186,6 +189,7 @@ bool MainWindow::saveFile(bool newFileName) {
    setWindowTitle(QString("%1 - ProceduralTextureMaker").arg(QFileInfo(fileName).fileName()));
 #endif
    savedFileName = fileName;
+   editManager->setClean();
    return true;
 }
 
@@ -211,9 +215,9 @@ bool MainWindow::maybeSave() {
 
 void MainWindow::copyNode() { copyNodeToClipboard(*project, scene->getSelectedNode()); }
 
-void MainWindow::cutNode() { cutNodeToClipboard(*project, scene->getSelectedNode()); }
+void MainWindow::cutNode() { cutNodeToClipboard(*project, *editManager, scene->getSelectedNode()); }
 
-void MainWindow::pasteNode() { pasteNodesFromClipboard(*project); }
+void MainWindow::pasteNode() { pasteNodesFromClipboard(*editManager); }
 
 void MainWindow::saveImage(int id) {
    if (id == 0) {
@@ -321,6 +325,7 @@ void MainWindow::openFile(const QString& fileName) {
       return;
    }
    savedFileName = fileName;
+   editManager->reset();
 #ifdef Q_OS_MAC
    setWindowTitle(QFileInfo(fileName).fileName());
 #else
@@ -420,6 +425,6 @@ void MainWindow::showHelp() {
 
 void MainWindow::clearScene() {
    if (maybeSave()) {
-      project->clear();
+      editManager->clearProject();
    }
 }

@@ -6,6 +6,7 @@
 
 #include "base/settingsmanager.h"
 #include "base/textureproject.h"
+#include "base/editmanager.h"
 #include "gui/clipboardoperations.h"
 #include "gui/mainwindow.h"
 #include "sceneview/viewnodeitem.h"
@@ -172,6 +173,8 @@ void ViewNodeScene::addNode(const TextureNodePtr& newNode) {
                     &ViewNodeScene::positionUpdated);
    QObject::connect(newNode.data(), &TextureNode::settingsUpdated, this,
                     &ViewNodeScene::nodeSettingsUpdated);
+   QObject::connect(newNode.data(), &TextureNode::nameUpdated, this,
+                    &ViewNodeScene::nodeSettingsUpdated);
    QObject::connect(newNode.data(), &TextureNode::imageUpdated, this, &ViewNodeScene::imageUpdated);
    QObject::connect(newNode.data(), &TextureNode::imageAvailable, this,
                     &ViewNodeScene::imageAvailable);
@@ -262,9 +265,10 @@ void ViewNodeScene::settingsUpdated() {
    while (nodeConnectionsIterator.hasNext()) {
       nodeConnectionsIterator.next().value()->updatePos();
    }
-   if (project.getSettingsManager()) {
-      QColor backgroundColor = project.getSettingsManager()->getBackgroundColor();
-      auto brushStyle = Qt::BrushStyle(project.getSettingsManager()->getBackgroundBrush());
+   auto settingsManager = project.getSettingsManager();
+   if (settingsManager != nullptr) {
+      QColor backgroundColor = settingsManager->getBackgroundColor();
+      auto brushStyle = Qt::BrushStyle(settingsManager->getBackgroundBrush());
       if (brushStyle == Qt::NoBrush) {
          brushStyle = Qt::SolidPattern;
       }
@@ -284,7 +288,7 @@ void ViewNodeScene::endLineDrawing(int endNodeId) {
          endNode->clearOverlays();
       }
       if (project.getNode(endNodeId)) {
-         project.getNode(endNodeId)->setSourceSlot(-1, startLineNode);
+         mainWindow.getEditManager().setConnection(endNodeId, -1, startLineNode);
       }
       if (lineItem) {
          lineItem->prepareGeometryChange();
@@ -409,9 +413,9 @@ void ViewNodeScene::contextMenuEvent(QGraphicsSceneContextMenuEvent* event) {
 
    QAction* selectedAction = menu.exec(event->screenPos());
    if (actions.contains(selectedAction)) {
-      project.newNode(0, actions[selectedAction])->setPos(event->scenePos());
+      mainWindow.getEditManager().addNode(actions[selectedAction], event->scenePos());
    } else if (selectedAction == pasteAction) {
-      pasteNodesFromClipboard(project);
+      pasteNodesFromClipboard(mainWindow.getEditManager());
    } else {
       QGraphicsScene::contextMenuEvent(event);
    }
@@ -448,7 +452,7 @@ void ViewNodeScene::dropEvent(QGraphicsSceneDragDropEvent* event) {
    if (generator.isNull()) {
       return;
    }
-   project.newNode(0, generator)->setPos(event->scenePos());
+   mainWindow.getEditManager().addNode(generator, event->scenePos());
 }
 
 void ViewNodeScene::clearDropItem() {
@@ -463,12 +467,13 @@ void ViewNodeScene::keyPressEvent(QKeyEvent* event) {
          if (node && QMessageBox::question(
                          &mainWindow, "Remove", QString("Remove node %1?").arg(node->getName()),
                          QMessageBox::Yes | QMessageBox::No) == QMessageBox::Yes) {
-            project.removeNode(selectedNode);
+            mainWindow.getEditManager().removeNode(selectedNode);
             break;
          }
          TextureNodePtr lineSecondNode = project.getNode(std::get<1>(selectedLine));
          if (lineSecondNode) {
-            lineSecondNode.data()->setSourceSlot(std::get<2>(selectedLine), 0);
+            mainWindow.getEditManager().setConnection(std::get<1>(selectedLine),
+                                                      std::get<2>(selectedLine), 0);
          }
          break;
       }

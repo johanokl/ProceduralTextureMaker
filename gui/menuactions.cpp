@@ -9,6 +9,7 @@
 #include "gui/menuactions.h"
 #include "gui/previewimagepanel.h"
 #include "gui/settingspanel.h"
+#include "base/editmanager.h"
 #include "mainwindow.h"
 #include "texgenapplication.h"
 #include <QAction>
@@ -68,6 +69,13 @@ MenuActions::MenuActions(MainWindow* parent) : QObject(nullptr), parentwindow(pa
    pasteAct->setStatusTip("Paste the clipboard's contents into the current selection");
    pasteAct->setShortcuts(QKeySequence::Paste);
    QObject::connect(pasteAct, &QAction::triggered, parent, &MainWindow::pasteNode);
+
+   undoAct = parent->getEditManager().stack().createUndoAction(parent, "&Undo");
+   undoAct->setIconText(QStringLiteral("↶"));
+   undoAct->setShortcuts(QKeySequence::Undo);
+   redoAct = parent->getEditManager().stack().createRedoAction(parent, "&Redo");
+   redoAct->setIconText(QStringLiteral("↷"));
+   redoAct->setShortcuts(QKeySequence::Redo);
 
    zoomInAct = new QAction(QIcon::fromTheme("zoom-in"), "Zoom in", parent);
    zoomInAct->setIconText("+");
@@ -174,6 +182,9 @@ MenuActions::MenuActions(MainWindow* parent) : QObject(nullptr), parentwindow(pa
    fileMenu->addAction(closeAct);
    fileMenu->addAction(exitAct);
 
+   editMenu->addAction(undoAct);
+   editMenu->addAction(redoAct);
+   editMenu->addSeparator();
    editMenu->addAction(clearAct);
    editMenu->addSeparator();
    editMenu->addAction(copyAct);
@@ -209,6 +220,10 @@ MenuActions::MenuActions(MainWindow* parent) : QObject(nullptr), parentwindow(pa
    fileToolBar->addAction(openAct);
    fileToolBar->addAction(saveAct);
 
+   editToolBar->addSeparator();
+   editToolBar->addAction(undoAct);
+   editToolBar->addAction(redoAct);
+   editToolBar->addSeparator();
    editToolBar->addAction(copyAct);
    editToolBar->addAction(cutAct);
    editToolBar->addAction(pasteAct);

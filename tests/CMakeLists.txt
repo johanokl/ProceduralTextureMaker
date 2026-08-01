@@ -27,6 +27,13 @@ add_ptm_test(textureproject_test
 )
 set_tests_properties(textureproject_test PROPERTIES LABELS "base")
 
+add_ptm_test(editmanager_test
+    base/editmanager_test.cpp
+    support/testgenerators.cpp
+    support/testgenerators.h
+)
+set_tests_properties(editmanager_test PROPERTIES LABELS "base")
+
 add_ptm_test(projectfileservice_test
     io/projectfileservice_test.cpp
 )

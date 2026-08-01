@@ -16,6 +16,7 @@ class TextureProject;
 class NodeSettingsWidget;
 class ConnectionWidget;
 class SceneInfoWidget;
+class EditManager;
 
 /// @brief Displays scene, node, or connection information for the current graph selection.
 class ItemInfoPanel : public QWidget {
@@ -25,13 +26,16 @@ public:
    /// @brief Creates an information panel for a texture project.
    /// @param parent Parent widget.
    /// @param textureProject Project whose graph information is displayed.
-   ItemInfoPanel(QWidget* parent, TextureProject* textureProject);
+   ItemInfoPanel(QWidget* parent, TextureProject* textureProject, EditManager* editManager);
 
    /// @brief Destroys the information panel and its cached widgets.
    ~ItemInfoPanel() override = default;
 
    /// @brief Returns the project displayed by this panel.
    TextureProject* getTextureProject() { return texproject; }
+
+   /// @brief Returns the edit manager used by this panel.
+   EditManager* getEditManager() { return editManager; }
 
 public slots:
    /// @brief Displays the scene information or settings for the selected node.
@@ -65,6 +69,8 @@ public slots:
 private:
    /// @brief Project whose selection details are displayed.
    TextureProject* texproject{nullptr};
+   /// @brief Edit manager for the displayed project.
+   EditManager* editManager{nullptr};
    /// @brief Cached settings widgets indexed by node identifier.
    QMap<int, QPointer<NodeSettingsWidget>> nodes;
    /// @brief Widget displaying the selected connection.

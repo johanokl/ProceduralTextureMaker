@@ -12,8 +12,8 @@
 #include <QPushButton>
 #include <QVBoxLayout>
 
-ItemInfoPanel::ItemInfoPanel(QWidget* parent, TextureProject* project)
-    : QWidget(parent), texproject(project) {
+ItemInfoPanel::ItemInfoPanel(QWidget* parent, TextureProject* project, EditManager* editManager)
+    : QWidget(parent), texproject(project), editManager(editManager) {
    sceneWidget = new SceneInfoWidget(*this);
    lineWidget = new ConnectionWidget(*this);
    auto* layout = new QVBoxLayout;
@@ -29,9 +29,15 @@ ItemInfoPanel::ItemInfoPanel(QWidget* parent, TextureProject* project)
    QObject::connect(texproject, &TextureProject::nodeAdded, this, &ItemInfoPanel::addNode);
 }
 
-void ItemInfoPanel::addNode(const TextureNodePtr&) {
+void ItemInfoPanel::addNode(const TextureNodePtr& node) {
    // Update the scene info widget's labels.
    sceneWidget->updateNumNodes();
+   QObject::connect(node.data(), &TextureNode::nameUpdated, this, [this, node](int) {
+      QSetIterator<int> receivers = node->getReceivers();
+      while (receivers.hasNext()) {
+         sourceUpdated(receivers.next());
+      }
+   });
 }
 
 void ItemInfoPanel::nodesDisconnected(int sourceNodeId, int receiverNodeId, int slot) {
@@ -87,6 +93,10 @@ void ItemInfoPanel::setActiveNode(int id) {
                        &NodeSettingsWidget::slotsUpdated);
       QObject::connect(texNode.data(), &TextureNode::generatorUpdated, newWidget,
                        &NodeSettingsWidget::generatorUpdated);
+      QObject::connect(texNode.data(), &TextureNode::settingsUpdated, newWidget,
+                       &NodeSettingsWidget::settingsUpdated);
+      QObject::connect(texNode.data(), &TextureNode::nameUpdated, newWidget,
+                       &NodeSettingsWidget::settingsUpdated);
       nodes[id] = newWidget;
       layout()->addWidget(newWidget);
    }
