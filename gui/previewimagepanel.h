@@ -9,9 +9,6 @@
 
 #include <QWidget>
 class TextureProject;
-class QGridLayout;
-class QVBoxLayout;
-class QGroupBox;
 class QPushButton;
 class ImageLabel;
 class QLabel;
@@ -29,7 +26,7 @@ class PreviewImagePanel : public QWidget {
 public:
    /// @brief Creates an image preview panel for a texture project.
    /// @param project Project whose rendered images are displayed.
-   explicit PreviewImagePanel(TextureProject* project);
+   explicit PreviewImagePanel(TextureProject& project);
 
    /// @brief Destroys the image preview panel.
    ~PreviewImagePanel() override = default;
@@ -72,21 +69,19 @@ private:
    QPixmap tilePixmap(const QPixmap& pixmap, int number);
 
    /// @brief Project whose rendered images are displayed.
-   TextureProject* project;
-   /// @brief Main vertical layout for the panel.
-   QVBoxLayout* layout;
+   TextureProject& project;
    /// @brief Selector controlling the preview tile count.
-   QComboBox* combobox;
+   QComboBox* combobox{nullptr};
    /// @brief Widget displaying the two-dimensional preview.
-   ImageLabel* imageLabel;
+   ImageLabel* imageLabel{nullptr};
    /// @brief Widget displaying the texture on a cube.
-   CubeWidget* cubeWidget;
+   CubeWidget* cubeWidget{nullptr};
    /// @brief Button that prevents selection changes from replacing the active node.
-   QPushButton* lockNodeButton;
+   QPushButton* lockNodeButton{nullptr};
    /// @brief Identifier of the node currently displayed.
-   int currId;
+   int currId{-1};
    /// @brief Number of tiles along each preview dimension.
-   int numTiles;
+   int numTiles{1};
    /// @brief Cached thumbnail size requested from the project.
    QSize imageSize;
 };
@@ -115,7 +110,7 @@ private slots:
 
 private:
    /// @brief Label that renders the current pixmap.
-   QLabel* label;
+   QLabel* label{nullptr};
 };
 
 #endif  // PREVIEWIMAGEPANEL_H

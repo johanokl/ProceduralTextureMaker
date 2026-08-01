@@ -10,11 +10,6 @@
 
 CubeWidget::CubeWidget(QWidget* parent)
     : QOpenGLWidget(parent), indexBuf(QOpenGLBuffer::IndexBuffer) {
-   initialized = false;
-   texture = nullptr;
-   textureUpdated = false;
-   angularSpeed = 0;
-   textureAvailable = false;
    QSizePolicy sizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::MinimumExpanding);
    sizePolicy.setHeightForWidth(true);
    setSizePolicy(sizePolicy);
@@ -25,9 +20,7 @@ CubeWidget::~CubeWidget() {
    if (initialized) {
       makeCurrent();
    }
-   if (texture != nullptr) {
-      delete texture;
-   }
+   texture.reset();
    arrayBuf.destroy();
    indexBuf.destroy();
    if (initialized) {
@@ -128,10 +121,9 @@ void CubeWidget::setTexture(const QPixmap& pixmap) {
 }
 
 void CubeWidget::uploadTexture() {
-   if (texture != nullptr) {
+   if (texture) {
       texture->release();
-      delete texture;
-      texture = nullptr;
+      texture.reset();
       textureUpdated = true;
    }
    if (!pendingTexture.isNull() && !pendingTexture.size().isEmpty()) {
@@ -141,7 +133,7 @@ void CubeWidget::uploadTexture() {
 #else
       image = image.mirrored(false, true);
 #endif
-      texture = new QOpenGLTexture(image);
+      texture = std::make_unique<QOpenGLTexture>(image);
       texture->setMinificationFilter(QOpenGLTexture::Nearest);
       texture->setMagnificationFilter(QOpenGLTexture::Linear);
       textureUpdated = true;

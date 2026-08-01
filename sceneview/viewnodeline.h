@@ -101,7 +101,7 @@ private:
    /// @param sourceItem Source node identifier, or zero for an incomplete line.
    /// @param receiverItem Receiver node identifier, or zero for an incomplete line.
    /// @param slot Receiver input slot index.
-   ViewNodeLine(ViewNodeScene* scene, int sourceItem, int receiverItem, int slot);
+   ViewNodeLine(ViewNodeScene& scene, int sourceItem, int receiverItem, int slot);
 
    /// @brief Finds where a connection intersects a node outline.
    /// @param item Node whose outline is tested.
@@ -117,7 +117,7 @@ private:
    QPolygonF createArrowHead(qreal size) const;
 
    /// @brief Scene that owns and coordinates the connection.
-   ViewNodeScene* nodescene;
+   ViewNodeScene& nodescene;
    /// @brief Source node identifier.
    int sourceItemId;
    /// @brief Receiver node identifier.

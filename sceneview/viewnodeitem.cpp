@@ -15,13 +15,11 @@
 #include <QMenu>
 #include <QPainter>
 
-ViewNodeItem::ViewNodeItem(ViewNodeScene* scene, const TextureNodePtr& newNode) {
+ViewNodeItem::ViewNodeItem(ViewNodeScene& scene, const TextureNodePtr& newNode)
+    : id(newNode->getId()), scene(scene), texNode(newNode) {
    imageValid = false;
    setFlag(QGraphicsItem::ItemIsSelectable);
 
-   id = newNode->getId();
-   this->scene = scene;
-   texNode = newNode;
    mousePressed = false;
    isConnectable = false;
    isUnconnectable = false;
@@ -30,7 +28,7 @@ ViewNodeItem::ViewNodeItem(ViewNodeScene* scene, const TextureNodePtr& newNode) 
    borderWidth = 1;
    headerSize = 24;
 
-   setThumbnailSize(scene->getTextureProject()->getThumbnailSize());
+   setThumbnailSize(scene.getTextureProject().getThumbnailSize());
    setAcceptHoverEvents(true);
    positionUpdated();
    imageUpdated();
@@ -193,13 +191,13 @@ void ViewNodeItem::contextMenuEvent(QGraphicsSceneContextMenuEvent* event) {
 
    QAction* selectedAction = menu.exec(event->screenPos());
    if (removeNodeAction == selectedAction) {
-      scene->getTextureProject()->removeNode(id);
+      scene.getTextureProject().removeNode(id);
    } else if (copyNodeAction == selectedAction) {
-      copyNodeToClipboard(*scene->getTextureProject(), id);
+      copyNodeToClipboard(scene.getTextureProject(), id);
    } else if (cutNodeAction == selectedAction) {
-      cutNodeToClipboard(*scene->getTextureProject(), id);
+      cutNodeToClipboard(scene.getTextureProject(), id);
    } else if (exportImageAction == selectedAction) {
-      scene->getParent()->saveImage(id);
+      scene.getMainWindow().saveImage(id);
    } else {
       for (int i = 0; i < texNode->getNumSourceSlots(); i++) {
          if (actions[i] == selectedAction) {
@@ -213,12 +211,12 @@ void ViewNodeItem::contextMenuEvent(QGraphicsSceneContextMenuEvent* event) {
 void ViewNodeItem::mousePressEvent(QGraphicsSceneMouseEvent* mouseEvent) {
    if (mouseEvent->button() == Qt::LeftButton) {
       if (QApplication::keyboardModifiers() == Qt::ControlModifier) {
-         scene->startLineDrawing(id);
+         scene.startLineDrawing(id);
       } else {
          if (!isSelected()) {
-            scene->clearSelection();
+            scene.clearSelection();
             setSelected(true);
-            scene->setSelectedNode(id);
+            scene.setSelectedNode(id);
          }
          mousePressed = true;
          mousePressedPos = mouseEvent->scenePos();
@@ -230,7 +228,7 @@ void ViewNodeItem::mousePressEvent(QGraphicsSceneMouseEvent* mouseEvent) {
 
 QVariant ViewNodeItem::itemChange(GraphicsItemChange change, const QVariant& value) {
    if (change == ItemSelectedChange && value.toInt() == 0) {
-      scene->setSelectedNode(-1);
+      scene.setSelectedNode(-1);
    } else if (change == ItemSelectedHasChanged) {
       updateConnectionLines();
    }

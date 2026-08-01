@@ -40,9 +40,6 @@
 
 MainWindow::MainWindow(TexGenApplication* parent) {
    parentapp = parent;
-   scene = nullptr;
-   view = nullptr;
-   preview3dwidget = nullptr;
    project = std::make_unique<TextureProject>();
    settingsManager = std::make_unique<SettingsManager>();
    project->setSettingsManager(settingsManager.get());
@@ -56,9 +53,9 @@ MainWindow::MainWindow(TexGenApplication* parent) {
    iteminfopanel->setMaximumWidth(560);
    iteminfopanel->setMinimumWidth(340);
 
-   menuactions = new MenuActions(this);
-   addnodewidget = new AddNodePanel(project.get());
-   previewimagewidget = new PreviewImagePanel(project.get());
+   menuactions = std::make_unique<MenuActions>(this);
+   addnodewidget = new AddNodePanel(*project);
+   previewimagewidget = new PreviewImagePanel(*project);
    settingspanel = new SettingsPanel(this, settingsManager.get());
    addnodewidget->hide();
    previewimagewidget->hide();
@@ -117,8 +114,21 @@ void MainWindow::closeEvent(QCloseEvent* event) {
 MainWindow::~MainWindow() {
    // MenuActions listens to application-wide window updates. Destroy it while this MainWindow and
    // its menus are still valid, before QObject emits MainWindow::destroyed.
-   delete menuactions;
-   menuactions = nullptr;
+   menuactions.reset();
+   destroyGuiObservers();
+}
+
+void MainWindow::destroyGuiObservers() {
+   if (view != nullptr) {
+      view->setNodeScene(nullptr);
+   }
+   scene.reset();
+   delete takeCentralWidget();
+   view = nullptr;
+   iteminfopanel = nullptr;
+   settingspanel = nullptr;
+   addnodewidget = nullptr;
+   previewimagewidget = nullptr;
 }
 
 bool MainWindow::saveAs() { return saveFile(true); }
@@ -243,28 +253,24 @@ void MainWindow::saveImage(int id) {
    }
 }
 
-ViewNodeScene* MainWindow::createScene(ViewNodeScene* source) {
-   ViewNodeScene* newscene;
+std::unique_ptr<ViewNodeScene> MainWindow::createScene(ViewNodeScene* source) {
+   std::unique_ptr<ViewNodeScene> newscene;
    if (source != nullptr) {
-      newscene = scene->clone();
+      newscene = source->clone();
    } else {
-      newscene = new ViewNodeScene(this);
+      newscene = std::make_unique<ViewNodeScene>(*this);
    }
-   view->setNodeScene(newscene);
-   QObject::connect(newscene, &ViewNodeScene::nodeSelected, iteminfopanel,
+   view->setNodeScene(newscene.get());
+   QObject::connect(newscene.get(), &ViewNodeScene::nodeSelected, iteminfopanel,
                     &ItemInfoPanel::setActiveNode);
-   QObject::connect(newscene, &ViewNodeScene::nodeSelected, previewimagewidget,
+   QObject::connect(newscene.get(), &ViewNodeScene::nodeSelected, previewimagewidget,
                     &PreviewImagePanel::setActiveNode);
-   QObject::connect(newscene, &ViewNodeScene::lineSelected, iteminfopanel,
+   QObject::connect(newscene.get(), &ViewNodeScene::lineSelected, iteminfopanel,
                     &ItemInfoPanel::setActiveLine);
    return newscene;
 }
 
-void MainWindow::reloadSceneView() {
-   ViewNodeScene* oldscene = scene;
-   scene = createScene(oldscene);
-   oldscene->deleteLater();
-}
+void MainWindow::reloadSceneView() { scene = createScene(scene.get()); }
 
 void MainWindow::showAllNodesAndResetSceneView() {
    view->showAllNodes();
@@ -352,6 +358,13 @@ void MainWindow::showAbout() {
 }
 
 void MainWindow::showHelp() {
+   if (helpDialog) {
+      helpDialog->show();
+      helpDialog->raise();
+      helpDialog->activateWindow();
+      return;
+   }
+
    QString helpText;
    QTextStream ts(&helpText);
    ts << "<h1>Help</h1>"
@@ -382,6 +395,8 @@ void MainWindow::showHelp() {
          "https://github.com/johanokl/ProceduralTextureMaker.</p>";
 
    auto* dialog = new QDialog(this);
+   dialog->setAttribute(Qt::WA_DeleteOnClose);
+   helpDialog = dialog;
    auto* help = new QTextEdit;
    help->setReadOnly(true);
    help->setText(helpText);

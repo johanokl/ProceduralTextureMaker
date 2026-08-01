@@ -10,7 +10,7 @@
 #include <QGraphicsView>
 #include <QMetaObject>
 #include <QObject>
-class QVariantAnimation;
+#include <QVariantAnimation>
 
 /// @brief Displays and navigates a scene containing texture nodes and connections.
 /// Supports zooming and scrolling with mouse gestures, actions, and scrollbars.
@@ -82,7 +82,7 @@ private:
    /// @brief Connection used to observe changes in the displayed scene.
    QMetaObject::Connection sceneChangedConnection;
    /// @brief Animation that interpolates zoom operations.
-   QVariantAnimation* zoomAnimation;
+   QVariantAnimation zoomAnimation;
    /// @brief Viewport anchor used by the current zoom animation.
    QPoint zoomAnimationViewportPos;
    /// @brief Scene anchor used by the current zoom animation.

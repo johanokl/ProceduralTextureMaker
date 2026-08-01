@@ -10,14 +10,13 @@
 #include <QGroupBox>
 #include <QLabel>
 
-SceneInfoWidget::SceneInfoWidget(ItemInfoPanel* widgetmanager) {
-   this->widgetmanager = widgetmanager;
+SceneInfoWidget::SceneInfoWidget(ItemInfoPanel& widgetmanager)
+    : QWidget(&widgetmanager), widgetmanager(widgetmanager) {
+   auto* layout = new QVBoxLayout(this);
+   setLayout(layout);
 
-   layout = new QVBoxLayout(this);
-   this->setLayout(layout);
-
-   nodeInfoWidget = new QGroupBox("Scene info");
-   nodeInfoLayout = new QGridLayout();
+   auto* nodeInfoWidget = new QGroupBox("Scene info");
+   auto* nodeInfoLayout = new QGridLayout();
    nodeInfoWidget->setLayout(nodeInfoLayout);
    nodeInfoLayout->addWidget(new QLabel("Number of nodes: "), 0, 0);
    numNodesLabel = new QLabel("0", this);
@@ -28,6 +27,6 @@ SceneInfoWidget::SceneInfoWidget(ItemInfoPanel* widgetmanager) {
 }
 
 void SceneInfoWidget::updateNumNodes() {
-   int num = widgetmanager->getTextureProject()->getNumNodes();
+   int num = widgetmanager.getTextureProject()->getNumNodes();
    numNodesLabel->setText(QString("%1").arg(num));
 }

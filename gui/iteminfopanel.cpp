@@ -12,15 +12,10 @@
 #include <QPushButton>
 #include <QVBoxLayout>
 
-ItemInfoPanel::ItemInfoPanel(QWidget* parent, TextureProject* project) : QWidget(parent) {
-   texproject = project;
-   currWidget = nullptr;
-   lineWidget = nullptr;
-   sceneWidget = nullptr;
-   currNodeId = 0;
-   currLine = std::tuple<int, int, int>(0, 0, 0);
-   sceneWidget = new SceneInfoWidget(this);
-   lineWidget = new ConnectionWidget(this);
+ItemInfoPanel::ItemInfoPanel(QWidget* parent, TextureProject* project)
+    : QWidget(parent), texproject(project) {
+   sceneWidget = new SceneInfoWidget(*this);
+   lineWidget = new ConnectionWidget(*this);
    auto* layout = new QVBoxLayout;
    layout->setContentsMargins(0, 0, 0, 0);
    layout->addWidget(lineWidget);
@@ -52,17 +47,17 @@ void ItemInfoPanel::removeNode(int id) {
       setActiveNode(0);
    }
    if (nodes.value(id) != nullptr) {
-      NodeSettingsWidget* currWidget = nodes[id];
-      currWidget->hide();
-      layout()->removeWidget(currWidget);
-      delete currWidget;
+      NodeSettingsWidget* widget = nodes[id].data();
+      widget->hide();
+      layout()->removeWidget(widget);
+      delete widget;
       nodes.remove(id);
    }
    sceneWidget->updateNumNodes();
 }
 
 void ItemInfoPanel::sourceUpdated(int id) {
-   auto* nodeptr = nodes.value(id, nullptr);
+   NodeSettingsWidget* nodeptr = nodes.value(id).data();
    if (nodeptr != nullptr) {
       nodeptr->slotsUpdated();
    }
@@ -87,7 +82,7 @@ void ItemInfoPanel::setActiveNode(int id) {
    }
    sceneWidget->hide();
    if (!nodes.contains(id)) {
-      auto* newWidget = new NodeSettingsWidget(this, id);
+      auto* newWidget = new NodeSettingsWidget(*this, id);
       QObject::connect(texNode.data(), &TextureNode::slotsUpdated, newWidget,
                        &NodeSettingsWidget::slotsUpdated);
       QObject::connect(texNode.data(), &TextureNode::generatorUpdated, newWidget,

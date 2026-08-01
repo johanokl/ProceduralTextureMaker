@@ -24,13 +24,12 @@ ViewNodeView::ViewNodeView() : scrollZoomFactor(1.0), zoomStepFactor(1.45) {
    setZoomStepFactor(QSettings().value("zoomStepFactor", 1.45).toDouble());
    setDragMode(QGraphicsView::ScrollHandDrag);
    defaultZoomFactor = 1.0;
-   zoomAnimation = new QVariantAnimation(this);
-   zoomAnimation->setDuration(80);
-   zoomAnimation->setEasingCurve(QEasingCurve::OutCubic);
+   zoomAnimation.setDuration(80);
+   zoomAnimation.setEasingCurve(QEasingCurve::OutCubic);
    zoomAnimationLastFactor = 1.0;
    zoomAnimationUsesViewportAnchor = false;
    updatingSceneRect = false;
-   QObject::connect(zoomAnimation, &QVariantAnimation::valueChanged, this,
+   QObject::connect(&zoomAnimation, &QVariantAnimation::valueChanged, this,
                     [this](const QVariant& value) { applyAnimatedZoom(value.toDouble()); });
    scale(defaultZoomFactor, defaultZoomFactor);
 }
@@ -68,7 +67,7 @@ void ViewNodeView::showAllNodes() {
       return;
    }
 
-   zoomAnimation->stop();
+   zoomAnimation.stop();
    zoomAnimationLastFactor = 1.0;
 
    qreal padding = qMax(contentRect.width(), contentRect.height()) * 0.05;
@@ -127,7 +126,7 @@ void ViewNodeView::applyAnimatedZoom(double value) {
 
 void ViewNodeView::startZoomAnimation(double factor, const QPoint& viewportPos,
                                       bool useViewportAnchor) {
-   zoomAnimation->stop();
+   zoomAnimation.stop();
    zoomAnimationLastFactor = 1.0;
    zoomAnimationViewportPos = viewportPos;
    zoomAnimationUsesViewportAnchor = useViewportAnchor;
@@ -137,9 +136,9 @@ void ViewNodeView::startZoomAnimation(double factor, const QPoint& viewportPos,
       zoomAnimationSceneAnchor = mapToScene(viewport()->rect().center());
    }
 
-   zoomAnimation->setStartValue(1.0);
-   zoomAnimation->setEndValue(factor);
-   zoomAnimation->start();
+   zoomAnimation.setStartValue(1.0);
+   zoomAnimation.setEndValue(factor);
+   zoomAnimation.start();
 }
 
 void ViewNodeView::zoomAt(const QPoint& viewportPos, double factor) {

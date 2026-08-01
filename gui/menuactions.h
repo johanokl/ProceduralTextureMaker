@@ -17,7 +17,6 @@ class QAction;
 class MainWindow;
 class AddNodePanel;
 class PreviewImagePanel;
-class Preview3dPanel;
 class ItemInfoPanel;
 class SettingsPanel;
 class QToolBar;
@@ -79,89 +78,85 @@ public slots:
 
 private:
    /// @brief Main window that owns the menus and actions.
-   MainWindow* parentwindow;
+   MainWindow* parentwindow{nullptr};
    /// @brief Add-node panel controlled by the view actions.
-   AddNodePanel* nodepanel;
+   AddNodePanel* nodepanel{nullptr};
    /// @brief Image-preview panel controlled by the view actions.
-   PreviewImagePanel* previewImagePanel;
+   PreviewImagePanel* previewImagePanel{nullptr};
    /// @brief Item-information panel controlled by the view actions.
-   ItemInfoPanel* nodesettings;
+   ItemInfoPanel* nodesettings{nullptr};
    /// @brief Settings panel controlled by the view actions.
-   SettingsPanel* settingspanel;
+   SettingsPanel* settingspanel{nullptr};
    /// @brief Toolbar containing settings actions.
-   QToolBar* settingsToolBar;
+   QToolBar* settingsToolBar{nullptr};
    /// @brief Toolbar containing file actions.
-   QToolBar* fileToolBar;
+   QToolBar* fileToolBar{nullptr};
    /// @brief Toolbar containing edit actions.
-   QToolBar* editToolBar;
+   QToolBar* editToolBar{nullptr};
    /// @brief Toolbar containing insertion actions.
-   QToolBar* insertToolBar;
+   QToolBar* insertToolBar{nullptr};
    /// @brief Toolbar containing the add-node panel toggle.
-   QToolBar* toggleAddNodeToolBar;
+   QToolBar* toggleAddNodeToolBar{nullptr};
    /// @brief File menu.
-   QMenu* fileMenu;
+   QMenu* fileMenu{nullptr};
    /// @brief View menu.
-   QMenu* viewMenu;
+   QMenu* viewMenu{nullptr};
    /// @brief Edit menu.
-   QMenu* editMenu;
+   QMenu* editMenu{nullptr};
    /// @brief Help menu.
-   QMenu* helpMenu;
+   QMenu* helpMenu{nullptr};
    /// @brief Action that creates a new window or project.
-   QAction* newAct;
+   QAction* newAct{nullptr};
    /// @brief Action that opens a project file.
-   QAction* openAct;
+   QAction* openAct{nullptr};
    /// @brief Action that saves the current project.
-   QAction* saveAct;
+   QAction* saveAct{nullptr};
    /// @brief Action that saves the current project to a new path.
-   QAction* saveAsAct;
+   QAction* saveAsAct{nullptr};
    /// @brief Action that exports a rendered node image.
-   QAction* saveImageAct;
+   QAction* saveImageAct{nullptr};
    /// @brief Action that closes the current window.
-   QAction* closeAct;
+   QAction* closeAct{nullptr};
    /// @brief Action that exits the application.
-   QAction* exitAct;
+   QAction* exitAct{nullptr};
    /// @brief Action that clears the current project.
-   QAction* clearAct;
+   QAction* clearAct{nullptr};
    /// @brief Action that copies the selected node.
-   QAction* copyAct;
+   QAction* copyAct{nullptr};
    /// @brief Action that cuts the selected node.
-   QAction* cutAct;
+   QAction* cutAct{nullptr};
    /// @brief Action that pastes serialized nodes.
-   QAction* pasteAct;
+   QAction* pasteAct{nullptr};
    /// @brief Action that zooms in on the graph.
-   QAction* zoomInAct;
+   QAction* zoomInAct{nullptr};
    /// @brief Action that zooms out from the graph.
-   QAction* zoomOutAct;
+   QAction* zoomOutAct{nullptr};
    /// @brief Action that opens application help.
-   QAction* helpAct;
+   QAction* helpAct{nullptr};
    /// @brief Action that opens application information.
-   QAction* aboutAct;
+   QAction* aboutAct{nullptr};
    /// @brief Action that reveals all graph nodes.
-   QAction* showAllNodesAct;
+   QAction* showAllNodesAct{nullptr};
    /// @brief Action that restores the default graph zoom.
-   QAction* resetZoomAct;
+   QAction* resetZoomAct{nullptr};
    /// @brief Checkable action controlling the add-node panel.
-   QAction* displayAddNodePanelAct;
+   QAction* displayAddNodePanelAct{nullptr};
    /// @brief Checkable action controlling the image-preview panel.
-   QAction* displayPreviewImagePanelAct;
-   /// @brief Checkable action controlling the 3D-preview panel.
-   QAction* displayPreview3dPanelAct;
+   QAction* displayPreviewImagePanelAct{nullptr};
    /// @brief Checkable action controlling the item-information panel.
-   QAction* displayItemInfoPanelAct;
+   QAction* displayItemInfoPanelAct{nullptr};
    /// @brief Checkable action controlling the settings panel.
-   QAction* displaySettingsPanelAct;
+   QAction* displaySettingsPanelAct{nullptr};
    /// @brief Checkable action controlling toolbar visibility.
-   QAction* displayToolbarsAct;
+   QAction* displayToolbarsAct{nullptr};
    /// @brief Shortcut action toggling the item-information panel.
-   QAction* toggleItemInfoPanelAct;
+   QAction* toggleItemInfoPanelAct{nullptr};
    /// @brief Shortcut action toggling the settings panel.
-   QAction* toggleSettingsPanelAct;
+   QAction* toggleSettingsPanelAct{nullptr};
    /// @brief Shortcut action toggling the image-preview panel.
-   QAction* togglePreviewImagePanelAct;
-   /// @brief Shortcut action toggling the 3D-preview panel.
-   QAction* togglePreview3dPanelAct;
+   QAction* togglePreviewImagePanelAct{nullptr};
    /// @brief Shortcut action toggling the add-node panel.
-   QAction* toggleAddNodePanelAct;
+   QAction* toggleAddNodePanelAct{nullptr};
    /// @brief Dynamically generated actions for other application windows.
    QVector<QAction*> windowlistActions;
    /// @brief Directory last used by the project-open dialog.

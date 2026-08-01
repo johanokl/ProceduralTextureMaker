@@ -12,14 +12,13 @@
 #include <QPushButton>
 #include <QVBoxLayout>
 
-ConnectionWidget::ConnectionWidget(ItemInfoPanel* widgetmanager) {
-   this->widgetmanager = widgetmanager;
+ConnectionWidget::ConnectionWidget(ItemInfoPanel& widgetmanager)
+    : QWidget(&widgetmanager), widgetmanager(widgetmanager) {
+   auto* layout = new QVBoxLayout(this);
+   setLayout(layout);
 
-   layout = new QVBoxLayout(this);
-   this->setLayout(layout);
-
-   nodeInfoWidget = new QGroupBox("Connection");
-   nodeInfoLayout = new QGridLayout();
+   auto* nodeInfoWidget = new QGroupBox("Connection");
+   auto* nodeInfoLayout = new QGridLayout();
    nodeInfoWidget->setLayout(nodeInfoLayout);
    nodeSourceLabel = new QLabel();
    nodeReceiverLabel = new QLabel();
@@ -39,14 +38,10 @@ ConnectionWidget::ConnectionWidget(ItemInfoPanel* widgetmanager) {
 
    auto* spaceritem = new QSpacerItem(0, 0, QSizePolicy::Minimum, QSizePolicy::Expanding);
    layout->addItem(spaceritem);
-
-   sourceNodeId = -1;
-   receiverNodeId = -1;
-   slot = -1;
 }
 
 void ConnectionWidget::disconnectNodes() {
-   TextureProject* project = widgetmanager->getTextureProject();
+   TextureProject* project = widgetmanager.getTextureProject();
    if (project == nullptr) {
       return;
    }
@@ -67,7 +62,7 @@ void ConnectionWidget::setNodes(int sourceNodeId, int receiverNodeId, int slot) 
    nodeReceiverLabel->setText(QString("%1").arg(receiverNodeId));
    nodeSlotLabel->setText(QString("%1").arg(slot + 1));
 
-   TextureProject* project = widgetmanager->getTextureProject();
+   TextureProject* project = widgetmanager.getTextureProject();
    if (project != nullptr) {
       TextureNodePtr node;
       node = project->getNode(sourceNodeId);

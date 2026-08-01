@@ -17,14 +17,7 @@
 #include <QSettings>
 #include <QToolBar>
 
-MenuActions::MenuActions(MainWindow* parent) : QObject(parent), parentwindow(parent) {
-   nodepanel = nullptr;
-   previewImagePanel = nullptr;
-   nodesettings = nullptr;
-   settingspanel = nullptr;
-   displayPreview3dPanelAct = nullptr;
-   togglePreview3dPanelAct = nullptr;
-
+MenuActions::MenuActions(MainWindow* parent) : QObject(nullptr), parentwindow(parent) {
    newAct = new QAction(QIcon(":/newicon.png"), "&New", parent);
    newAct->setShortcuts(QKeySequence::New);
    QObject::connect(newAct, &QAction::triggered, parent->parent(), &TexGenApplication::addWindow);

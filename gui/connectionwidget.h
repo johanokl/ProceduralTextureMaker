@@ -11,9 +11,6 @@
 class TextureProject;
 class ItemInfoPanel;
 class QLabel;
-class QVBoxLayout;
-class QGroupBox;
-class QGridLayout;
 
 /// @brief Displays a connection between two nodes. Currently, it lists
 /// the names of the source and receiver nodes with a button for
@@ -25,7 +22,7 @@ class ConnectionWidget : public QWidget {
 public:
    /// @brief Creates the widget and its layout without selecting a connection.
    /// @param widgetmanager Parent panel that manages connection and node information widgets.
-   explicit ConnectionWidget(ItemInfoPanel* widgetmanager);
+   explicit ConnectionWidget(ItemInfoPanel& widgetmanager);
 
    /// @brief Destroys the connection widget.
    ~ConnectionWidget() override = default;
@@ -42,25 +39,19 @@ public slots:
 
 private:
    /// @brief Information panel that owns and coordinates this widget.
-   ItemInfoPanel* widgetmanager;
+   ItemInfoPanel& widgetmanager;
    /// @brief Identifier of the displayed source node.
-   int sourceNodeId;
+   int sourceNodeId{-1};
    /// @brief Identifier of the displayed receiver node.
-   int receiverNodeId;
+   int receiverNodeId{-1};
    /// @brief Input slot used by the displayed connection.
-   int slot;
-   /// @brief Group box containing the connection details.
-   QGroupBox* nodeInfoWidget;
-   /// @brief Grid layout arranging the connection labels.
-   QGridLayout* nodeInfoLayout;
+   int slot{-1};
    /// @brief Label displaying the source node.
-   QLabel* nodeSourceLabel;
+   QLabel* nodeSourceLabel{nullptr};
    /// @brief Label displaying the receiver node.
-   QLabel* nodeReceiverLabel;
+   QLabel* nodeReceiverLabel{nullptr};
    /// @brief Label displaying the receiver input slot.
-   QLabel* nodeSlotLabel;
-   /// @brief Main vertical layout for the widget.
-   QVBoxLayout* layout;
+   QLabel* nodeSlotLabel{nullptr};
 };
 
 #endif  // CONNECTIONWIDGET_H

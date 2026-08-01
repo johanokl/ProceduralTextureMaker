@@ -9,6 +9,7 @@
 
 #include "base/texturenode.h"
 #include <QMap>
+#include <QPointer>
 #include <QSize>
 #include <QWidget>
 class TextureProject;
@@ -63,19 +64,19 @@ public slots:
 
 private:
    /// @brief Project whose selection details are displayed.
-   TextureProject* texproject;
+   TextureProject* texproject{nullptr};
    /// @brief Cached settings widgets indexed by node identifier.
-   QMap<int, NodeSettingsWidget*> nodes;
+   QMap<int, QPointer<NodeSettingsWidget>> nodes;
    /// @brief Widget displaying the selected connection.
-   ConnectionWidget* lineWidget;
+   ConnectionWidget* lineWidget{nullptr};
    /// @brief Currently displayed node settings widget.
-   NodeSettingsWidget* currWidget;
+   QPointer<NodeSettingsWidget> currWidget;
    /// @brief Widget displayed when no graph item is selected.
-   SceneInfoWidget* sceneWidget;
+   SceneInfoWidget* sceneWidget{nullptr};
    /// @brief Identifier of the currently displayed node.
-   int currNodeId;
+   int currNodeId{0};
    /// @brief Source, receiver, and slot of the currently displayed connection.
-   std::tuple<int, int, int> currLine;
+   std::tuple<int, int, int> currLine{0, 0, 0};
 };
 
 #endif  // ITEMINFOPANEL_H

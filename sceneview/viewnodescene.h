@@ -10,6 +10,7 @@
 #include "base/texturenode.h"
 #include <QGraphicsScene>
 #include <QMap>
+#include <memory>
 #include <tuple>
 class TextureProject;
 class ViewNodeItem;
@@ -27,23 +28,23 @@ class ViewNodeScene : public QGraphicsScene {
 
 public:
    /// @brief Creates a graph scene for a main window's texture project.
-   /// @param parent Main window that supplies the project and handles scene actions.
-   explicit ViewNodeScene(MainWindow* parent);
+   /// @param mainWindow Main window that supplies the project and handles scene actions.
+   explicit ViewNodeScene(MainWindow& mainWindow);
 
    /// @brief Destroys the graph scene and its graphics items.
    ~ViewNodeScene() override = default;
 
    /// @brief Creates a new scene with the same graph presentation.
-   /// @return Newly allocated scene containing copies of the current items.
-   ViewNodeScene* clone() const;
+   /// @return Owned scene containing copies of the current items.
+   std::unique_ptr<ViewNodeScene> clone() const;
 
    /// @brief Returns the texture project represented by the scene.
    /// @return Borrowed texture project.
-   TextureProject* getTextureProject() const { return project; }
+   TextureProject& getTextureProject() const { return project; }
 
    /// @brief Returns the main window that coordinates the scene.
    /// @return Borrowed main window.
-   MainWindow* getParent() const { return parent; }
+   MainWindow& getMainWindow() const { return mainWindow; }
 
    /// @brief Clears the represented texture project.
    void clearProject();
@@ -87,17 +88,6 @@ public:
    /// @param receiverNode Receiver node identifier.
    /// @param slot Receiver input slot index.
    void setSelectedLine(int sourceNode, int receiverNode, int slot);
-
-   /// @brief Connects two project nodes through a receiver slot.
-   /// @param sourceNodeId Source node identifier.
-   /// @param receiverNodeId Receiver node identifier.
-   /// @param slotId Receiver input slot index.
-   void connectNodes(int sourceNodeId, int receiverNodeId, int slotId);
-
-   /// @brief Removes a project connection between two nodes.
-   /// @param sourceNodeId Source node identifier.
-   /// @param receiverNodeId Receiver node identifier.
-   void removeConnection(int sourceNodeId, int receiverNodeId);
 
 protected:
    /// @brief Updates selection when the scene is clicked.
@@ -193,34 +183,37 @@ signals:
    void lineSelected(int sourceNode, int receiverNode, int slot);
 
 private:
+   /// @brief Removes and deletes the active generator drop indicator.
+   void clearDropItem();
+
    /// @brief Main window that supplies the project and handles scene actions.
-   MainWindow* parent;
+   MainWindow& mainWindow;
    /// @brief Texture project represented by the scene.
-   TextureProject* project;
-   /// @brief Node items indexed by texture node identifier.
+   TextureProject& project;
+   /// @brief Non-owning index of scene-owned node items by identifier.
    QMap<int, ViewNodeItem*> nodeItems;
-   /// @brief Connection lines indexed by source, receiver, and slot.
+   /// @brief Non-owning index of scene-owned lines by source, receiver, and slot.
    QMap<std::tuple<int, int, int>, ViewNodeLine*> nodeConnections;
-   /// @brief Rectangle shown at the current generator drop position.
-   QGraphicsRectItem* dropItem;
-   /// @brief Temporary connection line currently being drawn.
-   ViewNodeLine* lineItem;
+   /// @brief Observer to the scene-owned generator drop indicator.
+   QGraphicsRectItem* dropItem{nullptr};
+   /// @brief Observer to the scene-owned connection line currently being drawn.
+   ViewNodeLine* lineItem{nullptr};
    /// @brief Source node identifier of the pending connection.
-   int startLineNode;
+   int startLineNode{0};
    /// @brief Currently selected node identifier.
-   int selectedNode;
+   int selectedNode{1};
    /// @brief Width of normal connection lines.
-   int lineWidth;
+   int lineWidth{3};
    /// @brief Width of highlighted connection lines.
-   int highlightedLineWidth;
+   int highlightedLineWidth{4};
    /// @brief Arrowhead size for connection lines.
-   int arrowSize;
+   int arrowSize{12};
    /// @brief Height of node title areas.
-   int headerSize;
+   int headerSize{24};
    /// @brief Source, receiver, and slot of the selected connection.
-   std::tuple<int, int, int> selectedLine;
+   std::tuple<int, int, int> selectedLine{-1, 0, 0};
    /// @brief Whether an interactive connection operation is active.
-   bool lineDrawing;
+   bool lineDrawing{false};
 };
 
 #endif  // VIEWNODESCENE_H

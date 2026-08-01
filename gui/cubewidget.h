@@ -10,6 +10,7 @@
 #include <QOpenGLWidget>
 #include <QOpenGLFunctions>
 #include <QVector3D>
+#include <memory>
 #include <QBasicTimer>
 #include <QOpenGLShaderProgram>
 #include <QOpenGLTexture>
@@ -78,16 +79,17 @@ protected:
 private:
    /// @brief Uploads the pending texture to the GPU.
    void uploadTexture();
+
    /// @brief Timer driving inertial cube rotation.
    QBasicTimer timer;
    /// @brief Shader program used to render the cube.
    QOpenGLShaderProgram program;
    /// @brief Texture currently uploaded to the GPU.
-   QOpenGLTexture* texture;
+   std::unique_ptr<QOpenGLTexture> texture;
    /// @brief Pixmap waiting to be uploaded as the cube texture.
    QPixmap pendingTexture;
    /// @brief Whether the pending texture must be uploaded.
-   bool textureUpdated;
+   bool textureUpdated{false};
    /// @brief Perspective projection matrix.
    QMatrix4x4 projection;
    /// @brief Position at which the current mouse drag began.
@@ -95,11 +97,11 @@ private:
    /// @brief Axis used for inertial cube rotation.
    QVector3D rotationAxis;
    /// @brief Current inertial rotation speed.
-   double angularSpeed;
+   double angularSpeed{0.0};
    /// @brief Current cube orientation.
    QQuaternion rotation;
    /// @brief Whether a texture is available for rendering.
-   bool textureAvailable;
+   bool textureAvailable{false};
    /// @brief Vertex buffer containing cube geometry.
    QOpenGLBuffer arrayBuf;
    /// @brief Index buffer defining cube triangles.
@@ -107,7 +109,7 @@ private:
    /// @brief Color used to clear the OpenGL background.
    QColor backgroundcolor;
    /// @brief Whether OpenGL resources have been initialized.
-   bool initialized;
+   bool initialized{false};
 };
 
 #endif  // PREVIEW3DPANEL_H

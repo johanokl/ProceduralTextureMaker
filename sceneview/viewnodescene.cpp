@@ -19,15 +19,8 @@
 #include <QMimeData>
 #include <QSettings>
 
-ViewNodeScene::ViewNodeScene(MainWindow* parent) {
-   this->parent = parent;
-   this->project = parent->getTextureProject();
-
-   startLineNode = 0;
-   lineDrawing = false;
-   lineItem = nullptr;
-   dropItem = nullptr;
-   selectedNode = -1;
+ViewNodeScene::ViewNodeScene(MainWindow& mainWindow)
+    : mainWindow(mainWindow), project(*mainWindow.getTextureProject()) {
    lineWidth = QSettings().value("lineWidth", 3).toInt();
    if (lineWidth < 1 || lineWidth > 8) {
       lineWidth = 3;
@@ -41,15 +34,13 @@ ViewNodeScene::ViewNodeScene(MainWindow* parent) {
    if (headerSize != 0 && (headerSize < 8 || headerSize > 48)) {
       headerSize = 24;
    }
-   selectedLine = std::tuple<int, int, int>(-1, 0, 0);
-
-   QObject::connect(project, &TextureProject::nodeAdded, this, &ViewNodeScene::addNode);
-   QObject::connect(project, &TextureProject::nodeRemoved, this, &ViewNodeScene::nodeRemoved);
-   QObject::connect(project, &TextureProject::nodesConnected, this, &ViewNodeScene::nodesConnected);
-   QObject::connect(project, &TextureProject::nodesDisconnected, this,
+   QObject::connect(&project, &TextureProject::nodeAdded, this, &ViewNodeScene::addNode);
+   QObject::connect(&project, &TextureProject::nodeRemoved, this, &ViewNodeScene::nodeRemoved);
+   QObject::connect(&project, &TextureProject::nodesConnected, this,
+                    &ViewNodeScene::nodesConnected);
+   QObject::connect(&project, &TextureProject::nodesDisconnected, this,
                     &ViewNodeScene::nodesDisconnected);
-   QObject::connect(project, &TextureProject::nodeRemoved, this, &ViewNodeScene::nodeRemoved);
-   QObject::connect(project->getSettingsManager(), &SettingsManager::settingsUpdated, this,
+   QObject::connect(project.getSettingsManager(), &SettingsManager::settingsUpdated, this,
                     &ViewNodeScene::settingsUpdated);
 
    QBrush backgroundBrush;
@@ -59,13 +50,13 @@ ViewNodeScene::ViewNodeScene(MainWindow* parent) {
    settingsUpdated();
 }
 
-ViewNodeScene* ViewNodeScene::clone() const {
-   auto* newscene = new ViewNodeScene(parent);
+std::unique_ptr<ViewNodeScene> ViewNodeScene::clone() const {
+   auto newscene = std::make_unique<ViewNodeScene>(mainWindow);
    QMapIterator<int, ViewNodeItem*> nodesIter(nodeItems);
    while (nodesIter.hasNext()) {
       TextureNodePtr ptr = nodesIter.next().value()->getTextureNode();
       newscene->addNode(ptr);
-      newscene->imageAvailable(ptr->getId(), this->getTextureProject()->getThumbnailSize());
+      newscene->imageAvailable(ptr->getId(), getTextureProject().getThumbnailSize());
    }
    QMapIterator<std::tuple<int, int, int>, ViewNodeLine*> connectionsIter(nodeConnections);
    while (connectionsIter.hasNext()) {
@@ -130,7 +121,7 @@ void ViewNodeScene::setHeaderSize(int headerSize) {
    update();
 }
 
-void ViewNodeScene::clearProject() { project->clear(); }
+void ViewNodeScene::clearProject() { project.clear(); }
 
 void ViewNodeScene::nodesConnected(int sourceid, int receiverid, int slot) {
    ViewNodeItem* sourceNode = nodeItems.value(sourceid);
@@ -142,7 +133,7 @@ void ViewNodeScene::nodesConnected(int sourceid, int receiverid, int slot) {
    if (nodeConnections.contains(key)) {
       return;
    }
-   auto* newLine = new ViewNodeLine(this, sourceid, receiverid, slot);
+   auto* newLine = new ViewNodeLine(*this, sourceid, receiverid, slot);
    newLine->setLineWidths(lineWidth, highlightedLineWidth);
    newLine->setArrowSize(arrowSize);
    sourceNode->addConnectionLine(newLine);
@@ -170,14 +161,11 @@ void ViewNodeScene::nodesDisconnected(int sourceid, int receiverid, int slot) {
    if (receiverNode) {
       receiverNode->removeConnectionLine(line);
    }
-   if (line->scene()) {
-      line->scene()->removeItem(line);
-   }
    delete line;
 }
 
 void ViewNodeScene::addNode(const TextureNodePtr& newNode) {
-   auto* newItem = new ViewNodeItem(this, newNode);
+   auto* newItem = new ViewNodeItem(*this, newNode);
    newItem->setHeaderSize(headerSize);
    nodeItems.insert(newNode->getId(), newItem);
    QObject::connect(newNode.data(), &TextureNode::positionUpdated, this,
@@ -191,7 +179,7 @@ void ViewNodeScene::addNode(const TextureNodePtr& newNode) {
                     &ViewNodeScene::generatorUpdated);
    addItem(newItem);
    newItem->settingsUpdated();
-   newItem->imageAvailable(project->getThumbnailSize());
+   newItem->imageAvailable(project.getThumbnailSize());
    update();
 }
 
@@ -214,7 +202,12 @@ void ViewNodeScene::setSelectedLine(int sourceNode, int receiverNode, int slot) 
    emit lineSelected(sourceNode, receiverNode, slot);
 }
 
-void ViewNodeScene::nodeSettingsUpdated(int id) { nodeItems.value(id)->settingsUpdated(); }
+void ViewNodeScene::nodeSettingsUpdated(int id) {
+   ViewNodeItem* node = nodeItems.value(id);
+   if (node) {
+      node->settingsUpdated();
+   }
+}
 
 void ViewNodeScene::generatorUpdated(int id) {
    ViewNodeItem* node = nodeItems.value(id);
@@ -246,7 +239,6 @@ void ViewNodeScene::nodeRemoved(int id) {
       nodesDisconnected(endLine->sourceItemId, endLine->receiverItemId, endLine->slot);
    }
    nodeItems.remove(id);
-   removeItem(nodeItem);
    delete nodeItem;
 }
 
@@ -258,18 +250,21 @@ void ViewNodeScene::imageAvailable(int id, QSize size) {
 }
 
 void ViewNodeScene::settingsUpdated() {
-   dropItem = nullptr;
+   if (dropItem) {
+      QSize itemSize = project.getThumbnailSize() + QSize(4, 4);
+      dropItem->setRect(QRect(QPoint(0, 0), itemSize));
+   }
    QMapIterator<int, ViewNodeItem*> nodeItemIterator(nodeItems);
    while (nodeItemIterator.hasNext()) {
-      nodeItemIterator.next().value()->setThumbnailSize(project->getThumbnailSize());
+      nodeItemIterator.next().value()->setThumbnailSize(project.getThumbnailSize());
    }
    QMapIterator<std::tuple<int, int, int>, ViewNodeLine*> nodeConnectionsIterator(nodeConnections);
    while (nodeConnectionsIterator.hasNext()) {
       nodeConnectionsIterator.next().value()->updatePos();
    }
-   if (project->getSettingsManager()) {
-      QColor backgroundColor = project->getSettingsManager()->getBackgroundColor();
-      auto brushStyle = Qt::BrushStyle(project->getSettingsManager()->getBackgroundBrush());
+   if (project.getSettingsManager()) {
+      QColor backgroundColor = project.getSettingsManager()->getBackgroundColor();
+      auto brushStyle = Qt::BrushStyle(project.getSettingsManager()->getBackgroundBrush());
       if (brushStyle == Qt::NoBrush) {
          brushStyle = Qt::SolidPattern;
       }
@@ -288,14 +283,11 @@ void ViewNodeScene::endLineDrawing(int endNodeId) {
       if (endNode) {
          endNode->clearOverlays();
       }
-      if (project->getNode(endNodeId)) {
-         project->getNode(endNodeId)->setSourceSlot(-1, startLineNode);
+      if (project.getNode(endNodeId)) {
+         project.getNode(endNodeId)->setSourceSlot(-1, startLineNode);
       }
       if (lineItem) {
          lineItem->prepareGeometryChange();
-         if (lineItem->scene()) {
-            removeItem(lineItem);
-         }
          delete lineItem;
          lineItem = nullptr;
       }
@@ -307,13 +299,18 @@ void ViewNodeScene::startLineDrawing(int nodeId) {
    if (lineDrawing) {
       endLineDrawing(-1);
    }
+   ViewNodeItem* startItem = getItem(nodeId);
+   if (!startItem) {
+      return;
+   }
    lineDrawing = true;
-   lineItem = new ViewNodeLine(this, nodeId, -1, -1);
+   lineItem = new ViewNodeLine(*this, nodeId, -1, -1);
    lineItem->setColor(Qt::blue);
    lineItem->setLineWidths(highlightedLineWidth, highlightedLineWidth + 1);
    lineItem->setArrowSize(arrowSize);
+   addItem(lineItem);
    startLineNode = nodeId;
-   getItem(nodeId)->showConnectable(true);
+   startItem->showConnectable(true);
 }
 
 void ViewNodeScene::mousePressEvent(QGraphicsSceneMouseEvent* mouseEvent) {
@@ -335,7 +332,7 @@ void ViewNodeScene::mouseMoveEvent(QGraphicsSceneMouseEvent* mouseEvent) {
             if (getItem(currentHighlighted)) {
                getItem(currentHighlighted)->clearOverlays();
             }
-            TextureNodePtr texNode = project->getNode(foundNodeId);
+            TextureNodePtr texNode = project.getNode(foundNodeId);
             if (texNode && texNode->slotAvailable(-1)) {
                focusNode->showConnectable(true);
             } else {
@@ -350,9 +347,6 @@ void ViewNodeScene::mouseMoveEvent(QGraphicsSceneMouseEvent* mouseEvent) {
       }
       lineItem->setPos(mouseEvent->scenePos(), mouseEvent->scenePos());
       lineItem->setNodes(startLineNode, foundNodeId);
-      if (!lineItem->scene()) {
-         addItem(lineItem);
-      }
    }
    QGraphicsScene::mouseMoveEvent(mouseEvent);
 }
@@ -391,7 +385,7 @@ void ViewNodeScene::contextMenuEvent(QGraphicsSceneContextMenuEvent* event) {
    QMenu* combinerMenu = menu.addMenu("&Combiners");
    // Mapping from chosen menu action to new texture generator
    QHash<QAction*, TextureGeneratorPtr> actions;
-   QMapIterator<QString, TextureGeneratorPtr> generatorsIterator(project->getGenerators());
+   QMapIterator<QString, TextureGeneratorPtr> generatorsIterator(project.getGenerators());
    while (generatorsIterator.hasNext()) {
       TextureGeneratorPtr currGenerator = generatorsIterator.next().value();
       QMenu* menuToBeUsed;
@@ -415,9 +409,9 @@ void ViewNodeScene::contextMenuEvent(QGraphicsSceneContextMenuEvent* event) {
 
    QAction* selectedAction = menu.exec(event->screenPos());
    if (actions.contains(selectedAction)) {
-      project->newNode(0, actions[selectedAction])->setPos(event->scenePos());
+      project.newNode(0, actions[selectedAction])->setPos(event->scenePos());
    } else if (selectedAction == pasteAction) {
-      pasteNodesFromClipboard(*project);
+      pasteNodesFromClipboard(project);
    } else {
       QGraphicsScene::contextMenuEvent(event);
    }
@@ -426,7 +420,7 @@ void ViewNodeScene::contextMenuEvent(QGraphicsSceneContextMenuEvent* event) {
 void ViewNodeScene::dragEnterEvent(QGraphicsSceneDragDropEvent* event) {
    if (!dropItem) {
       dropItem = new QGraphicsRectItem;
-      QSize itemSize = project->getThumbnailSize();
+      QSize itemSize = project.getThumbnailSize();
       itemSize.setWidth(itemSize.width() + 4);
       itemSize.setHeight(itemSize.height() + 4);
       dropItem->setRect(QRect(QPoint(0, 0), itemSize));
@@ -444,41 +438,35 @@ void ViewNodeScene::dragMoveEvent(QGraphicsSceneDragDropEvent* event) {
    }
 }
 
-void ViewNodeScene::dragLeaveEvent(QGraphicsSceneDragDropEvent*) {
-   if (dropItem) {
-      removeItem(dropItem);
-      delete dropItem;
-      dropItem = nullptr;
-   }
-}
+void ViewNodeScene::dragLeaveEvent(QGraphicsSceneDragDropEvent*) { clearDropItem(); }
 
 void ViewNodeScene::dropEvent(QGraphicsSceneDragDropEvent* event) {
    event->acceptProposedAction();
-   if (dropItem) {
-      removeItem(dropItem);
-      delete dropItem;
-      dropItem = nullptr;
-   }
+   clearDropItem();
    QString toAdd = event->mimeData()->text();
-   TextureGeneratorPtr generator = project->getGenerator(toAdd);
+   TextureGeneratorPtr generator = project.getGenerator(toAdd);
    if (generator.isNull()) {
       return;
    }
-   project->newNode(0, generator)->setPos(event->scenePos());
+   project.newNode(0, generator)->setPos(event->scenePos());
+}
+
+void ViewNodeScene::clearDropItem() {
+   delete dropItem;
+   dropItem = nullptr;
 }
 
 void ViewNodeScene::keyPressEvent(QKeyEvent* event) {
    switch (event->key()) {
       case Qt::Key_Delete: {
-         TextureNodePtr node = project->getNode(selectedNode);
-         if (node &&
-             QMessageBox::question(dynamic_cast<QWidget*>(project->parent()), "Remove",
-                                   QString("Remove node %1?").arg(node->getName()),
-                                   QMessageBox::Yes | QMessageBox::No) == QMessageBox::Yes) {
-            project->removeNode(selectedNode);
+         TextureNodePtr node = project.getNode(selectedNode);
+         if (node && QMessageBox::question(
+                         &mainWindow, "Remove", QString("Remove node %1?").arg(node->getName()),
+                         QMessageBox::Yes | QMessageBox::No) == QMessageBox::Yes) {
+            project.removeNode(selectedNode);
             break;
          }
-         TextureNodePtr lineSecondNode = project->getNode(std::get<1>(selectedLine));
+         TextureNodePtr lineSecondNode = project.getNode(std::get<1>(selectedLine));
          if (lineSecondNode) {
             lineSecondNode.data()->setSourceSlot(std::get<2>(selectedLine), 0);
          }

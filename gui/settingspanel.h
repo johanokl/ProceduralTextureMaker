@@ -8,8 +8,6 @@
 #define SETTINGSPANEL_H
 
 #include <QWidget>
-class QVBoxLayout;
-class QScrollArea;
 class QSpinBox;
 class SettingsManager;
 class QLineEdit;
@@ -92,53 +90,45 @@ private:
    int zoomSliderForFactor(double factor) const;
 
    /// @brief Settings manager edited by the panel.
-   SettingsManager* settingsmanager;
+   SettingsManager* settingsmanager{nullptr};
    /// @brief Main window whose scene style is updated.
-   MainWindow* mainwindow;
-   /// @brief Layout arranging the scroll area's contents.
-   QVBoxLayout* contentsLayout;
-   /// @brief Main vertical layout for the panel.
-   QVBoxLayout* layout;
-   /// @brief Scroll area containing all settings controls.
-   QScrollArea* area;
-   /// @brief Widget containing the scroll area's controls.
-   QWidget* contents;
+   MainWindow* mainwindow{nullptr};
    /// @brief Editor for the thumbnail width.
-   QSpinBox* thumbnailWidthSpinbox;
+   QSpinBox* thumbnailWidthSpinbox{nullptr};
    /// @brief Editor for the thumbnail height.
-   QSpinBox* thumbnailHeightSpinbox;
+   QSpinBox* thumbnailHeightSpinbox{nullptr};
    /// @brief Editor for the exported image width.
-   QSpinBox* exportImageWidthSpinbox;
+   QSpinBox* exportImageWidthSpinbox{nullptr};
    /// @brief Editor for the exported image height.
-   QSpinBox* exportImageHeightSpinbox;
+   QSpinBox* exportImageHeightSpinbox{nullptr};
    /// @brief Slider controlling regular connection-line width.
-   QSlider* lineWidthSlider;
+   QSlider* lineWidthSlider{nullptr};
    /// @brief Slider controlling connection-arrow size.
-   QSlider* arrowSizeSlider;
+   QSlider* arrowSizeSlider{nullptr};
    /// @brief Slider controlling node-header height.
-   QSlider* headerSizeSlider;
+   QSlider* headerSizeSlider{nullptr};
    /// @brief Slider controlling the scene-view zoom factor.
-   QSlider* zoomSpeedSlider;
+   QSlider* zoomSpeedSlider{nullptr};
    /// @brief Label displaying the selected connection-line width.
-   QLabel* lineWidthValueLabel;
+   QLabel* lineWidthValueLabel{nullptr};
    /// @brief Label displaying the selected connection-arrow size.
-   QLabel* arrowSizeValueLabel;
+   QLabel* arrowSizeValueLabel{nullptr};
    /// @brief Label displaying the selected node-header height.
-   QLabel* headerSizeValueLabel;
+   QLabel* headerSizeValueLabel{nullptr};
    /// @brief Label displaying the selected zoom factor.
-   QLabel* zoomSpeedValueLabel;
+   QLabel* zoomSpeedValueLabel{nullptr};
    /// @brief Editor for the JavaScript generator directory.
-   QLineEdit* jsGeneratorPathEdit;
+   QLineEdit* jsGeneratorPathEdit{nullptr};
    /// @brief Checkbox controlling JavaScript generator loading.
-   QCheckBox* jsGeneratorEnabledCheckbox;
+   QCheckBox* jsGeneratorEnabledCheckbox{nullptr};
    /// @brief Button representing the graph background color.
-   QPushButton* backgroundColorButton;
+   QPushButton* backgroundColorButton{nullptr};
    /// @brief Button representing the image-preview background color.
-   QPushButton* previewBackgroundColorButton;
+   QPushButton* previewBackgroundColorButton{nullptr};
    /// @brief Selector for the graph background brush style.
-   QComboBox* backgroundBrushCombobox;
+   QComboBox* backgroundBrushCombobox{nullptr};
    /// @brief Whether control signals are temporarily ignored.
-   bool blockSlot;
+   bool blockSlot{false};
 };
 
 #endif  // SETTINGSPANEL_H

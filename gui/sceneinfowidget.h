@@ -23,7 +23,7 @@ class SceneInfoWidget : public QWidget {
 public:
    /// @brief Creates a scene information widget.
    /// @param widgetmanager Information panel that owns this widget.
-   explicit SceneInfoWidget(ItemInfoPanel* widgetmanager);
+   explicit SceneInfoWidget(ItemInfoPanel& widgetmanager);
 
    /// @brief Destroys the scene information widget.
    ~SceneInfoWidget() override = default;
@@ -33,15 +33,9 @@ public:
 
 private:
    /// @brief Information panel that owns this widget.
-   ItemInfoPanel* widgetmanager;
-   /// @brief Group box containing scene information.
-   QGroupBox* nodeInfoWidget;
-   /// @brief Grid layout arranging scene information.
-   QGridLayout* nodeInfoLayout;
+   ItemInfoPanel& widgetmanager;
    /// @brief Label displaying the current node count.
-   QLabel* numNodesLabel;
-   /// @brief Main vertical layout for the widget.
-   QVBoxLayout* layout;
+   QLabel* numNodesLabel{nullptr};
 };
 
 #endif  // SCENEINFOWIDGET_H

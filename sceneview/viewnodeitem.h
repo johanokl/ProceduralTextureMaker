@@ -23,7 +23,7 @@ public:
    /// @brief Creates a scene item for a texture node.
    /// @param scene Scene that owns and coordinates the item.
    /// @param newNode Texture node represented by the item.
-   ViewNodeItem(ViewNodeScene* scene, const TextureNodePtr& newNode);
+   ViewNodeItem(ViewNodeScene& scene, const TextureNodePtr& newNode);
 
    /// @brief Destroys the node item.
    ~ViewNodeItem() override = default;
@@ -149,7 +149,7 @@ private:
    /// @brief Identifier of the represented texture node.
    int id;
    /// @brief Scene that owns and coordinates the node item.
-   ViewNodeScene* scene;
+   ViewNodeScene& scene;
    /// @brief Rendered thumbnail displayed by the node.
    QPixmap pixmap;
    /// @brief Texture node represented by the item.
@@ -170,9 +170,9 @@ private:
    int borderWidth;
    /// @brief Height of the node title area.
    int headerSize;
-   /// @brief Connection lines that originate at the node.
+   /// @brief Non-owning references to scene-owned lines originating at the node.
    QSet<ViewNodeLine*> startLines;
-   /// @brief Incoming connection lines indexed by input slot.
+   /// @brief Non-owning references to scene-owned incoming lines by input slot.
    QMap<int, ViewNodeLine*> endLines;
    /// @brief Whether the displayed thumbnail matches the current node state.
    bool imageValid;

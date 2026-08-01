@@ -23,22 +23,20 @@
 #include <QScrollArea>
 #include <QVBoxLayout>
 
-NodeSettingsWidget::NodeSettingsWidget(ItemInfoPanel* widgetmanager, int id) {
+NodeSettingsWidget::NodeSettingsWidget(ItemInfoPanel& widgetmanager, int id)
+    : QWidget(&widgetmanager), widgetmanager(widgetmanager), id(id) {
    setObjectName("nodeSettingsInspector");
-   this->widgetmanager = widgetmanager;
-   this->id = id;
-   saveDisabled = false;
-   texNode = widgetmanager->getTextureProject()->getNode(id);
+   texNode = widgetmanager.getTextureProject()->getNode(id);
 
-   layout = new QVBoxLayout(this);
-   this->setLayout(layout);
+   auto* layout = new QVBoxLayout(this);
+   setLayout(layout);
 
-   scrollarea = new QScrollArea;
+   auto* scrollarea = new QScrollArea;
    scrollarea->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
    scrollarea->setWidgetResizable(true);
-   contents = new QWidget;
+   auto* contents = new QWidget;
    contents->setObjectName("nodeSettingsContents");
-   contentsLayout = new QVBoxLayout(contents);
+   auto* contentsLayout = new QVBoxLayout(contents);
    contentsLayout->setContentsMargins(12, 4, 12, 12);
    contentsLayout->setSpacing(4);
    layout->setContentsMargins(0, 0, 0, 0);
@@ -46,9 +44,9 @@ NodeSettingsWidget::NodeSettingsWidget(ItemInfoPanel* widgetmanager, int id) {
    layout->addWidget(scrollarea);
    scrollarea->setWidget(contents);
 
-   nodeInfoWidget = new QGroupBox("Node");
+   auto* nodeInfoWidget = new QGroupBox("Node");
    nodeInfoWidget->setProperty("inspectorSection", true);
-   nodeInfoLayout = createGroupLayout();
+   auto* nodeInfoLayout = createGroupLayout();
    nodeInfoWidget->setLayout(nodeInfoLayout);
    nodeNameLineEdit = new QLineEdit;
    nodeInfoLayout->addRow("Name:", nodeNameLineEdit);
@@ -91,7 +89,7 @@ NodeSettingsWidget::NodeSettingsWidget(ItemInfoPanel* widgetmanager, int id) {
    QObject::connect(swapSlotButton, &QPushButton::clicked, this, &NodeSettingsWidget::swapSlots);
    swapSlotButton->hide();
 
-   settingsWidget = new QGroupBox("Properties");
+   auto* settingsWidget = new QGroupBox("Properties");
    settingsWidget->setProperty("inspectorSection", true);
    settingsLayout = new QVBoxLayout;
    settingsLayout->setContentsMargins(0, 4, 0, 2);
@@ -160,7 +158,7 @@ bool NodeSettingsWidget::saveSettings() {
       texNode->setName(nodeNameLineEdit->text());
       QSetIterator<int> receiveriter = texNode->getReceivers();
       while (receiveriter.hasNext()) {
-         widgetmanager->sourceUpdated(receiveriter.next());
+         widgetmanager.sourceUpdated(receiveriter.next());
       }
    }
    TextureNodeSettings nodeSettings = texNode->getSettings();
@@ -375,7 +373,7 @@ void NodeSettingsWidget::generatorUpdated() {
                              });
       }
       newWidget->setProperty("inspectorEditor", true);
-      QWidget* newSlider = nullptr;
+      QWidget* newSlider{nullptr};
       if (!currSetting.max.isNull()) {
          auto* doubleSpinBox = dynamic_cast<QDoubleSpinBox*>(newWidget);
          auto* spinBox = dynamic_cast<QSpinBox*>(newWidget);
@@ -546,7 +544,7 @@ void NodeSettingsWidget::slotsUpdated() {
          int connectedNode = texNode->getSources().value(i);
          if (connectedNode != 0) {
             currLabel->setText(currLabel->text().append(" ").append(
-                widgetmanager->getTextureProject()->getNode(connectedNode)->getName()));
+                widgetmanager.getTextureProject()->getNode(connectedNode)->getName()));
             currButton->setText("Clear");
             currButton->setFlat(false);
             numConnected++;

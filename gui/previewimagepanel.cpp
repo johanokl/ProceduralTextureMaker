@@ -45,13 +45,10 @@ void ImageLabel::resizeImage() {
    label->setFixedSize(pixSize);
 }
 
-PreviewImagePanel::PreviewImagePanel(TextureProject* project) {
-   this->project = project;
-   imageSize = project->getThumbnailSize();
-   currId = -1;
+PreviewImagePanel::PreviewImagePanel(TextureProject& project) : project(project) {
+   imageSize = project.getThumbnailSize();
 
-   layout = new QVBoxLayout(this);
-   numTiles = 1;
+   auto* layout = new QVBoxLayout(this);
    setLayout(layout);
    setMaximumWidth(500);
    setMinimumWidth(200);
@@ -85,11 +82,12 @@ PreviewImagePanel::PreviewImagePanel(TextureProject* project) {
    optionsLayout->addWidget(lockNodeButton);
    optionsLayout->addWidget(combobox);
    layout->addWidget(optionsWidget);
-   QObject::connect(project, &TextureProject::imageAvailable, this,
+   QObject::connect(&project, &TextureProject::imageAvailable, this,
                     &PreviewImagePanel::imageAvailable);
-   QObject::connect(project, &TextureProject::imageUpdated, this, &PreviewImagePanel::imageUpdated);
-   QObject::connect(project, &TextureProject::nodeRemoved, this, &PreviewImagePanel::nodeRemoved);
-   QObject::connect(project->getSettingsManager(), &SettingsManager::settingsUpdated, this,
+   QObject::connect(&project, &TextureProject::imageUpdated, this,
+                    &PreviewImagePanel::imageUpdated);
+   QObject::connect(&project, &TextureProject::nodeRemoved, this, &PreviewImagePanel::nodeRemoved);
+   QObject::connect(project.getSettingsManager(), &SettingsManager::settingsUpdated, this,
                     &PreviewImagePanel::settingsUpdated);
    settingsUpdated();
 }
@@ -104,11 +102,11 @@ void PreviewImagePanel::imageUpdated(int id) {
 }
 
 bool PreviewImagePanel::loadNodeImage(int id) {
-   TextureNodePtr texNode = project->getNode(id);
+   TextureNodePtr texNode = project.getNode(id);
    if (texNode.isNull()) {
       return false;
    }
-   imageSize = project->getThumbnailSize();
+   imageSize = project.getThumbnailSize();
    const TextureImagePtr image = texNode->cachedImage(imageSize);
    if (image.isNull()) {
       return false;
@@ -179,7 +177,7 @@ QPixmap PreviewImagePanel::tilePixmap(const QPixmap& pixmap, int number) {
 }
 
 void PreviewImagePanel::settingsUpdated() {
-   QColor bg = project->getSettingsManager()->getPreviewBackgroundColor();
+   QColor bg = project.getSettingsManager()->getPreviewBackgroundColor();
    cubeWidget->setBackgroundColor(bg);
    int newNumTiles = combobox->currentData().toInt();
    if (numTiles != newNumTiles) {

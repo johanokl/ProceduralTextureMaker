@@ -70,9 +70,7 @@ void AddNodeButton::mouseMoveEvent(QMouseEvent* event) {
    }
 }
 
-AddNodePanel::AddNodePanel(TextureProject* project) {
-   this->project = project;
-
+AddNodePanel::AddNodePanel(TextureProject& project) {
    auto* layout = new QVBoxLayout(this);
    auto* area = new QScrollArea;
    area->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
@@ -93,21 +91,21 @@ AddNodePanel::AddNodePanel(TextureProject* project) {
    setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Expanding);
    setLayout(layout);
 
-   generatorsWidget = new QGroupBox("Generators");
+   auto* generatorsWidget = new QGroupBox("Generators");
    generatorsLayout = new QGridLayout();
    generatorsLayout->setContentsMargins(0, 0, 0, 0);
    generatorsWidget->setLayout(generatorsLayout);
    generatorsWidget->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Preferred);
    contentsLayout->addWidget(generatorsWidget);
 
-   filtersWidget = new QGroupBox("Filters");
+   auto* filtersWidget = new QGroupBox("Filters");
    filtersLayout = new QGridLayout();
    filtersLayout->setContentsMargins(0, 0, 0, 0);
    filtersWidget->setLayout(filtersLayout);
    filtersWidget->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Preferred);
    contentsLayout->addWidget(filtersWidget);
 
-   combinersWidget = new QGroupBox("Combiners");
+   auto* combinersWidget = new QGroupBox("Combiners");
    combinersLayout = new QGridLayout();
    combinersLayout->setContentsMargins(0, 0, 0, 0);
    combinersWidget->setLayout(combinersLayout);
@@ -118,14 +116,16 @@ AddNodePanel::AddNodePanel(TextureProject* project) {
    spacerWidget->setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::Expanding);
    spacerWidget->setVisible(true);
    contentsLayout->addWidget(spacerWidget);
-   QObject::connect(project, &TextureProject::generatorAdded, this, &AddNodePanel::addGenerator);
-   QObject::connect(project, &TextureProject::generatorRemoved, this,
+   QObject::connect(&project, &TextureProject::generatorAdded, this, &AddNodePanel::addGenerator);
+   QObject::connect(&project, &TextureProject::generatorRemoved, this,
                     &AddNodePanel::removeGenerator);
 }
 
 void AddNodePanel::removeGenerator(const TextureGeneratorPtr& generator) {
-   if (widgets.contains(generator)) {
-      delete widgets.value(generator);
+   const auto iterator = widgets.find(generator);
+   if (iterator != widgets.end()) {
+      delete iterator.value();
+      widgets.erase(iterator);
    }
 }
 

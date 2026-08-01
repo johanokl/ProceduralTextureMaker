@@ -26,16 +26,13 @@
 #include <QVBoxLayout>
 
 SettingsPanel::SettingsPanel(MainWindow* parent, SettingsManager* settingsmanager)
-    : QWidget(parent) {
-   this->settingsmanager = settingsmanager;
-   this->mainwindow = parent;
-   blockSlot = false;
-   layout = new QVBoxLayout(this);
-   area = new QScrollArea;
+    : QWidget(parent), settingsmanager(settingsmanager), mainwindow(parent) {
+   auto* layout = new QVBoxLayout(this);
+   auto* area = new QScrollArea;
    area->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
    area->setWidgetResizable(true);
-   contents = new QWidget;
-   contentsLayout = new QVBoxLayout(contents);
+   auto* contents = new QWidget;
+   auto* contentsLayout = new QVBoxLayout(contents);
    layout->setContentsMargins(0, 0, 0, 0);
    area->setFrameShape(QFrame::NoFrame);
    layout->addWidget(area);

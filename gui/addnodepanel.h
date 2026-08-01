@@ -12,9 +12,6 @@
 #include <QWidget>
 class TextureProject;
 class QGridLayout;
-class QVBoxLayout;
-class QGroupBox;
-class QScrollArea;
 
 /// @brief Displays all available node types in a vertical panel.
 /// All generators are represented as buttons that can be dragged to
@@ -27,7 +24,7 @@ class AddNodePanel : public QWidget {
 public:
    /// @brief Creates a panel populated with the project's registered generators.
    /// @param project Project whose generators are displayed.
-   explicit AddNodePanel(TextureProject* project);
+   explicit AddNodePanel(TextureProject& project);
 
    /// @brief Destroys the panel and its generator buttons.
    ~AddNodePanel() override = default;
@@ -44,20 +41,12 @@ public slots:
 private:
    /// @brief Maps each registered generator to its draggable button.
    QMap<TextureGeneratorPtr, QWidget*> widgets;
-   /// @brief Project whose registered generators are displayed.
-   TextureProject* project;
-   /// @brief Group box containing combiner generator buttons.
-   QGroupBox* combinersWidget;
-   /// @brief Group box containing filter generator buttons.
-   QGroupBox* filtersWidget;
-   /// @brief Group box containing source generator buttons.
-   QGroupBox* generatorsWidget;
    /// @brief Grid layout for filter generator buttons.
-   QGridLayout* filtersLayout;
+   QGridLayout* filtersLayout{nullptr};
    /// @brief Grid layout for combiner generator buttons.
-   QGridLayout* combinersLayout;
+   QGridLayout* combinersLayout{nullptr};
    /// @brief Grid layout for source generator buttons.
-   QGridLayout* generatorsLayout;
+   QGridLayout* generatorsLayout{nullptr};
 };
 
 #endif  // ADDNODEPANEL_H

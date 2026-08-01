@@ -15,9 +15,9 @@
 #include <QStyleOptionGraphicsItem>
 #include <QtMath>
 
-ViewNodeLine::ViewNodeLine(ViewNodeScene* scene, int sourceItem, int receiverItem, int slot) {
+ViewNodeLine::ViewNodeLine(ViewNodeScene& scene, int sourceItem, int receiverItem, int slot)
+    : nodescene(scene) {
    this->slot = slot;
-   nodescene = scene;
    infocus = false;
    highlighted = false;
    sourceItemId = 0;
@@ -158,9 +158,9 @@ QPointF ViewNodeLine::getNodeIntersection(ViewNodeItem* item, const QPointF& ins
 void ViewNodeLine::mousePressEvent(QGraphicsSceneMouseEvent* mouseEvent) {
    if (mouseEvent->button() == Qt::LeftButton) {
       if (!isSelected()) {
-         nodescene->clearSelection();
+         nodescene.clearSelection();
          setSelected(true);
-         nodescene->setSelectedLine(sourceItemId, receiverItemId, slot);
+         nodescene.setSelectedLine(sourceItemId, receiverItemId, slot);
       }
    }
    QGraphicsLineItem::mousePressEvent(mouseEvent);
@@ -187,12 +187,12 @@ void ViewNodeLine::hoverLeaveEvent(QGraphicsSceneHoverEvent* event) {
 
 void ViewNodeLine::updatePos() {
    prepareGeometryChange();
-   ViewNodeItem* sourceItem = nodescene->getItem(sourceItemId);
-   ViewNodeItem* receiverItem = nodescene->getItem(receiverItemId);
+   ViewNodeItem* sourceItem = nodescene.getItem(sourceItemId);
+   ViewNodeItem* receiverItem = nodescene.getItem(receiverItemId);
    if (sourceItem == receiverItem) {
       return;
    }
-   QSize thumbSize = nodescene->getTextureProject()->getThumbnailSize();
+   QSize thumbSize = nodescene.getTextureProject().getThumbnailSize();
    bool hasSourcePos = sourceItem || !sourcePos.isNull();
    bool hasReceiverPos = receiverItem || !receiverPos.isNull();
    QPointF sourceCenter = sourcePos;
@@ -244,8 +244,8 @@ void ViewNodeLine::updatePos() {
 }
 
 void ViewNodeLine::paint(QPainter* painter, const QStyleOptionGraphicsItem*, QWidget*) {
-   ViewNodeItem* sourceItem = nodescene->getItem(sourceItemId);
-   ViewNodeItem* receiverItem = nodescene->getItem(receiverItemId);
+   ViewNodeItem* sourceItem = nodescene.getItem(sourceItemId);
+   ViewNodeItem* receiverItem = nodescene.getItem(receiverItemId);
    if (receiverPos.isNull()) {
       return;
    }

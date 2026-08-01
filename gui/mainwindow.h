@@ -9,6 +9,7 @@
 
 #include "generators/texturegenerator.h"
 #include <QMainWindow>
+#include <QPointer>
 #include <memory>
 class TexGenApplication;
 class TextureProject;
@@ -17,9 +18,9 @@ class ViewNodeView;
 class ItemInfoPanel;
 class AddNodePanel;
 class QCloseEvent;
+class QDialog;
 class MenuActions;
 class PreviewImagePanel;
-class Preview3dPanel;
 class SettingsPanel;
 class SettingsManager;
 class JSTexGenManager;
@@ -46,7 +47,7 @@ public:
    TexGenApplication* parent() { return parentapp; }
 
    /// @brief Returns the window's menu and toolbar manager.
-   MenuActions* getMenu() { return menuactions; }
+   MenuActions* getMenu() { return menuactions.get(); }
 
 public slots:
    /// @brief Prompts for a destination and saves the current project.
@@ -136,6 +137,8 @@ private:
 
    /// @brief Creates menu actions and connects project and application signals.
    void createActions();
+   /// @brief Destroys GUI observers before their model dependencies.
+   void destroyGuiObservers();
 
    /// @brief Offers to save a modified project before it is closed or replaced.
    /// @return True when it is safe to discard the current project state.
@@ -143,35 +146,35 @@ private:
 
    /// @brief Creates a node scene, optionally copying another scene's presentation state.
    /// @param source Existing scene to copy, or nullptr for a new scene.
-   /// @return Newly created scene.
-   ViewNodeScene* createScene(ViewNodeScene* source = nullptr);
+   /// @return Newly created owned scene.
+   std::unique_ptr<ViewNodeScene> createScene(ViewNodeScene* source = nullptr);
 
    /// @brief Application that owns and manages this window.
-   TexGenApplication* parentapp;
+   TexGenApplication* parentapp{nullptr};
    /// @brief Texture project displayed by the window.
    std::unique_ptr<TextureProject> project;
    /// @brief Path last used to save the current project.
    QString savedFileName;
    /// @brief Manager for the window's menus, toolbars, and actions.
-   MenuActions* menuactions;
+   std::unique_ptr<MenuActions> menuactions;
    /// @brief Scene containing the graph presentation.
-   ViewNodeScene* scene;
+   std::unique_ptr<ViewNodeScene> scene;
    /// @brief View displaying the node scene.
-   ViewNodeView* view;
+   ViewNodeView* view{nullptr};
    /// @brief Persistent settings manager used by the project and panels.
    std::unique_ptr<SettingsManager> settingsManager;
    /// @brief Manager for external JavaScript generators.
    std::unique_ptr<JSTexGenManager> jstexgenManager;
    /// @brief Panel displaying scene, node, and connection information.
-   ItemInfoPanel* iteminfopanel;
+   ItemInfoPanel* iteminfopanel{nullptr};
    /// @brief Panel used to edit application and project settings.
-   SettingsPanel* settingspanel;
+   SettingsPanel* settingspanel{nullptr};
    /// @brief Panel containing draggable generator buttons.
-   AddNodePanel* addnodewidget;
+   AddNodePanel* addnodewidget{nullptr};
    /// @brief Panel displaying the selected node's rendered image.
-   PreviewImagePanel* previewimagewidget;
-   /// @brief Panel displaying the selected texture on a 3D object.
-   Preview3dPanel* preview3dwidget;
+   PreviewImagePanel* previewimagewidget{nullptr};
+   /// @brief Non-modal help dialog, guarded because it deletes itself when closed.
+   QPointer<QDialog> helpDialog;
 };
 
 #endif  // MAINWINDOW_H

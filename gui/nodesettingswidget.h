@@ -34,7 +34,7 @@ public:
    /// @brief Creates property editors for a texture node.
    /// @param widgetmanager Information panel that owns this widget.
    /// @param id Identifier of the node to edit.
-   NodeSettingsWidget(ItemInfoPanel* widgetmanager, int id);
+   NodeSettingsWidget(ItemInfoPanel& widgetmanager, int id);
 
    /// @brief Destroys the node settings widget.
    ~NodeSettingsWidget() override = default;
@@ -83,13 +83,13 @@ private:
    void setGroupAlignment(const QString& group, bool aligned);
 
    /// @brief Information panel that owns and coordinates this widget.
-   ItemInfoPanel* widgetmanager;
+   ItemInfoPanel& widgetmanager;
    /// @brief Identifier of the node being edited.
-   int id;
+   int id{0};
    /// @brief Texture node whose properties are edited.
    TextureNodePtr texNode;
    /// @brief Whether editor changes are temporarily prevented from being saved.
-   bool saveDisabled;
+   bool saveDisabled{false};
    /// @brief Labels indexed by generator setting identifier.
    QMap<QString, QLabel*> settingLabels;
    /// @brief Property editors indexed by generator setting identifier.
@@ -98,36 +98,22 @@ private:
    QMap<QString, QWidget*> settingSliders;
    /// @brief String representations of values requiring auxiliary storage.
    QMap<QString, QString> settingValues;
-   /// @brief Scroll area containing node information and property editors.
-   QScrollArea* scrollarea;
-   /// @brief Widget containing the scroll area's controls.
-   QWidget* contents;
-   /// @brief Layout arranging the scroll area's sections.
-   QVBoxLayout* contentsLayout;
    /// @brief Layout arranging generated property editors.
-   QVBoxLayout* settingsLayout;
-   /// @brief Group box containing generated property editors.
-   QGroupBox* settingsWidget;
+   QVBoxLayout* settingsLayout{nullptr};
    /// @brief Label displaying the active generator name.
-   QLabel* generatorNameLabel;
-   /// @brief Group box containing basic node information.
-   QGroupBox* nodeInfoWidget;
-   /// @brief Form layout arranging basic node information.
-   QFormLayout* nodeInfoLayout;
+   QLabel* generatorNameLabel{nullptr};
    /// @brief Editor for the node's display name.
-   QLineEdit* nodeNameLineEdit;
+   QLineEdit* nodeNameLineEdit{nullptr};
    /// @brief Group box containing source-slot controls.
-   QGroupBox* sourceButtonsWidget;
+   QGroupBox* sourceButtonsWidget{nullptr};
    /// @brief Grid layout arranging source-slot controls.
-   QGridLayout* sourceButtonsLayout;
+   QGridLayout* sourceButtonsLayout{nullptr};
    /// @brief Labels describing each source slot.
    QList<QLabel*> sourceSlotLabels;
    /// @brief Button that rotates connected sources among slots.
-   QPushButton* swapSlotButton;
+   QPushButton* swapSlotButton{nullptr};
    /// @brief Buttons used to clear individual source slots.
    QList<QPushButton*> sourceSlotButtons;
-   /// @brief Main vertical layout for the widget.
-   QVBoxLayout* layout;
 };
 
 #endif  // NODESETTINGSWIDGET_H
