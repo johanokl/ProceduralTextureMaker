@@ -51,9 +51,6 @@ TextureNode::TextureNode(TextureProject* project, const TextureGeneratorPtr& gen
    sources.clear();
    receivers.clear();
    deleted = false;
-   for (int i = 0; i < 10; i++) {
-      sources.insert(i, 0);
-   }
    setGenerator(gen);
 }
 
@@ -64,8 +61,8 @@ TextureNode::~TextureNode() {
 }
 
 void TextureNode::release() {
-   for (int i = 0; i < getNumSourceSlots(); i++) {
-      setSourceSlot(i, 0);
+   for (const QString& slot : getSourceSlots()) {
+      setSourceSlot(slot, 0);
    }
    QSet<int> receiversCopy;
    {
@@ -94,12 +91,16 @@ void TextureNode::loadFromXML(const QDomNode& xmlnode, QMap<int, int> idMappings
    }
    QDomNodeList sources = xmlnode.namedItem("Sources").childNodes();
    for (int i = 0; i < sources.count(); i++) {
-      int slotId = sources.at(i).toElement().attribute("slot").toInt();
+      const TextureGeneratorPtr generator = getGenerator();
+      const QString slotId =
+          generator->resolveSourceSlot(sources.at(i).toElement().attribute("slot"));
       int sourceId = sources.at(i).toElement().attribute("source").toInt();
       if (idMappings.contains(sourceId)) {
          sourceId = idMappings[sourceId];
       }
-      setSourceSlot(slotId, sourceId);
+      if (!slotId.isNull()) {
+         setSourceSlot(slotId, sourceId);
+      }
    }
    TextureNodeSettings loadedSettings = getSettings();
    QDomNodeList settingsNodes = xmlnode.namedItem("Settings").childNodes();
@@ -127,7 +128,7 @@ void TextureNode::loadFromXML(const QDomNode& xmlnode, QMap<int, int> idMappings
 
 QDomElement TextureNode::saveAsXML(QDomDocument targetdoc) {
    const TextureNodeSettings settingsCopy = getSettings();
-   const QMap<int, int> sourcesCopy = getSources();
+   const QMap<QString, int> sourcesCopy = getSources();
    const TextureGeneratorPtr generator = getGenerator();
    QDomElement retXmlNode = targetdoc.createElement("Node");
    retXmlNode.setAttribute("id", id);
@@ -162,13 +163,12 @@ QDomElement TextureNode::saveAsXML(QDomDocument targetdoc) {
    if (!sourcesCopy.empty()) {
       QDomElement sourcesnode = targetdoc.createElement("Sources");
       retXmlNode.appendChild(sourcesnode);
-      QMapIterator<int, int> sourcesiterator(sourcesCopy);
-      while (sourcesiterator.hasNext()) {
-         sourcesiterator.next();
-         if (sourcesiterator.value() > 0) {
+      for (const QString& slot : generator->getSourceSlots()) {
+         const int sourceId = sourcesCopy.value(slot);
+         if (sourceId > 0) {
             QDomElement sourcenode = targetdoc.createElement("source");
-            sourcenode.setAttribute("slot", sourcesiterator.key());
-            sourcenode.setAttribute("source", sourcesiterator.value());
+            sourcenode.setAttribute("slot", slot);
+            sourcenode.setAttribute("source", sourceId);
             sourcesnode.appendChild(sourcenode);
          }
       }
@@ -202,7 +202,7 @@ TextureNodeSettings TextureNode::getSettings() const {
    return settings;
 }
 
-QMap<int, int> TextureNode::getSources() const {
+QMap<QString, int> TextureNode::getSources() const {
    std::shared_lock lock(sourceMutex);
    return sources;
 }
@@ -219,46 +219,37 @@ void TextureNode::setPos(QPointF pos) {
 }
 
 void TextureNode::removeSource(int id) {
-   const QMap<int, int> sourcesCopy = getSources();
-   QMapIterator<int, int> sourceiter(sourcesCopy);
+   const QMap<QString, int> sourcesCopy = getSources();
+   QMapIterator<QString, int> sourceiter(sourcesCopy);
    while (sourceiter.findNext(id)) {
       setSourceSlot(sourceiter.key(), 0);
    }
 }
 
-bool TextureNode::slotAvailable(int slot) const {
-   const int sourceSlotCount = getNumSourceSlots();
-   std::shared_lock lock(sourceMutex);
-   if (slot >= 0 && slot < sourceSlotCount && sources.value(slot) == 0) {
-      return true;
-   }
-   if (slot == -1) {
-      for (int i = 0; i < sourceSlotCount; i++) {
-         if (sources.value(i) == 0) {
-            return true;
-         }
-      }
-   }
-   return false;
-}
-
-bool TextureNode::setSourceSlot(int slot, int sourceId) {
-   const int sourceSlotCount = getNumSourceSlots();
-   std::unique_lock sourceLock(sourceMutex);
-   if ((slot < -1) || slot >= sourceSlotCount || sourceId == id) {
+bool TextureNode::slotAvailable(const QString& slot) const {
+   if (!getSourceSlots().contains(slot)) {
       return false;
    }
-   if (slot == -1) {
-      for (int i = 0; i < sourceSlotCount; i++) {
-         if (sources.value(i) == 0) {
-            slot = i;
-            break;
-         }
-      }
-      if (slot == -1) {
-         return false;
+   std::shared_lock lock(sourceMutex);
+   return sources.value(slot) == 0;
+}
+
+QString TextureNode::getFirstAvailableSourceSlot() const {
+   const QStringList sourceSlots = getSourceSlots();
+   std::shared_lock lock(sourceMutex);
+   for (const QString& slot : sourceSlots) {
+      if (sources.value(slot) == 0) {
+         return slot;
       }
    }
+   return QString();
+}
+
+bool TextureNode::setSourceSlot(const QString& slot, int sourceId) {
+   if (!getSourceSlots().contains(slot) || sourceId == id) {
+      return false;
+   }
+   std::unique_lock sourceLock(sourceMutex);
    if (sources.value(slot) == sourceId) {
       return true;
    }
@@ -376,7 +367,7 @@ TextureImagePtr TextureNode::renderImage(QSize size) {
          renderRevision = imageRevision;
       }
 
-      const QMap<int, int> sourcesCopy = getSources();
+      const QMap<QString, int> sourcesCopy = getSources();
       TextureGeneratorPtr generator;
       TextureNodeSettings settingsCopy;
       {
@@ -385,13 +376,13 @@ TextureImagePtr TextureNode::renderImage(QSize size) {
          settingsCopy = settings;
       }
 
-      QMap<int, TextureImagePtr> sourceImages;
-      for (int i = 0; i < generator->getNumSourceSlots(); i++) {
-         const int slotSource = sourcesCopy.value(i);
+      QMap<QString, TextureImagePtr> sourceImages;
+      for (const QString& slot : generator->getSourceSlots()) {
+         const int slotSource = sourcesCopy.value(slot);
          if (slotSource != 0) {
             TextureNodePtr sourceNode = project->getNode(slotSource);
             if (!sourceNode.isNull()) {
-               sourceImages.insert(i, sourceNode->renderImage(size));
+               sourceImages.insert(slot, sourceNode->renderImage(size));
             }
          }
       }
@@ -436,10 +427,16 @@ bool TextureNode::setGenerator(TextureGeneratorPtr newgenerator) {
       return true;
    }
 
-   if (!oldGenerator.isNull() &&
-       oldGenerator->getNumSourceSlots() > newgenerator->getNumSourceSlots()) {
-      for (int i = newgenerator->getNumSourceSlots(); i < oldGenerator->getNumSourceSlots(); i++) {
-         setSourceSlot(i, 0);
+   const QStringList oldSlots =
+       oldGenerator.isNull() ? QStringList() : oldGenerator->getSourceSlots();
+   const QStringList newSlots = newgenerator->getSourceSlots();
+   QList<int> oldSourceIds;
+   oldSourceIds.reserve(oldSlots.size());
+   const QMap<QString, int> oldSources = getSources();
+   for (const QString& slot : oldSlots) {
+      oldSourceIds.append(oldSources.value(slot));
+      if (oldSources.value(slot) != 0) {
+         setSourceSlot(slot, 0);
       }
    }
 
@@ -461,6 +458,19 @@ bool TextureNode::setGenerator(TextureGeneratorPtr newgenerator) {
       settings = std::move(newSettings);
       invalidateImageCache();
    }
+   {
+      std::unique_lock lock(sourceMutex);
+      sources.clear();
+      for (const QString& slot : newSlots) {
+         sources.insert(slot, 0);
+      }
+   }
+   const int preservedSlots = qMin(oldSourceIds.size(), newSlots.size());
+   for (int i = 0; i < preservedSlots; ++i) {
+      if (oldSourceIds.at(i) != 0) {
+         setSourceSlot(newSlots.at(i), oldSourceIds.at(i));
+      }
+   }
    emit settingsUpdated(id);
    emit generatorUpdated(id);
    propagateImageUpdate();
@@ -481,9 +491,9 @@ QString TextureNode::getGeneratorName() const {
    return generator.isNull() ? QString() : generator->getName();
 }
 
-int TextureNode::getNumSourceSlots() const {
+QStringList TextureNode::getSourceSlots() const {
    const TextureGeneratorPtr generator = getGenerator();
-   return generator.isNull() ? 0 : generator->getNumSourceSlots();
+   return generator.isNull() ? QStringList() : generator->getSourceSlots();
 }
 
 TextureImagePtr TextureNode::cachedImage(QSize size) const {

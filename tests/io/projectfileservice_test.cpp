@@ -40,6 +40,9 @@ private slots:
    /// @brief Verifies that saving and reloading preserves graph semantics.
    void roundTripsSemantically();
 
+   /// @brief Verifies legacy numeric and display slots save back as canonical names.
+   void upgradesLegacySlotsToNames();
+
    /// @brief Supplies portable and platform-characterizing render hashes.
    void rendersStableRawHashes_data();
 
@@ -106,6 +109,42 @@ void ProjectFileServiceTest::roundTripsSemantically() {
    QCOMPARE(reloaded.saveAsXML().toByteArray(), before);
 }
 
+void ProjectFileServiceTest::upgradesLegacySlotsToNames() {
+   const QString xml = QStringLiteral(
+       "<TextureSet><Nodes>"
+       "<Node id='1' name='source'><generator name='Fill'/></Node>"
+       "<Node id='2' name='displaced'><generator name='Displacement'/>"
+       "<Sources><source slot='0' source='1'/><source slot='Slot 2' source='1'/></Sources>"
+       "</Node></Nodes></TextureSet>");
+
+   QTemporaryDir directory;
+   QVERIFY(directory.isValid());
+   const QString legacyPath = directory.filePath(QStringLiteral("legacy.txl"));
+   QFile legacyFile(legacyPath);
+   QVERIFY(legacyFile.open(QIODevice::WriteOnly));
+   QCOMPARE(legacyFile.write(xml.toUtf8()), qint64(xml.toUtf8().size()));
+   legacyFile.close();
+
+   TextureProject project(false);
+   registerBuiltInGenerators(project);
+   ProjectFileResult result = ProjectFileService::load(legacyPath, project);
+   QVERIFY2(result.succeeded(), qPrintable(result.message));
+   const TextureNodePtr displaced = project.getNode(2);
+   QCOMPARE(displaced->getSources().value(QStringLiteral("Source image")), 1);
+   QCOMPARE(displaced->getSources().value(QStringLiteral("Map")), 1);
+
+   const QString namedPath = directory.filePath(QStringLiteral("named.txl"));
+   result = ProjectFileService::save(namedPath, project, false);
+   QVERIFY2(result.succeeded(), qPrintable(result.message));
+   QFile namedFile(namedPath);
+   QVERIFY(namedFile.open(QIODevice::ReadOnly));
+   const QString saved = QString::fromUtf8(namedFile.readAll());
+   QVERIFY(saved.contains(QStringLiteral("slot=\"Source image\"")));
+   QVERIFY(saved.contains(QStringLiteral("slot=\"Map\"")));
+   QVERIFY(!saved.contains(QStringLiteral("slot=\"0\"")));
+   QVERIFY(!saved.contains(QStringLiteral("slot=\"Slot 2\"")));
+}
+
 void ProjectFileServiceTest::rendersStableRawHashes_data() {
    QTest::addColumn<QString>("path");
    QTest::addColumn<int>("sink");
@@ -160,6 +199,15 @@ void ProjectFileServiceTest::rejectsMalformedDocumentsTransactionally_data() {
           "<Sources><source slot='0' source='2'/></Sources></Node>"
           "<Node id='2' name='b'><generator name='Blending'/>"
           "<Sources><source slot='0' source='1'/></Sources></Node></Nodes></TextureSet>";
+   QTest::newRow("unknown-named-slot")
+       << "<TextureSet><Nodes><Node id='1' name='a'><generator name='Blending'/>"
+          "<Sources><source slot='Missing' source='2'/></Sources></Node>"
+          "<Node id='2' name='b'><generator name='Fill'/></Node></Nodes></TextureSet>";
+   QTest::newRow("mixed-duplicate-slot")
+       << "<TextureSet><Nodes><Node id='1' name='a'><generator name='Blending'/>"
+          "<Sources><source slot='0' source='2'/><source slot='Base' source='3'/></Sources></Node>"
+          "<Node id='2' name='b'><generator name='Fill'/></Node>"
+          "<Node id='3' name='c'><generator name='Fill'/></Node></Nodes></TextureSet>";
 }
 
 void ProjectFileServiceTest::rejectsMalformedDocumentsTransactionally() {

@@ -9,13 +9,14 @@
 #include "sceneview/viewnodeline.h"
 #include "sceneview/viewnodescene.h"
 #include <QCursor>
+#include <QFontMetricsF>
 #include <QGraphicsSceneMouseEvent>
 #include <QPainter>
 #include <QPen>
 #include <QStyleOptionGraphicsItem>
 #include <QtMath>
 
-ViewNodeLine::ViewNodeLine(ViewNodeScene& scene, int sourceItem, int receiverItem, int slot)
+ViewNodeLine::ViewNodeLine(ViewNodeScene& scene, int sourceItem, int receiverItem, QString slot)
     : nodescene(scene) {
    this->slot = slot;
    infocus = false;
@@ -26,6 +27,9 @@ ViewNodeLine::ViewNodeLine(ViewNodeScene& scene, int sourceItem, int receiverIte
    normalWidth = 3;
    highlightedWidth = 4;
    arrowSize = 12;
+   labelFontSize = 12;
+   displaySourceNames = true;
+   displayReceiverNames = false;
    setNodes(sourceItem, receiverItem);
    setAcceptHoverEvents(true);
    setZValue(-1);
@@ -54,16 +58,46 @@ void ViewNodeLine::setPos(QPointF startPos, QPointF endPos) {
 
 QRectF ViewNodeLine::boundingRect() const {
    qreal extra = qMax(256.0, arrowSize * 8.0);
-   return linePath.controlPointRect().normalized().adjusted(-extra, -extra, extra, extra);
+   QRectF bounds = linePath.controlPointRect().normalized().adjusted(-extra, -extra, extra, extra);
+   if (highlighted) {
+      if (displayReceiverNames) {
+         bounds = bounds.united(sourceLabelRect);
+      }
+      if (displaySourceNames) {
+         bounds = bounds.united(receiverLabelRect);
+      }
+   }
+   return bounds;
 }
 
 void ViewNodeLine::setHighlighted(bool highlighted) {
+   if (this->highlighted == highlighted) {
+      return;
+   }
+   prepareGeometryChange();
    this->highlighted = highlighted;
+   setZValue(highlighted ? 1 : -1);
    if (highlighted) {
       setColor(QColor("#1687b8"));
    } else {
       setColor(QColor("#24313d"));
    }
+}
+
+void ViewNodeLine::setLabelSettings(int fontSize, bool showSourceNames, bool showReceiverNames) {
+   if (fontSize < 8 || fontSize > 24) {
+      fontSize = 12;
+   }
+   if (labelFontSize == fontSize && displaySourceNames == showSourceNames &&
+       displayReceiverNames == showReceiverNames) {
+      return;
+   }
+   prepareGeometryChange();
+   labelFontSize = fontSize;
+   displaySourceNames = showSourceNames;
+   displayReceiverNames = showReceiverNames;
+   updateLabelGeometry();
+   update();
 }
 
 void ViewNodeLine::setWidth(int width) {
@@ -187,6 +221,10 @@ void ViewNodeLine::hoverLeaveEvent(QGraphicsSceneHoverEvent* event) {
 
 void ViewNodeLine::updatePos() {
    prepareGeometryChange();
+   sourceLabelText.clear();
+   receiverLabelText.clear();
+   sourceLabelRect = QRectF();
+   receiverLabelRect = QRectF();
    ViewNodeItem* sourceItem = nodescene.getItem(sourceItemId);
    ViewNodeItem* receiverItem = nodescene.getItem(receiverItemId);
    if (sourceItem == receiverItem) {
@@ -208,6 +246,9 @@ void ViewNodeLine::updatePos() {
       receiverPos = receiverCenter;
    }
    if (hasSourcePos && hasReceiverPos) {
+      if (sourceItem) {
+         sourcePos = getNodeIntersection(sourceItem, sourceCenter, receiverCenter);
+      }
       if (receiverItem) {
          receiverPos = getNodeIntersection(receiverItem, receiverCenter, sourceCenter);
       }
@@ -240,7 +281,48 @@ void ViewNodeLine::updatePos() {
    arrowTip = end;
    arrowDirection = (end - control) / arrowLineLength;
    arrowHead = createArrowHead(arrowSize);
+   updateLabelGeometry();
    update();
+}
+
+void ViewNodeLine::updateLabelGeometry() {
+   sourceLabelText.clear();
+   receiverLabelText.clear();
+   sourceLabelRect = QRectF();
+   receiverLabelRect = QRectF();
+
+   ViewNodeItem* sourceItem = nodescene.getItem(sourceItemId);
+   ViewNodeItem* receiverItem = nodescene.getItem(receiverItemId);
+   if (!sourceItem || !receiverItem || slot.isEmpty()) {
+      return;
+   }
+
+   sourceLabelText = QStringLiteral("Output (%1)").arg(receiverItem->getTextureNode()->getName());
+   receiverLabelText = QStringLiteral("%1 (%2)").arg(slot, sourceItem->getTextureNode()->getName());
+
+   QFont font;
+   font.setPixelSize(labelFontSize);
+   const QFontMetricsF metrics(font);
+   sourceLabelRect = metrics.boundingRect(sourceLabelText).adjusted(-5, -3, 5, 3);
+   receiverLabelRect = metrics.boundingRect(receiverLabelText).adjusted(-5, -3, 5, 3);
+   QPointF normal(-arrowDirection.y(), arrowDirection.x());
+   if (normal.isNull()) {
+      normal = QPointF(0, -1);
+   }
+   QPointF sourceDirection = lineControl - lineStart;
+   const qreal sourceDirectionLength = QLineF(QPointF(), sourceDirection).length();
+   if (sourceDirectionLength > 0) {
+      sourceDirection /= sourceDirectionLength;
+   } else {
+      sourceDirection = arrowDirection;
+   }
+   const qreal labelOffset = 7.0;
+   sourceLabelRect.moveCenter(lineStart +
+                              sourceDirection * (sourceLabelRect.width() / 2.0 + labelOffset) +
+                              normal * (sourceLabelRect.height() / 2.0 + labelOffset));
+   receiverLabelRect.moveCenter(arrowTip -
+                                arrowDirection * (receiverLabelRect.width() / 2.0 + labelOffset) +
+                                normal * (receiverLabelRect.height() / 2.0 + labelOffset));
 }
 
 void ViewNodeLine::paint(QPainter* painter, const QStyleOptionGraphicsItem*, QWidget*) {
@@ -283,4 +365,19 @@ void ViewNodeLine::paint(QPainter* painter, const QStyleOptionGraphicsItem*, QWi
    painter->setPen(Qt::NoPen);
    painter->setBrush(myPen.color());
    painter->drawPolygon(paintedArrowHead);
+
+   if (endpointLabelsVisible()) {
+      QFont font = painter->font();
+      font.setPixelSize(labelFontSize);
+      painter->setFont(font);
+      painter->setPen(QColor("#24313d"));
+      if (displayReceiverNames && !sourceLabelText.isEmpty()) {
+         painter->drawText(sourceLabelRect.adjusted(5, 3, -5, -3),
+                           Qt::AlignCenter | Qt::TextSingleLine, sourceLabelText);
+      }
+      if (displaySourceNames && !receiverLabelText.isEmpty()) {
+         painter->drawText(receiverLabelRect.adjusted(5, 3, -5, -3),
+                           Qt::AlignCenter | Qt::TextSingleLine, receiverLabelText);
+      }
+   }
 }

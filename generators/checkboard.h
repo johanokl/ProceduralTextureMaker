@@ -14,9 +14,8 @@ class CheckboardTextureGenerator : public TextureGenerator {
 public:
    CheckboardTextureGenerator();
    ~CheckboardTextureGenerator() override = default;
-   void generate(QSize size, TexturePixel* destimage, QMap<int, TextureImagePtr> sourceimages,
+   void generate(QSize size, TexturePixel* destimage, QMap<QString, TextureImagePtr> sourceimages,
                  TextureNodeSettings* settings) const override;
-   int getNumSourceSlots() const override { return 1; }
    QString getName() const override { return QString("Checkboard"); }
    const TextureGeneratorSettings& getSettings() const override { return configurables; }
    QString getDescription() const override { return QString("Draws a checkboard."); }

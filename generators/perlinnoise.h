@@ -14,10 +14,9 @@ class PerlinNoiseTextureGenerator : public TextureGenerator {
 public:
    PerlinNoiseTextureGenerator();
    ~PerlinNoiseTextureGenerator() override = default;
-   void generate(QSize size, TexturePixel* destimage, QMap<int, TextureImagePtr> sourceimages,
+   void generate(QSize size, TexturePixel* destimage, QMap<QString, TextureImagePtr> sourceimages,
                  TextureNodeSettings* settings) const override;
    const TextureGeneratorSettings& getSettings() const override { return configurables; }
-   int getNumSourceSlots() const override { return 1; }
    QString getName() const override { return "Perlin noise"; }
    QString getDescription() const override { return QString("Basic Perlin Noise"); }
    TextureGenerator::Type getType() const override { return TextureGenerator::Type::Generator; }

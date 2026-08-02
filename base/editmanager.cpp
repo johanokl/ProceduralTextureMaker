@@ -15,7 +15,7 @@ namespace {
 struct ConnectionSnapshot {
    int sourceId{0};
    int receiverId{0};
-   int slot{0};
+   QString slot;
 };
 
 struct NodeSnapshot {
@@ -24,7 +24,7 @@ struct NodeSnapshot {
    QString name;
    QPointF position;
    TextureNodeSettings settings;
-   QMap<int, int> sources;
+   QMap<QString, int> sources;
    QList<ConnectionSnapshot> outgoing;
 };
 
@@ -48,7 +48,7 @@ NodeSnapshot captureNode(TextureProject& project, const int nodeId) {
       if (receiver.isNull()) {
          continue;
       }
-      const QMap<int, int> sources = receiver->getSources();
+      const QMap<QString, int> sources = receiver->getSources();
       for (auto source = sources.cbegin(); source != sources.cend(); ++source) {
          if (source.value() == nodeId) {
             snapshot.outgoing.append({nodeId, receiverId, source.key()});
@@ -193,11 +193,11 @@ private:
 
 class SetConnectionCommand final : public QUndoCommand {
 public:
-   SetConnectionCommand(TextureProject& project, const int receiverId, const int slot,
+   SetConnectionCommand(TextureProject& project, const int receiverId, QString slot,
                         const int oldSourceId, const int newSourceId)
        : project(project),
          receiverId(receiverId),
-         slot(slot),
+         slot(std::move(slot)),
          oldSourceId(oldSourceId),
          newSourceId(newSourceId) {
       setText(newSourceId == 0 ? QStringLiteral("Remove connection")
@@ -215,15 +215,15 @@ private:
    }
    TextureProject& project;
    int receiverId;
-   int slot;
+   QString slot;
    int oldSourceId;
    int newSourceId;
 };
 
 class SetSourcesCommand final : public QUndoCommand {
 public:
-   SetSourcesCommand(TextureProject& project, const int receiverId, QMap<int, int> oldSources,
-                     QMap<int, int> newSources)
+   SetSourcesCommand(TextureProject& project, const int receiverId, QMap<QString, int> oldSources,
+                     QMap<QString, int> newSources)
        : project(project),
          receiverId(receiverId),
          oldSources(std::move(oldSources)),
@@ -234,12 +234,12 @@ public:
    void redo() override { apply(newSources); }
 
 private:
-   void apply(const QMap<int, int>& sources) {
+   void apply(const QMap<QString, int>& sources) {
       const TextureNodePtr receiver = project.getNode(receiverId);
       if (receiver.isNull()) {
          return;
       }
-      for (int slot = 0; slot < receiver->getNumSourceSlots(); ++slot) {
+      for (const QString& slot : receiver->getSourceSlots()) {
          receiver->setSourceSlot(slot, 0);
       }
       for (auto source = sources.cbegin(); source != sources.cend(); ++source) {
@@ -250,8 +250,8 @@ private:
    }
    TextureProject& project;
    int receiverId;
-   QMap<int, int> oldSources;
-   QMap<int, int> newSources;
+   QMap<QString, int> oldSources;
+   QMap<QString, int> newSources;
 };
 
 class AddNodeCommand final : public QUndoCommand {
@@ -375,20 +375,12 @@ void EditManager::renameNode(const int nodeId, const QString& newName) {
    }
 }
 
-bool EditManager::setConnection(const int receiverId, int slot, const int sourceId) {
+bool EditManager::setConnection(const int receiverId, const QString& slot, const int sourceId) {
    const TextureNodePtr receiver = project.getNode(receiverId);
    if (receiver.isNull()) {
       return false;
    }
-   if (slot == -1) {
-      for (int candidate = 0; candidate < receiver->getNumSourceSlots(); ++candidate) {
-         if (receiver->getSources().value(candidate) == 0) {
-            slot = candidate;
-            break;
-         }
-      }
-   }
-   if (slot < 0 || slot >= receiver->getNumSourceSlots()) {
+   if (!receiver->getSourceSlots().contains(slot)) {
       return false;
    }
    const int oldSourceId = receiver->getSources().value(slot);
@@ -402,15 +394,26 @@ bool EditManager::setConnection(const int receiverId, int slot, const int source
    return true;
 }
 
+bool EditManager::setConnectionToFirstAvailable(const int receiverId, const int sourceId) {
+   const TextureNodePtr receiver = project.getNode(receiverId);
+   if (receiver.isNull()) {
+      return false;
+   }
+   const QString slot = receiver->getFirstAvailableSourceSlot();
+   return !slot.isNull() && setConnection(receiverId, slot, sourceId);
+}
+
 void EditManager::swapSources(const int receiverId) {
    const TextureNodePtr receiver = project.getNode(receiverId);
-   if (receiver.isNull() || receiver->getNumSourceSlots() < 2) {
+   if (receiver.isNull() || receiver->getSourceSlots().size() < 2) {
       return;
    }
-   const QMap<int, int> oldSources = receiver->getSources();
-   QMap<int, int> newSources;
-   for (int slot = 0; slot < receiver->getNumSourceSlots(); ++slot) {
-      newSources[slot] = oldSources.value((slot + 1) % receiver->getNumSourceSlots());
+   const QStringList sourceSlots = receiver->getSourceSlots();
+   const QMap<QString, int> oldSources = receiver->getSources();
+   QMap<QString, int> newSources;
+   for (int i = 0; i < sourceSlots.size(); ++i) {
+      newSources[sourceSlots.at(i)] =
+          oldSources.value(sourceSlots.at((i + 1) % sourceSlots.size()));
    }
    if (oldSources != newSources) {
       undoStack.push(new SetSourcesCommand(project, receiverId, oldSources, newSources));

@@ -14,12 +14,10 @@ class DisplacementMapTextureGenerator : public TextureGenerator {
 public:
    DisplacementMapTextureGenerator();
    ~DisplacementMapTextureGenerator() override = default;
-   void generate(QSize size, TexturePixel* destimage, QMap<int, TextureImagePtr> sourceimages,
+   void generate(QSize size, TexturePixel* destimage, QMap<QString, TextureImagePtr> sourceimages,
                  TextureNodeSettings* settings) const override;
-   int getNumSourceSlots() const override { return 2; }
-   QString getSlotName(int num) override {
-      if (num == 1) return QString("Map");
-      return QString("Source image");
+   QStringList getSourceSlots() const override {
+      return {QStringLiteral("Source image"), QStringLiteral("Map")};
    }
    QString getName() const override { return QString("Displacement"); }
    const TextureGeneratorSettings& getSettings() const override { return configurables; }

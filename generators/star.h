@@ -14,9 +14,8 @@ class StarTextureGenerator : public TextureGenerator {
 public:
    StarTextureGenerator();
    ~StarTextureGenerator() override = default;
-   void generate(QSize size, TexturePixel* destimage, QMap<int, TextureImagePtr> sourceimages,
+   void generate(QSize size, TexturePixel* destimage, QMap<QString, TextureImagePtr> sourceimages,
                  TextureNodeSettings* settings) const override;
-   int getNumSourceSlots() const override { return 1; }
    QString getName() const override { return QString("Star"); }
    const TextureGeneratorSettings& getSettings() const override { return configurables; }
    QString getDescription() const override { return QString("Draws a star."); }

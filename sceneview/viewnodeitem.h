@@ -78,7 +78,7 @@ public:
 
    /// @brief Returns lines that terminate at this node.
    /// @return Incoming connection lines indexed by input slot.
-   QMap<int, ViewNodeLine*> getEndLines() const { return endLines; }
+   QMap<QString, ViewNodeLine*> getEndLines() const { return endLines; }
 
    /// @brief Registers a connection line with the node.
    /// @param line Connection line to register.
@@ -146,6 +146,9 @@ private:
    /// @brief Updates every connection line attached to the node.
    void updateConnectionLines();
 
+   /// @brief Whether this node should reveal labels on attached connections.
+   bool connectionLabelsActive() const { return hovered || isSelected(); }
+
    /// @brief Identifier of the represented texture node.
    int id;
    /// @brief Scene that owns and coordinates the node item.
@@ -158,8 +161,6 @@ private:
    QSize thumbnailSize;
    /// @brief Text displayed in the node header.
    QString titleString;
-   /// @brief Input slot highlighted during connection drawing.
-   int highlightSlot;
    /// @brief Scene position at which the current drag began.
    QPointF mousePressedPos;
    /// @brief Node position at which the current drag began.
@@ -173,7 +174,7 @@ private:
    /// @brief Non-owning references to scene-owned lines originating at the node.
    QSet<ViewNodeLine*> startLines;
    /// @brief Non-owning references to scene-owned incoming lines by input slot.
-   QMap<int, ViewNodeLine*> endLines;
+   QMap<QString, ViewNodeLine*> endLines;
    /// @brief Whether the displayed thumbnail matches the current node state.
    bool imageValid;
    /// @brief Whether the node rejects the pending connection.
@@ -182,6 +183,8 @@ private:
    bool isConnectable;
    /// @brief Whether the node is currently being dragged.
    bool mousePressed;
+   /// @brief Whether the pointer is currently over the node.
+   bool hovered;
 };
 
 #endif  // VIEWNODEITEM_H

@@ -3,7 +3,14 @@
 #include <utility>
 
 RecordingGenerator::RecordingGenerator(QString name, const int sourceSlots, const int defaultValue)
-    : generatorName(std::move(name)), sourceSlotCount(sourceSlots) {
+    : generatorName(std::move(name)) {
+   if (sourceSlots == 1) {
+      this->sourceSlots.append(QStringLiteral("Input"));
+   } else {
+      for (int i = 1; i <= sourceSlots; ++i) {
+         this->sourceSlots.append(QStringLiteral("Input %1").arg(i));
+      }
+   }
    TextureGeneratorSetting value;
    value.name = QStringLiteral("Value");
    value.defaultvalue = defaultValue;
@@ -11,7 +18,7 @@ RecordingGenerator::RecordingGenerator(QString name, const int sourceSlots, cons
 }
 
 void RecordingGenerator::generate(const QSize size, TexturePixel* destination,
-                                  QMap<int, TextureImagePtr> sources,
+                                  QMap<QString, TextureImagePtr> sources,
                                   TextureNodeSettings* settings) const {
    Q_UNUSED(sources);
    ++calls;
@@ -32,4 +39,15 @@ void RecordingGenerator::generate(const QSize size, TexturePixel* destination,
 
 bool RecordingGenerator::waitUntilStarted(const int timeoutMilliseconds) const {
    return started.tryAcquire(1, timeoutMilliseconds);
+}
+
+void NamedInputGenerator::generate(const QSize size, TexturePixel* destination,
+                                   QMap<QString, TextureImagePtr> sources,
+                                   TextureNodeSettings* settings) const {
+   Q_UNUSED(settings);
+   const TextureImagePtr source = sources.value(QStringLiteral("Zulu"));
+   const qsizetype count = static_cast<qsizetype>(size.width()) * size.height();
+   for (qsizetype i = 0; i < count; ++i) {
+      destination[i] = source.isNull() ? TexturePixel(0, 0, 0, 0) : source->data()[i];
+   }
 }

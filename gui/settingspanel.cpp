@@ -141,6 +141,21 @@ SettingsPanel::SettingsPanel(MainWindow* parent, SettingsManager* settingsmanage
    connectionsLayout->addWidget(arrowSizeSlider, 1, 1);
    connectionsLayout->addWidget(arrowSizeValueLabel, 1, 2);
 
+   QLabel* connectionLabelSizeLabel = new QLabel("Node name size:");
+   connectionLabelSizeSlider = new QSlider(Qt::Horizontal, this);
+   connectionLabelSizeSlider->setMinimum(8);
+   connectionLabelSizeSlider->setMaximum(24);
+   connectionLabelSizeSlider->setSingleStep(1);
+   connectionLabelSizeValueLabel = new QLabel(this);
+   connectionsLayout->addWidget(connectionLabelSizeLabel, 2, 0);
+   connectionsLayout->addWidget(connectionLabelSizeSlider, 2, 1);
+   connectionsLayout->addWidget(connectionLabelSizeValueLabel, 2, 2);
+
+   displaySourceNamesCheckbox = new QCheckBox("Display source names", this);
+   displayReceiverNamesCheckbox = new QCheckBox("Display receiver names", this);
+   connectionsLayout->addWidget(displaySourceNamesCheckbox, 3, 0, 1, 3);
+   connectionsLayout->addWidget(displayReceiverNamesCheckbox, 4, 0, 1, 3);
+
    QGroupBox* exportWidget = new QGroupBox("Exporting");
    auto* exportLayout = new QGridLayout;
    exportWidget->setLayout(exportLayout);
@@ -219,10 +234,15 @@ SettingsPanel::SettingsPanel(MainWindow* parent, SettingsManager* settingsmanage
    QObject::connect(exportImageHeightSpinbox, spinboxChanged, this, &SettingsPanel::applySettings);
    QObject::connect(lineWidthSlider, sliderChanged, this, &SettingsPanel::applySettings);
    QObject::connect(arrowSizeSlider, sliderChanged, this, &SettingsPanel::applySettings);
+   QObject::connect(connectionLabelSizeSlider, sliderChanged, this, &SettingsPanel::applySettings);
    QObject::connect(headerSizeSlider, sliderChanged, this, &SettingsPanel::applySettings);
    QObject::connect(zoomSpeedSlider, sliderChanged, this, &SettingsPanel::applySettings);
    QObject::connect(backgroundBrushCombobox, comboboxChanged, this, &SettingsPanel::applySettings);
    QObject::connect(jsGeneratorEnabledCheckbox, &QCheckBox::toggled, this,
+                    &SettingsPanel::applySettings);
+   QObject::connect(displaySourceNamesCheckbox, &QCheckBox::toggled, this,
+                    &SettingsPanel::applySettings);
+   QObject::connect(displayReceiverNamesCheckbox, &QCheckBox::toggled, this,
                     &SettingsPanel::applySettings);
 
    QWidget* spacerWidget = new QWidget;
@@ -268,11 +288,13 @@ void SettingsPanel::selectDirectoryPath(QLineEdit* lineWidget) {
 void SettingsPanel::updateSceneStyleLabels() {
    int lineWidth = lineWidthSlider->value();
    int arrowSize = arrowSizeSlider->value() * 2;
+   int connectionLabelSize = connectionLabelSizeSlider->value();
    int headerSize = headerSizeForSlider(headerSizeSlider->value());
    double zoomFactor = zoomFactorForSlider(zoomSpeedSlider->value());
 
    lineWidthValueLabel->setText(QString("%1/%2 px").arg(lineWidth).arg(lineWidth + 1));
    arrowSizeValueLabel->setText(QString("%1 px").arg(arrowSize));
+   connectionLabelSizeValueLabel->setText(QString("%1 px").arg(connectionLabelSize));
    if (headerSize == 0) {
       headerSizeValueLabel->setText("None");
    } else {
@@ -296,6 +318,9 @@ void SettingsPanel::applySettings() {
    settingsmanager->setBackgroundBrush(backgroundBrushCombobox->currentData().toInt());
    settingsmanager->setJSTextureGeneratorsPath(jsGeneratorPathEdit->text());
    settingsmanager->setJSTextureGeneratorsEnabled(jsGeneratorEnabledCheckbox->isChecked());
+   settingsmanager->setConnectionLabelSize(connectionLabelSizeSlider->value());
+   settingsmanager->setDisplaySourceNames(displaySourceNamesCheckbox->isChecked());
+   settingsmanager->setDisplayReceiverNames(displayReceiverNamesCheckbox->isChecked());
 
    int lineWidth = lineWidthSlider->value();
    int arrowSize = arrowSizeSlider->value() * 2;
@@ -418,6 +443,9 @@ void SettingsPanel::settingsUpdated() {
    thumbnailHeightSpinbox->setValue(settingsmanager->getThumbnailSize().height());
    lineWidthSlider->setValue(lineWidth);
    arrowSizeSlider->setValue(arrowSize / 2);
+   connectionLabelSizeSlider->setValue(settingsmanager->getConnectionLabelSize());
+   displaySourceNamesCheckbox->setChecked(settingsmanager->getDisplaySourceNames());
+   displayReceiverNamesCheckbox->setChecked(settingsmanager->getDisplayReceiverNames());
    headerSizeSlider->setValue(headerSliderForSize(headerSize));
    zoomSpeedSlider->setValue(zoomSliderForFactor(zoomFactor));
    jsGeneratorEnabledCheckbox->setChecked(settingsmanager->getJSTextureGeneratorsEnabled());
@@ -439,6 +467,9 @@ void SettingsPanel::resetSettings() {
    thumbnailHeightSpinbox->setValue(300);
    lineWidthSlider->setValue(3);
    arrowSizeSlider->setValue(6);
+   connectionLabelSizeSlider->setValue(12);
+   displaySourceNamesCheckbox->setChecked(false);
+   displayReceiverNamesCheckbox->setChecked(false);
    headerSizeSlider->setValue(3);
    zoomSpeedSlider->setValue(1);
    jsGeneratorPathEdit->setText(QDir::toNativeSeparators(QDir::homePath() + "/TexGen"));
@@ -477,6 +508,9 @@ void SettingsPanel::saveSettings() {
    settingsmanager->setThumbnailSize(QSize(thumbnailWidth, thumbnailHeight));
    settingsmanager->setJSTextureGeneratorsPath(jsGeneratorPathEdit->text());
    settingsmanager->setJSTextureGeneratorsEnabled(jsGeneratorEnabledCheckbox->isChecked());
+   settingsmanager->setConnectionLabelSize(connectionLabelSizeSlider->value());
+   settingsmanager->setDisplaySourceNames(displaySourceNamesCheckbox->isChecked());
+   settingsmanager->setDisplayReceiverNames(displayReceiverNamesCheckbox->isChecked());
    settingsmanager->setPreviewBackgroundColor(QColor(previewBackgroundColorButton->text()));
    settingsmanager->setBackgroundColor(QColor(backgroundColorButton->text()));
    settingsmanager->setBackgroundBrush(backgroundBrushCombobox->currentData().toInt());

@@ -36,21 +36,21 @@ DisplacementMapTextureGenerator::DisplacementMapTextureGenerator() {
    configurables.insert("offset", offset);
 }
 void DisplacementMapTextureGenerator::generate(QSize size, TexturePixel* destimage,
-                                               QMap<int, TextureImagePtr> sourceimages,
+                                               QMap<QString, TextureImagePtr> sourceimages,
                                                TextureNodeSettings* settings) const {
    if (!settings || !destimage || !size.isValid()) {
       return;
    }
-   if (!sourceimages.contains(0)) {
+   if (!sourceimages.contains(QStringLiteral("Source image"))) {
       memset(destimage, 0, size.width() * size.height() * sizeof(TexturePixel));
       return;
    }
-   TexturePixel* sourceImage = sourceimages.value(0)->getData();
-   if (!sourceimages.contains(1)) {
+   TexturePixel* sourceImage = sourceimages.value(QStringLiteral("Source image"))->getData();
+   if (!sourceimages.contains(QStringLiteral("Map"))) {
       memcpy(destimage, sourceImage, size.width() * size.height() * sizeof(TexturePixel));
       return;
    }
-   TexturePixel* sourceMap = sourceimages.value(1)->getData();
+   TexturePixel* sourceMap = sourceimages.value(QStringLiteral("Map"))->getData();
 
    double strength = settings->value("strength").toDouble() * size.width() / 500;
    double offset = settings->value("offset").toDouble() * size.width() / 100;

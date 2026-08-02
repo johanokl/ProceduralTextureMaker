@@ -46,7 +46,10 @@ public:
    void renameNode(int nodeId, const QString& newName);
 
    /// @brief Connects or disconnects a receiver slot.
-   bool setConnection(int receiverId, int slot, int sourceId);
+   bool setConnection(int receiverId, const QString& slot, int sourceId);
+
+   /// @brief Connects a source to the first available receiver slot.
+   bool setConnectionToFirstAvailable(int receiverId, int sourceId);
 
    /// @brief Rotates a node's source-slot values as one command.
    void swapSources(int receiverId);

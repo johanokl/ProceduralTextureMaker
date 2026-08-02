@@ -53,14 +53,14 @@ void ConnectionWidget::disconnectNodes() {
    this->hide();
 }
 
-void ConnectionWidget::setNodes(int sourceNodeId, int receiverNodeId, int slot) {
+void ConnectionWidget::setNodes(int sourceNodeId, int receiverNodeId, const QString& slot) {
    this->sourceNodeId = sourceNodeId;
    this->receiverNodeId = receiverNodeId;
    this->slot = slot;
 
    nodeSourceLabel->setText(QString("%1").arg(sourceNodeId));
    nodeReceiverLabel->setText(QString("%1").arg(receiverNodeId));
-   nodeSlotLabel->setText(QString("%1").arg(slot + 1));
+   nodeSlotLabel->setText(slot);
 
    TextureProject* project = widgetmanager.getTextureProject();
    if (project != nullptr) {

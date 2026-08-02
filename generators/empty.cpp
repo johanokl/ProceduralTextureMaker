@@ -6,7 +6,7 @@
 
 #include "empty.h"
 void EmptyGenerator::generate(QSize size, TexturePixel* destimage,
-                              QMap<int, TextureImagePtr> sourceimages,
+                              QMap<QString, TextureImagePtr> sourceimages,
                               TextureNodeSettings* settings) const {
    Q_UNUSED(settings);
    Q_UNUSED(sourceimages);

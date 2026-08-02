@@ -34,7 +34,7 @@ struct TextureNodeSnapshot {
    /// @brief Generator setting values captured for the render.
    TextureNodeSettings settings;
    /// @brief Source node ID assigned to each generator input slot.
-   QMap<int, int> sources;
+   QMap<QString, int> sources;
    /// @brief Cached image for the current render size, if available.
    TextureImagePtr cachedImage;
 };

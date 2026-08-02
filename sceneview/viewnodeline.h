@@ -10,6 +10,7 @@
 #include <QGraphicsLineItem>
 #include <QPainterPath>
 #include <QPen>
+#include <QString>
 class ViewNodeItem;
 class ViewNodeScene;
 
@@ -26,8 +27,8 @@ public:
    void updatePos();
 
    /// @brief Returns the receiver input slot used by the connection.
-   /// @return Receiver input slot index.
-   inline int getSlot() const { return slot; }
+   /// @return Receiver input slot name.
+   inline QString getSlot() const { return slot; }
 
    /// @brief Returns the source node identifier.
    /// @return Source node identifier.
@@ -37,9 +38,40 @@ public:
    /// @return Receiver node identifier.
    inline int getEndItemId() const { return receiverItemId; }
 
+   /// @brief Returns whether endpoint labels are currently shown.
+   bool endpointLabelsVisible() const {
+      return highlighted && ((displayReceiverNames && !sourceLabelText.isEmpty()) ||
+                             (displaySourceNames && !receiverLabelText.isEmpty()));
+   }
+
+   /// @brief Returns the source-edge endpoint label.
+   QString getSourceLabelText() const { return sourceLabelText; }
+
+   /// @brief Returns the receiver-edge endpoint label.
+   QString getReceiverLabelText() const { return receiverLabelText; }
+
+   /// @brief Returns the configured endpoint-label font size.
+   int getLabelFontSize() const { return labelFontSize; }
+
+   /// @brief Returns whether the source-name label is currently visible.
+   bool sourceNameLabelVisible() const {
+      return highlighted && displaySourceNames && !receiverLabelText.isEmpty();
+   }
+
+   /// @brief Returns whether the receiver-name label is currently visible.
+   bool receiverNameLabelVisible() const {
+      return highlighted && displayReceiverNames && !sourceLabelText.isEmpty();
+   }
+
    /// @brief Sets whether the connection is highlighted.
    /// @param highlighted Whether to use the highlighted appearance.
    void setHighlighted(bool highlighted);
+
+   /// @brief Configures endpoint-label size and name visibility.
+   /// @param fontSize Label font size in pixels.
+   /// @param showSourceNames Whether to show source names at receiving edges.
+   /// @param showReceiverNames Whether to show receiver names at source edges.
+   void setLabelSettings(int fontSize, bool showSourceNames, bool showReceiverNames);
 
    /// @brief Sets the normal line width and derives its highlighted width.
    /// @param width Normal line width in pixels.
@@ -100,8 +132,11 @@ private:
    /// @param scene Scene that owns and coordinates the line.
    /// @param sourceItem Source node identifier, or zero for an incomplete line.
    /// @param receiverItem Receiver node identifier, or zero for an incomplete line.
-   /// @param slot Receiver input slot index.
-   ViewNodeLine(ViewNodeScene& scene, int sourceItem, int receiverItem, int slot);
+   /// @param slot Receiver input slot name.
+   ViewNodeLine(ViewNodeScene& scene, int sourceItem, int receiverItem, QString slot);
+
+   /// @brief Updates endpoint label text and rectangles from the live node model.
+   void updateLabelGeometry();
 
    /// @brief Finds where a connection intersects a node outline.
    /// @param item Node whose outline is tested.
@@ -122,8 +157,8 @@ private:
    int sourceItemId;
    /// @brief Receiver node identifier.
    int receiverItemId;
-   /// @brief Receiver input slot index.
-   int slot;
+   /// @brief Receiver input slot name.
+   QString slot;
    /// @brief Current source endpoint in scene coordinates.
    QPointF sourcePos;
    /// @brief Current receiver endpoint in scene coordinates.
@@ -140,6 +175,20 @@ private:
    QPolygonF arrowHead;
    /// @brief Curved path between the connected nodes.
    QPainterPath linePath;
+   /// @brief Text shown beside the source endpoint while highlighted.
+   QString sourceLabelText;
+   /// @brief Text shown beside the receiver endpoint while highlighted.
+   QString receiverLabelText;
+   /// @brief Source endpoint label rectangle.
+   QRectF sourceLabelRect;
+   /// @brief Receiver endpoint label rectangle.
+   QRectF receiverLabelRect;
+   /// @brief Font size used for endpoint labels.
+   int labelFontSize;
+   /// @brief Whether the receiving-edge label is drawn.
+   bool displaySourceNames;
+   /// @brief Whether the source-edge label is drawn.
+   bool displayReceiverNames;
    /// @brief Pen used to draw the connection.
    QPen myPen;
    /// @brief Line color used when the connection is not focused.

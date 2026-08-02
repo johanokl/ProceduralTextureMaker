@@ -93,7 +93,7 @@ TextTextureGenerator::TextTextureGenerator() {
    configurables.insert("antialiasing", antialiasing);
 }
 void TextTextureGenerator::generate(QSize size, TexturePixel* destimage,
-                                    QMap<int, TextureImagePtr> sourceimages,
+                                    QMap<QString, TextureImagePtr> sourceimages,
                                     TextureNodeSettings* settings) const {
    if (!settings || !destimage || !size.isValid()) {
       return;
@@ -126,8 +126,8 @@ void TextTextureGenerator::generate(QSize size, TexturePixel* destimage,
       styleHint = QFont::StyleHint::Fantasy;
    }
 
-   if (sourceimages.contains(0)) {
-      memcpy(destimage, sourceimages.value(0)->getData(),
+   if (sourceimages.contains(QStringLiteral("Input"))) {
+      memcpy(destimage, sourceimages.value(QStringLiteral("Input"))->getData(),
              size.width() * size.height() * sizeof(TexturePixel));
    } else {
       memset(destimage, 0, size.width() * size.height() * sizeof(TexturePixel));

@@ -59,9 +59,9 @@ std::unique_ptr<ViewNodeScene> ViewNodeScene::clone() const {
       newscene->addNode(ptr);
       newscene->imageAvailable(ptr->getId(), getTextureProject().getThumbnailSize());
    }
-   QMapIterator<std::tuple<int, int, int>, ViewNodeLine*> connectionsIter(nodeConnections);
+   QMapIterator<std::tuple<int, int, QString>, ViewNodeLine*> connectionsIter(nodeConnections);
    while (connectionsIter.hasNext()) {
-      std::tuple<int, int, int> connection = connectionsIter.next().key();
+      std::tuple<int, int, QString> connection = connectionsIter.next().key();
       newscene->nodesConnected(std::get<0>(connection), std::get<1>(connection),
                                std::get<2>(connection));
    }
@@ -81,7 +81,8 @@ ViewNodeItem* ViewNodeScene::getItem(int id) const {
 void ViewNodeScene::setLineWidths(int normalWidth, int highlightedWidth) {
    lineWidth = normalWidth;
    highlightedLineWidth = highlightedWidth;
-   QMapIterator<std::tuple<int, int, int>, ViewNodeLine*> nodeConnectionsIterator(nodeConnections);
+   QMapIterator<std::tuple<int, int, QString>, ViewNodeLine*> nodeConnectionsIterator(
+       nodeConnections);
    while (nodeConnectionsIterator.hasNext()) {
       nodeConnectionsIterator.next().value()->setLineWidths(lineWidth, highlightedLineWidth);
    }
@@ -96,7 +97,8 @@ void ViewNodeScene::setArrowSize(int arrowSize) {
       arrowSize = 12;
    }
    this->arrowSize = arrowSize;
-   QMapIterator<std::tuple<int, int, int>, ViewNodeLine*> nodeConnectionsIterator(nodeConnections);
+   QMapIterator<std::tuple<int, int, QString>, ViewNodeLine*> nodeConnectionsIterator(
+       nodeConnections);
    while (nodeConnectionsIterator.hasNext()) {
       nodeConnectionsIterator.next().value()->setArrowSize(arrowSize);
    }
@@ -115,7 +117,8 @@ void ViewNodeScene::setHeaderSize(int headerSize) {
    while (nodeItemIterator.hasNext()) {
       nodeItemIterator.next().value()->setHeaderSize(headerSize);
    }
-   QMapIterator<std::tuple<int, int, int>, ViewNodeLine*> nodeConnectionsIterator(nodeConnections);
+   QMapIterator<std::tuple<int, int, QString>, ViewNodeLine*> nodeConnectionsIterator(
+       nodeConnections);
    while (nodeConnectionsIterator.hasNext()) {
       nodeConnectionsIterator.next().value()->updatePos();
    }
@@ -124,19 +127,20 @@ void ViewNodeScene::setHeaderSize(int headerSize) {
 
 void ViewNodeScene::clearProject() { project.clear(); }
 
-void ViewNodeScene::nodesConnected(int sourceid, int receiverid, int slot) {
+void ViewNodeScene::nodesConnected(int sourceid, int receiverid, QString slot) {
    ViewNodeItem* sourceNode = nodeItems.value(sourceid);
    ViewNodeItem* receiverNode = nodeItems.value(receiverid);
    if (!sourceNode || !receiverNode) {
       return;
    }
-   std::tuple<int, int, int> key(sourceid, receiverid, slot);
+   std::tuple<int, int, QString> key(sourceid, receiverid, slot);
    if (nodeConnections.contains(key)) {
       return;
    }
    auto* newLine = new ViewNodeLine(*this, sourceid, receiverid, slot);
    newLine->setLineWidths(lineWidth, highlightedLineWidth);
    newLine->setArrowSize(arrowSize);
+   newLine->setLabelSettings(connectionLabelSize, displaySourceNames, displayReceiverNames);
    sourceNode->addConnectionLine(newLine);
    receiverNode->addConnectionLine(newLine);
    newLine->update();
@@ -144,10 +148,10 @@ void ViewNodeScene::nodesConnected(int sourceid, int receiverid, int slot) {
    nodeConnections.insert(key, newLine);
 }
 
-void ViewNodeScene::nodesDisconnected(int sourceid, int receiverid, int slot) {
-   auto key = std::tuple<int, int, int>(sourceid, receiverid, slot);
+void ViewNodeScene::nodesDisconnected(int sourceid, int receiverid, QString slot) {
+   auto key = std::tuple<int, int, QString>(sourceid, receiverid, slot);
    if (key == selectedLine) {
-      selectedLine = std::tuple<int, int, int>(-1, 0, 0);
+      selectedLine = std::tuple<int, int, QString>(-1, 0, QString());
    }
    if (!nodeConnections.contains(key)) {
       return;
@@ -195,13 +199,13 @@ void ViewNodeScene::positionUpdated(int id) {
 
 void ViewNodeScene::setSelectedNode(int id) {
    selectedNode = id;
-   selectedLine = std::tuple<int, int, int>(-1, 0, 0);
+   selectedLine = std::tuple<int, int, QString>(-1, 0, QString());
    emit nodeSelected(id);
 }
 
-void ViewNodeScene::setSelectedLine(int sourceNode, int receiverNode, int slot) {
+void ViewNodeScene::setSelectedLine(int sourceNode, int receiverNode, const QString& slot) {
    selectedNode = -1;
-   selectedLine = std::tuple<int, int, int>(sourceNode, receiverNode, slot);
+   selectedLine = std::tuple<int, int, QString>(sourceNode, receiverNode, slot);
    emit lineSelected(sourceNode, receiverNode, slot);
 }
 
@@ -236,7 +240,7 @@ void ViewNodeScene::nodeRemoved(int id) {
       ViewNodeLine* startLine = startIterator.next();
       nodesDisconnected(startLine->sourceItemId, startLine->receiverItemId, startLine->slot);
    }
-   QMapIterator<int, ViewNodeLine*> endIterator(nodeItem->getEndLines());
+   QMapIterator<QString, ViewNodeLine*> endIterator(nodeItem->getEndLines());
    while (endIterator.hasNext()) {
       ViewNodeLine* endLine = endIterator.next().value();
       nodesDisconnected(endLine->sourceItemId, endLine->receiverItemId, endLine->slot);
@@ -253,6 +257,12 @@ void ViewNodeScene::imageAvailable(int id, QSize size) {
 }
 
 void ViewNodeScene::settingsUpdated() {
+   auto settingsManager = project.getSettingsManager();
+   if (settingsManager != nullptr) {
+      connectionLabelSize = settingsManager->getConnectionLabelSize();
+      displaySourceNames = settingsManager->getDisplaySourceNames();
+      displayReceiverNames = settingsManager->getDisplayReceiverNames();
+   }
    if (dropItem) {
       QSize itemSize = project.getThumbnailSize() + QSize(4, 4);
       dropItem->setRect(QRect(QPoint(0, 0), itemSize));
@@ -261,11 +271,13 @@ void ViewNodeScene::settingsUpdated() {
    while (nodeItemIterator.hasNext()) {
       nodeItemIterator.next().value()->setThumbnailSize(project.getThumbnailSize());
    }
-   QMapIterator<std::tuple<int, int, int>, ViewNodeLine*> nodeConnectionsIterator(nodeConnections);
+   QMapIterator<std::tuple<int, int, QString>, ViewNodeLine*> nodeConnectionsIterator(
+       nodeConnections);
    while (nodeConnectionsIterator.hasNext()) {
-      nodeConnectionsIterator.next().value()->updatePos();
+      ViewNodeLine* line = nodeConnectionsIterator.next().value();
+      line->setLabelSettings(connectionLabelSize, displaySourceNames, displayReceiverNames);
+      line->updatePos();
    }
-   auto settingsManager = project.getSettingsManager();
    if (settingsManager != nullptr) {
       QColor backgroundColor = settingsManager->getBackgroundColor();
       auto brushStyle = Qt::BrushStyle(settingsManager->getBackgroundBrush());
@@ -288,7 +300,7 @@ void ViewNodeScene::endLineDrawing(int endNodeId) {
          endNode->clearOverlays();
       }
       if (project.getNode(endNodeId)) {
-         mainWindow.getEditManager().setConnection(endNodeId, -1, startLineNode);
+         mainWindow.getEditManager().setConnectionToFirstAvailable(endNodeId, startLineNode);
       }
       if (lineItem) {
          lineItem->prepareGeometryChange();
@@ -308,7 +320,7 @@ void ViewNodeScene::startLineDrawing(int nodeId) {
       return;
    }
    lineDrawing = true;
-   lineItem = new ViewNodeLine(*this, nodeId, -1, -1);
+   lineItem = new ViewNodeLine(*this, nodeId, -1, QString());
    lineItem->setColor(Qt::blue);
    lineItem->setLineWidths(highlightedLineWidth, highlightedLineWidth + 1);
    lineItem->setArrowSize(arrowSize);
@@ -337,7 +349,7 @@ void ViewNodeScene::mouseMoveEvent(QGraphicsSceneMouseEvent* mouseEvent) {
                getItem(currentHighlighted)->clearOverlays();
             }
             TextureNodePtr texNode = project.getNode(foundNodeId);
-            if (texNode && texNode->slotAvailable(-1)) {
+            if (texNode && !texNode->getFirstAvailableSourceSlot().isNull()) {
                focusNode->showConnectable(true);
             } else {
                focusNode->showUnconnectable(true);

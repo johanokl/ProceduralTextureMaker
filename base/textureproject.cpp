@@ -21,6 +21,7 @@
 #include <QMetaObject>
 #include <QObject>
 #include <QPointF>
+#include <QSet>
 #include <QSize>
 #include <QString>
 #include <QVariant>
@@ -313,6 +314,15 @@ void TextureProject::addGenerator(const TextureGeneratorPtr& gen) {
    if (gen.isNull()) {
       return;
    }
+   QSet<QString> uniqueSourceSlots;
+   for (const QString& slot : gen->getSourceSlots()) {
+      if (slot.trimmed().isEmpty() || uniqueSourceSlots.contains(slot)) {
+         qWarning()
+             << QStringLiteral("Generator '%1' has invalid source-slot names").arg(gen->getName());
+         return;
+      }
+      uniqueSourceSlots.insert(slot);
+   }
    if (generators.contains(gen->getName())) {
       emit generatorNameCollision(generators.value(gen->getName()), gen);
       return;
@@ -409,12 +419,12 @@ void TextureProject::notifyImageUpdated(int id) {
 
 void TextureProject::notifyImageAvailable(int id, QSize size) { emit imageAvailable(id, size); }
 
-void TextureProject::notifyNodesConnected(int sourceId, int receiverId, int slot) {
+void TextureProject::notifyNodesConnected(int sourceId, int receiverId, QString slot) {
    modified = true;
    emit nodesConnected(sourceId, receiverId, slot);
 }
 
-void TextureProject::notifyNodesDisconnected(int sourceId, int receiverId, int slot) {
+void TextureProject::notifyNodesDisconnected(int sourceId, int receiverId, QString slot) {
    modified = true;
    emit nodesDisconnected(sourceId, receiverId, slot);
 }

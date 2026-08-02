@@ -66,12 +66,12 @@ SineTransformTextureGenerator::SineTransformTextureGenerator() {
    configurables.insert("offsettwo", offsettwo);
 }
 void SineTransformTextureGenerator::generate(QSize size, TexturePixel* destimage,
-                                             QMap<int, TextureImagePtr> sourceimages,
+                                             QMap<QString, TextureImagePtr> sourceimages,
                                              TextureNodeSettings* settings) const {
    if (!settings || !destimage || !size.isValid()) {
       return;
    }
-   if (!sourceimages.contains(0)) {
+   if (!sourceimages.contains(QStringLiteral("Input"))) {
       memset(destimage, 0, size.width() * size.height() * sizeof(TexturePixel));
       return;
    }
@@ -84,7 +84,7 @@ void SineTransformTextureGenerator::generate(QSize size, TexturePixel* destimage
    double amplitudetwo = settings->value("amplitudetwo").toDouble() * size.width() / 100;
    double offsettwo = settings->value("offsettwo").toDouble() * 5 / size.width();
 
-   TexturePixel* source = sourceimages.value(0)->getData();
+   TexturePixel* source = sourceimages.value(QStringLiteral("Input"))->getData();
    angle = (angle / 180.0) * ((double)M_PI);
 
    double x1 = 0;

@@ -53,6 +53,16 @@ public:
    /// @return The saved integer value corresponding to `Qt::BrushStyle`.
    int getBackgroundBrush() const;
 
+   /// @brief Gets the font size used for connection endpoint labels.
+   /// @return Endpoint label font size in pixels.
+   int getConnectionLabelSize() const;
+
+   /// @brief Checks whether source node names are shown at receiving edges.
+   bool getDisplaySourceNames() const;
+
+   /// @brief Checks whether receiver node names are shown at source edges.
+   bool getDisplayReceiverNames() const;
+
    /// @brief Reloads persisted settings and emits `settingsUpdated()` if any value changes.
    void loadSettings();
 
@@ -92,6 +102,15 @@ public slots:
    /// @param enabled Whether JavaScript generators should be loaded.
    void setJSTextureGeneratorsEnabled(bool enabled);
 
+   /// @brief Sets the font size used for connection endpoint labels.
+   void setConnectionLabelSize(int size);
+
+   /// @brief Sets whether source node names are shown at receiving edges.
+   void setDisplaySourceNames(bool enabled);
+
+   /// @brief Sets whether receiver node names are shown at source edges.
+   void setDisplayReceiverNames(bool enabled);
+
 private:
    /// @brief Reads and applies values from `QSettings`.
    /// @return @c true if at least one value changes.
@@ -111,6 +130,12 @@ private:
    QColor backgroundColor;
    /// @brief Integer value of the node graph's Qt brush style.
    int backgroundBrush;
+   /// @brief Font size used for connection endpoint labels.
+   int connectionLabelSize;
+   /// @brief Whether receiving-edge labels include source node names.
+   bool displaySourceNames;
+   /// @brief Whether source-edge labels include receiver node names.
+   bool displayReceiverNames;
 };
 
 #endif  // SETTINGSMANAGER_H

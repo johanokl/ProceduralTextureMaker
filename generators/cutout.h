@@ -14,9 +14,11 @@ class CutoutTextureGenerator : public TextureGenerator {
 public:
    CutoutTextureGenerator();
    ~CutoutTextureGenerator() override = default;
-   void generate(QSize size, TexturePixel* destimage, QMap<int, TextureImagePtr> sourceimages,
+   void generate(QSize size, TexturePixel* destimage, QMap<QString, TextureImagePtr> sourceimages,
                  TextureNodeSettings* settings) const override;
-   int getNumSourceSlots() const override { return 2; }
+   QStringList getSourceSlots() const override {
+      return {QStringLiteral("Image"), QStringLiteral("Mask")};
+   }
    QString getName() const override { return QString("Cutout"); }
    const TextureGeneratorSettings& getSettings() const override { return configurables; }
    QString getDescription() const override {

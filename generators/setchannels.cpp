@@ -111,7 +111,7 @@ SetChannelsTextureGenerator::Channels SetChannelsTextureGenerator::getChannelFro
    return Channels::none;
 }
 void SetChannelsTextureGenerator::generate(QSize size, TexturePixel* destimage,
-                                           QMap<int, TextureImagePtr> sourceimages,
+                                           QMap<QString, TextureImagePtr> sourceimages,
                                            TextureNodeSettings* settings) const {
    if (!settings || !destimage || !size.isValid()) {
       return;
@@ -130,11 +130,11 @@ void SetChannelsTextureGenerator::generate(QSize size, TexturePixel* destimage,
    TexturePixel* firstSource = nullptr;
    TexturePixel* secondSource = nullptr;
 
-   if (sourceimages.contains(0)) {
-      firstSource = sourceimages.value(0).data()->getData();
+   if (sourceimages.contains(QStringLiteral("First"))) {
+      firstSource = sourceimages.value(QStringLiteral("First")).data()->getData();
    }
-   if (sourceimages.contains(1)) {
-      secondSource = sourceimages.value(1).data()->getData();
+   if (sourceimages.contains(QStringLiteral("Second"))) {
+      secondSource = sourceimages.value(QStringLiteral("Second")).data()->getData();
    }
    if (!firstSource && !secondSource) {
       memset(destimage, 0, numPixels * sizeof(TexturePixel));

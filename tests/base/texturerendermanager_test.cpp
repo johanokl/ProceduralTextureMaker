@@ -5,6 +5,7 @@
 #include <QSignalSpy>
 #include <QTest>
 #include <QThread>
+#include <algorithm>
 #include <chrono>
 #include <condition_variable>
 #include <memory>
@@ -21,7 +22,7 @@ namespace {
 /// @param sources Mapping from input slots to source node identifiers.
 /// @return Fully initialized node snapshot.
 TextureNodeSnapshot snapshot(const int id, const TextureGeneratorPtr& generator, const int value,
-                             QMap<int, int> sources = {}) {
+                             QMap<QString, int> sources = {}) {
    TextureNodeSettings settings;
    settings.insert(QStringLiteral("value"), value);
    return TextureNodeSnapshot{id, 1, generator, settings, std::move(sources), {}};
@@ -87,6 +88,8 @@ private slots:
    void reportsFailureAndRemainsUsable();
    /// @brief Verifies the project publishes only its latest image on its owner thread.
    void projectPublishesLatestThumbnailOnOwnerThread();
+   /// @brief Verifies background rendering routes inputs by names rather than map order.
+   void routesNamedInputs();
 };
 
 void TextureRenderManagerTest::rendersIndependentBranchesConcurrently() {
@@ -101,7 +104,8 @@ void TextureRenderManagerTest::rendersIndependentBranchesConcurrently() {
    const auto manager = makeManager(state, 2);
    TextureGraphSnapshot graph{
        QSize(2, 2),
-       {snapshot(1, first, 1), snapshot(2, second, 2), snapshot(3, join, 3, {{0, 1}, {1, 2}})}};
+       {snapshot(1, first, 1), snapshot(2, second, 2),
+        snapshot(3, join, 3, {{QStringLiteral("Input 1"), 1}, {QStringLiteral("Input 2"), 2}})}};
    manager->render(std::move(graph));
    const bool firstStarted = firstRaw->waitUntilStarted();
    const bool secondStarted = secondRaw->waitUntilStarted();
@@ -124,8 +128,8 @@ void TextureRenderManagerTest::reusesCachedSnapshotsWithoutRepublishingThem() {
    TextureNodeSnapshot cachedSnapshot = snapshot(1, cachedGenerator, 1);
    cachedSnapshot.cachedImage = TextureImage::create(QSize(2, 2));
    const auto manager = makeManager(state, 1);
-   manager->render(
-       TextureGraphSnapshot{QSize(2, 2), {cachedSnapshot, snapshot(2, receiver, 2, {{0, 1}})}});
+   manager->render(TextureGraphSnapshot{
+       QSize(2, 2), {cachedSnapshot, snapshot(2, receiver, 2, {{QStringLiteral("Input"), 1}})}});
    QVERIFY(state.waitFor(1));
    QCOMPARE(cachedRaw->callCount(), 0);
    std::lock_guard lock(state.mutex);
@@ -193,6 +197,25 @@ void TextureRenderManagerTest::projectPublishesLatestThumbnailOnOwnerThread() {
    QCOMPARE(node->cachedImage(project.getThumbnailSize())->data()[0].r,
             static_cast<unsigned char>(88));
    QVERIFY(ownerThread);
+}
+
+void TextureRenderManagerTest::routesNamedInputs() {
+   CallbackState state;
+   TextureGeneratorPtr first(new RecordingGenerator(QStringLiteral("First"), 0, 17));
+   TextureGeneratorPtr second(new RecordingGenerator(QStringLiteral("Second"), 0, 83));
+   TextureGeneratorPtr named(new NamedInputGenerator);
+   const auto manager = makeManager(state, 1);
+   manager->render(TextureGraphSnapshot{
+       QSize(2, 2),
+       {snapshot(1, first, 17), snapshot(2, second, 83),
+        snapshot(3, named, 0, {{QStringLiteral("Zulu"), 1}, {QStringLiteral("Alpha"), 2}})}});
+   QVERIFY(state.waitFor(3));
+   std::lock_guard lock(state.mutex);
+   const auto result =
+       std::find_if(state.results.cbegin(), state.results.cend(),
+                    [](const TextureRenderResult& candidate) { return candidate.nodeId == 3; });
+   QVERIFY(result != state.results.cend());
+   QCOMPARE(result->image->data()[0].r, static_cast<unsigned char>(17));
 }
 
 QTEST_GUILESS_MAIN(TextureRenderManagerTest)

@@ -38,7 +38,12 @@ int validBrushOrDefault(const int value, const int fallback) {
 }  // namespace
 
 SettingsManager::SettingsManager(QObject* parent)
-    : QObject(parent), jsTextureGeneratorsEnabled(false), backgroundBrush(0) {
+    : QObject(parent),
+      jsTextureGeneratorsEnabled(false),
+      backgroundBrush(0),
+      connectionLabelSize(12),
+      displaySourceNames(false),
+      displayReceiverNames(false) {
    readSettings();
 }
 
@@ -121,6 +126,36 @@ void SettingsManager::setBackgroundBrush(int val) {
    }
 }
 
+int SettingsManager::getConnectionLabelSize() const { return connectionLabelSize; }
+
+void SettingsManager::setConnectionLabelSize(int size) {
+   if (size < 8 || size > 24) {
+      return;
+   }
+   if (size != connectionLabelSize) {
+      connectionLabelSize = size;
+      emit settingsUpdated();
+   }
+}
+
+bool SettingsManager::getDisplaySourceNames() const { return displaySourceNames; }
+
+void SettingsManager::setDisplaySourceNames(bool enabled) {
+   if (enabled != displaySourceNames) {
+      displaySourceNames = enabled;
+      emit settingsUpdated();
+   }
+}
+
+bool SettingsManager::getDisplayReceiverNames() const { return displayReceiverNames; }
+
+void SettingsManager::setDisplayReceiverNames(bool enabled) {
+   if (enabled != displayReceiverNames) {
+      displayReceiverNames = enabled;
+      emit settingsUpdated();
+   }
+}
+
 void SettingsManager::loadSettings() {
    if (readSettings()) {
       emit settingsUpdated();
@@ -136,6 +171,9 @@ bool SettingsManager::saveSettings() const {
    settings.setValue("previewbackgroundcolor", previewBackgroundColor.name());
    settings.setValue("backgroundcolor", backgroundColor.name());
    settings.setValue("backgroundbrush", backgroundBrush);
+   settings.setValue("connectionlabelsize", connectionLabelSize);
+   settings.setValue("displaysourcenames", displaySourceNames);
+   settings.setValue("displayreceivernames", displayReceiverNames);
    settings.sync();
    return settings.status() == QSettings::NoError;
 }
@@ -159,12 +197,21 @@ bool SettingsManager::readSettings() {
    QColor newBackgroundColor = validColorOrDefault(
        QColor(settings.value("backgroundcolor", "#c8c8c8").toString()), defaultBackgroundColor);
    int newBackgroundBrush = validBrushOrDefault(settings.value("backgroundbrush", 1).toInt(), 1);
+   int newConnectionLabelSize = settings.value("connectionlabelsize", 12).toInt();
+   if (newConnectionLabelSize < 8 || newConnectionLabelSize > 24) {
+      newConnectionLabelSize = 12;
+   }
+   bool newDisplaySourceNames = settings.value("displaysourcenames", true).toBool();
+   bool newDisplayReceiverNames = settings.value("displayreceivernames", false).toBool();
 
    bool changed = previewSize != newPreviewSize || thumbnailSize != newThumbnailSize ||
                   jsTextureGeneratorsPath != newJsTextureGeneratorsPath ||
                   jsTextureGeneratorsEnabled != newJsTextureGeneratorsEnabled ||
                   previewBackgroundColor != newPreviewBackgroundColor ||
-                  backgroundColor != newBackgroundColor || backgroundBrush != newBackgroundBrush;
+                  backgroundColor != newBackgroundColor || backgroundBrush != newBackgroundBrush ||
+                  connectionLabelSize != newConnectionLabelSize ||
+                  displaySourceNames != newDisplaySourceNames ||
+                  displayReceiverNames != newDisplayReceiverNames;
 
    previewSize = newPreviewSize;
    thumbnailSize = newThumbnailSize;
@@ -173,5 +220,8 @@ bool SettingsManager::readSettings() {
    previewBackgroundColor = newPreviewBackgroundColor;
    backgroundColor = newBackgroundColor;
    backgroundBrush = newBackgroundBrush;
+   connectionLabelSize = newConnectionLabelSize;
+   displaySourceNames = newDisplaySourceNames;
+   displayReceiverNames = newDisplayReceiverNames;
    return changed;
 }

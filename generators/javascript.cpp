@@ -16,6 +16,7 @@
 #include <QJSEngine>
 #include <QJSValueIterator>
 #include <QMetaType>
+#include <QSet>
 #include <QFile>
 #include <QString>
 #include <QThread>
@@ -23,14 +24,11 @@
 #include <stdexcept>
 #include <utility>
 
-/// @brief Constructor.
-/// Parses the Javascript file and checks if it's a Texture Generator.
-/// Creates the settings object based on the result.
-/// @param jsContent The script's content
 JsTexGen::JsTexGen(const QString& jsContent) : scriptContent(jsContent) {
    valid = false;
    description = "";
-   numSlots = 0;
+   inputSlots.clear();
+   legacyPositionalInputs = false;
    separateColorChannels = false;
 
    QJSEngine jsEngine;
@@ -103,8 +101,46 @@ JsTexGen::JsTexGen(const QString& jsContent) : scriptContent(jsContent) {
          configurables.insert(settingsname, newsetting);
       }
    }
-   if (!jsEngine.globalObject().property("numSlots").isUndefined()) {
-      numSlots = jsEngine.globalObject().property("numSlots").toInt();
+   const QJSValue inputSlotFunction = jsEngine.globalObject().property("getInputSlots");
+   if (!inputSlotFunction.isUndefined()) {
+      const QJSValue declaredSlots = inputSlotFunction.call();
+      if (declaredSlots.isError() || !declaredSlots.isArray()) {
+         qDebug() << "Error:" << name << "has an invalid getInputSlots result";
+         return;
+      }
+      QSet<QString> uniqueSlots;
+      const quint32 slotCount = declaredSlots.property("length").toUInt();
+      for (quint32 i = 0; i < slotCount; ++i) {
+         const QJSValue declaredSlot = declaredSlots.property(i);
+         if (!declaredSlot.isString()) {
+            qDebug() << "Error:" << name << "has a non-string input slot";
+            return;
+         }
+         const QString slotName = declaredSlot.toString();
+         if (slotName.trimmed().isEmpty() || uniqueSlots.contains(slotName)) {
+            qDebug() << "Error:" << name << "has an empty or duplicate input slot";
+            return;
+         }
+         uniqueSlots.insert(slotName);
+         inputSlots.append(slotName);
+      }
+   } else {
+      legacyPositionalInputs = true;
+      int numSlots = 0;
+      if (!jsEngine.globalObject().property("numSlots").isUndefined()) {
+         numSlots = jsEngine.globalObject().property("numSlots").toInt();
+      }
+      if (numSlots < 0) {
+         qDebug() << "Error:" << name << "has a negative numSlots value";
+         return;
+      }
+      if (numSlots == 1) {
+         inputSlots.append(QStringLiteral("Input"));
+      } else {
+         for (int i = 1; i <= numSlots; ++i) {
+            inputSlots.append(QStringLiteral("Input %1").arg(i));
+         }
+      }
    }
    if (!jsEngine.globalObject().property("separateColorChannels").isUndefined()) {
       separateColorChannels = jsEngine.globalObject().property("separateColorChannels").toBool();
@@ -113,19 +149,10 @@ JsTexGen::JsTexGen(const QString& jsContent) : scriptContent(jsContent) {
    valid = true;
 }
 
-/// @brief Is the instance a valid TextureGenerator?
-/// @return @c true if the instance is a valid TextureGenerator.
 bool JsTexGen::isValid() { return valid; }
 
-/// @brief Implements the TextureGenerator's abstract generate
-/// Calls the Javascript class's generate function.
-/// The settings are encoded as one JSON text object.
-/// The source images are sent as array of 32bit RGBA pixels.
-/// The result image are returned from the JS file either as
-/// an array with 32 bit RGBA pixels or as a JSON object
-/// with each color in one position [r, g, b, a, r, g, b...].
 void JsTexGen::generate(QSize size, TexturePixel* destimage,
-                        QMap<int, TextureImagePtr> sourceimages,
+                        QMap<QString, TextureImagePtr> sourceimages,
                         TextureNodeSettings* settings) const {
    QWriteLocker lock(&mutex);
    QJSEngine jsEngine;
@@ -179,23 +206,35 @@ void JsTexGen::generate(QSize size, TexturePixel* destimage,
       arraySize *= 4;
    }
 
-   // Add all source images.
-   QMapIterator<int, TextureImagePtr> sourceIterator(sourceimages);
-   while (sourceIterator.hasNext()) {
-      sourceIterator.next();
+   const auto imageArray = [&](const TextureImagePtr& sourceImage) {
       QJSValue srcArray = jsEngine.newArray(arraySize);
       if (separateColorChannels) {
-         auto* dataptr = reinterpret_cast<uint8_t*>(sourceIterator.value()->getData());
+         auto* dataptr = reinterpret_cast<uint8_t*>(sourceImage->getData());
          for (quint32 i = 0; i < arraySize; i++) {
             srcArray.setProperty(i, dataptr[i]);
          }
       } else {
-         auto* dataptr = sourceIterator.value()->getData();
+         auto* dataptr = sourceImage->getData();
          for (quint32 i = 0; i < arraySize; i++) {
             srcArray.setProperty(i, dataptr[i].toRGBA());
          }
       }
-      args << srcArray;
+      return srcArray;
+   };
+
+   if (legacyPositionalInputs) {
+      for (const QString& slot : inputSlots) {
+         args << (sourceimages.contains(slot) ? imageArray(sourceimages.value(slot))
+                                              : QJSValue(QJSValue::UndefinedValue));
+      }
+   } else {
+      QJSValue inputsObject = jsEngine.newObject();
+      for (const QString& slot : inputSlots) {
+         if (sourceimages.contains(slot)) {
+            inputsObject.setProperty(slot, imageArray(sourceimages.value(slot)));
+         }
+      }
+      args << inputsObject;
    }
 
    QJSValue retArray = jsEngine.newArray(arraySize);
@@ -244,14 +283,8 @@ void JsTexGen::generate(QSize size, TexturePixel* destimage,
    jsEngine.collectGarbage();
 }
 
-/// @brief Abort the scanning run from a different thread.
 void GeneratorFileFinder::abort() { aborted.store(true); }
 
-/// @brief Scans the selected directory and its sub-directories for Javascript files.
-/// Files found are then checked whether they are TextureGenerator classes, and
-/// if so are packaged into a JsTexGen instance and emitted as a signal.
-///
-/// @param basepath Directory to search recursively.
 void GeneratorFileFinder::scanDirectory(QString basepath) {
    aborted.store(false);
    if (!basepath.isEmpty() && basepath.right(1) != QDir::separator()) {
@@ -290,8 +323,6 @@ void GeneratorFileFinder::scanDirectory(QString basepath) {
    emit scanFinished();
 }
 
-/// @brief Creates a thread for the JS file finder.
-/// @param project
 JSTexGenManager::JSTexGenManager(TextureProject* project) {
    this->project = project;
    directoryPath = "";
@@ -313,7 +344,6 @@ JSTexGenManager::JSTexGenManager(TextureProject* project) {
    settingsUpdated();
 }
 
-/// @brief Destructor.
 JSTexGenManager::~JSTexGenManager() {
    filefinder->abort();
    filefinderthread->quit();
@@ -321,14 +351,10 @@ JSTexGenManager::~JSTexGenManager() {
    delete filefinderthread;
 }
 
-/// @brief Emits a signal that a new generator has been found.
-/// @param generator
 void JSTexGenManager::addGenerator(JsTexGen* generator) {
    emit generatorAdded(TextureGeneratorPtr(generator));
 }
 
-/// @brief Sets whether it should scan the selected directory for JS files.
-/// @param enabled
 void JSTexGenManager::setEnabled(bool enabled) {
    this->enabled = enabled;
    if (enabled && !hasScannedDirectory) {
@@ -336,15 +362,11 @@ void JSTexGenManager::setEnabled(bool enabled) {
    }
 }
 
-/// @brief Updates the settings for the path and if the module's enabled.
 void JSTexGenManager::settingsUpdated() {
    setEnabled(project->getSettingsManager()->getJSTextureGeneratorsEnabled());
    setDirectory(project->getSettingsManager()->getJSTextureGeneratorsPath());
 }
 
-/// @brief Sets the directory to scan for JS files.
-/// @param path Absolute path to scan.
-/// @param forceScan True to force directory scan.
 void JSTexGenManager::setDirectory(const QString& path, bool forceScan) {
    if (!forceScan && directoryPath == path) {
       return;

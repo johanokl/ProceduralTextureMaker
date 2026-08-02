@@ -15,7 +15,7 @@ FillTextureGenerator::FillTextureGenerator() {
    configurables.insert("color", colorsetting);
 }
 void FillTextureGenerator::generate(QSize size, TexturePixel* destimage,
-                                    QMap<int, TextureImagePtr> sourceimages,
+                                    QMap<QString, TextureImagePtr> sourceimages,
                                     TextureNodeSettings* settings) const {
    Q_UNUSED(sourceimages);
 

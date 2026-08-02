@@ -5,11 +5,29 @@
 // Johan Lindqvist (johan.lindqvist@gmail.com)
 
 #include "texturegenerator.h"
+#include <QRegularExpression>
 #include <QString>
 
-/// @brief Get the slot name for a given slot id.
-/// @details The default implementation returns "Slot X" where X is the slot id + 1. This can be
-/// overridden in derived classes to provide more descriptive names.
-/// @param id Slot id
-/// @return The name
-QString TextureGenerator::getSlotName(int id) { return QString("Slot %1").arg(id + 1); }
+QString TextureGenerator::resolveSourceSlot(const QString& serializedSlot) const {
+   const QStringList sourceSlots = getSourceSlots();
+   if (sourceSlots.contains(serializedSlot)) {
+      return serializedSlot;
+   }
+
+   bool numericOk = false;
+   const int numericSlot = serializedSlot.toInt(&numericOk);
+   if (numericOk && numericSlot >= 0 && numericSlot < sourceSlots.size()) {
+      return sourceSlots.at(numericSlot);
+   }
+
+   static const QRegularExpression legacyName(QStringLiteral("^Slot\\s+([1-9][0-9]*)$"),
+                                              QRegularExpression::CaseInsensitiveOption);
+   const QRegularExpressionMatch match = legacyName.match(serializedSlot);
+   if (match.hasMatch()) {
+      const int legacySlot = match.captured(1).toInt() - 1;
+      if (legacySlot >= 0 && legacySlot < sourceSlots.size()) {
+         return sourceSlots.at(legacySlot);
+      }
+   }
+   return QString();
+}

@@ -70,7 +70,7 @@ double PerlinNoiseTextureGenerator::interpolate(double a, double b, double x) co
    return a * (1.0 - f) + b * f;
 }
 void PerlinNoiseTextureGenerator::generate(QSize size, TexturePixel* destimage,
-                                           QMap<int, TextureImagePtr> sourceimages,
+                                           QMap<QString, TextureImagePtr> sourceimages,
                                            TextureNodeSettings* settings) const {
    if (!settings || !destimage || !size.isValid()) {
       return;
@@ -85,8 +85,8 @@ void PerlinNoiseTextureGenerator::generate(QSize size, TexturePixel* destimage,
    double yFactor = (double)500 / size.height();
    bool blend = false;
    TexturePixel* sourceImg = nullptr;
-   if (sourceimages.contains(0)) {
-      sourceImg = sourceimages.value(0)->getData();
+   if (sourceimages.contains(QStringLiteral("Input"))) {
+      sourceImg = sourceimages.value(QStringLiteral("Input"))->getData();
       blend = true;
    }
    for (int y = 0; y < size.height(); y++) {

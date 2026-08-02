@@ -20,17 +20,17 @@ public:
    /// @param destination Output pixel buffer.
    /// @param sources Images connected to the generator's source slots.
    /// @param settings Node settings containing the optional grayscale value.
-   void generate(QSize size, TexturePixel* destination, QMap<int, TextureImagePtr> sources,
+   void generate(QSize size, TexturePixel* destination, QMap<QString, TextureImagePtr> sources,
                  TextureNodeSettings* settings) const override;
 
    /// @brief Returns the test generator's setting schema.
    const TextureGeneratorSettings& getSettings() const override { return schema; }
 
    /// @brief Returns filter type when source slots exist, otherwise generator type.
-   Type getType() const override { return sourceSlotCount == 0 ? Type::Generator : Type::Filter; }
+   Type getType() const override { return sourceSlots.isEmpty() ? Type::Generator : Type::Filter; }
 
-   /// @brief Returns the configured number of source slots.
-   int getNumSourceSlots() const override { return sourceSlotCount; }
+   /// @brief Returns the configured source slots.
+   QStringList getSourceSlots() const override { return sourceSlots; }
 
    /// @brief Returns the configured generator name.
    QString getName() const override { return generatorName; }
@@ -58,8 +58,8 @@ public:
 private:
    /// @brief Name exposed through the generator interface.
    QString generatorName;
-   /// @brief Number of accepted source slots.
-   int sourceSlotCount;
+   /// @brief Ordered accepted source slots.
+   QStringList sourceSlots;
    /// @brief Schema containing the configurable grayscale value.
    TextureGeneratorSettings schema;
    /// @brief Signals that a generation call has begun.
@@ -72,6 +72,23 @@ private:
    mutable std::atomic_bool throwing = false;
    /// @brief Counts generation calls across worker threads.
    mutable std::atomic_int calls = 0;
+};
+
+/// @brief Copies the deliberately non-alphabetical `Zulu` input for slot-routing tests.
+class NamedInputGenerator final : public TextureGenerator {
+public:
+   void generate(QSize size, TexturePixel* destination, QMap<QString, TextureImagePtr> sources,
+                 TextureNodeSettings* settings) const override;
+   const TextureGeneratorSettings& getSettings() const override { return schema; }
+   Type getType() const override { return Type::Filter; }
+   QStringList getSourceSlots() const override {
+      return {QStringLiteral("Zulu"), QStringLiteral("Alpha")};
+   }
+   QString getName() const override { return QStringLiteral("Named input"); }
+   QString getDescription() const override { return QStringLiteral("Named input test generator"); }
+
+private:
+   TextureGeneratorSettings schema;
 };
 
 #endif  // TESTGENERATORS_H

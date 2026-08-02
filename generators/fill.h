@@ -14,9 +14,9 @@ class FillTextureGenerator : public TextureGenerator {
 public:
    FillTextureGenerator();
    ~FillTextureGenerator() override = default;
-   void generate(QSize size, TexturePixel* destimage, QMap<int, TextureImagePtr> sourceimages,
+   void generate(QSize size, TexturePixel* destimage, QMap<QString, TextureImagePtr> sourceimages,
                  TextureNodeSettings* settings) const override;
-   int getNumSourceSlots() const override { return 0; }
+   QStringList getSourceSlots() const override { return {}; }
    QString getName() const override { return QString("Fill"); }
    const TextureGeneratorSettings& getSettings() const override { return configurables; }
    QString getDescription() const override {

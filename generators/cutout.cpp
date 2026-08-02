@@ -8,8 +8,8 @@
 
 CutoutTextureGenerator::CutoutTextureGenerator() {
    QStringList ordering;
-   ordering.append("Slot 2 cut out from Slot 1");
-   ordering.append("Slot 1 cut out from Slot 2");
+   ordering.append("Mask cut out from Image");
+   ordering.append("Image cut out from Mask");
    TextureGeneratorSetting order;
    order.name = "Order";
    order.defaultvalue = QVariant(ordering);
@@ -27,7 +27,7 @@ CutoutTextureGenerator::CutoutTextureGenerator() {
    configurables.insert("factor", factor);
 }
 void CutoutTextureGenerator::generate(QSize size, TexturePixel* destimage,
-                                      QMap<int, TextureImagePtr> sourceimages,
+                                      QMap<QString, TextureImagePtr> sourceimages,
                                       TextureNodeSettings* settings) const {
    if (!settings || !destimage || !size.isValid()) {
       return;
@@ -35,11 +35,12 @@ void CutoutTextureGenerator::generate(QSize size, TexturePixel* destimage,
    QString order = settings->value("order").toString();
    int factor = settings->value("factor").toInt();
 
-   int first = 0;
-   int second = 1;
-   if (order == "Slot 1 cut out from Slot 2") {
-      first = 1;
-      second = 0;
+   QString first = QStringLiteral("Image");
+   QString second = QStringLiteral("Mask");
+   if (order == QStringLiteral("Image cut out from Mask") ||
+       order == QStringLiteral("Slot 1 cut out from Slot 2")) {
+      first = QStringLiteral("Mask");
+      second = QStringLiteral("Image");
    }
    TexturePixel* originSource = nullptr;
    TexturePixel* subtractSource = nullptr;

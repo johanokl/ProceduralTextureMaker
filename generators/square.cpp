@@ -90,7 +90,7 @@ SquareTextureGenerator::SquareTextureGenerator() {
    configurables.insert("antialiasing", antialiasing);
 }
 void SquareTextureGenerator::generate(QSize size, TexturePixel* destimage,
-                                      QMap<int, TextureImagePtr> sourceimages,
+                                      QMap<QString, TextureImagePtr> sourceimages,
                                       TextureNodeSettings* settings) const {
    if (!settings || !destimage || !size.isValid()) {
       return;
@@ -106,8 +106,8 @@ void SquareTextureGenerator::generate(QSize size, TexturePixel* destimage,
    double cutoutOuterRadius = settings->value("cutoutheight").toDouble() / 100;
    bool antialiasing = settings->value("antialiasing").toBool();
 
-   if (sourceimages.contains(0)) {
-      memcpy(destimage, sourceimages.value(0)->getData(),
+   if (sourceimages.contains(QStringLiteral("Input"))) {
+      memcpy(destimage, sourceimages.value(QStringLiteral("Input"))->getData(),
              size.width() * size.height() * sizeof(TexturePixel));
    } else {
       memset(destimage, 0, size.width() * size.height() * sizeof(TexturePixel));

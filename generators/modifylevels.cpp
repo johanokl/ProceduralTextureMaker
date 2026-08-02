@@ -40,17 +40,18 @@ ModifyLevelsTextureGenerator::ModifyLevelsTextureGenerator() {
    configurables.insert("level", blendingAlpha);
 }
 void ModifyLevelsTextureGenerator::generate(QSize size, TexturePixel* destimage,
-                                            QMap<int, TextureImagePtr> sourceimages,
+                                            QMap<QString, TextureImagePtr> sourceimages,
                                             TextureNodeSettings* settings) const {
    if (!settings || !destimage || !size.isValid()) {
       return;
    }
    int numpixels = size.width() * size.height();
-   if (!sourceimages.contains(0)) {
+   if (!sourceimages.contains(QStringLiteral("Input"))) {
       memset(destimage, 0, numpixels * sizeof(TexturePixel));
       return;
    }
-   memcpy(destimage, sourceimages.value(0)->getData(), numpixels * sizeof(TexturePixel));
+   memcpy(destimage, sourceimages.value(QStringLiteral("Input"))->getData(),
+          numpixels * sizeof(TexturePixel));
 
    QString mode = settings->value("mode").toString();
    QString channel = settings->value("channel").toString();

@@ -1,10 +1,15 @@
+#include "base/settingsmanager.h"
 #include "base/textureproject.h"
+#include "gui/iteminfopanel.h"
 #include "gui/mainwindow.h"
+#include "gui/nodesettingswidget.h"
 #include "sceneview/viewnodeline.h"
+#include "sceneview/viewnodeitem.h"
 #include "sceneview/viewnodescene.h"
 #include "texgenapplication.h"
 #include <QGraphicsSceneDragDropEvent>
 #include <QGraphicsView>
+#include <QComboBox>
 #include <QMimeData>
 #include <QSettings>
 #include <QStandardPaths>
@@ -36,6 +41,10 @@ private slots:
    void managesTemporarySceneItems();
    /// @brief Verifies that node removal clears scene item observers.
    void removesConnectedNodeItems();
+   /// @brief Verifies named endpoint labels follow node hover and selection state.
+   void showsLabelsForHighlightedOrSelectedNodes();
+   /// @brief Verifies loaded list settings select their persisted combo-box values.
+   void restoresPersistedComboBoxSelection();
 
 private:
    /// @brief Owns the isolated settings directory for the duration of the test.
@@ -121,6 +130,85 @@ void UiSmokeTest::removesConnectedNodeItems() {
       QVERIFY(line == nullptr ||
               (line->getStartItemId() != nodeId && line->getEndItemId() != nodeId));
    }
+}
+
+void UiSmokeTest::showsLabelsForHighlightedOrSelectedNodes() {
+   auto* application = qobject_cast<TexGenApplication*>(QCoreApplication::instance());
+   QVERIFY(application != nullptr);
+   MainWindow window(application);
+   window.openFile(QStringLiteral(PTM_SOURCE_DIR "/examples/wall.txl"));
+   auto* view = window.findChild<QGraphicsView*>();
+   QVERIFY(view != nullptr);
+   auto* scene = dynamic_cast<ViewNodeScene*>(view->scene());
+   QVERIFY(scene != nullptr);
+
+   ViewNodeLine* connection = nullptr;
+   for (QGraphicsItem* item : scene->items()) {
+      connection = dynamic_cast<ViewNodeLine*>(item);
+      if (connection != nullptr) {
+         break;
+      }
+   }
+   QVERIFY(connection != nullptr);
+   QVERIFY(!connection->endpointLabelsVisible());
+
+   const TextureNodePtr source = window.getTextureProject()->getNode(connection->getStartItemId());
+   const TextureNodePtr receiver = window.getTextureProject()->getNode(connection->getEndItemId());
+   QVERIFY(!source.isNull());
+   QVERIFY(!receiver.isNull());
+   ViewNodeItem* sourceItem = scene->getItem(source->getId());
+   QVERIFY(sourceItem != nullptr);
+   sourceItem->setSelected(true);
+   QVERIFY(connection->endpointLabelsVisible());
+   QVERIFY(connection->sourceNameLabelVisible());
+   QVERIFY(!connection->receiverNameLabelVisible());
+   QVERIFY(connection->zValue() > sourceItem->zValue());
+
+   SettingsManager* settingsManager = window.getTextureProject()->getSettingsManager();
+   QVERIFY(settingsManager != nullptr);
+   settingsManager->setConnectionLabelSize(18);
+   settingsManager->setDisplayReceiverNames(true);
+   QCOMPARE(connection->getLabelFontSize(), 18);
+   QVERIFY(connection->sourceNameLabelVisible());
+   QVERIFY(connection->receiverNameLabelVisible());
+
+   sourceItem->setSelected(false);
+   QVERIFY(!connection->endpointLabelsVisible());
+
+   connection->setHighlighted(true);
+   QVERIFY(connection->endpointLabelsVisible());
+   QCOMPARE(connection->getSourceLabelText(),
+            QStringLiteral("Output (%1)").arg(receiver->getName()));
+   QCOMPARE(connection->getReceiverLabelText(),
+            QStringLiteral("%1 (%2)").arg(connection->getSlot(), source->getName()));
+
+   source->setName(QStringLiteral("Renamed source"));
+   QCOMPARE(connection->getReceiverLabelText(),
+            QStringLiteral("%1 (Renamed source)").arg(connection->getSlot()));
+   connection->setHighlighted(false);
+   QVERIFY(!connection->endpointLabelsVisible());
+}
+
+void UiSmokeTest::restoresPersistedComboBoxSelection() {
+   auto* application = qobject_cast<TexGenApplication*>(QCoreApplication::instance());
+   QVERIFY(application != nullptr);
+   MainWindow window(application);
+   window.openFile(QStringLiteral(PTM_SOURCE_DIR "/examples/rose.txl"));
+
+   auto* infoPanel = window.findChild<ItemInfoPanel*>();
+   QVERIFY(infoPanel != nullptr);
+   infoPanel->setActiveNode(20);
+   auto* nodeSettings =
+       infoPanel->findChild<NodeSettingsWidget*>(QStringLiteral("nodeSettingsInspector"));
+   QVERIFY(nodeSettings != nullptr);
+
+   const QList<QComboBox*> comboBoxes = nodeSettings->findChildren<QComboBox*>();
+   QCOMPARE(comboBoxes.size(), 4);
+   QStringList selections;
+   for (const QComboBox* comboBox : comboBoxes) {
+      selections.append(comboBox->currentText());
+   }
+   QVERIFY(selections.contains(QStringLiteral("Second's alpha")));
 }
 
 /// @brief Runs the UI smoke test with the production application subclass.

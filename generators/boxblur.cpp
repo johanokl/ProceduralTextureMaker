@@ -15,16 +15,16 @@ BoxBlurTextureGenerator::BoxBlurTextureGenerator() {
    configurables.insert("numneighbours", neighbourssetting);
 }
 void BoxBlurTextureGenerator::generate(QSize size, TexturePixel* destimage,
-                                       QMap<int, TextureImagePtr> sourceimages,
+                                       QMap<QString, TextureImagePtr> sourceimages,
                                        TextureNodeSettings* settings) const {
    if (!settings || !destimage || !size.isValid()) {
       return;
    }
-   if (!sourceimages.contains(0)) {
+   if (!sourceimages.contains(QStringLiteral("Input"))) {
       memset(destimage, 0, size.width() * size.height() * sizeof(TexturePixel));
       return;
    }
-   TexturePixel* sourceImage = sourceimages.value(0).data()->getData();
+   TexturePixel* sourceImage = sourceimages.value(QStringLiteral("Input")).data()->getData();
    if (settings->value("numneighbours").toInt() == 0) {
       memcpy(destimage, sourceImage, size.width() * size.height() * sizeof(TexturePixel));
       return;

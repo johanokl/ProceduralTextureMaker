@@ -1,10 +1,14 @@
 var name = "LinesJS";
-var numSlots = 1;
 // Set separateColorChannels to true to have one array index per color
 // If set to false all four channels are interleaved in one 32 bit value.
 var separateColorChannels = false;
 
-function generate(data, sourceImg) {
+function getInputSlots() {
+  return ["Input"];
+}
+
+function generate(data, inputs) {
+  var sourceImg = inputs.Input;
   var obj = JSON.parse(data);
   var color = obj.color.a +
     (obj.color.b << 8) +

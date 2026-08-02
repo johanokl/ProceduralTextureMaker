@@ -108,7 +108,7 @@ ProjectFileResult ProjectFileService::validate(const QDomDocument& document,
                      QStringLiteral("The document does not contain a Nodes element"));
    }
 
-   QMap<int, QMap<int, int>> sourcesByNode;
+   QMap<int, QMap<QString, int>> sourcesByNode;
 
    for (QDomElement node = nodesElement.firstChildElement(); !node.isNull();
         node = node.nextSiblingElement()) {
@@ -133,19 +133,19 @@ ProjectFileResult ProjectFileService::validate(const QDomDocument& document,
              QStringLiteral("Node %1 uses unknown generator '%2'").arg(nodeId).arg(generatorName));
       }
 
-      QMap<int, int> sources;
+      QMap<QString, int> sources;
       const QDomElement sourcesElement = node.firstChildElement(QStringLiteral("Sources"));
       for (QDomElement source = sourcesElement.firstChildElement(); !source.isNull();
            source = source.nextSiblingElement()) {
          if (source.tagName() != QStringLiteral("source")) {
             continue;
          }
-         bool slotOk = false;
          bool sourceOk = false;
-         const int slot = source.attribute(QStringLiteral("slot")).toInt(&slotOk);
+         const QString serializedSlot = source.attribute(QStringLiteral("slot"));
+         const QString slot = generator->resolveSourceSlot(serializedSlot);
          const int sourceId = source.attribute(QStringLiteral("source")).toInt(&sourceOk);
-         if (!slotOk || slot < 0 || slot >= generator->getNumSourceSlots() || !sourceOk ||
-             sourceId <= 0 || sourceId == nodeId || sources.contains(slot)) {
+         if (slot.isNull() || !sourceOk || sourceId <= 0 || sourceId == nodeId ||
+             sources.contains(slot)) {
             return failure(
                 ProjectFileError::Validation,
                 QStringLiteral("Node %1 has an invalid or duplicate source slot").arg(nodeId));

@@ -97,7 +97,7 @@ GradientTextureGenerator::GradientTextureGenerator() {
    configurables.insert("radius", radius);
 }
 void GradientTextureGenerator::generate(QSize size, TexturePixel* destimage,
-                                        QMap<int, TextureImagePtr> sourceimages,
+                                        QMap<QString, TextureImagePtr> sourceimages,
                                         TextureNodeSettings* settings) const {
    if (!settings || !destimage || !size.isValid()) {
       return;
@@ -115,8 +115,8 @@ void GradientTextureGenerator::generate(QSize size, TexturePixel* destimage,
    double radius = settings->value("radius").toDouble() * size.width() / 100;
 
    QImage tempimage = QImage(size.width(), size.height(), QImage::Format_RGB32);
-   if (sourceimages.contains(0)) {
-      memcpy(tempimage.bits(), sourceimages.value(0)->getData(),
+   if (sourceimages.contains(QStringLiteral("Input"))) {
+      memcpy(tempimage.bits(), sourceimages.value(QStringLiteral("Input"))->getData(),
              size.width() * size.height() * sizeof(TexturePixel));
    } else {
       memset(tempimage.bits(), 0, size.width() * size.height() * sizeof(TexturePixel));

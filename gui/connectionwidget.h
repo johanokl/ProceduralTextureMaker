@@ -7,6 +7,7 @@
 #ifndef CONNECTIONWIDGET_H
 #define CONNECTIONWIDGET_H
 
+#include <QString>
 #include <QWidget>
 class TextureProject;
 class ItemInfoPanel;
@@ -31,7 +32,7 @@ public:
    /// @param sourceNodeId Source node identifier.
    /// @param receiverNodeId Receiver node identifier.
    /// @param slot Receiver input slot identifier.
-   void setNodes(int sourceNodeId, int receiverNodeId, int slot);
+   void setNodes(int sourceNodeId, int receiverNodeId, const QString& slot);
 
 public slots:
    /// @brief Disconnects the displayed nodes and hides the widget.
@@ -45,7 +46,7 @@ private:
    /// @brief Identifier of the displayed receiver node.
    int receiverNodeId{-1};
    /// @brief Input slot used by the displayed connection.
-   int slot{-1};
+   QString slot;
    /// @brief Label displaying the source node.
    QLabel* nodeSourceLabel{nullptr};
    /// @brief Label displaying the receiver node.

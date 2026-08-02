@@ -1,6 +1,9 @@
 var name = "SolidJS";
-var numSlots = 0;
 var separateColorChannels = false;
+
+function getInputSlots() {
+  return [];
+}
 
 /// @brief Returns the fixture generator's empty setting schema.
 function getSettings() {

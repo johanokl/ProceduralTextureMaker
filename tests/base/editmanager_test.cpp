@@ -14,6 +14,7 @@ private slots:
    void restoresConnectionsAndRemovedNode();
    void addsRenamesAndTracksCleanState();
    void clearsAndRestoresTheWholeGraph();
+   void connectsAndSwapsNamedSources();
 };
 
 void EditManagerTest::groupsMoveAndSettingChanges() {
@@ -77,8 +78,8 @@ void EditManagerTest::restoresConnectionsAndRemovedNode() {
    const TextureNodePtr upstream = project.newNode(1, sourceGenerator);
    const TextureNodePtr middle = project.newNode(2, filterGenerator);
    const TextureNodePtr receiver = project.newNode(3, filterGenerator);
-   QVERIFY(middle->setSourceSlot(0, upstream->getId()));
-   QVERIFY(receiver->setSourceSlot(1, middle->getId()));
+   QVERIFY(middle->setSourceSlot(QStringLiteral("Input 1"), upstream->getId()));
+   QVERIFY(receiver->setSourceSlot(QStringLiteral("Input 2"), middle->getId()));
    middle->setName(QStringLiteral("Middle"));
    middle->setPos(QPointF(25.0, 50.0));
 
@@ -86,23 +87,23 @@ void EditManagerTest::restoresConnectionsAndRemovedNode() {
    editManager.reset();
    QVERIFY(editManager.removeNode(middle->getId()));
    QVERIFY(project.getNode(2).isNull());
-   QCOMPARE(receiver->getSources().value(1), 0);
+   QCOMPARE(receiver->getSources().value(QStringLiteral("Input 2")), 0);
 
    editManager.stack().undo();
    const TextureNodePtr restored = project.getNode(2);
    QVERIFY(!restored.isNull());
    QCOMPARE(restored->getName(), QStringLiteral("Middle"));
    QCOMPARE(restored->getPos(), QPointF(25.0, 50.0));
-   QCOMPARE(restored->getSources().value(0), upstream->getId());
-   QCOMPARE(receiver->getSources().value(1), restored->getId());
+   QCOMPARE(restored->getSources().value(QStringLiteral("Input 1")), upstream->getId());
+   QCOMPARE(receiver->getSources().value(QStringLiteral("Input 2")), restored->getId());
 
    editManager.stack().redo();
    QVERIFY(project.getNode(2).isNull());
    editManager.stack().undo();
-   QVERIFY(editManager.setConnection(receiver->getId(), 1, 0));
-   QCOMPARE(receiver->getSources().value(1), 0);
+   QVERIFY(editManager.setConnection(receiver->getId(), QStringLiteral("Input 2"), 0));
+   QCOMPARE(receiver->getSources().value(QStringLiteral("Input 2")), 0);
    editManager.stack().undo();
-   QCOMPARE(receiver->getSources().value(1), 2);
+   QCOMPARE(receiver->getSources().value(QStringLiteral("Input 2")), 2);
 }
 
 void EditManagerTest::addsRenamesAndTracksCleanState() {
@@ -143,7 +144,7 @@ void EditManagerTest::clearsAndRestoresTheWholeGraph() {
    const TextureNodePtr receiver = project.newNode(9, filterGenerator);
    source->setName(QStringLiteral("Restored source"));
    source->setPos(QPointF(30.0, 40.0));
-   QVERIFY(receiver->setSourceSlot(0, source->getId()));
+   QVERIFY(receiver->setSourceSlot(QStringLiteral("Input"), source->getId()));
 
    EditManager editManager(project);
    editManager.reset();
@@ -156,11 +157,41 @@ void EditManagerTest::clearsAndRestoresTheWholeGraph() {
    QCOMPARE(project.getNumNodes(), 2);
    QCOMPARE(project.getNode(4)->getName(), QStringLiteral("Restored source"));
    QCOMPARE(project.getNode(4)->getPos(), QPointF(30.0, 40.0));
-   QCOMPARE(project.getNode(9)->getSources().value(0), 4);
+   QCOMPARE(project.getNode(9)->getSources().value(QStringLiteral("Input")), 4);
    QVERIFY(!project.isModified());
 
    editManager.stack().redo();
    QCOMPARE(project.getNumNodes(), 0);
+}
+
+void EditManagerTest::connectsAndSwapsNamedSources() {
+   TextureProject project(false);
+   const TextureGeneratorPtr sourceGenerator(new RecordingGenerator(QStringLiteral("Source"), 0));
+   const TextureGeneratorPtr receiverGenerator(
+       new RecordingGenerator(QStringLiteral("Receiver"), 2));
+   const TextureNodePtr first = project.newNode(1, sourceGenerator);
+   const TextureNodePtr second = project.newNode(2, sourceGenerator);
+   const TextureNodePtr receiver = project.newNode(3, receiverGenerator);
+   EditManager editManager(project);
+   editManager.reset();
+   QSignalSpy connected(&project, &TextureProject::nodesConnected);
+
+   QVERIFY(editManager.setConnectionToFirstAvailable(receiver->getId(), first->getId()));
+   QVERIFY(editManager.setConnectionToFirstAvailable(receiver->getId(), second->getId()));
+   QCOMPARE(receiver->getSources().value(QStringLiteral("Input 1")), first->getId());
+   QCOMPARE(receiver->getSources().value(QStringLiteral("Input 2")), second->getId());
+   QCOMPARE(connected.size(), 2);
+   QCOMPARE(connected.at(0).at(2).toString(), QStringLiteral("Input 1"));
+   QCOMPARE(connected.at(1).at(2).toString(), QStringLiteral("Input 2"));
+   QVERIFY(
+       !editManager.setConnection(receiver->getId(), QStringLiteral("Missing"), first->getId()));
+
+   editManager.swapSources(receiver->getId());
+   QCOMPARE(receiver->getSources().value(QStringLiteral("Input 1")), second->getId());
+   QCOMPARE(receiver->getSources().value(QStringLiteral("Input 2")), first->getId());
+   editManager.stack().undo();
+   QCOMPARE(receiver->getSources().value(QStringLiteral("Input 1")), first->getId());
+   QCOMPARE(receiver->getSources().value(QStringLiteral("Input 2")), second->getId());
 }
 
 QTEST_GUILESS_MAIN(EditManagerTest)

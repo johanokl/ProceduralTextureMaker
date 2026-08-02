@@ -46,7 +46,7 @@ public slots:
    /// @param sourceNodeId Source node identifier.
    /// @param receiverNodeId Receiver node identifier.
    /// @param slot Receiver input slot identifier.
-   void setActiveLine(int sourceNodeId, int receiverNodeId, int slot);
+   void setActiveLine(int sourceNodeId, int receiverNodeId, QString slot);
 
    /// @brief Removes cached information for a deleted node.
    /// @param id Deleted node identifier.
@@ -64,7 +64,7 @@ public slots:
    /// @param sourceNodeId Source node identifier.
    /// @param receiverNodeId Receiver node identifier.
    /// @param slot Receiver input slot identifier.
-   void nodesDisconnected(int sourceNodeId, int receiverNodeId, int slot);
+   void nodesDisconnected(int sourceNodeId, int receiverNodeId, QString slot);
 
 private:
    /// @brief Project whose selection details are displayed.
@@ -82,7 +82,7 @@ private:
    /// @brief Identifier of the currently displayed node.
    int currNodeId{0};
    /// @brief Source, receiver, and slot of the currently displayed connection.
-   std::tuple<int, int, int> currLine{0, 0, 0};
+   std::tuple<int, int, QString> currLine{0, 0, QString()};
 };
 
 #endif  // ITEMINFOPANEL_H

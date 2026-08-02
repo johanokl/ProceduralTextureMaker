@@ -57,7 +57,7 @@ float* GaussianBlurTextureGenerator::ComputeGaussianKernel(const int inRadius,
 
 /// @brief Calculates the Gaussian Blur and stores the result on the height map given
 void GaussianBlurTextureGenerator::generate(QSize size, TexturePixel* destimage,
-                                            QMap<int, TextureImagePtr> sourceimages,
+                                            QMap<QString, TextureImagePtr> sourceimages,
                                             TextureNodeSettings* settings) const {
    if (!settings || !destimage || !size.isValid()) {
       return;
@@ -67,10 +67,10 @@ void GaussianBlurTextureGenerator::generate(QSize size, TexturePixel* destimage,
 
    memset(destimage, 0, size.width() * size.height() * sizeof(TexturePixel));
 
-   if (!sourceimages.contains(0)) {
+   if (!sourceimages.contains(QStringLiteral("Input"))) {
       return;
    }
-   TexturePixel* sourceImage = sourceimages.value(0).data()->getData();
+   TexturePixel* sourceImage = sourceimages.value(QStringLiteral("Input")).data()->getData();
 
    int pixels_on_row = 1 + (numNeightbours * 2);
 

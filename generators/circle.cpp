@@ -53,7 +53,7 @@ CircleTextureGenerator::CircleTextureGenerator() {
    configurables.insert("offsettop", offsetTop);
 }
 void CircleTextureGenerator::generate(QSize size, TexturePixel* destimage,
-                                      QMap<int, TextureImagePtr> sourceimages,
+                                      QMap<QString, TextureImagePtr> sourceimages,
                                       TextureNodeSettings* settings) const {
    if (!settings || !destimage || !size.isValid()) {
       return;
@@ -65,8 +65,8 @@ void CircleTextureGenerator::generate(QSize size, TexturePixel* destimage,
    int offsetTop = settings->value("offsettop").toDouble() * size.height() / 100;
 
    bool blend = false;
-   if (sourceimages.contains(0)) {
-      memcpy(destimage, sourceimages.value(0)->getData(),
+   if (sourceimages.contains(QStringLiteral("Input"))) {
+      memcpy(destimage, sourceimages.value(QStringLiteral("Input"))->getData(),
              size.width() * size.height() * sizeof(TexturePixel));
       blend = true;
    } else {

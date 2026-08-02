@@ -40,8 +40,8 @@ void ItemInfoPanel::addNode(const TextureNodePtr& node) {
    });
 }
 
-void ItemInfoPanel::nodesDisconnected(int sourceNodeId, int receiverNodeId, int slot) {
-   if (currLine == std::tuple<int, int, int>(sourceNodeId, receiverNodeId, slot)) {
+void ItemInfoPanel::nodesDisconnected(int sourceNodeId, int receiverNodeId, QString slot) {
+   if (currLine == std::tuple<int, int, QString>(sourceNodeId, receiverNodeId, slot)) {
       // The removed connection is currently visible
       setActiveNode(-1);
    }
@@ -79,7 +79,7 @@ void ItemInfoPanel::setActiveNode(int id) {
    lineWidget->hide();
    currWidget = nullptr;
    currNodeId = 0;
-   currLine = std::tuple<int, int, int>(0, 0, 0);
+   currLine = std::tuple<int, int, QString>(0, 0, QString());
 
    TextureNodePtr texNode = texproject->getNode(id);
    if (texNode.isNull()) {
@@ -105,7 +105,7 @@ void ItemInfoPanel::setActiveNode(int id) {
    currWidget->show();
 }
 
-void ItemInfoPanel::setActiveLine(int sourceNodeId, int receiverNodeId, int slot) {
+void ItemInfoPanel::setActiveLine(int sourceNodeId, int receiverNodeId, QString slot) {
    if (sourceNodeId == -1 || receiverNodeId == -1) {
       return;
    }
@@ -115,7 +115,7 @@ void ItemInfoPanel::setActiveLine(int sourceNodeId, int receiverNodeId, int slot
    sceneWidget->hide();
    currWidget = nullptr;
    currNodeId = 0;
-   currLine = std::tuple<int, int, int>(sourceNodeId, receiverNodeId, slot);
+   currLine = std::tuple<int, int, QString>(sourceNodeId, receiverNodeId, slot);
    lineWidget->setNodes(sourceNodeId, receiverNodeId, slot);
    lineWidget->show();
 }

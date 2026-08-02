@@ -19,18 +19,18 @@ MirrorTextureGenerator::MirrorTextureGenerator() {
    configurables.insert("direction", direction);
 }
 void MirrorTextureGenerator::generate(QSize size, TexturePixel* destimage,
-                                      QMap<int, TextureImagePtr> sourceimages,
+                                      QMap<QString, TextureImagePtr> sourceimages,
                                       TextureNodeSettings* settings) const {
    if (!settings || !destimage || !size.isValid()) {
       return;
    }
    QString direction = settings->value("direction").toString();
 
-   if (!sourceimages.contains(0)) {
+   if (!sourceimages.contains(QStringLiteral("Input"))) {
       memset(destimage, 255, size.width() * size.height() * sizeof(TexturePixel));
       return;
    }
-   TexturePixel* sourceImage = sourceimages.value(0)->getData();
+   TexturePixel* sourceImage = sourceimages.value(QStringLiteral("Input"))->getData();
 
    if (direction == "Flip horizentally" || direction == "Flip vertically") {
       for (int y = 0; y < size.height(); y++) {

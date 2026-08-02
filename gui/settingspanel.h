@@ -105,6 +105,8 @@ private:
    QSlider* lineWidthSlider{nullptr};
    /// @brief Slider controlling connection-arrow size.
    QSlider* arrowSizeSlider{nullptr};
+   /// @brief Slider controlling connection endpoint-label font size.
+   QSlider* connectionLabelSizeSlider{nullptr};
    /// @brief Slider controlling node-header height.
    QSlider* headerSizeSlider{nullptr};
    /// @brief Slider controlling the scene-view zoom factor.
@@ -113,6 +115,8 @@ private:
    QLabel* lineWidthValueLabel{nullptr};
    /// @brief Label displaying the selected connection-arrow size.
    QLabel* arrowSizeValueLabel{nullptr};
+   /// @brief Label displaying the selected endpoint-label font size.
+   QLabel* connectionLabelSizeValueLabel{nullptr};
    /// @brief Label displaying the selected node-header height.
    QLabel* headerSizeValueLabel{nullptr};
    /// @brief Label displaying the selected zoom factor.
@@ -121,6 +125,10 @@ private:
    QLineEdit* jsGeneratorPathEdit{nullptr};
    /// @brief Checkbox controlling JavaScript generator loading.
    QCheckBox* jsGeneratorEnabledCheckbox{nullptr};
+   /// @brief Checkbox controlling source names at receiving edges.
+   QCheckBox* displaySourceNamesCheckbox{nullptr};
+   /// @brief Checkbox controlling receiver names at source edges.
+   QCheckBox* displayReceiverNamesCheckbox{nullptr};
    /// @brief Button representing the graph background color.
    QPushButton* backgroundColorButton{nullptr};
    /// @brief Button representing the image-preview background color.

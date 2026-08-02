@@ -130,14 +130,14 @@ public slots:
    /// @brief Marks the project modified and forwards a node-connection notification.
    /// @param sourceId The source node ID.
    /// @param receiverId The receiver node ID.
-   /// @param slot The receiver slot index.
-   void notifyNodesConnected(int sourceId, int receiverId, int slot);
+   /// @param slot The receiver slot name.
+   void notifyNodesConnected(int sourceId, int receiverId, QString slot);
 
    /// @brief Marks the project modified and forwards a node-disconnection notification.
    /// @param sourceId The source node ID.
    /// @param receiverId The receiver node ID.
-   /// @param slot The receiver slot index.
-   void notifyNodesDisconnected(int sourceId, int receiverId, int slot);
+   /// @param slot The receiver slot name.
+   void notifyNodesDisconnected(int sourceId, int receiverId, QString slot);
 
    /// @brief Marks the project modified and forwards an image-invalidation notification.
    /// @param id The updated node ID.
@@ -169,10 +169,10 @@ signals:
    void nodeRemoved(int);
 
    /// @brief Emitted after two nodes are connected.
-   void nodesConnected(int, int, int);
+   void nodesConnected(int, int, QString);
 
    /// @brief Emitted after two nodes are disconnected.
-   void nodesDisconnected(int, int, int);
+   void nodesDisconnected(int, int, QString);
 
    /// @brief Emitted when a node image cache becomes outdated.
    void imageUpdated(int);

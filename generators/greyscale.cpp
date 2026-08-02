@@ -6,18 +6,18 @@
 
 #include "greyscale.h"
 void GreyscaleTextureGenerator::generate(QSize size, TexturePixel* destimage,
-                                         QMap<int, TextureImagePtr> sourceimages,
+                                         QMap<QString, TextureImagePtr> sourceimages,
                                          TextureNodeSettings* settings) const {
    Q_UNUSED(settings);
 
    if (!destimage || !size.isValid()) {
       return;
    }
-   if (!sourceimages.contains(0)) {
+   if (!sourceimages.contains(QStringLiteral("Input"))) {
       memset(destimage, 0, size.width() * size.height() * sizeof(TexturePixel));
       return;
    }
-   TexturePixel* sourceImage = sourceimages.value(0).data()->getData();
+   TexturePixel* sourceImage = sourceimages.value(QStringLiteral("Input")).data()->getData();
 
    for (int j = 0; j < size.height(); j++) {
       for (int i = 0; i < size.width(); i++) {

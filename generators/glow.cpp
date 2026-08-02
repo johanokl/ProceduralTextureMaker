@@ -92,12 +92,12 @@ GlowTextureGenerator::GlowTextureGenerator() {
    configurables.insert("includesource", includesource);
 }
 void GlowTextureGenerator::generate(QSize size, TexturePixel* destimage,
-                                    QMap<int, TextureImagePtr> sourceimages,
+                                    QMap<QString, TextureImagePtr> sourceimages,
                                     TextureNodeSettings* settings) const {
    if (!settings || !destimage || !size.isValid()) {
       return;
    }
-   if (!sourceimages.contains(0)) {
+   if (!sourceimages.contains(QStringLiteral("Input"))) {
       memset(destimage, 0, size.width() * size.height() * sizeof(TexturePixel));
       return;
    }
@@ -162,15 +162,15 @@ void GlowTextureGenerator::generate(QSize size, TexturePixel* destimage,
       transformgen.generate(size, transformedDownRightImage, sourceimages, &settingsForTransform);
 
       MergeTextureGenerator mergegen;
-      QMap<int, TextureImagePtr> mergeImages;
-      mergeImages.insert(0, transformedLeftImagePtr);
-      mergeImages.insert(1, transformedRightImagePtr);
-      mergeImages.insert(2, transformedTopImagePtr);
-      mergeImages.insert(3, transformedDownImagePtr);
-      mergeImages.insert(4, transformedTopLeftImagePtr);
-      mergeImages.insert(5, transformedTopRightImagePtr);
-      mergeImages.insert(6, transformedDownLeftImagePtr);
-      mergeImages.insert(7, transformedDownRightImagePtr);
+      QMap<QString, TextureImagePtr> mergeImages;
+      mergeImages.insert(QStringLiteral("Layer 1"), transformedLeftImagePtr);
+      mergeImages.insert(QStringLiteral("Layer 2"), transformedRightImagePtr);
+      mergeImages.insert(QStringLiteral("Layer 3"), transformedTopImagePtr);
+      mergeImages.insert(QStringLiteral("Layer 4"), transformedDownImagePtr);
+      mergeImages.insert(QStringLiteral("Layer 5"), transformedTopLeftImagePtr);
+      mergeImages.insert(QStringLiteral("Layer 6"), transformedTopRightImagePtr);
+      mergeImages.insert(QStringLiteral("Layer 7"), transformedDownLeftImagePtr);
+      mergeImages.insert(QStringLiteral("Layer 8"), transformedDownRightImagePtr);
       mergegen.generate(size, mergedImage, mergeImages, settings);
    } else {
       settingsForTransform.insert("xscale", offset * 3 + 100);
@@ -184,9 +184,9 @@ void GlowTextureGenerator::generate(QSize size, TexturePixel* destimage,
    fillgen.generate(size, filledImage, sourceimages, settings);
 
    SetChannelsTextureGenerator setchannelsgen;
-   QMap<int, TextureImagePtr> setchannelImages;
-   setchannelImages.insert(0, filledImagePtr);
-   setchannelImages.insert(1, mergedImagePtr);
+   QMap<QString, TextureImagePtr> setchannelImages;
+   setchannelImages.insert(QStringLiteral("First"), filledImagePtr);
+   setchannelImages.insert(QStringLiteral("Second"), mergedImagePtr);
    TextureNodeSettings settingsForSetchannels;
    settingsForSetchannels.insert("channelRed", QVariant("First's red"));
    settingsForSetchannels.insert("channelGreen", QVariant("First's green"));
@@ -197,8 +197,8 @@ void GlowTextureGenerator::generate(QSize size, TexturePixel* destimage,
    setchannelsgen.generate(size, setchannelsImage, setchannelImages, &settingsForSetchannels);
 
    ModifyLevelsTextureGenerator modifylevelsgen;
-   QMap<int, TextureImagePtr> modifylevelsImages;
-   modifylevelsImages.insert(0, setchannelsImagePtr);
+   QMap<QString, TextureImagePtr> modifylevelsImages;
+   modifylevelsImages.insert(QStringLiteral("Input"), setchannelsImagePtr);
    TextureNodeSettings settingsForModifyLevels;
    settingsForModifyLevels.insert("channel", "Only alpha");
    settingsForModifyLevels.insert("mode", "Multiply");
@@ -207,8 +207,8 @@ void GlowTextureGenerator::generate(QSize size, TexturePixel* destimage,
    auto* modifylevelsImage = modifylevelsImagePtr->getData();
    modifylevelsgen.generate(size, modifylevelsImage, modifylevelsImages, &settingsForModifyLevels);
 
-   QMap<int, TextureImagePtr> firstblurImages;
-   firstblurImages.insert(0, modifylevelsImagePtr);
+   QMap<QString, TextureImagePtr> firstblurImages;
+   firstblurImages.insert(QStringLiteral("Input"), modifylevelsImagePtr);
    TextureNodeSettings settingsForFirstBlur;
    settingsForFirstBlur.insert("level", QVariant(settings->value("firstblurlevel").toInt()));
    auto firstblurredImagePtr = TextureImage::create(size);
@@ -227,17 +227,17 @@ void GlowTextureGenerator::generate(QSize size, TexturePixel* destimage,
       transformgen.generate(size, smallerCutoutImage, sourceimages, &settingsForTransform);
 
       CutoutTextureGenerator cutoutgen;
-      QMap<int, TextureImagePtr> cutoutImages;
-      cutoutImages.insert(0, firstblurredImagePtr);
-      cutoutImages.insert(1, smallerCutoutImagePtr);
+      QMap<QString, TextureImagePtr> cutoutImages;
+      cutoutImages.insert(QStringLiteral("Image"), firstblurredImagePtr);
+      cutoutImages.insert(QStringLiteral("Mask"), smallerCutoutImagePtr);
       TextureNodeSettings settingsForCutout;
       settingsForCutout.insert("factor", 255);
       auto cutoutImagePtr = TextureImage::create(size);
       auto* cutoutImage = cutoutImagePtr->getData();
       cutoutgen.generate(size, cutoutImage, cutoutImages, &settingsForCutout);
 
-      QMap<int, TextureImagePtr> secondblurImages;
-      secondblurImages.insert(0, cutoutImagePtr);
+      QMap<QString, TextureImagePtr> secondblurImages;
+      secondblurImages.insert(QStringLiteral("Input"), cutoutImagePtr);
       TextureNodeSettings settingsForsecondBlur;
       settingsForsecondBlur.insert("level", QVariant(settings->value("secondblurlevel").toInt()));
       auto secondblurredImagePtr = TextureImage::create(size);
@@ -246,9 +246,9 @@ void GlowTextureGenerator::generate(QSize size, TexturePixel* destimage,
       firstblurredImagePtr = secondblurredImagePtr;
    } else {
       CutoutTextureGenerator cutoutgen;
-      QMap<int, TextureImagePtr> cutoutImages;
-      cutoutImages.insert(0, firstblurredImagePtr);
-      cutoutImages.insert(1, sourceimages.value(0));
+      QMap<QString, TextureImagePtr> cutoutImages;
+      cutoutImages.insert(QStringLiteral("Image"), firstblurredImagePtr);
+      cutoutImages.insert(QStringLiteral("Mask"), sourceimages.value(QStringLiteral("Input")));
       TextureNodeSettings settingsForCutout;
       settingsForCutout.insert("factor", 255);
       auto cutoutImagePtr = TextureImage::create(size);
@@ -259,9 +259,9 @@ void GlowTextureGenerator::generate(QSize size, TexturePixel* destimage,
 
    if (settings->value("includesource").toBool()) {
       BlendingTextureGenerator blendinggen;
-      QMap<int, TextureImagePtr> sourceForBlend;
-      sourceForBlend.insert(0, sourceimages.value(0));
-      sourceForBlend.insert(1, firstblurredImagePtr);
+      QMap<QString, TextureImagePtr> sourceForBlend;
+      sourceForBlend.insert(QStringLiteral("Base"), sourceimages.value(QStringLiteral("Input")));
+      sourceForBlend.insert(QStringLiteral("Blend"), firstblurredImagePtr);
       TextureNodeSettings settingsForBlend;
       QMapIterator<QString, TextureGeneratorSetting> blendSettingsIterator(
           blendinggen.getSettings());

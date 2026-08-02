@@ -48,7 +48,7 @@ CheckboardTextureGenerator::CheckboardTextureGenerator() {
    configurables.insert("offsety", offsety);
 }
 void CheckboardTextureGenerator::generate(QSize size, TexturePixel* destimage,
-                                          QMap<int, TextureImagePtr> sourceimages,
+                                          QMap<QString, TextureImagePtr> sourceimages,
                                           TextureNodeSettings* settings) const {
    if (!settings || !destimage || !size.isValid()) {
       return;
@@ -61,8 +61,8 @@ void CheckboardTextureGenerator::generate(QSize size, TexturePixel* destimage,
    int offsetx = settings->value("offsetx").toDouble() * size.width() / 100;
    int offsety = settings->value("offsety").toDouble() * size.height() / 100;
 
-   if (sourceimages.contains(0)) {
-      memcpy(destimage, sourceimages.value(0)->getData(),
+   if (sourceimages.contains(QStringLiteral("Input"))) {
+      memcpy(destimage, sourceimages.value(QStringLiteral("Input"))->getData(),
              size.width() * size.height() * sizeof(TexturePixel));
    } else {
       memset(destimage, 0, size.width() * size.height() * sizeof(TexturePixel));

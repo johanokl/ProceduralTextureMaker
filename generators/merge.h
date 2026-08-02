@@ -14,9 +14,9 @@ class MergeTextureGenerator : public TextureGenerator {
 public:
    MergeTextureGenerator() = default;
    ~MergeTextureGenerator() override = default;
-   void generate(QSize size, TexturePixel* destimage, QMap<int, TextureImagePtr> sourceimages,
+   void generate(QSize size, TexturePixel* destimage, QMap<QString, TextureImagePtr> sourceimages,
                  TextureNodeSettings* settings) const override;
-   int getNumSourceSlots() const override { return 10; }
+   QStringList getSourceSlots() const override;
    QString getName() const override { return QString("Merge"); }
    const TextureGeneratorSettings& getSettings() const override { return configurables; }
    QString getDescription() const override { return QString("Merge multiple textures."); }

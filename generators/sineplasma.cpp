@@ -56,7 +56,7 @@ SinePlasmaTextureGenerator::SinePlasmaTextureGenerator() {
    configurables.insert("yfrequency", yfrequency);
 }
 void SinePlasmaTextureGenerator::generate(QSize size, TexturePixel* destimage,
-                                          QMap<int, TextureImagePtr> sourceimages,
+                                          QMap<QString, TextureImagePtr> sourceimages,
                                           TextureNodeSettings* settings) const {
    if (!settings || !destimage || !size.isValid()) {
       return;
@@ -67,8 +67,8 @@ void SinePlasmaTextureGenerator::generate(QSize size, TexturePixel* destimage,
    double xfrequency = settings->value("xfrequency").toDouble() * 5 / size.width();
    double yfrequency = settings->value("yfrequency").toDouble() * 5 / size.height();
 
-   if (sourceimages.contains(0)) {
-      memcpy(destimage, sourceimages.value(0)->getData(),
+   if (sourceimages.contains(QStringLiteral("Input"))) {
+      memcpy(destimage, sourceimages.value(QStringLiteral("Input"))->getData(),
              size.width() * size.height() * sizeof(TexturePixel));
    } else {
       memset(destimage, 0, size.width() * size.height() * sizeof(TexturePixel));

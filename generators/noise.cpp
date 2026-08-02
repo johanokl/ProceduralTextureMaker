@@ -83,7 +83,7 @@ NoiseTextureGenerator::NoiseTextureGenerator() {
    configurables.insert("smoothscale", smoothscale);
 }
 void NoiseTextureGenerator::generate(QSize size, TexturePixel* destimage,
-                                     QMap<int, TextureImagePtr> sourceimages,
+                                     QMap<QString, TextureImagePtr> sourceimages,
                                      TextureNodeSettings* settings) const {
    if (!settings || !destimage || !size.isValid()) {
       return;
@@ -97,8 +97,8 @@ void NoiseTextureGenerator::generate(QSize size, TexturePixel* destimage,
    int numpoints = settings->value("numpoints").toInt();
 
    QImage destobject(size.width(), size.height(), QImage::Format_ARGB32);
-   if (sourceimages.contains(0)) {
-      memcpy(destobject.bits(), sourceimages.value(0)->getData(),
+   if (sourceimages.contains(QStringLiteral("Input"))) {
+      memcpy(destobject.bits(), sourceimages.value(QStringLiteral("Input"))->getData(),
              size.width() * size.height() * sizeof(TexturePixel));
    } else {
       memset(destobject.bits(), 0, size.width() * size.height() * sizeof(TexturePixel));

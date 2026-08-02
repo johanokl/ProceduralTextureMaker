@@ -22,9 +22,9 @@ ViewNodeItem::ViewNodeItem(ViewNodeScene& scene, const TextureNodePtr& newNode)
    setFlag(QGraphicsItem::ItemIsSelectable);
 
    mousePressed = false;
+   hovered = false;
    isConnectable = false;
    isUnconnectable = false;
-   highlightSlot = -1;
    highlighterWidth = 4;
    borderWidth = 1;
    headerSize = 24;
@@ -92,13 +92,21 @@ bool ViewNodeItem::posInImage(QPointF pos) const {
 }
 
 void ViewNodeItem::updateConnectionLines() {
+   const auto updateLine = [this](ViewNodeLine* line) {
+      line->updatePos();
+      ViewNodeItem* sourceItem = scene.getItem(line->getStartItemId());
+      ViewNodeItem* receiverItem = scene.getItem(line->getEndItemId());
+      const bool active = (sourceItem && sourceItem->connectionLabelsActive()) ||
+                          (receiverItem && receiverItem->connectionLabelsActive());
+      line->setHighlighted(active);
+   };
    QSetIterator<ViewNodeLine*> startIterator(startLines);
    while (startIterator.hasNext()) {
-      startIterator.next()->updatePos();
+      updateLine(startIterator.next());
    }
-   QMapIterator<int, ViewNodeLine*> endIterator(endLines);
+   QMapIterator<QString, ViewNodeLine*> endIterator(endLines);
    while (endIterator.hasNext()) {
-      endIterator.next().value()->updatePos();
+      updateLine(endIterator.next().value());
    }
 }
 
@@ -110,6 +118,7 @@ void ViewNodeItem::positionUpdated() {
 void ViewNodeItem::settingsUpdated() {
    titleString = texNode->getName().append(" (%1)").arg(texNode->getGeneratorName());
    setToolTip(titleString);
+   updateConnectionLines();
 }
 
 void ViewNodeItem::imageUpdated() {
@@ -176,10 +185,10 @@ void ViewNodeItem::imageAvailable(QSize size) {
 void ViewNodeItem::contextMenuEvent(QGraphicsSceneContextMenuEvent* event) {
    event->accept();
    QMenu menu;
-   QMap<int, QAction*> actions;
-   for (int i = 0; i < texNode->getNumSourceSlots(); i++) {
-      if (texNode->getSources().value(i) != 0) {
-         actions[i] = menu.addAction(QString("Remove source for slot %1").arg(i + 1));
+   QMap<QString, QAction*> actions;
+   for (const QString& slot : texNode->getSourceSlots()) {
+      if (texNode->getSources().value(slot) != 0) {
+         actions[slot] = menu.addAction(QString("Remove source for %1").arg(slot));
       }
    }
    menu.addSeparator();
@@ -200,9 +209,9 @@ void ViewNodeItem::contextMenuEvent(QGraphicsSceneContextMenuEvent* event) {
    } else if (exportImageAction == selectedAction) {
       scene.getMainWindow().saveImage(id);
    } else {
-      for (int i = 0; i < texNode->getNumSourceSlots(); i++) {
-         if (actions[i] == selectedAction) {
-            scene.getMainWindow().getEditManager().setConnection(id, i, 0);
+      for (const QString& slot : texNode->getSourceSlots()) {
+         if (actions[slot] == selectedAction) {
+            scene.getMainWindow().getEditManager().setConnection(id, slot, 0);
          }
       }
    }
@@ -256,26 +265,14 @@ void ViewNodeItem::mouseMoveEvent(QGraphicsSceneMouseEvent* mouseEvent) {
 
 void ViewNodeItem::hoverEnterEvent(QGraphicsSceneHoverEvent* event) {
    setCursor(Qt::ArrowCursor);
-   QSetIterator<ViewNodeLine*> startLineIterator(startLines);
-   while (startLineIterator.hasNext()) {
-      startLineIterator.next()->setHighlighted(true);
-   }
-   QMapIterator<int, ViewNodeLine*> endLineIterator(endLines);
-   while (endLineIterator.hasNext()) {
-      endLineIterator.next().value()->setHighlighted(true);
-   }
+   hovered = true;
+   updateConnectionLines();
    QGraphicsItem::hoverEnterEvent(event);
 }
 
 void ViewNodeItem::hoverLeaveEvent(QGraphicsSceneHoverEvent* event) {
-   QSetIterator<ViewNodeLine*> startLineIterator(startLines);
-   while (startLineIterator.hasNext()) {
-      startLineIterator.next()->setHighlighted(false);
-   }
-   QMapIterator<int, ViewNodeLine*> endLineIterator(endLines);
-   while (endLineIterator.hasNext()) {
-      endLineIterator.next().value()->setHighlighted(false);
-   }
+   hovered = false;
+   updateConnectionLines();
    QGraphicsItem::hoverLeaveEvent(event);
 }
 

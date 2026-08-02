@@ -188,14 +188,14 @@ void TextureRenderManager::renderNode(const TextureNodeRenderTask& task) {
       throw std::runtime_error("A texture node snapshot has no texture generator");
    }
 
-   QMap<int, TextureImagePtr> sourceImages;
+   QMap<QString, TextureImagePtr> sourceImages;
    {
       std::lock_guard lock(mutex);
       if (stopping || task.renderState->sequence != latestRenderSequence ||
           task.renderState->failed) {
          return;
       }
-      for (int slot = 0; slot < snapshot.generator->getNumSourceSlots(); ++slot) {
+      for (const QString& slot : snapshot.generator->getSourceSlots()) {
          const int sourceId = snapshot.sources.value(slot);
          if (sourceId != 0 && task.renderState->renderedImages.contains(sourceId)) {
             sourceImages.insert(slot, task.renderState->renderedImages.value(sourceId));

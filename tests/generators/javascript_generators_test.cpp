@@ -5,6 +5,7 @@
 #include <QTemporaryDir>
 #include <QTest>
 #include <stdexcept>
+#include <utility>
 
 namespace {
 
@@ -27,6 +28,24 @@ QColor renderColor(const QString& script) {
    return QColor(pixel.r, pixel.g, pixel.b, pixel.a);
 }
 
+/// @brief Creates a one-pixel source image.
+TextureImagePtr sourceImage(const QColor& color) {
+   TextureImagePtr image = TextureImage::create(QSize(1, 1));
+   image->data()[0] = TexturePixel(
+       static_cast<unsigned char>(color.red()), static_cast<unsigned char>(color.green()),
+       static_cast<unsigned char>(color.blue()), static_cast<unsigned char>(color.alpha()));
+   return image;
+}
+
+/// @brief Runs a JavaScript generator directly with named source images.
+QColor renderWithSources(const QString& script, QMap<QString, TextureImagePtr> sources) {
+   JsTexGen generator(script);
+   TexturePixel destination{};
+   TextureNodeSettings settings;
+   generator.generate(QSize(1, 1), &destination, std::move(sources), &settings);
+   return QColor(destination.r, destination.g, destination.b, destination.a);
+}
+
 }  // namespace
 
 /// @brief Verifies JavaScript generator execution, diagnostics, and discovery.
@@ -39,6 +58,9 @@ private slots:
 
    /// @brief Verifies loading valid scripts from a directory while reporting invalid ones.
    void loadsDirectory();
+
+   /// @brief Verifies named inputs and legacy positional input compatibility.
+   void supportsNamedAndLegacyInputs();
 };
 
 void JavaScriptGeneratorsTest::rendersAndReportsErrors() {
@@ -83,6 +105,40 @@ void JavaScriptGeneratorsTest::loadsDirectory() {
    QVERIFY(!project.getGenerator(QStringLiteral("SolidJS")).isNull());
    QVERIFY(
        !loadJavaScriptGenerators(project, directory.filePath(QStringLiteral("missing"))).isEmpty());
+}
+
+void JavaScriptGeneratorsTest::supportsNamedAndLegacyInputs() {
+   const QString namedScript = QStringLiteral(
+       "var name='Named';var separateColorChannels=false;"
+       "function getSettings(){return {};}"
+       "function getInputSlots(){return ['Left','Right'];}"
+       "function generate(data,inputs){return inputs.Right;}");
+   JsTexGen namedGenerator(namedScript);
+   QVERIFY(namedGenerator.isValid());
+   QCOMPARE(namedGenerator.getSourceSlots(),
+            QStringList({QStringLiteral("Left"), QStringLiteral("Right")}));
+   QCOMPARE(
+       renderWithSources(namedScript, {{QStringLiteral("Left"), sourceImage(QColor(1, 2, 3, 4))},
+                                       {QStringLiteral("Right"), sourceImage(QColor(9, 8, 7, 6))}}),
+       QColor(9, 8, 7, 6));
+
+   const QString legacyScript = QStringLiteral(
+       "var name='Legacy';var numSlots=2;var separateColorChannels=false;"
+       "function getSettings(){return {};}"
+       "function generate(data,first,second){"
+       "if(first!==undefined)throw new Error('missing placeholder');return second;}");
+   JsTexGen legacyGenerator(legacyScript);
+   QVERIFY(legacyGenerator.isValid());
+   QCOMPARE(legacyGenerator.getSourceSlots(),
+            QStringList({QStringLiteral("Input 1"), QStringLiteral("Input 2")}));
+   QCOMPARE(renderWithSources(legacyScript,
+                              {{QStringLiteral("Input 2"), sourceImage(QColor(20, 30, 40, 50))}}),
+            QColor(20, 30, 40, 50));
+
+   const QString duplicateScript = QStringLiteral(
+       "var name='Duplicate';function getSettings(){return {};}"
+       "function getInputSlots(){return ['Input','Input'];}function generate(){}");
+   QVERIFY(!JsTexGen(duplicateScript).isValid());
 }
 
 QTEST_GUILESS_MAIN(JavaScriptGeneratorsTest)

@@ -15,10 +15,9 @@ class FireTextureGenerator : public TextureGenerator {
 public:
    FireTextureGenerator();
    ~FireTextureGenerator() override = default;
-   void generate(QSize size, TexturePixel* destimage, QMap<int, TextureImagePtr> sourceimages,
+   void generate(QSize size, TexturePixel* destimage, QMap<QString, TextureImagePtr> sourceimages,
                  TextureNodeSettings* settings) const override;
    const TextureGeneratorSettings& getSettings() const override { return configurables; }
-   int getNumSourceSlots() const override { return 1; }
    QString getName() const override { return "Fire"; }
    QString getDescription() const override { return QString("Early 90's fire effect"); }
    TextureGenerator::Type getType() const override { return TextureGenerator::Type::Generator; }

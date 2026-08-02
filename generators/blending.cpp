@@ -31,8 +31,8 @@ BlendingTextureGenerator::BlendingTextureGenerator() {
    configurables.insert("mode", mode);
 
    QStringList ordering;
-   ordering.append("Slot 2 on top of Slot 1");
-   ordering.append("Slot 1 on top of Slot 2");
+   ordering.append("Blend on top of Base");
+   ordering.append("Base on top of Blend");
    TextureGeneratorSetting order;
    order.name = "Order";
    order.description = "";
@@ -116,7 +116,7 @@ double BlendingTextureGenerator::blendColors(BlendModes mode, double originColor
    }
 }
 void BlendingTextureGenerator::generate(QSize size, TexturePixel* destimage,
-                                        QMap<int, TextureImagePtr> sourceimages,
+                                        QMap<QString, TextureImagePtr> sourceimages,
                                         TextureNodeSettings* settings) const {
    if (!settings || !destimage || !size.isValid()) {
       return;
@@ -158,11 +158,12 @@ void BlendingTextureGenerator::generate(QSize size, TexturePixel* destimage,
    TexturePixel* originSource = nullptr;
    TexturePixel* addSource = nullptr;
 
-   int first = 0;
-   int second = 1;
-   if (order == "Slot 1 on top of Slot 2") {
-      first = 1;
-      second = 0;
+   QString first = QStringLiteral("Base");
+   QString second = QStringLiteral("Blend");
+   if (order == QStringLiteral("Base on top of Blend") ||
+       order == QStringLiteral("Slot 1 on top of Slot 2")) {
+      first = QStringLiteral("Blend");
+      second = QStringLiteral("Base");
    }
 
    if (sourceimages.contains(first)) {

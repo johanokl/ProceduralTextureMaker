@@ -86,8 +86,8 @@ public:
    /// @brief Selects a connection and notifies interested widgets.
    /// @param sourceNode Source node identifier.
    /// @param receiverNode Receiver node identifier.
-   /// @param slot Receiver input slot index.
-   void setSelectedLine(int sourceNode, int receiverNode, int slot);
+   /// @param slot Receiver input slot name.
+   void setSelectedLine(int sourceNode, int receiverNode, const QString& slot);
 
 protected:
    /// @brief Updates selection when the scene is clicked.
@@ -155,14 +155,14 @@ public slots:
    /// @brief Adds a line for a newly created project connection.
    /// @param sourceid Source node identifier.
    /// @param receiverid Receiver node identifier.
-   /// @param slot Receiver input slot index.
-   void nodesConnected(int sourceid, int receiverid, int slot);
+   /// @param slot Receiver input slot name.
+   void nodesConnected(int sourceid, int receiverid, QString slot);
 
    /// @brief Removes the line for a deleted project connection.
    /// @param sourceid Source node identifier.
    /// @param receiverid Receiver node identifier.
-   /// @param slot Receiver input slot index.
-   void nodesDisconnected(int sourceid, int receiverid, int slot);
+   /// @param slot Receiver input slot name.
+   void nodesDisconnected(int sourceid, int receiverid, QString slot);
 
    /// @brief Refreshes a node after its generator changes.
    /// @param id Updated node identifier.
@@ -179,8 +179,8 @@ signals:
    /// @brief Notifies observers that the selected connection changed.
    /// @param sourceNode Source node identifier.
    /// @param receiverNode Receiver node identifier.
-   /// @param slot Receiver input slot index.
-   void lineSelected(int sourceNode, int receiverNode, int slot);
+   /// @param slot Receiver input slot name.
+   void lineSelected(int sourceNode, int receiverNode, QString slot);
 
 private:
    /// @brief Removes and deletes the active generator drop indicator.
@@ -193,7 +193,7 @@ private:
    /// @brief Non-owning index of scene-owned node items by identifier.
    QMap<int, ViewNodeItem*> nodeItems;
    /// @brief Non-owning index of scene-owned lines by source, receiver, and slot.
-   QMap<std::tuple<int, int, int>, ViewNodeLine*> nodeConnections;
+   QMap<std::tuple<int, int, QString>, ViewNodeLine*> nodeConnections;
    /// @brief Observer to the scene-owned generator drop indicator.
    QGraphicsRectItem* dropItem{nullptr};
    /// @brief Observer to the scene-owned connection line currently being drawn.
@@ -208,10 +208,16 @@ private:
    int highlightedLineWidth{4};
    /// @brief Arrowhead size for connection lines.
    int arrowSize{12};
+   /// @brief Font size used for connection endpoint labels.
+   int connectionLabelSize{12};
+   /// @brief Whether receiving-edge labels show source node names.
+   bool displaySourceNames{true};
+   /// @brief Whether source-edge labels show receiver node names.
+   bool displayReceiverNames{false};
    /// @brief Height of node title areas.
    int headerSize{24};
    /// @brief Source, receiver, and slot of the selected connection.
-   std::tuple<int, int, int> selectedLine{-1, 0, 0};
+   std::tuple<int, int, QString> selectedLine{-1, 0, QString()};
    /// @brief Whether an interactive connection operation is active.
    bool lineDrawing{false};
 };

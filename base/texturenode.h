@@ -78,9 +78,9 @@ public:
    /// @return The generator name, or an empty string when no generator is set.
    QString getGeneratorName() const;
 
-   /// @brief Gets the number of source slots exposed by the current generator.
-   /// @return The number of source slots.
-   int getNumSourceSlots() const;
+   /// @brief Gets the ordered source-slot names exposed by the current generator.
+   /// @return The source-slot names.
+   QStringList getSourceSlots() const;
 
    /// @brief Gets the number of nodes receiving this node's image.
    /// @return The number of receiver nodes.
@@ -91,17 +91,21 @@ public:
    QSetIterator<int> getReceivers() const;
 
    /// @brief Checks whether a source slot is empty.
-   /// @param slot The slot index, or `-1` to check for any available slot.
-   /// @return @c true if the given slot, or at least one slot, is available.
-   bool slotAvailable(int slot) const;
+   /// @param slot The canonical slot name.
+   /// @return @c true if the given slot is available.
+   bool slotAvailable(const QString& slot) const;
+
+   /// @brief Returns the first empty source slot in generator-declared order.
+   /// @return The canonical slot name, or a null string if every slot is occupied.
+   QString getFirstAvailableSourceSlot() const;
 
    /// @brief Connects a source node to a slot or disconnects the current source.
-   /// @param slot The slot index, or `-1` to select the first available slot.
+   /// @param slot The canonical slot name.
    /// @param sourceId The source node ID, or `0` to disconnect the slot.
    /// @return @c true if the connection change was accepted.
    /// @details The change is rejected if the slot is invalid, the source does not exist, or the
    /// proposed edge would introduce a cycle in the graph.
-   bool setSourceSlot(int slot, int sourceId);
+   bool setSourceSlot(const QString& slot, int sourceId);
 
    /// @brief Checks whether this node participates in a direct or indirect graph cycle.
    /// @return @c true if a cycle is found.
@@ -143,7 +147,7 @@ public:
 
    /// @brief Returns a thread-safe snapshot of the source-slot mapping.
    /// @return A copy of the source node ID assigned to each slot.
-   QMap<int, int> getSources() const;
+   QMap<QString, int> getSources() const;
 
 signals:
    /// @brief Emitted when the node display name changes.
@@ -168,10 +172,10 @@ signals:
    void generatorUpdated(int id);
 
    /// @brief Emitted after a source is connected to this node.
-   void nodesConnected(int sourceId, int receiverId, int slot);
+   void nodesConnected(int sourceId, int receiverId, QString slot);
 
    /// @brief Emitted after a source is disconnected from this node.
-   void nodesDisconnected(int sourceId, int receiverId, int slot);
+   void nodesDisconnected(int sourceId, int receiverId, QString slot);
 
 private:
    /// @brief Constructs a node owned by a project.
@@ -231,7 +235,7 @@ private:
    /// @brief Position in graph scene coordinates.
    QPointF pos;
    /// @brief Source node ID assigned to each generator input slot.
-   QMap<int, int> sources;
+   QMap<QString, int> sources;
    /// @brief IDs of nodes that use this node as a source.
    QSet<int> receivers;
    /// @brief Current generator setting values.

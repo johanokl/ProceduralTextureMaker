@@ -14,9 +14,11 @@ class EmptyGenerator : public TextureGenerator {
 public:
    EmptyGenerator() = default;
    ~EmptyGenerator() override = default;
-   void generate(QSize size, TexturePixel* destimage, QMap<int, TextureImagePtr> sourceimages,
+   void generate(QSize size, TexturePixel* destimage, QMap<QString, TextureImagePtr> sourceimages,
                  TextureNodeSettings* settings) const override;
-   int getNumSourceSlots() const override { return 3; }
+   QStringList getSourceSlots() const override {
+      return {QStringLiteral("Input 1"), QStringLiteral("Input 2"), QStringLiteral("Input 3")};
+   }
    QString getName() const override { return QString("Empty"); }
    const TextureGeneratorSettings& getSettings() const override { return _settings; }
    QString getDescription() const override { return QString("Empty generator."); }

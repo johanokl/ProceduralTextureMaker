@@ -81,8 +81,9 @@ NodeSettingsWidget::NodeSettingsWidget(ItemInfoPanel& widgetmanager, int id)
       sourceButtonsLayout->addWidget(slotButton, i, 1);
       QObject::connect(slotButton, &QPushButton::clicked, [this, i]() {
          auto editManager = this->widgetmanager.getEditManager();
-         if (editManager != nullptr) {
-            editManager->setConnection(this->id, i, 0);
+         const QStringList sourceSlots = this->texNode->getSourceSlots();
+         if (editManager != nullptr && i < sourceSlots.size()) {
+            editManager->setConnection(this->id, sourceSlots.at(i), 0);
          }
       });
       sourceSlotButtons.push_back(slotButton);
@@ -283,13 +284,14 @@ void NodeSettingsWidget::generatorUpdated() {
    TextureGeneratorPtr generator = texNode->getGenerator();
    generatorNameLabel->setText(generator->getName());
 
-   if (generator->getNumSourceSlots() > 0) {
+   const QStringList sourceSlots = generator->getSourceSlots();
+   if (!sourceSlots.isEmpty()) {
       sourceButtonsWidget->show();
    } else {
       sourceButtonsWidget->hide();
    }
-   for (int i = 0; i < generator->getNumSourceSlots() && i < (sourceSlotLabels.count() - 1); i++) {
-      sourceSlotLabels[i]->setText(generator->getSlotName(i) + ":");
+   for (int i = 0; i < sourceSlots.size() && i < sourceSlotLabels.count(); i++) {
+      sourceSlotLabels[i]->setText(sourceSlots.at(i) + ":");
    }
 
    // Remove all previous property rows, if any.
@@ -535,7 +537,8 @@ void NodeSettingsWidget::setGroupAlignment(const QString& group, bool aligned) {
 
 void NodeSettingsWidget::slotsUpdated() {
    int numInList = sourceSlotButtons.count();
-   int numSlots = texNode->getNumSourceSlots();
+   const QStringList sourceSlots = texNode->getSourceSlots();
+   const int numSlots = sourceSlots.size();
    int numConnected = 0;
    for (int i = 0; i < numInList; i++) {
       QPushButton* currButton = sourceSlotButtons[i];
@@ -546,8 +549,9 @@ void NodeSettingsWidget::slotsUpdated() {
       } else {
          currButton->show();
          currLabel->show();
-         currLabel->setText(texNode->getGenerator()->getSlotName(i) + ":");
-         int connectedNode = texNode->getSources().value(i);
+         const QString& slot = sourceSlots.at(i);
+         currLabel->setText(slot + ":");
+         int connectedNode = texNode->getSources().value(slot);
          if (connectedNode != 0) {
             currLabel->setText(currLabel->text().append(" ").append(
                 widgetmanager.getTextureProject()->getNode(connectedNode)->getName()));
@@ -577,10 +581,19 @@ void NodeSettingsWidget::settingsUpdated() {
       if (!texNode->getGenerator()->getSettings().contains(settingsId)) {
          continue;
       }
-      QVariant defaultvalue = texNode->getSettings().value(settingsId);
+      const TextureGeneratorSetting settingDefinition =
+          texNode->getGenerator()->getSettings().value(settingsId);
+      const QVariant defaultvalue = settingDefinition.defaultvalue;
       QVariant nodevalue = defaultvalue;
-      if (texNode->getSettings().contains(settingsId)) {
-         nodevalue = texNode->getSettings().value(settingsId);
+      const TextureNodeSettings nodeSettings = texNode->getSettings();
+      if (nodeSettings.contains(settingsId)) {
+         nodevalue = nodeSettings.value(settingsId);
+      } else if (defaultvalue.typeId() == QMetaType::QStringList) {
+         const QStringList values = defaultvalue.toStringList();
+         if (settingDefinition.defaultindex >= 0 &&
+             settingDefinition.defaultindex < values.size()) {
+            nodevalue = values.at(settingDefinition.defaultindex);
+         }
       }
 
       QWidget* settingsWidget = settingElementIterator.value();

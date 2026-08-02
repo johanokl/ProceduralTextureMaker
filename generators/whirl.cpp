@@ -42,12 +42,12 @@ WhirlTextureGenerator::WhirlTextureGenerator() {
    configurables.insert("offsettop", offsettop);
 }
 void WhirlTextureGenerator::generate(QSize size, TexturePixel* destimage,
-                                     QMap<int, TextureImagePtr> sourceimages,
+                                     QMap<QString, TextureImagePtr> sourceimages,
                                      TextureNodeSettings* settings) const {
    if (!settings || !destimage || !size.isValid()) {
       return;
    }
-   if (!sourceimages.contains(0)) {
+   if (!sourceimages.contains(QStringLiteral("Input"))) {
       memset(destimage, 0, size.width() * size.height() * sizeof(TexturePixel));
       return;
    }
@@ -57,7 +57,7 @@ void WhirlTextureGenerator::generate(QSize size, TexturePixel* destimage,
    double offsetleft = settings->value("offsetleft").toDouble() * size.width() / 100;
    double offsettop = settings->value("offsettop").toDouble() * size.height() / 100;
 
-   TexturePixel* source = sourceimages.value(0)->getData();
+   TexturePixel* source = sourceimages.value(QStringLiteral("Input"))->getData();
    if (radius <= 0 || strength == 0) {
       memcpy(destimage, source, size.width() * size.height() * sizeof(TexturePixel));
       return;
