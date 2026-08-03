@@ -97,29 +97,29 @@ GradientTextureGenerator::GradientTextureGenerator() {
    configurables.insert("radius", radius);
 }
 void GradientTextureGenerator::generate(QSize size, TexturePixel* destimage,
-                                        QMap<QString, TextureImagePtr> sourceimages,
-                                        TextureNodeSettings* settings) const {
-   if (!settings || !destimage || !size.isValid()) {
+                                        const QMap<QString, TextureImagePtr>& sourceimages,
+                                        const TextureNodeSettings& settings) const {
+   if (!destimage || !size.isValid()) {
       return;
    }
-   QString gradientmode = settings->value("gradient").toString();
-   QString spreadmode = settings->value("spread").toString();
-   QColor startcolor = settings->value("startcolor").value<QColor>();
-   QColor middlecolor = settings->value("middlecolor").value<QColor>();
-   QColor endcolor = settings->value("endcolor").value<QColor>();
-   double middleposition = settings->value("middleposition").toDouble() / 100;
-   double startposx = settings->value("startposx").toDouble() * size.width() / 100;
-   double startposy = settings->value("startposy").toDouble() * size.height() / 100;
-   double endposx = settings->value("endposx").toDouble() * size.width() / 100;
-   double endposy = settings->value("endposy").toDouble() * size.height() / 100;
-   double radius = settings->value("radius").toDouble() * size.width() / 100;
+   QString gradientmode = settings.value("gradient").toString();
+   QString spreadmode = settings.value("spread").toString();
+   QColor startcolor = settings.value("startcolor").value<QColor>();
+   QColor middlecolor = settings.value("middlecolor").value<QColor>();
+   QColor endcolor = settings.value("endcolor").value<QColor>();
+   double middleposition = settings.value("middleposition").toDouble() / 100;
+   double startposx = settings.value("startposx").toDouble() * size.width() / 100;
+   double startposy = settings.value("startposy").toDouble() * size.height() / 100;
+   double endposx = settings.value("endposx").toDouble() * size.width() / 100;
+   double endposy = settings.value("endposy").toDouble() * size.height() / 100;
+   double radius = settings.value("radius").toDouble() * size.width() / 100;
 
-   QImage tempimage = QImage(size.width(), size.height(), QImage::Format_RGB32);
+   QImage tempimage = makeTextureImageView(size, destimage);
    if (sourceimages.contains(QStringLiteral("Input"))) {
-      memcpy(tempimage.bits(), sourceimages.value(QStringLiteral("Input"))->getData(),
+      memcpy(destimage, sourceimages.value(QStringLiteral("Input"))->getData(),
              size.width() * size.height() * sizeof(TexturePixel));
    } else {
-      memset(tempimage.bits(), 0, size.width() * size.height() * sizeof(TexturePixel));
+      memset(destimage, 0, size.width() * size.height() * sizeof(TexturePixel));
    }
 
    startposx += (double)50 * size.width() / 100;
@@ -156,6 +156,4 @@ void GradientTextureGenerator::generate(QSize size, TexturePixel* destimage,
    QPainter painter(&tempimage);
    painter.setCompositionMode(QPainter::CompositionMode_SourceOver);
    painter.fillRect(0, 0, size.width(), size.height(), gradient);
-
-   memcpy(destimage, tempimage.bits(), size.width() * size.height() * sizeof(TexturePixel));
 }

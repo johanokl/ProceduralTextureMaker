@@ -7,7 +7,7 @@
 #ifndef BLENDINGTEXTUREGENERATOR_H
 #define BLENDINGTEXTUREGENERATOR_H
 
-#include "texturegenerator.h"
+#include "base/texturegenerator.h"
 
 /// @brief The BlendingTextureGenerator class
 class BlendingTextureGenerator : public TextureGenerator {
@@ -29,8 +29,9 @@ public:
 
    BlendingTextureGenerator();
    ~BlendingTextureGenerator() override = default;
-   void generate(QSize size, TexturePixel* destimage, QMap<QString, TextureImagePtr> sourceimages,
-                 TextureNodeSettings* settings) const override;
+   void generate(QSize size, TexturePixel* destimage,
+                 const QMap<QString, TextureImagePtr>& sourceimages,
+                 const TextureNodeSettings& settings) const override;
    QStringList getSourceSlots() const override {
       return {QStringLiteral("Base"), QStringLiteral("Blend")};
    }

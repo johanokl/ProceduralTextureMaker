@@ -1,7 +1,7 @@
 #ifndef TESTGENERATORS_H
 #define TESTGENERATORS_H
 
-#include "generators/texturegenerator.h"
+#include "base/texturegenerator.h"
 #include <QSemaphore>
 #include <atomic>
 
@@ -20,8 +20,9 @@ public:
    /// @param destination Output pixel buffer.
    /// @param sources Images connected to the generator's source slots.
    /// @param settings Node settings containing the optional grayscale value.
-   void generate(QSize size, TexturePixel* destination, QMap<QString, TextureImagePtr> sources,
-                 TextureNodeSettings* settings) const override;
+   void generate(QSize size, TexturePixel* destination,
+                 const QMap<QString, TextureImagePtr>& sources,
+                 const TextureNodeSettings& settings) const override;
 
    /// @brief Returns the test generator's setting schema.
    const TextureGeneratorSettings& getSettings() const override { return schema; }
@@ -77,8 +78,9 @@ private:
 /// @brief Copies the deliberately non-alphabetical `Zulu` input for slot-routing tests.
 class NamedInputGenerator final : public TextureGenerator {
 public:
-   void generate(QSize size, TexturePixel* destination, QMap<QString, TextureImagePtr> sources,
-                 TextureNodeSettings* settings) const override;
+   void generate(QSize size, TexturePixel* destination,
+                 const QMap<QString, TextureImagePtr>& sources,
+                 const TextureNodeSettings& settings) const override;
    const TextureGeneratorSettings& getSettings() const override { return schema; }
    Type getType() const override { return Type::Filter; }
    QStringList getSourceSlots() const override {

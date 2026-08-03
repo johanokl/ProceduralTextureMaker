@@ -7,7 +7,7 @@
 #ifndef MAINWINDOW_H
 #define MAINWINDOW_H
 
-#include "generators/texturegenerator.h"
+#include "base/texturegenerator.h"
 #include <QMainWindow>
 #include <QPointer>
 #include <memory>
@@ -23,7 +23,7 @@ class MenuActions;
 class PreviewImagePanel;
 class SettingsPanel;
 class SettingsManager;
-class JSTexGenManager;
+class JsTexGenManager;
 class EditManager;
 
 /// @brief The application's main window, containing all the scenes and panels.
@@ -96,6 +96,9 @@ public slots:
 
    /// @brief Recreates the scene view while preserving its graph.
    void reloadSceneView();
+
+   /// @brief Rescans the configured custom JavaScript generator directory.
+   void reloadJavaScriptGenerators();
 
    /// @brief Raises and activates the window.
    void moveToFront();
@@ -170,7 +173,7 @@ private:
    /// @brief Persistent settings manager used by the project and panels.
    std::unique_ptr<SettingsManager> settingsManager;
    /// @brief Manager for external JavaScript generators.
-   std::unique_ptr<JSTexGenManager> jstexgenManager;
+   std::unique_ptr<JsTexGenManager> jstexgenManager;
    /// @brief Panel displaying scene, node, and connection information.
    ItemInfoPanel* iteminfopanel{nullptr};
    /// @brief Panel used to edit application and project settings.

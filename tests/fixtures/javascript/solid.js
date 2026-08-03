@@ -1,22 +1,20 @@
-var name = "SolidJS";
-var separateColorChannels = false;
+const generator = {
+  apiVersion: 1,
+  name: "SolidJS",
+  description: "Fills the image with a fixed RGBA color for integration tests.",
+  type: "generator",
+  inputs: [],
+  settings: {},
 
-function getInputSlots() {
-  return [];
-}
-
-/// @brief Returns the fixture generator's empty setting schema.
-function getSettings() {
-  return {};
-}
-
-/// @brief Fills the requested image with a fixed RGBA color.
-/// @param data JSON-encoded render dimensions and settings.
-/// @return The populated destination pixel array.
-function generate(data) {
-  var args = JSON.parse(data);
-  for (var i = 0; i < args.imagewidth * args.imageheight; ++i) {
-    dest[i] = 0x123456ff;
+  generate(size, settings, output, inputs) {
+    void settings;
+    void inputs;
+    for (let index = 0; index < size.width * size.height; ++index) {
+      const offset = index * 4;
+      output.data[offset] = 0x12;
+      output.data[offset + 1] = 0x34;
+      output.data[offset + 2] = 0x56;
+      output.data[offset + 3] = 0xff;
+    }
   }
-  return dest;
-}
+};

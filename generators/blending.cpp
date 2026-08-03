@@ -116,14 +116,14 @@ double BlendingTextureGenerator::blendColors(BlendModes mode, double originColor
    }
 }
 void BlendingTextureGenerator::generate(QSize size, TexturePixel* destimage,
-                                        QMap<QString, TextureImagePtr> sourceimages,
-                                        TextureNodeSettings* settings) const {
-   if (!settings || !destimage || !size.isValid()) {
+                                        const QMap<QString, TextureImagePtr>& sourceimages,
+                                        const TextureNodeSettings& settings) const {
+   if (!destimage || !size.isValid()) {
       return;
    }
-   double blendingAlpha = settings->value("alpha").toDouble() / 100.0;
-   QString order = settings->value("order").toString();
-   QString mode = settings->value("mode").toString();
+   double blendingAlpha = settings.value("alpha").toDouble() / 100.0;
+   QString order = settings.value("order").toString();
+   QString mode = settings.value("mode").toString();
    if (blendingAlpha > 1) {
       blendingAlpha = 1;
    } else if (blendingAlpha < 0) {

@@ -23,6 +23,12 @@ MenuActions::MenuActions(MainWindow* parent) : QObject(nullptr), parentwindow(pa
    newAct->setShortcuts(QKeySequence::New);
    QObject::connect(newAct, &QAction::triggered, parent->parent(), &TexGenApplication::addWindow);
 
+   reloadJavaScriptGeneratorsAct = new QAction("Reload JavaScript files", parent);
+   reloadJavaScriptGeneratorsAct->setStatusTip(
+       "Rescan and validate custom JavaScript generator files");
+   QObject::connect(reloadJavaScriptGeneratorsAct, &QAction::triggered, parent,
+                    &MainWindow::reloadJavaScriptGenerators);
+
    openAct = new QAction(QIcon(":/openicon.png"), "&Open", parent);
    openAct->setStatusTip("Open an existing file");
    openAct->setShortcuts(QKeySequence::Open);
@@ -179,17 +185,19 @@ MenuActions::MenuActions(MainWindow* parent) : QObject(nullptr), parentwindow(pa
    fileMenu->addSeparator();
    fileMenu->addAction(saveImageAct);
    fileMenu->addSeparator();
+   fileMenu->addAction(reloadJavaScriptGeneratorsAct);
+   fileMenu->addSeparator();
    fileMenu->addAction(closeAct);
    fileMenu->addAction(exitAct);
 
    editMenu->addAction(undoAct);
    editMenu->addAction(redoAct);
    editMenu->addSeparator();
-   editMenu->addAction(clearAct);
-   editMenu->addSeparator();
    editMenu->addAction(copyAct);
    editMenu->addAction(cutAct);
    editMenu->addAction(pasteAct);
+   editMenu->addSeparator();
+   editMenu->addAction(clearAct);
 
    helpMenu->addAction(helpAct);
    helpMenu->addAction(aboutAct);

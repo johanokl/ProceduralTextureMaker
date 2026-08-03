@@ -15,12 +15,12 @@ StackBlurTextureGenerator::StackBlurTextureGenerator() {
    configurables.insert("level", level);
 }
 void StackBlurTextureGenerator::generate(QSize size, TexturePixel* destimage,
-                                         QMap<QString, TextureImagePtr> sourceimages,
-                                         TextureNodeSettings* settings) const {
-   if (!settings || !destimage || !size.isValid()) {
+                                         const QMap<QString, TextureImagePtr>& sourceimages,
+                                         const TextureNodeSettings& settings) const {
+   if (!destimage || !size.isValid()) {
       return;
    }
-   int level = settings->value("level").toDouble() * qMax(size.width() / 100, 1);
+   int level = settings.value("level").toDouble() * qMax(size.width() / 100, 1);
    memset(destimage, 0, size.width() * size.height() * sizeof(TexturePixel));
    if (!sourceimages.contains(QStringLiteral("Input"))) {
       return;

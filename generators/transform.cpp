@@ -102,65 +102,62 @@ TransformTextureGenerator::TransformTextureGenerator() {
    configurables.insert("secondYtiles", secondYtiles);
 }
 void TransformTextureGenerator::generate(QSize size, TexturePixel* destimage,
-                                         QMap<QString, TextureImagePtr> sourceimages,
-                                         TextureNodeSettings* settings) const {
-   if (!settings || !destimage || !size.isValid()) {
+                                         const QMap<QString, TextureImagePtr>& sourceimages,
+                                         const TextureNodeSettings& settings) const {
+   if (!destimage || !size.isValid()) {
       return;
    }
 
-   double scaleX = settings->value("xscale").toDouble() / 100;
-   double scaleY = settings->value("yscale").toDouble() / 100;
-   double rotation = settings->value("rotation").toDouble();
-   int offsetLeft = settings->value("offsetleft").toDouble() * size.width() / 100;
-   int offsetTop = settings->value("offsettop").toDouble() * size.height() / 100;
-   int firstXtiles = settings->value("firstXtiles").toInt();
-   int firstYtiles = settings->value("firstYtiles").toInt();
-   int secondXtiles = settings->value("secondXtiles").toInt();
-   int secondYtiles = settings->value("secondYtiles").toInt();
-   QColor backgroundcolor = settings->value("backgroundcolor").value<QColor>();
+   double scaleX = settings.value("xscale").toDouble() / 100;
+   double scaleY = settings.value("yscale").toDouble() / 100;
+   double rotation = settings.value("rotation").toDouble();
+   int offsetLeft = settings.value("offsetleft").toDouble() * size.width() / 100;
+   int offsetTop = settings.value("offsettop").toDouble() * size.height() / 100;
+   int firstXtiles = settings.value("firstXtiles").toInt();
+   int firstYtiles = settings.value("firstYtiles").toInt();
+   int secondXtiles = settings.value("secondXtiles").toInt();
+   int secondYtiles = settings.value("secondYtiles").toInt();
+   QColor backgroundcolor = settings.value("backgroundcolor").value<QColor>();
 
-   QImage tempimage(size.width(), size.height(), QImage::Format_ARGB32);
+   QImage tempimage = makeTextureImageView(size, destimage);
 
    if (sourceimages.contains(QStringLiteral("Input"))) {
-      memcpy(tempimage.bits(), sourceimages.value(QStringLiteral("Input"))->getData(),
+      memcpy(destimage, sourceimages.value(QStringLiteral("Input"))->getData(),
              size.width() * size.height() * sizeof(TexturePixel));
    } else {
-      memset(tempimage.bits(), 0, size.width() * size.height() * sizeof(TexturePixel));
+      memset(destimage, 0, size.width() * size.height() * sizeof(TexturePixel));
    }
 
-   QImage tiledimage(size.width(), size.height(), QImage::Format_ARGB32);
-   memset(tiledimage.bits(), 0, size.width() * size.height() * sizeof(TexturePixel));
+   TextureImage tiledStorage(size);
+   QImage tiledimage = tiledStorage.toQImageView();
+   {
+      QPainter firstpainter(&tiledimage);
+      firstpainter.scale(static_cast<double>(1) / secondXtiles,
+                         static_cast<double>(1) / secondYtiles);
+      firstpainter.fillRect(0, 0, secondXtiles * tempimage.width(),
+                            secondYtiles * tempimage.height(), QBrush(tempimage));
+   }
 
-   QPainter firstpainter(&tiledimage);
-   firstpainter.scale((double)1 / secondXtiles, (double)1 / secondYtiles);
-   firstpainter.fillRect(0, 0, secondXtiles * tempimage.width(), secondYtiles * tempimage.height(),
-                         QBrush(tempimage));
-
-   QImage destBuffer(firstXtiles * size.width(), firstYtiles * size.height(),
-                     QImage::Format_ARGB32);
+   TextureImage destinationStorage(QSize(firstXtiles * size.width(), firstYtiles * size.height()));
+   QImage destBuffer = destinationStorage.toQImageView();
    TexturePixel col(backgroundcolor.red(), backgroundcolor.green(), backgroundcolor.blue(),
                     backgroundcolor.alpha());
-
-   auto* destBufferPixels = (TexturePixel*)destBuffer.bits();
-   int numPixels = firstXtiles * size.width() * firstYtiles * size.height();
-   for (int i = 0; i < numPixels; i++) {
-      *destBufferPixels = col;
-      destBufferPixels++;
+   for (std::size_t index = 0; index < destinationStorage.pixelCount(); ++index) {
+      destinationStorage.data()[index] = col;
    }
 
-   QPainter painter(&destBuffer);
-   painter.translate(offsetLeft, offsetTop);
-   painter.translate(size.width() / 2, size.height() / 2);
-   painter.rotate(rotation);
-   painter.scale(scaleX, scaleY);
-   painter.translate(-firstXtiles * size.width() / 2, -firstYtiles * size.height() / 2);
-   painter.fillRect(0, 0, destBuffer.width(), destBuffer.height(), QBrush(tiledimage));
+   {
+      QPainter painter(&destBuffer);
+      painter.translate(offsetLeft, offsetTop);
+      painter.translate(size.width() / 2, size.height() / 2);
+      painter.rotate(rotation);
+      painter.scale(scaleX, scaleY);
+      painter.translate(-firstXtiles * size.width() / 2, -firstYtiles * size.height() / 2);
+      painter.fillRect(0, 0, destBuffer.width(), destBuffer.height(), QBrush(tiledimage));
+   }
 
-   memset(tempimage.bits(), 0, size.width() * size.height() * sizeof(TexturePixel));
-
+   memset(destimage, 0, size.width() * size.height() * sizeof(TexturePixel));
    QPainter finalpainter(&tempimage);
    finalpainter.drawImage(QRectF(0, 0, size.width(), size.height()), destBuffer,
                           QRectF(0, 0, size.width(), size.height()));
-
-   memcpy(destimage, tempimage.bits(), size.width() * size.height() * sizeof(TexturePixel));
 }

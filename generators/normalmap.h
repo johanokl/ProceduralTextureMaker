@@ -7,15 +7,16 @@
 #ifndef NORMALMAPTEXTUREGENERATOR_H
 #define NORMALMAPTEXTUREGENERATOR_H
 
-#include "texturegenerator.h"
+#include "base/texturegenerator.h"
 
 /// @brief The NormalMapTextureGenerator class
 class NormalMapTextureGenerator : public TextureGenerator {
 public:
    NormalMapTextureGenerator() = default;
    ~NormalMapTextureGenerator() override = default;
-   void generate(QSize size, TexturePixel* destimage, QMap<QString, TextureImagePtr> sourceimages,
-                 TextureNodeSettings* settings) const override;
+   void generate(QSize size, TexturePixel* destimage,
+                 const QMap<QString, TextureImagePtr>& sourceimages,
+                 const TextureNodeSettings& settings) const override;
    QString getName() const override { return QString("Normal-map"); }
    const TextureGeneratorSettings& getSettings() const override { return configurables; }
    QString getDescription() const override { return QString("Blurs the source image."); }

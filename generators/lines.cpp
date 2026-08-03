@@ -49,16 +49,16 @@ LinesTextureGenerator::LinesTextureGenerator() {
    configurables.insert("angle", angle);
 }
 void LinesTextureGenerator::generate(QSize size, TexturePixel* destimage,
-                                     QMap<QString, TextureImagePtr> sourceimages,
-                                     TextureNodeSettings* settings) const {
-   if (!settings || !destimage || !size.isValid()) {
+                                     const QMap<QString, TextureImagePtr>& sourceimages,
+                                     const TextureNodeSettings& settings) const {
+   if (!destimage || !size.isValid()) {
       return;
    }
-   QColor color = settings->value("color").value<QColor>();
-   int spacing = settings->value("spacing").toDouble() * size.height() / 100;
-   int lineheight = settings->value("lineheight").toDouble() * size.height() / 100;
-   int offset = settings->value("offset").toDouble() * size.height() / 100;
-   double angle = settings->value("angle").toDouble();
+   QColor color = settings.value("color").value<QColor>();
+   int spacing = settings.value("spacing").toDouble() * size.height() / 100;
+   int lineheight = settings.value("lineheight").toDouble() * size.height() / 100;
+   int offset = settings.value("offset").toDouble() * size.height() / 100;
+   double angle = settings.value("angle").toDouble();
    int period = lineheight + spacing;
 
    if (sourceimages.contains(QStringLiteral("Input"))) {

@@ -8,6 +8,7 @@
 #define TEXTUREIMAGE_H
 
 #include "global.h"
+#include <QImage>
 #include <QSharedPointer>
 #include <QSize>
 #include <cstddef>
@@ -15,6 +16,32 @@
 
 class TextureImage;
 using TextureImagePtr = QSharedPointer<TextureImage>;
+
+/// @brief Creates a mutable, non-owning RGBA8888 QImage view over texture pixels.
+/// @param size Image width and height; both dimensions must be positive.
+/// @param pixels Mutable pixel storage containing `size.width() * size.height()` pixels.
+/// @return A QImage that writes directly to @p pixels.
+/// @throws std::invalid_argument if the dimensions or pixel pointer are invalid.
+/// @throws std::length_error if the required storage cannot be represented.
+/// @warning The returned image must not outlive @p pixels.
+QImage makeTextureImageView(QSize size, TexturePixel* pixels);
+
+/// @brief Creates a read-only, non-owning RGBA8888 QImage view over texture pixels.
+/// @param size Image width and height; both dimensions must be positive.
+/// @param pixels Read-only pixel storage containing `size.width() * size.height()` pixels.
+/// @return A QImage that reads directly from @p pixels and detaches before modification.
+/// @throws std::invalid_argument if the dimensions or pixel pointer are invalid.
+/// @throws std::length_error if the required storage cannot be represented.
+/// @warning The returned image must not outlive @p pixels.
+QImage makeTextureImageView(QSize size, const TexturePixel* pixels);
+
+/// @brief Copies texture pixels into an owning RGBA8888 QImage.
+/// @param size Image width and height; both dimensions must be positive.
+/// @param pixels Read-only pixel storage containing `size.width() * size.height()` pixels.
+/// @return An owning QImage independent of @p pixels.
+/// @throws std::invalid_argument if the dimensions or pixel pointer are invalid.
+/// @throws std::length_error if the required storage cannot be represented.
+QImage copyTextureImage(QSize size, const TexturePixel* pixels);
 
 /// @brief Owns a contiguous buffer of texture pixels.
 class TextureImage {
@@ -62,11 +89,25 @@ public:
    /// @brief Returns a read-only pointer to the contiguous pixel buffer.
    const TexturePixel* data() const noexcept { return pixels.data(); }
 
-   /// @brief Returns a mutable pointer through the legacy compatibility API.
+   /// @brief Returns a mutable pointer through the established accessor alias.
    TexturePixel* getData() noexcept { return data(); }
 
-   /// @brief Returns a read-only pointer through the legacy compatibility API.
+   /// @brief Returns a read-only pointer through the established accessor alias.
    const TexturePixel* getData() const noexcept { return data(); }
+
+   /// @brief Creates a mutable, non-owning RGBA8888 view over this image.
+   /// @return A QImage that writes directly to this image's pixel storage.
+   /// @warning The returned image must not outlive this TextureImage.
+   QImage toQImageView() { return makeTextureImageView(size, data()); }
+
+   /// @brief Creates a read-only, non-owning RGBA8888 view over this image.
+   /// @return A QImage that reads this image's pixel storage and detaches before modification.
+   /// @warning The returned image must not outlive this TextureImage.
+   QImage toQImageView() const { return makeTextureImageView(size, data()); }
+
+   /// @brief Copies this image into an owning RGBA8888 QImage.
+   /// @return A QImage independent of this TextureImage's lifetime.
+   QImage toQImageCopy() const { return copyTextureImage(size, data()); }
 
 private:
    /// @brief Image width and height in pixels.

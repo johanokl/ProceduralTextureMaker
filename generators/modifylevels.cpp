@@ -40,9 +40,9 @@ ModifyLevelsTextureGenerator::ModifyLevelsTextureGenerator() {
    configurables.insert("level", blendingAlpha);
 }
 void ModifyLevelsTextureGenerator::generate(QSize size, TexturePixel* destimage,
-                                            QMap<QString, TextureImagePtr> sourceimages,
-                                            TextureNodeSettings* settings) const {
-   if (!settings || !destimage || !size.isValid()) {
+                                            const QMap<QString, TextureImagePtr>& sourceimages,
+                                            const TextureNodeSettings& settings) const {
+   if (!destimage || !size.isValid()) {
       return;
    }
    int numpixels = size.width() * size.height();
@@ -53,10 +53,10 @@ void ModifyLevelsTextureGenerator::generate(QSize size, TexturePixel* destimage,
    memcpy(destimage, sourceimages.value(QStringLiteral("Input"))->getData(),
           numpixels * sizeof(TexturePixel));
 
-   QString mode = settings->value("mode").toString();
-   QString channel = settings->value("channel").toString();
-   double levelFactor = settings->value("level").toDouble() / 100;
-   int levelAbsolute = qMin(settings->value("level").toInt(), 255);
+   QString mode = settings.value("mode").toString();
+   QString channel = settings.value("channel").toString();
+   double levelFactor = settings.value("level").toDouble() / 100;
+   int levelAbsolute = qMin(settings.value("level").toInt(), 255);
 
    bool r = false, g = false, b = false, a = false;
    if (channel == "All channels") {

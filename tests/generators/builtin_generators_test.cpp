@@ -17,7 +17,7 @@ void BuiltinGeneratorsTest::rendersEveryGenerator() {
    TextureProject project(false);
    registerBuiltInGenerators(project);
    const auto generators = project.getGenerators();
-   QCOMPARE(generators.size(), 34);
+   QCOMPARE(generators.size(), 35);
 
    for (auto it = generators.cbegin(); it != generators.cend(); ++it) {
       const TextureGeneratorPtr& generator = it.value();
@@ -53,6 +53,11 @@ void BuiltinGeneratorsTest::rendersEveryGenerator() {
    QCOMPARE(project.getGenerator(QStringLiteral("Set channels"))->getSourceSlots(),
             QStringList({QStringLiteral("First"), QStringLiteral("Second")}));
    QCOMPARE(project.getGenerator(QStringLiteral("Merge"))->getSourceSlots().size(), 10);
+   const TextureGeneratorPtr mask = project.getGenerator(QStringLiteral("Mask"));
+   QVERIFY(!mask.isNull());
+   QCOMPARE(mask->getType(), TextureGenerator::Type::Combiner);
+   QCOMPARE(mask->getOrigin(), TextureGenerator::Origin::BuiltIn);
+   QCOMPARE(mask->getSourceIdentity(), QStringLiteral(":/generators/mask.js"));
 }
 
 QTEST_MAIN(BuiltinGeneratorsTest)

@@ -14,7 +14,7 @@ clipboard, or home-directory files.
 
 ## Rendering goldens
 
-The persistence test records SHA-256 digests of raw `TexturePixel` BGRA bytes. PNG file bytes are
+The persistence test records SHA-256 digests of raw `TexturePixel` RGBA bytes. PNG file bytes are
 not hashed because encoder output can change without changing decoded pixels.
 
 `minimal-fill.txl` is the portable exact fixture. The tracked example hashes characterize the

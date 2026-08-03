@@ -7,7 +7,7 @@
 #ifndef TEXTUREPROJECT_H
 #define TEXTUREPROJECT_H
 
-#include "generators/texturegenerator.h"
+#include "base/texturegenerator.h"
 #include "texturenode.h"
 #include <QDomDocument>
 #include <QList>
@@ -126,6 +126,12 @@ public slots:
    /// @brief Removes a registered texture generator.
    /// @param gen The exact shared generator instance that was previously registered.
    void removeGenerator(const TextureGeneratorPtr& gen);
+
+   /// @brief Atomically replaces a registered definition and migrates nodes using it.
+   /// @details Compatible settings and connections with unchanged slot names are preserved.
+   /// @return True when the registered generator was replaced.
+   bool replaceGenerator(const TextureGeneratorPtr& oldGenerator,
+                         const TextureGeneratorPtr& newGenerator);
 
    /// @brief Marks the project modified and forwards a node-connection notification.
    /// @param sourceId The source node ID.

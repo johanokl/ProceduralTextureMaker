@@ -56,16 +56,16 @@ SinePlasmaTextureGenerator::SinePlasmaTextureGenerator() {
    configurables.insert("yfrequency", yfrequency);
 }
 void SinePlasmaTextureGenerator::generate(QSize size, TexturePixel* destimage,
-                                          QMap<QString, TextureImagePtr> sourceimages,
-                                          TextureNodeSettings* settings) const {
-   if (!settings || !destimage || !size.isValid()) {
+                                          const QMap<QString, TextureImagePtr>& sourceimages,
+                                          const TextureNodeSettings& settings) const {
+   if (!destimage || !size.isValid()) {
       return;
    }
-   QColor color = settings->value("color").value<QColor>();
-   double xoffset = settings->value("xoffset").toInt() * size.width() / 100;
-   double yoffset = settings->value("yoffset").toInt() * size.height() / 100;
-   double xfrequency = settings->value("xfrequency").toDouble() * 5 / size.width();
-   double yfrequency = settings->value("yfrequency").toDouble() * 5 / size.height();
+   QColor color = settings.value("color").value<QColor>();
+   double xoffset = settings.value("xoffset").toInt() * size.width() / 100;
+   double yoffset = settings.value("yoffset").toInt() * size.height() / 100;
+   double xfrequency = settings.value("xfrequency").toDouble() * 5 / size.width();
+   double yfrequency = settings.value("yfrequency").toDouble() * 5 / size.height();
 
    if (sourceimages.contains(QStringLiteral("Input"))) {
       memcpy(destimage, sourceimages.value(QStringLiteral("Input"))->getData(),

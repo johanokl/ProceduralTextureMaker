@@ -111,15 +111,15 @@ SetChannelsTextureGenerator::Channels SetChannelsTextureGenerator::getChannelFro
    return Channels::none;
 }
 void SetChannelsTextureGenerator::generate(QSize size, TexturePixel* destimage,
-                                           QMap<QString, TextureImagePtr> sourceimages,
-                                           TextureNodeSettings* settings) const {
-   if (!settings || !destimage || !size.isValid()) {
+                                           const QMap<QString, TextureImagePtr>& sourceimages,
+                                           const TextureNodeSettings& settings) const {
+   if (!destimage || !size.isValid()) {
       return;
    }
-   QString channelRedStr = settings->value("channelRed").toString();
-   QString channelGreenStr = settings->value("channelGreen").toString();
-   QString channelBlueStr = settings->value("channelBlue").toString();
-   QString channelAlphaStr = settings->value("channelAlpha").toString();
+   QString channelRedStr = settings.value("channelRed").toString();
+   QString channelGreenStr = settings.value("channelGreen").toString();
+   QString channelBlueStr = settings.value("channelBlue").toString();
+   QString channelAlphaStr = settings.value("channelAlpha").toString();
 
    Channels channelRed = getChannelFromName(channelRedStr);
    Channels channelGreen = getChannelFromName(channelGreenStr);

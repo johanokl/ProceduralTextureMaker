@@ -65,6 +65,12 @@ add_ptm_test(javascript_generators_test
 )
 set_tests_properties(javascript_generators_test PROPERTIES LABELS "generators")
 
+add_executable(javascript_generators_benchmark
+    generators/javascript_generators_benchmark.cpp
+)
+target_link_libraries(javascript_generators_benchmark PRIVATE ptm_engine)
+target_include_directories(javascript_generators_benchmark PRIVATE ${PROJECT_SOURCE_DIR})
+
 add_ptm_test(cli_export_test
     cli/cli_export_test.cpp
 )

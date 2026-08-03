@@ -15,14 +15,14 @@ FillTextureGenerator::FillTextureGenerator() {
    configurables.insert("color", colorsetting);
 }
 void FillTextureGenerator::generate(QSize size, TexturePixel* destimage,
-                                    QMap<QString, TextureImagePtr> sourceimages,
-                                    TextureNodeSettings* settings) const {
+                                    const QMap<QString, TextureImagePtr>& sourceimages,
+                                    const TextureNodeSettings& settings) const {
    Q_UNUSED(sourceimages);
 
-   if (!settings || !destimage || !size.isValid()) {
+   if (!destimage || !size.isValid()) {
       return;
    }
-   QColor color = settings->value("color").value<QColor>();
+   QColor color = settings.value("color").value<QColor>();
    const int numpixels = size.width() * size.height();
    TexturePixel filler(static_cast<quint8>(color.red()), static_cast<quint8>(color.green()),
                        static_cast<quint8>(color.blue()), static_cast<quint8>(color.alpha()));

@@ -1,83 +1,71 @@
-var name = "LinesJS";
-// Set separateColorChannels to true to have one array index per color
-// If set to false all four channels are interleaved in one 32 bit value.
-var separateColorChannels = false;
+const generator = {
+  apiVersion: 1,
+  name: "LinesJS",
+  description: "Draws horizontal lines over an optional source image.",
+  type: "filter",
+  inputs: ["Input"],
 
-function getInputSlots() {
-  return ["Input"];
-}
+  settings: {
+    color: {
+      type: "color",
+      name: "Line color",
+      default: { r: 255, g: 100, b: 50, a: 255 },
+      order: 1
+    },
+    height: {
+      type: "integer",
+      name: "Line height",
+      default: 10,
+      min: 0,
+      max: 100,
+      order: 2
+    },
+    distance: {
+      type: "integer",
+      name: "Distance",
+      default: 10,
+      min: 0,
+      max: 100,
+      order: 3
+    },
+    offset: {
+      type: "integer",
+      name: "Offset",
+      default: 0,
+      min: 0,
+      max: 100,
+      order: 4
+    }
+  },
 
-function generate(data, inputs) {
-  var sourceImg = inputs.Input;
-  var obj = JSON.parse(data);
-  var color = obj.color.a +
-    (obj.color.b << 8) +
-    (obj.color.g << 16) +
-    (obj.color.r << 24);
-  obj.imagewidth = parseInt(obj.imagewidth);
-  obj.imageheight = parseInt(obj.imageheight);
-  obj.distance = Math.round(obj.distance * obj.imageheight / 100);
-  obj.height = Math.round(obj.height * obj.imageheight / 100);
-  obj.offset = Math.round(obj.offset * obj.imageheight / 100);
+  generate(size, settings, output, inputs) {
+    const destination = output.data;
+    const source = inputs.Input?.data;
+    const lineHeight = Math.round((settings.height * size.height) / 100);
+    const distance = Math.round((settings.distance * size.height) / 100);
+    const offset = Math.round((settings.offset * size.height) / 100);
+    const period = lineHeight + distance;
 
-  if (obj.imageheight > 0) {
-    var x, y;
-    for (y = 0; y < obj.imageheight; y++) {
-      var linestart = y * obj.imagewidth;
-      if (((y + obj.offset) % (obj.height + obj.distance)) > obj.distance) {
-        for (x = 0; x < obj.imagewidth; x++) {
-          dest[linestart + x] = color;
-        }
-      } else if (sourceImg) {
-        for (x = 0; x < obj.imagewidth; x++) {
-          dest[linestart + x] = sourceImg[linestart + x];
-        }
-      } else {
-        for (x = 0; x < obj.imagewidth; x++) {
-          dest[linestart + x] = 0;
+    if (source) {
+      destination.set(source);
+    }
+
+    for (let y = 0; y < size.height; ++y) {
+      const drawLine = period > 0 && ((y + offset) % period) > distance;
+      for (let x = 0; x < size.width; ++x) {
+        const pixel = TexGen.offset(x, y, output.stride);
+        if (drawLine) {
+          destination[pixel] = settings.color.r;
+          destination[pixel + 1] = settings.color.g;
+          destination[pixel + 2] = settings.color.b;
+          destination[pixel + 3] = settings.color.a;
+        } else if (!source) {
+          destination[pixel] = 0;
+          destination[pixel + 1] = 0;
+          destination[pixel + 2] = 0;
+          destination[pixel + 3] = 0;
         }
       }
     }
   }
-  return dest;
-}
-
-function getSettings() {
-  return {
-    color: {
-      name: "Line color",
-      defaultvalue: {
-        r: 255,
-        g: 100,
-        b: 50,
-        a: 255
-      },
-      type: "color",
-      order: 1
-    },
-    height: {
-      name: "Line height",
-      defaultvalue: 10,
-      min: 0,
-      max: 100,
-      type: "integer",
-      order: 2
-    },
-    distance: {
-      name: "Distance",
-      defaultvalue: 10,
-      min: 0,
-      max: 100,
-      type: "integer",
-      order: 3
-    },
-    offset: {
-      name: "Offset",
-      defaultvalue: 0,
-      min: 0,
-      max: 100,
-      type: "integer",
-      order: 4
-    }
-  };
-}
+};

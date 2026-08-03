@@ -42,15 +42,15 @@ LensTextureGenerator::LensTextureGenerator() {
    configurables.insert("strength", strength);
 }
 void LensTextureGenerator::generate(QSize size, TexturePixel* destimage,
-                                    QMap<QString, TextureImagePtr> sourceimages,
-                                    TextureNodeSettings* settings) const {
-   if (!settings || !destimage || !size.isValid()) {
+                                    const QMap<QString, TextureImagePtr>& sourceimages,
+                                    const TextureNodeSettings& settings) const {
+   if (!destimage || !size.isValid()) {
       return;
    }
-   int offsetleft = settings->value("offsetleft").toDouble() * size.width() / 100;
-   int offsettop = settings->value("offsettop").toDouble() * size.height() / 100;
-   int lenssize = settings->value("size").toDouble() * size.height() / 100;
-   double strength = (300 - settings->value("strength").toDouble()) * size.width() / 100;
+   int offsetleft = settings.value("offsetleft").toDouble() * size.width() / 100;
+   int offsettop = settings.value("offsettop").toDouble() * size.height() / 100;
+   int lenssize = settings.value("size").toDouble() * size.height() / 100;
+   double strength = (300 - settings.value("strength").toDouble()) * size.width() / 100;
    if (!sourceimages.contains(QStringLiteral("Input"))) {
       memset(destimage, 0, size.width() * size.height() * sizeof(TexturePixel));
       return;

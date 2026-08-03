@@ -39,12 +39,7 @@ It uses multiple threads on multiple CPU cores where supported, so that CPU inte
 calculations don't affect the UI performance.
 
 It's easy to extend the application by adding new generators, especially ones written in Javascript
-as those are loaded dynamically from external files.
-
-## Javascript
-
-One example Javascript texture generator is included in the directory _JavascriptTextureGenerators_.
-External Javascript texture generators are parsed and run using QJSEngine from the Qt QML module.
+as those can be loaded dynamically from external files.
 
 ## How to build
 
@@ -161,6 +156,24 @@ The exporter refuses to replace an existing image unless `--force` is supplied. 
 external JavaScript generators can load them explicitly with `--js-dir /path/to/generators`.
 `--help`, `--help-all`, and `--version` also use the non-window startup path without requiring
 `--no-gui`.
+
+## JavaScript generators
+
+JavaScript is the preferred way to add custom texture generators.
+
+Print the bundled starter template or the built-in Mask source without locating installation files:
+
+```sh
+ProceduralTextureMaker --print-js-template > my-generator.js
+ProceduralTextureMaker --print-js-generator Mask > my-mask.js
+```
+
+Configure a JavaScript directory in the application settings and select **Edit > Reload JavaScript
+Generators** after editing. External scripts appear under `Custom Generators`, `Custom Filters`, or
+`Custom Combiners`; bundled JavaScript generators appear alongside native built-ins.
+
+See the [JavaScript generators](docs/javascript.md) document for a guide on how to implement and add
+texture generators in JavaScript.
 
 ## Tests
 

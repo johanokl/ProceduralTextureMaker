@@ -40,15 +40,15 @@ InvertTextureGenerator::InvertTextureGenerator() {
    configurables.insert("channelAlpha", channelAlpha);
 }
 void InvertTextureGenerator::generate(QSize size, TexturePixel* destimage,
-                                      QMap<QString, TextureImagePtr> sourceimages,
-                                      TextureNodeSettings* settings) const {
-   if (!settings || !destimage || !size.isValid()) {
+                                      const QMap<QString, TextureImagePtr>& sourceimages,
+                                      const TextureNodeSettings& settings) const {
+   if (!destimage || !size.isValid()) {
       return;
    }
-   auto channelRedStr = settings->value("channelRed").toString();
-   auto channelGreenStr = settings->value("channelGreen").toString();
-   auto channelBlueStr = settings->value("channelBlue").toString();
-   auto channelAlphaStr = settings->value("channelAlpha").toString();
+   auto channelRedStr = settings.value("channelRed").toString();
+   auto channelGreenStr = settings.value("channelGreen").toString();
+   auto channelBlueStr = settings.value("channelBlue").toString();
+   auto channelAlphaStr = settings.value("channelAlpha").toString();
    int numPixels = size.width() * size.height();
    TexturePixel* source = nullptr;
    if (sourceimages.contains(QStringLiteral("Input"))) {

@@ -6,7 +6,7 @@
 #ifndef TEXTURERENDERMANAGER_H
 #define TEXTURERENDERMANAGER_H
 
-#include "generators/texturegenerator.h"
+#include "base/texturegenerator.h"
 #include "global.h"
 #include "textureimage.h"
 #include <QMap>

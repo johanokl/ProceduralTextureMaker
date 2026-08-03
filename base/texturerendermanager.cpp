@@ -4,6 +4,7 @@
 // Johan Lindqvist (johan.lindqvist@gmail.com)
 
 #include "texturerendermanager.h"
+#include "base/jstexgen.h"
 #include "global.h"
 #include "textureimage.h"
 #include <QMap>
@@ -65,6 +66,7 @@ TextureRenderManager::~TextureRenderManager() {
       runnableTasks.clear();
       currentRender.reset();
    }
+   JsTexGen::interruptActiveEngines();
    taskAvailable.notify_all();
    for (std::thread& worker : workers) {
       if (worker.joinable()) {
@@ -116,6 +118,7 @@ void TextureRenderManager::cancel() {
       runnableTasks.clear();
       currentRender.reset();
    }
+   JsTexGen::interruptActiveEngines();
    taskAvailable.notify_all();
 }
 
@@ -212,7 +215,7 @@ void TextureRenderManager::renderNode(const TextureNodeRenderTask& task) {
    }
 
    TextureImagePtr image = TextureImage::create(task.renderState->size);
-   snapshot.generator->generate(task.renderState->size, image->data(), sourceImages, &settings);
+   snapshot.generator->generate(task.renderState->size, image->data(), sourceImages, settings);
    completeNode(task, image, true);
 }
 

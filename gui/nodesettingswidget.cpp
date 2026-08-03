@@ -13,6 +13,7 @@
 #include <QColorDialog>
 #include <QComboBox>
 #include <QDoubleSpinBox>
+#include <QDebug>
 #include <QFormLayout>
 #include <QGroupBox>
 #include <QHBoxLayout>
@@ -217,7 +218,7 @@ bool NodeSettingsWidget::saveSettings() {
             break;
          }
          default:
-            INFO_MSG("Type not found. Property id=" + settingsId);
+            qInfo().noquote() << QStringLiteral("Type not found. Property id=%1").arg(settingsId);
       }
    }
    auto editManager = widgetmanager.getEditManager();
@@ -649,7 +650,7 @@ void NodeSettingsWidget::settingsUpdated() {
             break;
          }
          default: {
-            INFO_MSG("Type not found. Property id=" + settingsId);
+            qInfo().noquote() << QStringLiteral("Type not found. Property id=%1").arg(settingsId);
          }
       }
       saveDisabled = false;

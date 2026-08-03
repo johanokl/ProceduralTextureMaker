@@ -12,7 +12,7 @@
 #include "base/textureproject.h"
 #include "base/editmanager.h"
 #include "generators/builtinregistry.h"
-#include "generators/javascript.h"
+#include "base/jstexgenmanager.h"
 #include "global.h"
 #include "gui/addnodepanel.h"
 #include "gui/clipboardoperations.h"
@@ -71,7 +71,13 @@ MainWindow::MainWindow(TexGenApplication* parent) {
    project->clear();
    editManager->reset();
 
-   jstexgenManager = std::make_unique<JSTexGenManager>(project.get());
+   jstexgenManager = std::make_unique<JsTexGenManager>(project.get());
+   QObject::connect(jstexgenManager.get(), &JsTexGenManager::diagnosticsAvailable, this,
+                    [](const QStringList& diagnostics) {
+                       for (const QString& diagnostic : diagnostics) {
+                          qWarning().noquote() << diagnostic;
+                       }
+                    });
 
    auto* centerLayout = new QVBoxLayout;
    centerLayout->addWidget(view);
@@ -275,6 +281,12 @@ std::unique_ptr<ViewNodeScene> MainWindow::createScene(ViewNodeScene* source) {
 }
 
 void MainWindow::reloadSceneView() { scene = createScene(scene.get()); }
+
+void MainWindow::reloadJavaScriptGenerators() {
+   if (jstexgenManager) {
+      jstexgenManager->reload();
+   }
+}
 
 void MainWindow::showAllNodesAndResetSceneView() {
    view->showAllNodes();

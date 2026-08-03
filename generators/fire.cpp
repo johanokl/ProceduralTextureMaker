@@ -40,14 +40,14 @@ FireTextureGenerator::FireTextureGenerator() {
 }
 
 void FireTextureGenerator::generate(QSize size, TexturePixel* destimage,
-                                    QMap<QString, TextureImagePtr> sourceimages,
-                                    TextureNodeSettings* settings) const {
-   if (!settings || !destimage || !size.isValid()) {
+                                    const QMap<QString, TextureImagePtr>& sourceimages,
+                                    const TextureNodeSettings& settings) const {
+   if (!destimage || !size.isValid()) {
       return;
    }
-   double falloff = 0.245 + settings->value("falloff").toDouble() / 100;
-   int iterations = settings->value("iterations").toInt();
-   uint randomize = settings->value("randomize").toUInt();
+   double falloff = 0.245 + settings.value("falloff").toDouble() / 100;
+   int iterations = settings.value("iterations").toInt();
+   uint randomize = settings.value("randomize").toUInt();
    QRandomGenerator random(randomize);
    // Speed things up by having a smaller rendering surface.
    int screenWidth = 150;
@@ -93,20 +93,18 @@ void FireTextureGenerator::generate(QSize size, TexturePixel* destimage,
       }
    }
    delete[] fire;
-   QImage tempimage = QImage(screenWidth, screenHeight, QImage::Format_ARGB32);
-   memcpy(tempimage.bits(), renderSurface, screenWidth * screenHeight * sizeof(TexturePixel));
+   QImage tempimage = makeTextureImageView(QSize(screenWidth, screenHeight), renderSurface)
+                          .scaled(size, Qt::IgnoreAspectRatio, Qt::SmoothTransformation);
    delete[] renderSurface;
-   tempimage = tempimage.scaled(size, Qt::IgnoreAspectRatio, Qt::SmoothTransformation);
 
-   QImage destobject(size.width(), size.height(), QImage::Format_ARGB32);
    if (sourceimages.contains(QStringLiteral("Input"))) {
-      memcpy(destobject.bits(), sourceimages.value(QStringLiteral("Input"))->getData(),
+      memcpy(destimage, sourceimages.value(QStringLiteral("Input"))->getData(),
              size.width() * size.height() * sizeof(TexturePixel));
    } else {
-      memset(destobject.bits(), 0, size.width() * size.height() * sizeof(TexturePixel));
+      memset(destimage, 0, size.width() * size.height() * sizeof(TexturePixel));
    }
+   QImage destobject = makeTextureImageView(size, destimage);
    QPainter painter(&destobject);
    painter.setCompositionMode(QPainter::CompositionMode_SourceOver);
    painter.drawImage(QPoint(0, 0), tempimage);
-   memcpy(destimage, destobject.bits(), size.width() * size.height() * sizeof(TexturePixel));
 }

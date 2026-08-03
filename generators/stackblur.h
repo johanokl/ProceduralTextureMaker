@@ -7,15 +7,16 @@
 #ifndef STACKBLURTEXTUREGENERATOR_H
 #define STACKBLURTEXTUREGENERATOR_H
 
-#include "texturegenerator.h"
+#include "base/texturegenerator.h"
 
 /// @brief The StackBlurTextureGenerator class
 class StackBlurTextureGenerator : public TextureGenerator {
 public:
    StackBlurTextureGenerator();
    ~StackBlurTextureGenerator() override = default;
-   void generate(QSize size, TexturePixel* destimage, QMap<QString, TextureImagePtr> sourceimages,
-                 TextureNodeSettings* settings) const override;
+   void generate(QSize size, TexturePixel* destimage,
+                 const QMap<QString, TextureImagePtr>& sourceimages,
+                 const TextureNodeSettings& settings) const override;
    QString getName() const override { return QString("Stack Blur"); }
    const TextureGeneratorSettings& getSettings() const override { return configurables; }
    QString getDescription() const override { return QString("Blurs the source image."); }

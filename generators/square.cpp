@@ -90,21 +90,21 @@ SquareTextureGenerator::SquareTextureGenerator() {
    configurables.insert("antialiasing", antialiasing);
 }
 void SquareTextureGenerator::generate(QSize size, TexturePixel* destimage,
-                                      QMap<QString, TextureImagePtr> sourceimages,
-                                      TextureNodeSettings* settings) const {
-   if (!settings || !destimage || !size.isValid()) {
+                                      const QMap<QString, TextureImagePtr>& sourceimages,
+                                      const TextureNodeSettings& settings) const {
+   if (!destimage || !size.isValid()) {
       return;
    }
 
-   QColor color = settings->value("color").value<QColor>();
-   double shapeWidth = settings->value("width").toDouble() * size.width() / 100;
-   double shapeHeight = settings->value("height").toDouble() * size.height() / 100;
-   double rotation = settings->value("rotation").toDouble();
-   int offsetLeft = settings->value("offsetleft").toDouble() * size.width() / 100;
-   int offsetTop = settings->value("offsettop").toDouble() * size.height() / 100;
-   double cutoutInnerRadius = settings->value("cutoutwidth").toDouble() / 100;
-   double cutoutOuterRadius = settings->value("cutoutheight").toDouble() / 100;
-   bool antialiasing = settings->value("antialiasing").toBool();
+   QColor color = settings.value("color").value<QColor>();
+   double shapeWidth = settings.value("width").toDouble() * size.width() / 100;
+   double shapeHeight = settings.value("height").toDouble() * size.height() / 100;
+   double rotation = settings.value("rotation").toDouble();
+   int offsetLeft = settings.value("offsetleft").toDouble() * size.width() / 100;
+   int offsetTop = settings.value("offsettop").toDouble() * size.height() / 100;
+   double cutoutInnerRadius = settings.value("cutoutwidth").toDouble() / 100;
+   double cutoutOuterRadius = settings.value("cutoutheight").toDouble() / 100;
+   bool antialiasing = settings.value("antialiasing").toBool();
 
    if (sourceimages.contains(QStringLiteral("Input"))) {
       memcpy(destimage, sourceimages.value(QStringLiteral("Input"))->getData(),
@@ -113,8 +113,7 @@ void SquareTextureGenerator::generate(QSize size, TexturePixel* destimage,
       memset(destimage, 0, size.width() * size.height() * sizeof(TexturePixel));
    }
 
-   QImage tempimage = QImage(size.width(), size.height(), QImage::Format_RGB32);
-   memcpy(tempimage.bits(), destimage, size.width() * size.height() * sizeof(TexturePixel));
+   QImage tempimage = makeTextureImageView(size, destimage);
 
    offsetLeft += (double)50 * size.width() / 100;
    offsetTop += (double)50 * size.height() / 100;
@@ -151,6 +150,4 @@ void SquareTextureGenerator::generate(QSize size, TexturePixel* destimage,
    painter.setRenderHint(QPainter::Antialiasing, antialiasing);
    painter.setPen(Qt::NoPen);
    painter.drawPath(path);
-
-   memcpy(destimage, tempimage.bits(), size.width() * size.height() * sizeof(TexturePixel));
 }

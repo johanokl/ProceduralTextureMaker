@@ -83,26 +83,26 @@ NoiseTextureGenerator::NoiseTextureGenerator() {
    configurables.insert("smoothscale", smoothscale);
 }
 void NoiseTextureGenerator::generate(QSize size, TexturePixel* destimage,
-                                     QMap<QString, TextureImagePtr> sourceimages,
-                                     TextureNodeSettings* settings) const {
-   if (!settings || !destimage || !size.isValid()) {
+                                     const QMap<QString, TextureImagePtr>& sourceimages,
+                                     const TextureNodeSettings& settings) const {
+   if (!destimage || !size.isValid()) {
       return;
    }
-   QColor color = settings->value("color").value<QColor>();
-   int alphamin = settings->value("alphamin").toInt();
-   int alphamax = settings->value("alphamax").toInt();
-   int randomizer = settings->value("randomizer").toInt();
-   int width = settings->value("width").toInt();
-   int height = settings->value("height").toInt();
-   int numpoints = settings->value("numpoints").toInt();
+   QColor color = settings.value("color").value<QColor>();
+   int alphamin = settings.value("alphamin").toInt();
+   int alphamax = settings.value("alphamax").toInt();
+   int randomizer = settings.value("randomizer").toInt();
+   int width = settings.value("width").toInt();
+   int height = settings.value("height").toInt();
+   int numpoints = settings.value("numpoints").toInt();
 
-   QImage destobject(size.width(), size.height(), QImage::Format_ARGB32);
    if (sourceimages.contains(QStringLiteral("Input"))) {
-      memcpy(destobject.bits(), sourceimages.value(QStringLiteral("Input"))->getData(),
+      memcpy(destimage, sourceimages.value(QStringLiteral("Input"))->getData(),
              size.width() * size.height() * sizeof(TexturePixel));
    } else {
-      memset(destobject.bits(), 0, size.width() * size.height() * sizeof(TexturePixel));
+      memset(destimage, 0, size.width() * size.height() * sizeof(TexturePixel));
    }
+   QImage destobject = makeTextureImageView(size, destimage);
 
    if (alphamax < alphamin) {
       // Switch
@@ -114,9 +114,10 @@ void NoiseTextureGenerator::generate(QSize size, TexturePixel* destimage,
    if (width > 0 && height > 0) {
       TexturePixel baseColor(color.red(), color.green(), color.blue(), 255);
       QRandomGenerator random(randomizer);
-      QImage tempimage = QImage(width, height, QImage::Format_ARGB32);
-      TexturePixel* bufferImage = (TexturePixel*)tempimage.bits();
-      if (!settings->value("scatter").toBool()) {
+      TextureImage noiseBuffer(QSize(width, height));
+      QImage tempimage = noiseBuffer.toQImageView();
+      TexturePixel* bufferImage = noiseBuffer.data();
+      if (!settings.value("scatter").toBool()) {
          for (int i = 0; i < width * height; i++) {
             bufferImage[i] = baseColor;
             bufferImage[i].a = random.bounded(alphamin, alphamax + 1);
@@ -130,7 +131,7 @@ void NoiseTextureGenerator::generate(QSize size, TexturePixel* destimage,
          }
       }
       Qt::TransformationMode transformationMode = Qt::FastTransformation;
-      if (settings->value("smoothscale").toBool()) {
+      if (settings.value("smoothscale").toBool()) {
          transformationMode = Qt::SmoothTransformation;
       }
       tempimage = tempimage.scaled(size, Qt::IgnoreAspectRatio, transformationMode);
@@ -139,5 +140,4 @@ void NoiseTextureGenerator::generate(QSize size, TexturePixel* destimage,
       painter.setCompositionMode(QPainter::CompositionMode_SourceOver);
       painter.drawImage(QPoint(0, 0), tempimage);
    }
-   memcpy(destimage, destobject.bits(), size.width() * size.height() * sizeof(TexturePixel));
 }

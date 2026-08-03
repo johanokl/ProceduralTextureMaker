@@ -27,13 +27,13 @@ CutoutTextureGenerator::CutoutTextureGenerator() {
    configurables.insert("factor", factor);
 }
 void CutoutTextureGenerator::generate(QSize size, TexturePixel* destimage,
-                                      QMap<QString, TextureImagePtr> sourceimages,
-                                      TextureNodeSettings* settings) const {
-   if (!settings || !destimage || !size.isValid()) {
+                                      const QMap<QString, TextureImagePtr>& sourceimages,
+                                      const TextureNodeSettings& settings) const {
+   if (!destimage || !size.isValid()) {
       return;
    }
-   QString order = settings->value("order").toString();
-   int factor = settings->value("factor").toInt();
+   QString order = settings.value("order").toString();
+   int factor = settings.value("factor").toInt();
 
    QString first = QStringLiteral("Image");
    QString second = QStringLiteral("Mask");

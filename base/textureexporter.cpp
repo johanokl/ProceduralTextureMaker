@@ -10,7 +10,6 @@
 #include <QFileInfo>
 #include <QImageWriter>
 #include <QSaveFile>
-#include <cstring>
 #include <exception>
 #include <utility>
 
@@ -37,10 +36,6 @@ bool validExportSize(const QSize size) {
 
 }  // namespace
 
-/// @brief Copies a texture image into a compatible Qt image.
-/// @param image Texture image whose pixel data is copied.
-/// @param error Optional destination for a failure description.
-/// @return Converted image, or a null image when conversion fails.
 QImage TextureExporter::toQImage(const TextureImage& image, QString* error) {
    const QSize size = image.getSize();
    if (!validExportSize(size)) {
@@ -49,24 +44,24 @@ QImage TextureExporter::toQImage(const TextureImage& image, QString* error) {
       }
       return {};
    }
-   QImage result(size, QImage::Format_ARGB32);
-   if (result.isNull() || result.sizeInBytes() != static_cast<qsizetype>(image.byteSize())) {
+   QImage result;
+   try {
+      result = image.toQImageCopy();
+   } catch (const std::exception&) {
       if (error) {
          *error = QStringLiteral("Could not allocate a compatible Qt image buffer");
       }
       return {};
    }
-   std::memcpy(result.bits(), image.data(), image.byteSize());
+   if (result.sizeInBytes() != static_cast<qsizetype>(image.byteSize())) {
+      if (error) {
+         *error = QStringLiteral("Could not create a compatible Qt image buffer");
+      }
+      return {};
+   }
    return result;
 }
 
-/// @brief Renders a project node and writes it atomically as a PNG file.
-/// @param project Project containing the node to render.
-/// @param nodeId Identifier of the node to render.
-/// @param size Output image dimensions in pixels.
-/// @param path Destination path for the PNG file.
-/// @param overwrite Whether an existing destination may be replaced.
-/// @return The operation result, including an error message on failure.
 TextureExportResult TextureExporter::exportPng(TextureProject& project, const int nodeId,
                                                const QSize size, const QString& path,
                                                const bool overwrite) {

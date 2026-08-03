@@ -70,17 +70,17 @@ double PerlinNoiseTextureGenerator::interpolate(double a, double b, double x) co
    return a * (1.0 - f) + b * f;
 }
 void PerlinNoiseTextureGenerator::generate(QSize size, TexturePixel* destimage,
-                                           QMap<QString, TextureImagePtr> sourceimages,
-                                           TextureNodeSettings* settings) const {
-   if (!settings || !destimage || !size.isValid()) {
+                                           const QMap<QString, TextureImagePtr>& sourceimages,
+                                           const TextureNodeSettings& settings) const {
+   if (!destimage || !size.isValid()) {
       return;
    }
 
-   QColor color = settings->value("color").value<QColor>();
-   int numOctaves = settings->value("numoctaves").toInt();
-   double persistence = settings->value("persistence").toDouble();
-   double zoom = settings->value("zoom").toDouble();
-   double randomizer = settings->value("randomizer").toDouble() * 1000;
+   QColor color = settings.value("color").value<QColor>();
+   int numOctaves = settings.value("numoctaves").toInt();
+   double persistence = settings.value("persistence").toDouble();
+   double zoom = settings.value("zoom").toDouble();
+   double randomizer = settings.value("randomizer").toDouble() * 1000;
    double xFactor = (double)500 / size.width();
    double yFactor = (double)500 / size.height();
    bool blend = false;

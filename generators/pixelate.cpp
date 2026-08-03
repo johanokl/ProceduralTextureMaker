@@ -42,15 +42,15 @@ PixelateTextureGenerator::PixelateTextureGenerator() {
    configurables.insert("offsety", offsety);
 }
 void PixelateTextureGenerator::generate(QSize size, TexturePixel* destimage,
-                                        QMap<QString, TextureImagePtr> sourceimages,
-                                        TextureNodeSettings* settings) const {
-   if (!settings || !destimage || !size.isValid()) {
+                                        const QMap<QString, TextureImagePtr>& sourceimages,
+                                        const TextureNodeSettings& settings) const {
+   if (!destimage || !size.isValid()) {
       return;
    }
-   int width = qMax(settings->value("width").toDouble() / 100 * size.width(), (double)1);
-   int height = qMax(settings->value("height").toDouble() / 100 * size.height(), (double)1);
-   int offsetx = settings->value("offsetx").toDouble() / 100 * size.width();
-   int offsety = settings->value("offsety").toDouble() / 100 * size.height();
+   int width = qMax(settings.value("width").toDouble() / 100 * size.width(), (double)1);
+   int height = qMax(settings.value("height").toDouble() / 100 * size.height(), (double)1);
+   int offsetx = settings.value("offsetx").toDouble() / 100 * size.width();
+   int offsety = settings.value("offsety").toDouble() / 100 * size.height();
    if (!sourceimages.contains(QStringLiteral("Input"))) {
       memset(destimage, 0, size.width() * size.height() * sizeof(TexturePixel));
       return;

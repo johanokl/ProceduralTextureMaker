@@ -1,0 +1,30 @@
+const generator = {
+  apiVersion: 1,
+  name: "My Generator",
+  description: "Describe what this generator creates.",
+  type: "generator", // "generator", "filter", or "combiner"
+  inputs: [],
+
+  settings: {
+    color: {
+      type: "color",
+      name: "Color",
+      default: { r: 40, g: 160, b: 220, a: 255 },
+      order: 1
+    }
+  },
+
+  generate(size, settings, output, inputs) {
+    void inputs;
+    const pixels = output.data;
+    for (let y = 0; y < size.height; ++y) {
+      for (let x = 0; x < size.width; ++x) {
+        const offset = TexGen.offset(x, y, output.stride);
+        pixels[offset] = settings.color.r;
+        pixels[offset + 1] = settings.color.g;
+        pixels[offset + 2] = settings.color.b;
+        pixels[offset + 3] = settings.color.a;
+      }
+    }
+  }
+};

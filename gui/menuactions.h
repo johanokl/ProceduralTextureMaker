@@ -125,6 +125,8 @@ private:
    QAction* undoAct{nullptr};
    /// @brief Action that redoes the most recently undone graph edit.
    QAction* redoAct{nullptr};
+   /// @brief Action that explicitly reloads custom JavaScript generator definitions.
+   QAction* reloadJavaScriptGeneratorsAct{nullptr};
    /// @brief Action that copies the selected node.
    QAction* copyAct{nullptr};
    /// @brief Action that cuts the selected node.

@@ -1,5 +1,7 @@
 #include "base/settingsmanager.h"
+#include "base/jstexgen.h"
 #include "base/textureproject.h"
+#include "gui/addnodepanel.h"
 #include "gui/iteminfopanel.h"
 #include "gui/mainwindow.h"
 #include "gui/nodesettingswidget.h"
@@ -9,8 +11,11 @@
 #include "texgenapplication.h"
 #include <QGraphicsSceneDragDropEvent>
 #include <QGraphicsView>
+#include <QGridLayout>
+#include <QGroupBox>
 #include <QComboBox>
 #include <QMimeData>
+#include <QPushButton>
 #include <QSettings>
 #include <QStandardPaths>
 #include <QTemporaryDir>
@@ -45,6 +50,8 @@ private slots:
    void showsLabelsForHighlightedOrSelectedNodes();
    /// @brief Verifies loaded list settings select their persisted combo-box values.
    void restoresPersistedComboBoxSelection();
+   /// @brief Verifies custom generator origins are routed to the three dedicated palette groups.
+   void groupsCustomJavaScriptGenerators();
 
 private:
    /// @brief Owns the isolated settings directory for the duration of the test.
@@ -209,6 +216,55 @@ void UiSmokeTest::restoresPersistedComboBoxSelection() {
       selections.append(comboBox->currentText());
    }
    QVERIFY(selections.contains(QStringLiteral("Second's alpha")));
+}
+
+void UiSmokeTest::groupsCustomJavaScriptGenerators() {
+   TextureProject project(false);
+   AddNodePanel panel(project);
+   const auto addScript = [&project](const QString& name, const QString& type,
+                                     const TextureGenerator::Origin origin) {
+      const QString script = QStringLiteral(
+                                 "const generator={apiVersion:1,name:'%1',type:'%2',inputs:[],"
+                                 "settings:{},generate(size,settings,output){void size;void "
+                                 "settings;output.data.fill(0);}};")
+                                 .arg(name, type);
+      auto* generator = new JsTexGen(script, QStringLiteral("test.js"), origin);
+      QVERIFY(generator->isValid());
+      project.addGenerator(TextureGeneratorPtr(generator));
+   };
+   addScript(QStringLiteral("Custom source"), QStringLiteral("generator"),
+             TextureGenerator::Origin::Custom);
+   addScript(QStringLiteral("Custom effect"), QStringLiteral("filter"),
+             TextureGenerator::Origin::Custom);
+   addScript(QStringLiteral("Custom blend"), QStringLiteral("combiner"),
+             TextureGenerator::Origin::Custom);
+   addScript(QStringLiteral("Bundled effect"), QStringLiteral("filter"),
+             TextureGenerator::Origin::BuiltIn);
+
+   QMap<QString, QGroupBox*> groups;
+   for (QGroupBox* group : panel.findChildren<QGroupBox*>()) {
+      groups.insert(group->title(), group);
+   }
+   QVERIFY(groups.contains(QStringLiteral("Custom Generators")));
+   QVERIFY(groups.contains(QStringLiteral("Custom Filters")));
+   QVERIFY(groups.contains(QStringLiteral("Custom Combiners")));
+   QVERIFY(!groups.value(QStringLiteral("Custom Generators"))->isHidden());
+   QVERIFY(!groups.value(QStringLiteral("Custom Filters"))->isHidden());
+   QVERIFY(!groups.value(QStringLiteral("Custom Combiners"))->isHidden());
+   QCOMPARE(groups.value(QStringLiteral("Custom Generators"))->findChildren<QPushButton*>().size(),
+            1);
+   QCOMPARE(groups.value(QStringLiteral("Custom Filters"))->findChildren<QPushButton*>().size(), 1);
+   QCOMPARE(groups.value(QStringLiteral("Custom Combiners"))->findChildren<QPushButton*>().size(),
+            1);
+   QCOMPARE(groups.value(QStringLiteral("Filters"))->findChildren<QPushButton*>().size(), 1);
+
+   for (QGroupBox* group : groups) {
+      auto* groupLayout = qobject_cast<QGridLayout*>(group->layout());
+      QVERIFY(groupLayout != nullptr);
+      for (int index = 0; index < groupLayout->count(); ++index) {
+         QVERIFY(groupLayout->itemAt(index)->alignment().testFlag(Qt::AlignLeft));
+      }
+   }
 }
 
 /// @brief Runs the UI smoke test with the production application subclass.

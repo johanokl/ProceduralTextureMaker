@@ -4,6 +4,7 @@
 // Johan Lindqvist (johan.lindqvist@gmail.com)
 
 #include "builtinregistry.h"
+#include "base/jstexgenmanager.h"
 #include "base/textureproject.h"
 #include "blending.h"
 #include "boxblur.h"
@@ -39,6 +40,7 @@
 #include "text.h"
 #include "transform.h"
 #include "whirl.h"
+#include <stdexcept>
 
 void registerBuiltInGenerators(TextureProject& project) {
    project.addGenerator(TextureGeneratorPtr(new BlendingTextureGenerator()));
@@ -75,4 +77,10 @@ void registerBuiltInGenerators(TextureProject& project) {
    project.addGenerator(TextureGeneratorPtr(new TextTextureGenerator()));
    project.addGenerator(TextureGeneratorPtr(new TransformTextureGenerator()));
    project.addGenerator(TextureGeneratorPtr(new WhirlTextureGenerator()));
+   const QStringList javaScriptErrors = registerBundledJavaScriptGenerators(project);
+   if (!javaScriptErrors.isEmpty()) {
+      throw std::runtime_error(QStringLiteral("Bundled JavaScript generator failure:\n%1")
+                                   .arg(javaScriptErrors.join(QLatin1Char('\n')))
+                                   .toStdString());
+   }
 }

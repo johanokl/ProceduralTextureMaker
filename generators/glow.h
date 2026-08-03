@@ -7,15 +7,16 @@
 #ifndef GLOWTEXTUREGENERATOR_H
 #define GLOWTEXTUREGENERATOR_H
 
-#include "texturegenerator.h"
+#include "base/texturegenerator.h"
 
 /// @brief The GlowTextureGenerator class
 class GlowTextureGenerator : public TextureGenerator {
 public:
    GlowTextureGenerator();
    ~GlowTextureGenerator() override = default;
-   void generate(QSize size, TexturePixel* destimage, QMap<QString, TextureImagePtr> sourceimages,
-                 TextureNodeSettings* settings) const override;
+   void generate(QSize size, TexturePixel* destimage,
+                 const QMap<QString, TextureImagePtr>& sourceimages,
+                 const TextureNodeSettings& settings) const override;
    QString getName() const override { return QString("Glow"); }
    const TextureGeneratorSettings& getSettings() const override { return configurables; }
    QString getDescription() const override { return QString("Adds a glow around the object."); }

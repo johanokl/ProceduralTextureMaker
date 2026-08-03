@@ -7,7 +7,7 @@
 #ifndef TEXTURENODE_H
 #define TEXTURENODE_H
 
-#include "generators/texturegenerator.h"
+#include "base/texturegenerator.h"
 #include "global.h"
 #include "textureimage.h"
 #include <QDomDocument>
@@ -211,6 +211,12 @@ private:
    /// @brief Disconnects every source slot that references a node ID.
    /// @param id The source node ID to disconnect.
    void removeSource(int id);
+
+   /// @brief Replaces a reloaded definition while preserving prepared compatible node state.
+   /// @details Updates generator, settings, slots, and cache revision as one observable change.
+   void replaceGeneratorDefinition(const TextureGeneratorPtr& generator,
+                                   const TextureNodeSettings& migratedSettings,
+                                   const QMap<QString, int>& migratedSources);
 
    /// @brief Copies the node state needed for background rendering.
    /// @param size The width and height of the image to render.

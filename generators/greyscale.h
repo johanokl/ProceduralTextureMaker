@@ -7,15 +7,16 @@
 #ifndef GREYSCALETEXTUREGENERATOR_H
 #define GREYSCALETEXTUREGENERATOR_H
 
-#include "texturegenerator.h"
+#include "base/texturegenerator.h"
 
 /// @brief The GreyscaleTextureGenerator class
 class GreyscaleTextureGenerator : public TextureGenerator {
 public:
    GreyscaleTextureGenerator() = default;
    ~GreyscaleTextureGenerator() override = default;
-   void generate(QSize size, TexturePixel* destimage, QMap<QString, TextureImagePtr> sourceimages,
-                 TextureNodeSettings* settings) const override;
+   void generate(QSize size, TexturePixel* destimage,
+                 const QMap<QString, TextureImagePtr>& sourceimages,
+                 const TextureNodeSettings& settings) const override;
    QString getName() const override { return QString("Greyscale"); }
    const TextureGeneratorSettings& getSettings() const override { return configurables; }
    QString getDescription() const override { return QString("Blurs the source image."); }

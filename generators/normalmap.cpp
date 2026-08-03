@@ -7,9 +7,9 @@
 #include "normalmap.h"
 #include <QVector3D>
 void NormalMapTextureGenerator::generate(QSize size, TexturePixel* destimage,
-                                         QMap<QString, TextureImagePtr> sourceimages,
-                                         TextureNodeSettings* settings) const {
-   if (!settings || !destimage || !size.isValid()) {
+                                         const QMap<QString, TextureImagePtr>& sourceimages,
+                                         const TextureNodeSettings& settings) const {
+   if (!destimage || !size.isValid()) {
       return;
    }
 

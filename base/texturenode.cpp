@@ -5,7 +5,7 @@
 // Johan Lindqvist (johan.lindqvist@gmail.com)
 
 #include "texturenode.h"
-#include "generators/texturegenerator.h"
+#include "base/texturegenerator.h"
 #include "global.h"
 #include "texturerendermanager.h"
 #include "textureimage.h"
@@ -226,6 +226,42 @@ void TextureNode::removeSource(int id) {
    }
 }
 
+void TextureNode::replaceGeneratorDefinition(const TextureGeneratorPtr& generator,
+                                             const TextureNodeSettings& migratedSettings,
+                                             const QMap<QString, int>& migratedSources) {
+   const QMap<QString, int> oldSources = getSources();
+   const QSet<int> newSourceIds(migratedSources.cbegin(), migratedSources.cend());
+   for (const int oldSourceId : oldSources) {
+      if (oldSourceId == 0 || newSourceIds.contains(oldSourceId)) {
+         continue;
+      }
+      const TextureNodePtr sourceNode = project->getNode(oldSourceId);
+      if (!sourceNode.isNull()) {
+         std::unique_lock receiverLock(sourceNode->receiverMutex);
+         sourceNode->receivers.remove(id);
+      }
+   }
+
+   {
+      std::unique_lock settingsLock(settingsMutex);
+      std::unique_lock sourceLock(sourceMutex);
+      gen = generator;
+      settings = migratedSettings;
+      sources = migratedSources;
+      invalidateImageCache();
+   }
+
+   for (auto source = oldSources.cbegin(); source != oldSources.cend(); ++source) {
+      if (source.value() != 0 && migratedSources.value(source.key()) != source.value()) {
+         emit nodesDisconnected(source.value(), id, source.key());
+      }
+   }
+   emit settingsUpdated(id);
+   emit generatorUpdated(id);
+   emit slotsUpdated(id);
+   propagateImageUpdate();
+}
+
 bool TextureNode::slotAvailable(const QString& slot) const {
    if (!getSourceSlots().contains(slot)) {
       return false;
@@ -396,7 +432,7 @@ TextureImagePtr TextureNode::renderImage(QSize size) {
       }
 
       TextureImagePtr renderedImage = TextureImage::create(size);
-      generator->generate(size, renderedImage->data(), sourceImages, &settingsCopy);
+      generator->generate(size, renderedImage->data(), sourceImages, settingsCopy);
 
       bool imagePublished = false;
       {

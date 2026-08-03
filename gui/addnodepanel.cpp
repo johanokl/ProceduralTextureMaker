@@ -5,8 +5,7 @@
 // Johan Lindqvist (johan.lindqvist@gmail.com)
 
 #include "base/textureproject.h"
-#include "generators/texturegenerator.h"
-#include "generators/texturegenerator.h"
+#include "base/texturegenerator.h"
 #include "global.h"
 #include "gui/addnodepanel.h"
 #include "gui/connectionwidget.h"
@@ -17,7 +16,6 @@
 #include <QLabel>
 #include <QMimeData>
 #include <QMouseEvent>
-#include <QPushButton>
 #include <QPushButton>
 #include <QScrollArea>
 #include <QSet>
@@ -112,6 +110,25 @@ AddNodePanel::AddNodePanel(TextureProject& project) {
    combinersWidget->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Preferred);
    contentsLayout->addWidget(combinersWidget);
 
+   customGeneratorsWidget = new QGroupBox("Custom Generators");
+   customGeneratorsLayout = new QGridLayout;
+   customGeneratorsLayout->setContentsMargins(0, 0, 0, 0);
+   customGeneratorsWidget->setLayout(customGeneratorsLayout);
+   contentsLayout->addWidget(customGeneratorsWidget);
+
+   customFiltersWidget = new QGroupBox("Custom Filters");
+   customFiltersLayout = new QGridLayout;
+   customFiltersLayout->setContentsMargins(0, 0, 0, 0);
+   customFiltersWidget->setLayout(customFiltersLayout);
+   contentsLayout->addWidget(customFiltersWidget);
+
+   customCombinersWidget = new QGroupBox("Custom Combiners");
+   customCombinersLayout = new QGridLayout;
+   customCombinersLayout->setContentsMargins(0, 0, 0, 0);
+   customCombinersWidget->setLayout(customCombinersLayout);
+   contentsLayout->addWidget(customCombinersWidget);
+   updateCustomGroupVisibility();
+
    QWidget* spacerWidget = new QWidget;
    spacerWidget->setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::Expanding);
    spacerWidget->setVisible(true);
@@ -126,6 +143,7 @@ void AddNodePanel::removeGenerator(const TextureGeneratorPtr& generator) {
    if (iterator != widgets.end()) {
       delete iterator.value();
       widgets.erase(iterator);
+      updateCustomGroupVisibility();
    }
 }
 
@@ -167,20 +185,30 @@ void AddNodePanel::addGenerator(const TextureGeneratorPtr& generator) {
                                     "QPushButton:pressed { background-color: %4; }")
                                 .arg(buttonColor.name(), fontColor, buttonColor.lighter(112).name(),
                                      buttonColor.darker(120).name()));
-   QGridLayout* destLayout;
-   switch (generator->getType()) {
-      case TextureGenerator::Type::Combiner:
-         destLayout = combinersLayout;
-         break;
-      case TextureGenerator::Type::Filter:
-         destLayout = filtersLayout;
-         break;
-      default:
-         destLayout = generatorsLayout;
-   }
+   QGridLayout* destLayout = layoutFor(generator);
    int numButtons = destLayout->count();
    int row = numButtons / 2;
    int column = numButtons % 2;
    newButton->setText(generatorName);
-   destLayout->addWidget(newButton, row, column);
+   destLayout->addWidget(newButton, row, column, Qt::AlignLeft);
+   updateCustomGroupVisibility();
+}
+
+QGridLayout* AddNodePanel::layoutFor(const TextureGeneratorPtr& generator) const {
+   const bool custom = generator->getOrigin() == TextureGenerator::Origin::Custom;
+   switch (generator->getType()) {
+      case TextureGenerator::Type::Combiner:
+         return custom ? customCombinersLayout : combinersLayout;
+      case TextureGenerator::Type::Filter:
+         return custom ? customFiltersLayout : filtersLayout;
+      case TextureGenerator::Type::Generator:
+         return custom ? customGeneratorsLayout : generatorsLayout;
+   }
+   return custom ? customGeneratorsLayout : generatorsLayout;
+}
+
+void AddNodePanel::updateCustomGroupVisibility() {
+   customGeneratorsWidget->setVisible(customGeneratorsLayout->count() > 0);
+   customFiltersWidget->setVisible(customFiltersLayout->count() > 0);
+   customCombinersWidget->setVisible(customCombinersLayout->count() > 0);
 }

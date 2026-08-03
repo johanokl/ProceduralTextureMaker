@@ -36,9 +36,9 @@ DisplacementMapTextureGenerator::DisplacementMapTextureGenerator() {
    configurables.insert("offset", offset);
 }
 void DisplacementMapTextureGenerator::generate(QSize size, TexturePixel* destimage,
-                                               QMap<QString, TextureImagePtr> sourceimages,
-                                               TextureNodeSettings* settings) const {
-   if (!settings || !destimage || !size.isValid()) {
+                                               const QMap<QString, TextureImagePtr>& sourceimages,
+                                               const TextureNodeSettings& settings) const {
+   if (!destimage || !size.isValid()) {
       return;
    }
    if (!sourceimages.contains(QStringLiteral("Source image"))) {
@@ -52,9 +52,9 @@ void DisplacementMapTextureGenerator::generate(QSize size, TexturePixel* destima
    }
    TexturePixel* sourceMap = sourceimages.value(QStringLiteral("Map"))->getData();
 
-   double strength = settings->value("strength").toDouble() * size.width() / 500;
-   double offset = settings->value("offset").toDouble() * size.width() / 100;
-   double angle = settings->value("angle").toDouble();
+   double strength = settings.value("strength").toDouble() * size.width() / 500;
+   double offset = settings.value("offset").toDouble() * size.width() / 100;
+   double angle = settings.value("angle").toDouble();
    angle = (angle / 180.0) * ((double)M_PI);
 
    for (int y = 0; y < size.height(); y++) {

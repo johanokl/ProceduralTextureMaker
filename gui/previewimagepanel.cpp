@@ -111,9 +111,8 @@ bool PreviewImagePanel::loadNodeImage(int id) {
    if (image.isNull()) {
       return false;
    }
-   QImage tempimage = QImage(imageSize.width(), imageSize.height(), QImage::Format_ARGB32);
-   memcpy(tempimage.bits(), image->data(), image->byteSize());
-   QPixmap newImage = QPixmap::fromImage(tempimage);
+   const TextureImage& texture = *image;
+   QPixmap newImage = QPixmap::fromImage(texture.toQImageView());
    if (numTiles > 1) {
       newImage = tilePixmap(newImage, numTiles);
    }

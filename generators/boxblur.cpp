@@ -15,9 +15,9 @@ BoxBlurTextureGenerator::BoxBlurTextureGenerator() {
    configurables.insert("numneighbours", neighbourssetting);
 }
 void BoxBlurTextureGenerator::generate(QSize size, TexturePixel* destimage,
-                                       QMap<QString, TextureImagePtr> sourceimages,
-                                       TextureNodeSettings* settings) const {
-   if (!settings || !destimage || !size.isValid()) {
+                                       const QMap<QString, TextureImagePtr>& sourceimages,
+                                       const TextureNodeSettings& settings) const {
+   if (!destimage || !size.isValid()) {
       return;
    }
    if (!sourceimages.contains(QStringLiteral("Input"))) {
@@ -25,12 +25,12 @@ void BoxBlurTextureGenerator::generate(QSize size, TexturePixel* destimage,
       return;
    }
    TexturePixel* sourceImage = sourceimages.value(QStringLiteral("Input")).data()->getData();
-   if (settings->value("numneighbours").toInt() == 0) {
+   if (settings.value("numneighbours").toInt() == 0) {
       memcpy(destimage, sourceImage, size.width() * size.height() * sizeof(TexturePixel));
       return;
    }
-   int numNeightboursX = settings->value("numneighbours").toDouble() * qMax(size.width() / 250, 1);
-   int numNeightboursY = settings->value("numneighbours").toDouble() * qMax(size.height() / 250, 1);
+   int numNeightboursX = settings.value("numneighbours").toDouble() * qMax(size.width() / 250, 1);
+   int numNeightboursY = settings.value("numneighbours").toDouble() * qMax(size.height() / 250, 1);
    for (int j = 0; j < size.height(); j++) {
       for (int i = 0; i < size.width(); i++) {
          int startX = i - numNeightboursX;

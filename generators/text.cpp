@@ -93,21 +93,21 @@ TextTextureGenerator::TextTextureGenerator() {
    configurables.insert("antialiasing", antialiasing);
 }
 void TextTextureGenerator::generate(QSize size, TexturePixel* destimage,
-                                    QMap<QString, TextureImagePtr> sourceimages,
-                                    TextureNodeSettings* settings) const {
-   if (!settings || !destimage || !size.isValid()) {
+                                    const QMap<QString, TextureImagePtr>& sourceimages,
+                                    const TextureNodeSettings& settings) const {
+   if (!destimage || !size.isValid()) {
       return;
    }
 
-   QColor color = settings->value("color").value<QColor>();
-   QString fontname = settings->value("fontname").toString();
-   QString text = settings->value("text").toString();
-   QString alignment = settings->value("alignment").toString();
-   double fontsize = settings->value("fontsize").toDouble() * size.height() / 100;
-   double rotation = settings->value("rotation").toDouble();
-   int offsetLeft = settings->value("offsetleft").toDouble() * size.width() / 100;
-   int offsetTop = settings->value("offsettop").toDouble() * size.height() / 100;
-   bool antialiasing = settings->value("antialiasing").toBool();
+   QColor color = settings.value("color").value<QColor>();
+   QString fontname = settings.value("fontname").toString();
+   QString text = settings.value("text").toString();
+   QString alignment = settings.value("alignment").toString();
+   double fontsize = settings.value("fontsize").toDouble() * size.height() / 100;
+   double rotation = settings.value("rotation").toDouble();
+   int offsetLeft = settings.value("offsetleft").toDouble() * size.width() / 100;
+   int offsetTop = settings.value("offsettop").toDouble() * size.height() / 100;
+   bool antialiasing = settings.value("antialiasing").toBool();
 
    QFont::StyleHint styleHint = QFont::StyleHint::AnyStyle;
    if (fontname == "Times") {
@@ -133,8 +133,7 @@ void TextTextureGenerator::generate(QSize size, TexturePixel* destimage,
       memset(destimage, 0, size.width() * size.height() * sizeof(TexturePixel));
    }
 
-   QImage tempimage = QImage(size.width(), size.height(), QImage::Format_RGB32);
-   memcpy(tempimage.bits(), destimage, size.width() * size.height() * sizeof(TexturePixel));
+   QImage tempimage = makeTextureImageView(size, destimage);
 
    offsetLeft += (double)50 * size.width() / 100;
    offsetTop += (double)50 * size.height() / 100;
@@ -167,6 +166,4 @@ void TextTextureGenerator::generate(QSize size, TexturePixel* destimage,
    painter.setFont(font);
    painter.setPen(color);
    painter.drawText(textRect, textAlignment, text);
-
-   memcpy(destimage, tempimage.bits(), size.width() * size.height() * sizeof(TexturePixel));
 }

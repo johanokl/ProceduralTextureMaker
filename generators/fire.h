@@ -7,7 +7,7 @@
 #ifndef FIRETEXTUREGENERATOR_H
 #define FIRETEXTUREGENERATOR_H
 
-#include "texturegenerator.h"
+#include "base/texturegenerator.h"
 
 /// @brief The algorithm is taken from Lode's Computer Graphics Tutorial
 /// http://lodev.org/cgtutor/fire.html
@@ -15,8 +15,9 @@ class FireTextureGenerator : public TextureGenerator {
 public:
    FireTextureGenerator();
    ~FireTextureGenerator() override = default;
-   void generate(QSize size, TexturePixel* destimage, QMap<QString, TextureImagePtr> sourceimages,
-                 TextureNodeSettings* settings) const override;
+   void generate(QSize size, TexturePixel* destimage,
+                 const QMap<QString, TextureImagePtr>& sourceimages,
+                 const TextureNodeSettings& settings) const override;
    const TextureGeneratorSettings& getSettings() const override { return configurables; }
    QString getName() const override { return "Fire"; }
    QString getDescription() const override { return QString("Early 90's fire effect"); }

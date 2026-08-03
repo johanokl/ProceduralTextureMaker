@@ -7,15 +7,16 @@
 #ifndef CIRCLETEXTUREGENERATOR_H
 #define CIRCLETEXTUREGENERATOR_H
 
-#include "texturegenerator.h"
+#include "base/texturegenerator.h"
 
 /// @brief The CircleTextureGenerator class
 class CircleTextureGenerator : public TextureGenerator {
 public:
    CircleTextureGenerator();
    ~CircleTextureGenerator() override = default;
-   void generate(QSize size, TexturePixel* destimage, QMap<QString, TextureImagePtr> sourceimages,
-                 TextureNodeSettings* settings) const override;
+   void generate(QSize size, TexturePixel* destimage,
+                 const QMap<QString, TextureImagePtr>& sourceimages,
+                 const TextureNodeSettings& settings) const override;
    QString getName() const override { return QString("Circle"); }
    const TextureGeneratorSettings& getSettings() const override { return configurables; }
    QString getDescription() const override { return QString("Draws a filled circle."); }

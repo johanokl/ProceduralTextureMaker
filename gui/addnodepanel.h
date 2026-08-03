@@ -7,11 +7,12 @@
 #ifndef ADDNODEPANEL_H
 #define ADDNODEPANEL_H
 
-#include "generators/texturegenerator.h"
+#include "base/texturegenerator.h"
 #include <QMap>
 #include <QWidget>
 class TextureProject;
 class QGridLayout;
+class QGroupBox;
 
 /// @brief Displays all available node types in a vertical panel.
 /// All generators are represented as buttons that can be dragged to
@@ -39,6 +40,9 @@ public slots:
    void removeGenerator(const TextureGeneratorPtr& generator);
 
 private:
+   QGridLayout* layoutFor(const TextureGeneratorPtr& generator) const;
+   void updateCustomGroupVisibility();
+
    /// @brief Maps each registered generator to its draggable button.
    QMap<TextureGeneratorPtr, QWidget*> widgets;
    /// @brief Grid layout for filter generator buttons.
@@ -47,6 +51,12 @@ private:
    QGridLayout* combinersLayout{nullptr};
    /// @brief Grid layout for source generator buttons.
    QGridLayout* generatorsLayout{nullptr};
+   QGridLayout* customFiltersLayout{nullptr};
+   QGridLayout* customCombinersLayout{nullptr};
+   QGridLayout* customGeneratorsLayout{nullptr};
+   QGroupBox* customFiltersWidget{nullptr};
+   QGroupBox* customCombinersWidget{nullptr};
+   QGroupBox* customGeneratorsWidget{nullptr};
 };
 
 #endif  // ADDNODEPANEL_H

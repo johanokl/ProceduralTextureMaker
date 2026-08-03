@@ -48,18 +48,18 @@ CheckboardTextureGenerator::CheckboardTextureGenerator() {
    configurables.insert("offsety", offsety);
 }
 void CheckboardTextureGenerator::generate(QSize size, TexturePixel* destimage,
-                                          QMap<QString, TextureImagePtr> sourceimages,
-                                          TextureNodeSettings* settings) const {
-   if (!settings || !destimage || !size.isValid()) {
+                                          const QMap<QString, TextureImagePtr>& sourceimages,
+                                          const TextureNodeSettings& settings) const {
+   if (!destimage || !size.isValid()) {
       return;
    }
-   QColor color = settings->value("color").value<QColor>();
+   QColor color = settings.value("color").value<QColor>();
    int brickheight =
-       qMax(1, static_cast<int>(settings->value("brickheight").toDouble() * size.height() / 300));
+       qMax(1, static_cast<int>(settings.value("brickheight").toDouble() * size.height() / 300));
    int brickwidth =
-       qMax(1, static_cast<int>(settings->value("brickwidth").toDouble() * size.width() / 300));
-   int offsetx = settings->value("offsetx").toDouble() * size.width() / 100;
-   int offsety = settings->value("offsety").toDouble() * size.height() / 100;
+       qMax(1, static_cast<int>(settings.value("brickwidth").toDouble() * size.width() / 300));
+   int offsetx = settings.value("offsetx").toDouble() * size.width() / 100;
+   int offsety = settings.value("offsety").toDouble() * size.height() / 100;
 
    if (sourceimages.contains(QStringLiteral("Input"))) {
       memcpy(destimage, sourceimages.value(QStringLiteral("Input"))->getData(),
@@ -67,8 +67,7 @@ void CheckboardTextureGenerator::generate(QSize size, TexturePixel* destimage,
    } else {
       memset(destimage, 0, size.width() * size.height() * sizeof(TexturePixel));
    }
-   QImage tempimage = QImage(size.width(), size.height(), QImage::Format_RGB32);
-   memcpy(tempimage.bits(), destimage, size.width() * size.height() * sizeof(TexturePixel));
+   QImage tempimage = makeTextureImageView(size, destimage);
    QPainter painter(&tempimage);
    painter.setCompositionMode(QPainter::CompositionMode_SourceOver);
    painter.setBrush(QBrush(color, Qt::BrushStyle::SolidPattern));
@@ -88,5 +87,4 @@ void CheckboardTextureGenerator::generate(QSize size, TexturePixel* destimage,
       }
       currY += brickheight;
    }
-   memcpy(destimage, tempimage.bits(), size.width() * size.height() * sizeof(TexturePixel));
 }

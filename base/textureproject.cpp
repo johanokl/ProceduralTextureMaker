@@ -6,7 +6,7 @@
 
 #include "textureproject.h"
 #include "generators/empty.h"
-#include "generators/texturegenerator.h"
+#include "base/texturegenerator.h"
 #include "global.h"
 #include "texturenode.h"
 #include "texturerendermanager.h"
@@ -108,8 +108,8 @@ void TextureProject::loadFromXML(const QDomDocument& xmlfile) {
    for (int i = 0; i < generators.count(); i++) {
       QDomNode currGenerator = generators.at(i);
       if (!getGenerator(currGenerator.toElement().attribute("name"))) {
-         ERROR_MSG(QString("Could not find texture generator with name %1.")
-                       .arg(currGenerator.toElement().attribute("name")));
+         qWarning().noquote() << QStringLiteral("Could not find texture generator with name %1.")
+                                     .arg(currGenerator.toElement().attribute("name"));
       }
    }
    QMap<int, int> idMappings;
@@ -336,6 +336,72 @@ void TextureProject::removeGenerator(const TextureGeneratorPtr& gen) {
       generators.remove(gen->getName());
       emit generatorRemoved(gen);
    }
+}
+
+bool TextureProject::replaceGenerator(const TextureGeneratorPtr& oldGenerator,
+                                      const TextureGeneratorPtr& newGenerator) {
+   if (oldGenerator.isNull() || newGenerator.isNull() ||
+       generators.value(oldGenerator->getName()) != oldGenerator) {
+      return false;
+   }
+   const TextureGeneratorPtr collision = generators.value(newGenerator->getName());
+   if (!collision.isNull() && collision != oldGenerator) {
+      emit generatorNameCollision(collision, newGenerator);
+      return false;
+   }
+
+   const TextureGeneratorSettings oldDefinitions = oldGenerator->getSettings();
+   const TextureGeneratorSettings newDefinitions = newGenerator->getSettings();
+   const QList<int> nodeIds = getNodeIds();
+   struct NodeState {
+      TextureNodePtr node;
+      TextureNodeSettings settings;
+      QMap<QString, int> sources;
+   };
+   QList<NodeState> affectedNodes;
+   for (const int nodeId : nodeIds) {
+      const TextureNodePtr node = getNode(nodeId);
+      if (!node.isNull() && node->getGenerator() == oldGenerator) {
+         affectedNodes.append(NodeState{node, node->getSettings(), node->getSources()});
+      }
+   }
+
+   generators.remove(oldGenerator->getName());
+   generators.insert(newGenerator->getName(), newGenerator);
+   emit generatorRemoved(oldGenerator);
+   emit generatorAdded(newGenerator);
+
+   for (const NodeState& state : std::as_const(affectedNodes)) {
+      TextureNodeSettings migratedSettings;
+      for (auto definition = newDefinitions.cbegin(); definition != newDefinitions.cend();
+           ++definition) {
+         const TextureGeneratorSetting& newSetting = definition.value();
+         QVariant value = newSetting.defaultvalue;
+         if (value.typeId() == QMetaType::QStringList) {
+            const QStringList choices = value.toStringList();
+            value = newSetting.defaultindex >= 0 && newSetting.defaultindex < choices.size()
+                        ? QVariant(choices.at(newSetting.defaultindex))
+                        : QVariant(QString());
+         }
+         const auto oldDefinition = oldDefinitions.constFind(definition.key());
+         if (oldDefinition != oldDefinitions.cend() && state.settings.contains(definition.key()) &&
+             oldDefinition->defaultvalue.typeId() == newSetting.defaultvalue.typeId() &&
+             oldDefinition->multiline == newSetting.multiline) {
+            const QVariant previous = state.settings.value(definition.key());
+            if (newSetting.defaultvalue.typeId() != QMetaType::QStringList ||
+                newSetting.defaultvalue.toStringList().contains(previous.toString())) {
+               value = previous;
+            }
+         }
+         migratedSettings.insert(definition.key(), value);
+      }
+      QMap<QString, int> migratedSources;
+      for (const QString& slot : newGenerator->getSourceSlots()) {
+         migratedSources.insert(slot, state.sources.value(slot));
+      }
+      state.node->replaceGeneratorDefinition(newGenerator, migratedSettings, migratedSources);
+   }
+   return true;
 }
 
 TextureGeneratorPtr TextureProject::getGenerator(const QString& name) const {

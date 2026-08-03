@@ -80,6 +80,12 @@ set(PROCEDURAL_TEXTURE_MAKER_SOURCES
     base/texturerendermanager.h
     base/editmanager.cpp
     base/editmanager.h
+    base/texturegenerator.cpp
+    base/texturegenerator.h
+    base/jstexgen.cpp
+    base/jstexgen.h
+    base/jstexgenmanager.cpp
+    base/jstexgenmanager.h
 
     gui/addnodepanel.cpp
     gui/addnodepanel.h
@@ -144,8 +150,6 @@ set(PROCEDURAL_TEXTURE_MAKER_SOURCES
     generators/greyscale.h
     generators/invert.cpp
     generators/invert.h
-    generators/javascript.cpp
-    generators/javascript.h
     generators/lens.cpp
     generators/lens.h
     generators/lines.cpp
@@ -182,14 +186,13 @@ set(PROCEDURAL_TEXTURE_MAKER_SOURCES
     generators/star.h
     generators/text.cpp
     generators/text.h
-    generators/texturegenerator.cpp
-    generators/texturegenerator.h
     generators/transform.cpp
     generators/transform.h
     generators/whirl.cpp
     generators/whirl.h
 
     texgen.qrc
+    generators.qrc
     shaders.qrc
 )
 
@@ -223,6 +226,7 @@ list(FILTER PROCEDURAL_TEXTURE_MAKER_GUI_SOURCES INCLUDE REGEX
 
 add_library(ptm_engine STATIC
     ${PROCEDURAL_TEXTURE_MAKER_ENGINE_SOURCES}
+    generators.qrc
 )
 
 target_include_directories(ptm_engine PUBLIC

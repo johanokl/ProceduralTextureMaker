@@ -58,17 +58,17 @@ PointillismTextureGenerator::PointillismTextureGenerator() {
    configurables.insert("randseed", randseed);
 }
 void PointillismTextureGenerator::generate(QSize size, TexturePixel* destimage,
-                                           QMap<QString, TextureImagePtr> sourceimages,
-                                           TextureNodeSettings* settings) const {
-   if (!settings || !destimage || !size.isValid()) {
+                                           const QMap<QString, TextureImagePtr>& sourceimages,
+                                           const TextureNodeSettings& settings) const {
+   if (!destimage || !size.isValid()) {
       return;
    }
-   double shapeWidth = settings->value("width").toDouble() * size.width() / 100;
-   double shapeHeight = settings->value("height").toDouble() * size.height() / 100;
-   int randseed = settings->value("randseed").toInt();
-   int points = settings->value("points").toInt();
-   bool includesource = settings->value("includesource").toBool();
-   bool antialiasing = settings->value("antialiasing").toBool();
+   double shapeWidth = settings.value("width").toDouble() * size.width() / 100;
+   double shapeHeight = settings.value("height").toDouble() * size.height() / 100;
+   int randseed = settings.value("randseed").toInt();
+   int points = settings.value("points").toInt();
+   bool includesource = settings.value("includesource").toBool();
+   bool antialiasing = settings.value("antialiasing").toBool();
 
    if (!sourceimages.contains(QStringLiteral("Input"))) {
       memset(destimage, 0, size.width() * size.height() * sizeof(TexturePixel));
@@ -85,8 +85,7 @@ void PointillismTextureGenerator::generate(QSize size, TexturePixel* destimage,
       memset(destimage, 0, size.width() * size.height() * sizeof(TexturePixel));
    }
 
-   QImage tempimage = QImage(size.width(), size.height(), QImage::Format_RGB32);
-   memcpy(tempimage.bits(), destimage, size.width() * size.height() * sizeof(TexturePixel));
+   QImage tempimage = makeTextureImageView(size, destimage);
 
    QPainter painter(&tempimage);
    painter.setPen(Qt::NoPen);
@@ -101,5 +100,4 @@ void PointillismTextureGenerator::generate(QSize size, TexturePixel* destimage,
       painter.setBrush(QBrush(sourceColor, Qt::BrushStyle::SolidPattern));
       painter.drawEllipse(QPointF(x, y), shapeWidth, shapeHeight);
    }
-   memcpy(destimage, tempimage.bits(), size.width() * size.height() * sizeof(TexturePixel));
 }

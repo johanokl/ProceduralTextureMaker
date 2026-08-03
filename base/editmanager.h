@@ -5,7 +5,7 @@
 #ifndef EDITMANAGER_H
 #define EDITMANAGER_H
 
-#include "generators/texturegenerator.h"
+#include "base/texturegenerator.h"
 #include <QMap>
 #include <QPointF>
 #include <QString>

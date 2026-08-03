@@ -9,10 +9,12 @@
 #include "base/texturenode.h"
 #include "base/textureproject.h"
 #include "generators/builtinregistry.h"
-#include "generators/javascript.h"
+#include "base/jstexgenmanager.h"
+#include "base/jstexgen.h"
 #include <QCommandLineOption>
 #include <QCommandLineParser>
 #include <QCoreApplication>
+#include <QFile>
 #include <QFileInfo>
 #include <QRegularExpression>
 #include <QTextStream>
@@ -63,7 +65,8 @@ ExitCode projectLoadExitCode(const ProjectFileError error) {
 
 bool isCommandLineSwitch(const QByteArray& argument) {
    return argument == "--no-gui" || argument == "-h" || argument == "--help" ||
-          argument == "--help-all" || argument == "-v" || argument == "--version";
+          argument == "--help-all" || argument == "-v" || argument == "--version" ||
+          argument == "--print-js-generator" || argument == "--print-js-template";
 }
 
 /// @brief Adds the supported export options and positional arguments to a parser.
@@ -85,6 +88,11 @@ void configureParser(QCommandLineParser& parser) {
    parser.addOption({QStringLiteral("js-dir"),
                      QStringLiteral("Load JavaScript generators recursively from this directory."),
                      QStringLiteral("path")});
+   parser.addOption({QStringLiteral("print-js-generator"),
+                     QStringLiteral("Print a JavaScript generator's source and exit."),
+                     QStringLiteral("name")});
+   parser.addOption({QStringLiteral("print-js-template"),
+                     QStringLiteral("Print the JavaScript generator template and exit.")});
    parser.addOption({{QStringLiteral("f"), QStringLiteral("force")},
                      QStringLiteral("Replace an existing output file.")});
    parser.addOption(
@@ -93,6 +101,37 @@ void configureParser(QCommandLineParser& parser) {
    parser.addPositionalArgument(QStringLiteral("output.png"),
                                 QStringLiteral("Output PNG (not needed with --list-nodes)."),
                                 QStringLiteral("[output.png]"));
+}
+
+int printJavaScriptSource(const QCommandLineParser& parser) {
+   if (parser.isSet(QStringLiteral("print-js-template"))) {
+      TextureProject resourceProject(false);
+      registerBuiltInGenerators(resourceProject);
+      QFile templateFile(QStringLiteral(":/generator-templates/generator.js"));
+      if (!templateFile.open(QIODevice::ReadOnly | QIODevice::Text)) {
+         return reportError(ExitCode::Project, QStringLiteral("Bundled template is unavailable"));
+      }
+      QTextStream(stdout) << QString::fromUtf8(templateFile.readAll());
+      return exitCode(ExitCode::Success);
+   }
+
+   TextureProject project(false);
+   registerBuiltInGenerators(project);
+   for (const QString& directory : parser.values(QStringLiteral("js-dir"))) {
+      const QString error = loadJavaScriptGenerators(project, directory);
+      if (!error.isEmpty()) {
+         return reportError(ExitCode::Project, error);
+      }
+   }
+   const QString name = parser.value(QStringLiteral("print-js-generator"));
+   const TextureGeneratorPtr generator = project.getGenerator(name);
+   const auto* javaScript = dynamic_cast<const JsTexGen*>(generator.data());
+   if (javaScript == nullptr) {
+      return reportError(ExitCode::Node,
+                         QStringLiteral("No JavaScript generator named '%1'").arg(name));
+   }
+   QTextStream(stdout) << javaScript->source();
+   return exitCode(ExitCode::Success);
 }
 
 /// @brief Registers generators and loads the requested project file.
@@ -214,6 +253,11 @@ int runCommandLine(QCoreApplication& application) {
    QCommandLineParser parser;
    configureParser(parser);
    parser.process(application);
+
+   if (parser.isSet(QStringLiteral("print-js-template")) ||
+       parser.isSet(QStringLiteral("print-js-generator"))) {
+      return printJavaScriptSource(parser);
+   }
 
    const QStringList positional = parser.positionalArguments();
    const bool listNodes = parser.isSet(QStringLiteral("list-nodes"));

@@ -1,12 +1,10 @@
-
 // Part of the ProceduralTextureMaker project.
 // http://github.com/johanokl/ProceduralTextureMaker
 // Released under GPLv3.
 // Johan Lindqvist (johan.lindqvist@gmail.com)
 
-#include "texturegenerator.h"
+#include "base/texturegenerator.h"
 #include <QRegularExpression>
-#include <QString>
 
 QString TextureGenerator::resolveSourceSlot(const QString& serializedSlot) const {
    const QStringList sourceSlots = getSourceSlots();

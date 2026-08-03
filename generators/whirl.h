@@ -7,15 +7,16 @@
 #ifndef WHIRLTEXTUREGENERATOR_H
 #define WHIRLTEXTUREGENERATOR_H
 
-#include "texturegenerator.h"
+#include "base/texturegenerator.h"
 
 /// @brief The WhirlTextureGenerator class
 class WhirlTextureGenerator : public TextureGenerator {
 public:
    WhirlTextureGenerator();
    ~WhirlTextureGenerator() override = default;
-   void generate(QSize size, TexturePixel* destimage, QMap<QString, TextureImagePtr> sourceimages,
-                 TextureNodeSettings* settings) const override;
+   void generate(QSize size, TexturePixel* destimage,
+                 const QMap<QString, TextureImagePtr>& sourceimages,
+                 const TextureNodeSettings& settings) const override;
    QString getName() const override { return QString("Whirl"); }
    const TextureGeneratorSettings& getSettings() const override { return configurables; }
    QString getDescription() const override { return QString("Twirls the image."); }

@@ -12,7 +12,7 @@ CircleTextureGenerator::CircleTextureGenerator() {
    TextureGeneratorSetting colorsetting;
    colorsetting.name = "Color";
    colorsetting.description = "Color of the circle";
-   colorsetting.defaultvalue = QVariant(QColor(200, 100, 0, 200));
+   colorsetting.defaultvalue = QVariant(QColor(200, 100, 0, 255));
    colorsetting.order = 1;
    configurables.insert("color", colorsetting);
 
@@ -53,16 +53,16 @@ CircleTextureGenerator::CircleTextureGenerator() {
    configurables.insert("offsettop", offsetTop);
 }
 void CircleTextureGenerator::generate(QSize size, TexturePixel* destimage,
-                                      QMap<QString, TextureImagePtr> sourceimages,
-                                      TextureNodeSettings* settings) const {
-   if (!settings || !destimage || !size.isValid()) {
+                                      const QMap<QString, TextureImagePtr>& sourceimages,
+                                      const TextureNodeSettings& settings) const {
+   if (!destimage || !size.isValid()) {
       return;
    }
-   QColor color = settings->value("color").value<QColor>();
-   double innerRadius = settings->value("innerradius").toDouble() * size.height() / 200.0;
-   double outerRadius = settings->value("outerradius").toDouble() * size.height() / 200.0;
-   int offsetLeft = settings->value("offsetleft").toDouble() * size.width() / 100;
-   int offsetTop = settings->value("offsettop").toDouble() * size.height() / 100;
+   QColor color = settings.value("color").value<QColor>();
+   double innerRadius = settings.value("innerradius").toDouble() * size.height() / 200.0;
+   double outerRadius = settings.value("outerradius").toDouble() * size.height() / 200.0;
+   int offsetLeft = settings.value("offsetleft").toDouble() * size.width() / 100;
+   int offsetTop = settings.value("offsettop").toDouble() * size.height() / 100;
 
    bool blend = false;
    if (sourceimages.contains(QStringLiteral("Input"))) {

@@ -7,15 +7,16 @@
 #ifndef DISPLACEMENTMAPTEXTUREGENERATOR_H
 #define DISPLACEMENTMAPTEXTUREGENERATOR_H
 
-#include "texturegenerator.h"
+#include "base/texturegenerator.h"
 
 /// @brief The DisplacementMapTextureGenerator class
 class DisplacementMapTextureGenerator : public TextureGenerator {
 public:
    DisplacementMapTextureGenerator();
    ~DisplacementMapTextureGenerator() override = default;
-   void generate(QSize size, TexturePixel* destimage, QMap<QString, TextureImagePtr> sourceimages,
-                 TextureNodeSettings* settings) const override;
+   void generate(QSize size, TexturePixel* destimage,
+                 const QMap<QString, TextureImagePtr>& sourceimages,
+                 const TextureNodeSettings& settings) const override;
    QStringList getSourceSlots() const override {
       return {QStringLiteral("Source image"), QStringLiteral("Map")};
    }

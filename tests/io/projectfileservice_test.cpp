@@ -153,9 +153,9 @@ void ProjectFileServiceTest::rendersStableRawHashes_data() {
    QTest::newRow("portable-fill")
        << QStringLiteral(PTM_SOURCE_DIR "/tests/fixtures/projects/minimal-fill.txl") << 1
        << QSize(17, 13)
-       << QByteArray("7ed60ca9ab1418340d89ae074e6a5427ad490ff8547c74402857d0ea33359043");
+       << QByteArray("88570e6e206362c8ff826f3a441691ac49ab3b970bb62b490e4a3437d0416ae1");
 #ifdef Q_OS_WIN
-   const QByteArray wallDigest("4cf9451594d719c6bace41035604d54ff7979b4dee1c776356bebf621f153ab1");
+   const QByteArray wallDigest("2402cd6c88e9aa4022fe3ad9c2d44cfb38b91f0ab01a4ebd37f5a4656debaee0");
 #else
    const QByteArray wallDigest;
 #endif

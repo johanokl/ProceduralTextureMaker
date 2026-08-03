@@ -62,9 +62,9 @@ ShadowTextureGenerator::ShadowTextureGenerator() {
    configurables.insert("level", blursetting);
 }
 void ShadowTextureGenerator::generate(QSize size, TexturePixel* destimage,
-                                      QMap<QString, TextureImagePtr> sourceimages,
-                                      TextureNodeSettings* settings) const {
-   if (!settings || !destimage || !size.isValid()) {
+                                      const QMap<QString, TextureImagePtr>& sourceimages,
+                                      const TextureNodeSettings& settings) const {
+   if (!destimage || !size.isValid()) {
       return;
    }
    if (!sourceimages.contains(QStringLiteral("Input"))) {
@@ -87,16 +87,16 @@ void ShadowTextureGenerator::generate(QSize size, TexturePixel* destimage,
    settingsForSetchannels.insert("channelAlpha", QVariant("Second's alpha"));
    auto setchannelsImagePtr = TextureImage::create(size);
    auto* setchannelsImage = setchannelsImagePtr->getData();
-   setchannelsgen.generate(size, setchannelsImage, setchannelImages, &settingsForSetchannels);
+   setchannelsgen.generate(size, setchannelsImage, setchannelImages, settingsForSetchannels);
 
    StackBlurTextureGenerator stackblurgen;
    QMap<QString, TextureImagePtr> blurSettingsIterator;
    blurSettingsIterator.insert(QStringLiteral("Input"), setchannelsImagePtr);
    TextureNodeSettings settingsForBlur;
-   settingsForBlur.insert("level", QVariant(settings->value("level").toInt()));
+   settingsForBlur.insert("level", QVariant(settings.value("level").toInt()));
    auto blurredImagePtr = TextureImage::create(size);
    auto* blurredImage = blurredImagePtr->getData();
-   stackblurgen.generate(size, blurredImage, blurSettingsIterator, &settingsForBlur);
+   stackblurgen.generate(size, blurredImage, blurSettingsIterator, settingsForBlur);
 
    TransformTextureGenerator transformgen;
    QMap<QString, TextureImagePtr> sourceForTransform;
@@ -109,13 +109,13 @@ void ShadowTextureGenerator::generate(QSize size, TexturePixel* destimage,
       settingsForTransform.insert(transformSettingsIterator.key(),
                                   transformSettingsIterator.value().defaultvalue);
    }
-   settingsForTransform.insert("offsetleft", QVariant(settings->value("offsetleft").toDouble()));
-   settingsForTransform.insert("offsettop", QVariant(settings->value("offsettop").toDouble()));
-   settingsForTransform.insert("xscale", QVariant(settings->value("xscale").toDouble()));
-   settingsForTransform.insert("yscale", QVariant(settings->value("yscale").toDouble()));
+   settingsForTransform.insert("offsetleft", QVariant(settings.value("offsetleft").toDouble()));
+   settingsForTransform.insert("offsettop", QVariant(settings.value("offsettop").toDouble()));
+   settingsForTransform.insert("xscale", QVariant(settings.value("xscale").toDouble()));
+   settingsForTransform.insert("yscale", QVariant(settings.value("yscale").toDouble()));
    auto transformedImagePtr = TextureImage::create(size);
    auto* transformedImage = transformedImagePtr->getData();
-   transformgen.generate(size, transformedImage, sourceForTransform, &settingsForTransform);
+   transformgen.generate(size, transformedImage, sourceForTransform, settingsForTransform);
 
    BlendingTextureGenerator blendinggen;
    QMap<QString, TextureImagePtr> sourceForBlend;
@@ -129,7 +129,7 @@ void ShadowTextureGenerator::generate(QSize size, TexturePixel* destimage,
                               blendSettingsIterator.value().defaultvalue);
    }
    auto* blendedImage = new TexturePixel[size.width() * size.height()];
-   blendinggen.generate(size, blendedImage, sourceForBlend, &settingsForBlend);
+   blendinggen.generate(size, blendedImage, sourceForBlend, settingsForBlend);
    memcpy(destimage, blendedImage, size.width() * size.height() * sizeof(TexturePixel));
    delete[] blendedImage;
 }

@@ -7,15 +7,16 @@
 #ifndef EMPTYGENERATOR_H
 #define EMPTYGENERATOR_H
 
-#include "texturegenerator.h"
+#include "base/texturegenerator.h"
 
 /// @brief The EmptyGenerator class
 class EmptyGenerator : public TextureGenerator {
 public:
    EmptyGenerator() = default;
    ~EmptyGenerator() override = default;
-   void generate(QSize size, TexturePixel* destimage, QMap<QString, TextureImagePtr> sourceimages,
-                 TextureNodeSettings* settings) const override;
+   void generate(QSize size, TexturePixel* destimage,
+                 const QMap<QString, TextureImagePtr>& sourceimages,
+                 const TextureNodeSettings& settings) const override;
    QStringList getSourceSlots() const override {
       return {QStringLiteral("Input 1"), QStringLiteral("Input 2"), QStringLiteral("Input 3")};
    }

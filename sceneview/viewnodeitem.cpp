@@ -173,10 +173,8 @@ void ViewNodeItem::imageAvailable(QSize size) {
       if (image.isNull()) {
          return;
       }
-      QImage tempimage =
-          QImage(thumbnailSize.width(), thumbnailSize.height(), QImage::Format_ARGB32);
-      memcpy(tempimage.bits(), image->data(), image->byteSize());
-      pixmap = QPixmap::fromImage(tempimage);
+      const TextureImage& texture = *image;
+      pixmap = QPixmap::fromImage(texture.toQImageView());
       imageValid = true;
       update();
    }

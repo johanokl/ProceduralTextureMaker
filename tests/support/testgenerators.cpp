@@ -18,8 +18,8 @@ RecordingGenerator::RecordingGenerator(QString name, const int sourceSlots, cons
 }
 
 void RecordingGenerator::generate(const QSize size, TexturePixel* destination,
-                                  QMap<QString, TextureImagePtr> sources,
-                                  TextureNodeSettings* settings) const {
+                                  const QMap<QString, TextureImagePtr>& sources,
+                                  const TextureNodeSettings& settings) const {
    Q_UNUSED(sources);
    ++calls;
    started.release();
@@ -29,7 +29,7 @@ void RecordingGenerator::generate(const QSize size, TexturePixel* destination,
    if (throwing) {
       throw std::runtime_error("planned generator failure");
    }
-   const int value = settings ? settings->value(QStringLiteral("value"), 17).toInt() : 17;
+   const int value = settings.value(QStringLiteral("value"), 17).toInt();
    const auto channel = static_cast<unsigned char>(qBound(0, value, 255));
    const qsizetype count = static_cast<qsizetype>(size.width()) * size.height();
    for (qsizetype i = 0; i < count; ++i) {
@@ -42,8 +42,8 @@ bool RecordingGenerator::waitUntilStarted(const int timeoutMilliseconds) const {
 }
 
 void NamedInputGenerator::generate(const QSize size, TexturePixel* destination,
-                                   QMap<QString, TextureImagePtr> sources,
-                                   TextureNodeSettings* settings) const {
+                                   const QMap<QString, TextureImagePtr>& sources,
+                                   const TextureNodeSettings& settings) const {
    Q_UNUSED(settings);
    const TextureImagePtr source = sources.value(QStringLiteral("Zulu"));
    const qsizetype count = static_cast<qsizetype>(size.width()) * size.height();

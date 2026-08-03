@@ -152,6 +152,13 @@ QMenu::item:selected {
    background: %4;
 }
 
+QMenu::separator {
+   height: 1px;
+   background: %7;
+   border: 0;
+   margin: 5px 8px;
+}
+
 QToolBar {
    background: %1;
    border: 0;

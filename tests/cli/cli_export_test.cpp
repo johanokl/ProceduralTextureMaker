@@ -65,6 +65,9 @@ private slots:
    /// @brief Verifies explicit loading of external JavaScript generators.
    void loadsJavaScriptGeneratorsExplicitly();
 
+   /// @brief Verifies bundled generator source and the starter template are directly accessible.
+   void printsJavaScriptSources();
+
    /// @brief Verifies stable exit codes for usage and output failures.
    void returnsStableUsageAndOutputErrors();
 };
@@ -77,6 +80,7 @@ void CliExportTest::showsHelp() {
    QVERIFY(result.standardOutput.contains("--no-gui"));
    QVERIFY(result.standardOutput.contains("--node"));
    QVERIFY(result.standardOutput.contains("--list-nodes"));
+   QVERIFY(result.standardOutput.contains("--print-js-template"));
 
    const ProcessResult version = runApplication({QStringLiteral("--version")}, directory.path());
    QCOMPARE(version.exitCode, 0);
@@ -136,6 +140,22 @@ void CliExportTest::loadsJavaScriptGeneratorsExplicitly() {
    QVERIFY(!image.isNull());
    QCOMPARE(image.size(), QSize(3, 2));
    QCOMPARE(image.pixelColor(0, 0), QColor(0x12, 0x34, 0x56, 0xff));
+}
+
+void CliExportTest::printsJavaScriptSources() {
+   QTemporaryDir directory;
+   QVERIFY(directory.isValid());
+   const ProcessResult templateResult =
+       runApplication({QStringLiteral("--print-js-template")}, directory.path());
+   QCOMPARE(templateResult.exitCode, 0);
+   QVERIFY(templateResult.standardOutput.contains("apiVersion: 1"));
+   QVERIFY(templateResult.standardOutput.contains("My Generator"));
+
+   const ProcessResult maskResult = runApplication(
+       {QStringLiteral("--print-js-generator"), QStringLiteral("Mask")}, directory.path());
+   QCOMPARE(maskResult.exitCode, 0);
+   QVERIFY(maskResult.standardOutput.contains("name: \"Mask\""));
+   QVERIFY(maskResult.standardOutput.contains("type: \"combiner\""));
 }
 
 void CliExportTest::returnsStableUsageAndOutputErrors() {

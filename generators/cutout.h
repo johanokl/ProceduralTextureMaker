@@ -7,15 +7,16 @@
 #ifndef CUTOUTTEXTUREGENERATOR_H
 #define CUTOUTTEXTUREGENERATOR_H
 
-#include "texturegenerator.h"
+#include "base/texturegenerator.h"
 
 /// @brief The CutoutTextureGenerator class
 class CutoutTextureGenerator : public TextureGenerator {
 public:
    CutoutTextureGenerator();
    ~CutoutTextureGenerator() override = default;
-   void generate(QSize size, TexturePixel* destimage, QMap<QString, TextureImagePtr> sourceimages,
-                 TextureNodeSettings* settings) const override;
+   void generate(QSize size, TexturePixel* destimage,
+                 const QMap<QString, TextureImagePtr>& sourceimages,
+                 const TextureNodeSettings& settings) const override;
    QStringList getSourceSlots() const override {
       return {QStringLiteral("Image"), QStringLiteral("Mask")};
    }

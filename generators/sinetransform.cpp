@@ -66,9 +66,9 @@ SineTransformTextureGenerator::SineTransformTextureGenerator() {
    configurables.insert("offsettwo", offsettwo);
 }
 void SineTransformTextureGenerator::generate(QSize size, TexturePixel* destimage,
-                                             QMap<QString, TextureImagePtr> sourceimages,
-                                             TextureNodeSettings* settings) const {
-   if (!settings || !destimage || !size.isValid()) {
+                                             const QMap<QString, TextureImagePtr>& sourceimages,
+                                             const TextureNodeSettings& settings) const {
+   if (!destimage || !size.isValid()) {
       return;
    }
    if (!sourceimages.contains(QStringLiteral("Input"))) {
@@ -76,13 +76,13 @@ void SineTransformTextureGenerator::generate(QSize size, TexturePixel* destimage
       return;
    }
 
-   double angle = settings->value("angle").toDouble();
-   double frequencyone = settings->value("frequencyone").toDouble() * 5 / size.width();
-   double amplitudeone = settings->value("amplitudeone").toDouble() * size.width() / 100;
-   double offsetone = settings->value("offsetone").toDouble() * 5 / size.width();
-   double frequencytwo = settings->value("frequencytwo").toDouble() * 5 / size.width();
-   double amplitudetwo = settings->value("amplitudetwo").toDouble() * size.width() / 100;
-   double offsettwo = settings->value("offsettwo").toDouble() * 5 / size.width();
+   double angle = settings.value("angle").toDouble();
+   double frequencyone = settings.value("frequencyone").toDouble() * 5 / size.width();
+   double amplitudeone = settings.value("amplitudeone").toDouble() * size.width() / 100;
+   double offsetone = settings.value("offsetone").toDouble() * 5 / size.width();
+   double frequencytwo = settings.value("frequencytwo").toDouble() * 5 / size.width();
+   double amplitudetwo = settings.value("amplitudetwo").toDouble() * size.width() / 100;
+   double offsettwo = settings.value("offsettwo").toDouble() * 5 / size.width();
 
    TexturePixel* source = sourceimages.value(QStringLiteral("Input"))->getData();
    angle = (angle / 180.0) * ((double)M_PI);

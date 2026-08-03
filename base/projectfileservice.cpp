@@ -4,7 +4,7 @@
 // Johan Lindqvist (johan.lindqvist@gmail.com)
 
 #include "projectfileservice.h"
-#include "generators/texturegenerator.h"
+#include "base/texturegenerator.h"
 #include "textureproject.h"
 #include <QDomElement>
 #include <QFile>
@@ -57,10 +57,6 @@ void removeLegacyEmptySettings(QDomDocument& document) {
 
 }  // namespace
 
-/// @brief Loads and validates a project from an XML file.
-/// @param path Path of the project file to read.
-/// @param project Project that receives the loaded graph.
-/// @return The operation result, including an error message on failure.
 ProjectFileResult ProjectFileService::load(const QString& path, TextureProject& project) {
    QFile input(path);
    if (!input.open(QIODevice::ReadOnly | QIODevice::Text)) {
@@ -91,10 +87,6 @@ ProjectFileResult ProjectFileService::load(const QString& path, TextureProject& 
    return loadDocument(document, project);
 }
 
-/// @brief Validates the structure and references of a parsed project document.
-/// @param document Parsed project document to validate.
-/// @param project Project providing the available generator registry.
-/// @return Success when the document is valid, otherwise a validation failure.
 ProjectFileResult ProjectFileService::validate(const QDomDocument& document,
                                                const TextureProject& project) {
    const QDomElement root = document.documentElement();
@@ -201,10 +193,6 @@ ProjectFileResult ProjectFileService::validate(const QDomDocument& document,
    return {};
 }
 
-/// @brief Constructs a project from a parsed and validated XML document.
-/// @param document Parsed project document.
-/// @param project Project that receives the loaded graph.
-/// @return The operation result, including construction failures.
 ProjectFileResult ProjectFileService::loadDocument(const QDomDocument& document,
                                                    TextureProject& project) {
    ProjectFileResult validation = validate(document, project);
@@ -236,11 +224,6 @@ ProjectFileResult ProjectFileService::loadDocument(const QDomDocument& document,
    }
 }
 
-/// @brief Saves a project atomically as an XML file.
-/// @param path Destination path for the project file.
-/// @param project Project to serialize and mark as saved after a successful commit.
-/// @param overwrite Whether an existing destination may be replaced.
-/// @return The operation result, including an error message on failure.
 ProjectFileResult ProjectFileService::save(const QString& path, TextureProject& project,
                                            const bool overwrite) {
    const QFileInfo destination(path);
