@@ -208,6 +208,24 @@ QGroupBox::title {
    background: %1;
 }
 
+QGroupBox[previewSection="true"] {
+   background: transparent;
+   border: 0;
+   border-radius: 0;
+   margin-top: 18px;
+   padding: 8px 0 0 0;
+   font-weight: 600;
+}
+
+QGroupBox[previewSection="true"]::title {
+   subcontrol-origin: margin;
+   subcontrol-position: top left;
+   left: 0;
+   padding: 0;
+   color: %6;
+   background: transparent;
+}
+
 QLineEdit,
 QComboBox,
 QSpinBox,

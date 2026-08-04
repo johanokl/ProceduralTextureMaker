@@ -2,9 +2,11 @@
 #include "base/jstexgen.h"
 #include "base/textureproject.h"
 #include "gui/addnodepanel.h"
+#include "gui/cubewidget.h"
 #include "gui/iteminfopanel.h"
 #include "gui/mainwindow.h"
 #include "gui/nodesettingswidget.h"
+#include "gui/previewimagepanel.h"
 #include "sceneview/viewnodeline.h"
 #include "sceneview/viewnodeitem.h"
 #include "sceneview/viewnodescene.h"
@@ -16,10 +18,13 @@
 #include <QComboBox>
 #include <QMimeData>
 #include <QPushButton>
+#include <QScrollArea>
+#include <QScrollBar>
 #include <QSettings>
 #include <QStandardPaths>
 #include <QTemporaryDir>
 #include <QTest>
+#include <QVBoxLayout>
 #include <memory>
 
 /// @brief Exposes protected drag handlers for focused scene lifetime tests.
@@ -52,6 +57,8 @@ private slots:
    void restoresPersistedComboBoxSelection();
    /// @brief Verifies custom generator origins are routed to the three dedicated palette groups.
    void groupsCustomJavaScriptGenerators();
+   /// @brief Verifies preview ordering, node locking, and the optional 3D view.
+   void arrangesPreviewPanelViews();
 
 private:
    /// @brief Owns the isolated settings directory for the duration of the test.
@@ -265,6 +272,153 @@ void UiSmokeTest::groupsCustomJavaScriptGenerators() {
          QVERIFY(groupLayout->itemAt(index)->alignment().testFlag(Qt::AlignLeft));
       }
    }
+}
+
+void UiSmokeTest::arrangesPreviewPanelViews() {
+   TextureProject project(false);
+   SettingsManager settingsManager;
+   project.setSettingsManager(&settingsManager);
+   PreviewImagePanel panel(project);
+
+   auto* controls = panel.findChild<QWidget*>(QStringLiteral("previewControls"));
+   auto* previewScrollArea = panel.findChild<QScrollArea*>(QStringLiteral("previewScrollArea"));
+   auto* previewList = panel.findChild<QWidget*>(QStringLiteral("previewList"));
+   auto* lockButton = panel.findChild<QPushButton*>(QStringLiteral("lockNodeButton"));
+   auto* tileCount = panel.findChild<QComboBox*>(QStringLiteral("previewTileCount"));
+   auto* threeDButton = panel.findChild<QPushButton*>(QStringLiteral("showThreeDButton"));
+   auto* lockedPreview = panel.findChild<QGroupBox*>(QStringLiteral("lockedNodePreview"));
+   auto* selectedPreview = panel.findChild<QGroupBox*>(QStringLiteral("selectedNodePreview"));
+   auto* threeDPreview = panel.findChild<QGroupBox*>(QStringLiteral("threeDPreview"));
+   auto* selectedImage = panel.findChild<ImageLabel*>(QStringLiteral("selectedNodeImage"));
+   auto* lockedImage = panel.findChild<ImageLabel*>(QStringLiteral("lockedNodeImage"));
+   auto* cube = panel.findChild<CubeWidget*>(QStringLiteral("previewCube"));
+   auto* selectedRenderingOverlay =
+       selectedImage->findChild<QWidget*>(QStringLiteral("renderingOverlay"));
+   auto* lockedRenderingOverlay =
+       lockedImage->findChild<QWidget*>(QStringLiteral("renderingOverlay"));
+   QVERIFY(controls != nullptr);
+   QVERIFY(previewScrollArea != nullptr);
+   QVERIFY(previewList != nullptr);
+   QVERIFY(lockButton != nullptr);
+   QVERIFY(tileCount != nullptr);
+   QVERIFY(threeDButton != nullptr);
+   QVERIFY(lockedPreview != nullptr);
+   QVERIFY(selectedPreview != nullptr);
+   QVERIFY(threeDPreview != nullptr);
+   QVERIFY(selectedImage != nullptr);
+   QVERIFY(lockedImage != nullptr);
+   QVERIFY(cube != nullptr);
+   QVERIFY(selectedRenderingOverlay != nullptr);
+   QVERIFY(lockedRenderingOverlay != nullptr);
+
+   auto* layout = qobject_cast<QVBoxLayout*>(panel.layout());
+   QVERIFY(layout != nullptr);
+   QCOMPARE(layout->indexOf(controls), 0);
+   QCOMPARE(layout->indexOf(previewScrollArea), 1);
+   QCOMPARE(previewScrollArea->verticalScrollBarPolicy(), Qt::ScrollBarAsNeeded);
+   auto* previewLayout = qobject_cast<QVBoxLayout*>(previewList->layout());
+   QVERIFY(previewLayout != nullptr);
+   QCOMPARE(previewLayout->spacing(), 10);
+   QVERIFY(previewLayout->indexOf(lockedPreview) < previewLayout->indexOf(selectedPreview));
+   QVERIFY(previewLayout->indexOf(selectedPreview) < previewLayout->indexOf(threeDPreview));
+   for (int index = 0; index < previewLayout->count(); ++index) {
+      QVERIFY(previewLayout->itemAt(index)->spacerItem() == nullptr);
+   }
+   QCOMPARE(previewList->sizePolicy().horizontalPolicy(), QSizePolicy::Expanding);
+   QCOMPARE(selectedPreview->sizePolicy().horizontalPolicy(), QSizePolicy::Expanding);
+   QVERIFY(panel.maximumWidth() > 500);
+   QCOMPARE(lockButton->text(), QStringLiteral("Lock node"));
+   QCOMPARE(threeDButton->text(), QStringLiteral("3D"));
+   QVERIFY(panel.minimumWidth() >= controls->minimumSizeHint().width());
+
+   lockButton->setText(QStringLiteral("Unlock a node with a deliberately long label"));
+   QCoreApplication::processEvents();
+   const QMargins panelMargins = layout->contentsMargins();
+   const int controlsMinimumWidth =
+       controls->layout()->minimumSize().width() + panelMargins.left() + panelMargins.right();
+   QVERIFY(panel.minimumWidth() >= controlsMinimumWidth);
+   panel.resize(1, 900);
+   QCOMPARE(panel.width(), panel.minimumWidth());
+   QVERIFY(lockButton->geometry().right() <= controls->contentsRect().right());
+   lockButton->setText(QStringLiteral("Lock node"));
+   QCoreApplication::processEvents();
+
+   panel.resize(700, 900);
+   panel.show();
+   QPixmap previewPixmap(100, 100);
+   previewPixmap.fill(Qt::black);
+   selectedImage->setPixmap(previewPixmap);
+   selectedImage->show();
+   QCoreApplication::processEvents();
+   QVERIFY(selectedImage->width() > 256);
+   const int leftGap = previewList->x();
+   QCOMPARE(leftGap, 0);
+   const int rightGap =
+       previewScrollArea->viewport()->width() - previewList->geometry().right() - 1;
+   QVERIFY(qAbs(rightGap - previewScrollArea->verticalScrollBar()->sizeHint().width()) <= 1);
+   QVERIFY(lockedPreview->isHidden());
+   QVERIFY(!selectedPreview->isHidden());
+   QVERIFY(!threeDButton->isChecked());
+   QVERIFY(threeDPreview->isHidden());
+
+   project.newNode(1);
+   project.newNode(2);
+   panel.setActiveNode(1);
+   const int lockedButtonWidth = lockButton->minimumSizeHint().width();
+   const int lockStatePanelMinimumWidth = panel.minimumWidth();
+   lockButton->click();
+   QCoreApplication::processEvents();
+   QVERIFY(lockButton->isChecked());
+   QCOMPARE(lockButton->text(), QStringLiteral("Unlock node"));
+   QCOMPARE(lockButton->minimumSizeHint().width(), lockedButtonWidth);
+   QCOMPARE(panel.minimumWidth(), lockStatePanelMinimumWidth);
+   QVERIFY(!lockedPreview->isHidden());
+   QVERIFY(lockedPreview->geometry().bottom() < selectedPreview->geometry().top());
+
+   selectedImage->setPixmap(previewPixmap);
+   selectedImage->show();
+   lockedImage->setPixmap(previewPixmap);
+   lockedImage->show();
+   panel.imageUpdated(1);
+   QVERIFY(!selectedRenderingOverlay->isHidden());
+   QVERIFY(!lockedRenderingOverlay->isHidden());
+   selectedImage->setPixmap(previewPixmap);
+   lockedImage->setPixmap(previewPixmap);
+   QVERIFY(selectedRenderingOverlay->isHidden());
+   QVERIFY(lockedRenderingOverlay->isHidden());
+
+   panel.setActiveNode(2);
+   project.removeNode(1);
+   QVERIFY(!lockButton->isChecked());
+   QCOMPARE(lockButton->text(), QStringLiteral("Lock node"));
+   QVERIFY(lockedPreview->isHidden());
+
+   threeDButton->click();
+   QVERIFY(threeDButton->isChecked());
+   QVERIFY(!threeDPreview->isHidden());
+
+   selectedImage->setPixmap(previewPixmap);
+   selectedImage->show();
+   cube->setTexture(previewPixmap);
+   cube->show();
+   panel.imageUpdated(2);
+   QVERIFY(!cube->isHidden());
+   QVERIFY(selectedImage->pixmapWithRenderingOverlay().toImage() != previewPixmap.toImage());
+
+   lockedPreview->show();
+   lockedImage->setPixmap(previewPixmap);
+   lockedImage->show();
+   cube->show();
+   panel.resize(700, 400);
+   QCoreApplication::processEvents();
+   QVERIFY(previewScrollArea->verticalScrollBar()->isVisible());
+   QCOMPARE(previewList->x(), leftGap);
+   QCOMPARE(cube->height(), cube->width());
+   QCOMPARE(selectedImage->height(), selectedImage->width());
+   QCOMPARE(lockedImage->height(), lockedImage->width());
+   QVERIFY(threeDPreview->contentsRect().contains(cube->geometry()));
+   QVERIFY(selectedPreview->contentsRect().contains(selectedImage->geometry()));
+   QVERIFY(lockedPreview->contentsRect().contains(lockedImage->geometry()));
 }
 
 /// @brief Runs the UI smoke test with the production application subclass.

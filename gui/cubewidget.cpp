@@ -10,10 +10,14 @@
 
 CubeWidget::CubeWidget(QWidget* parent)
     : QOpenGLWidget(parent), indexBuf(QOpenGLBuffer::IndexBuffer) {
-   QSizePolicy sizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::MinimumExpanding);
+   QSizePolicy sizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
    sizePolicy.setHeightForWidth(true);
    setSizePolicy(sizePolicy);
 }
+
+QSize CubeWidget::sizeHint() const { return {256, 256}; }
+
+int CubeWidget::heightForWidth(const int width) const { return width; }
 
 CubeWidget::~CubeWidget() {
    // Make sure the context is current when deleting the texture
@@ -28,30 +32,45 @@ CubeWidget::~CubeWidget() {
    }
 }
 
-void CubeWidget::mousePressEvent(QMouseEvent* e) { mousePressPosition = QVector2D(e->position()); }
-
-void CubeWidget::mouseReleaseEvent(QMouseEvent* e) {
-   // Mouse release position - mouse press position
-   QVector2D diff = QVector2D(e->position()) - mousePressPosition;
-   // Rotation axis is perpendicular to the mouse position difference
-   QVector3D n = QVector3D(diff.y(), diff.x(), 0.0).normalized();
-   // Accelerate angular speed relative to the length of the mouse sweep
-   qreal acc = diff.length() / 50.0;
-   // Calculate new rotation axis as weighted sum
-   rotationAxis = (rotationAxis * angularSpeed + n * acc).normalized();
-   // Increase angular speed
-   angularSpeed += acc;
+void CubeWidget::mousePressEvent(QMouseEvent* event) {
+   if (event->button() == Qt::RightButton) {
+      rotation = QQuaternion();
+      update();
+      event->accept();
+      return;
+   }
+   if (event->button() == Qt::LeftButton) {
+      mousePosition = QVector2D(event->position());
+      event->accept();
+      return;
+   }
+   QOpenGLWidget::mousePressEvent(event);
 }
 
-void CubeWidget::timerEvent(QTimerEvent*) {
-   // Decrease angular speed (friction)
-   angularSpeed *= 0.99;
-   // Stop rotation when speed goes below threshold
-   if (isVisible() && (textureUpdated || angularSpeed > 0.01)) {
-      rotation = QQuaternion::fromAxisAndAngle(rotationAxis, angularSpeed) * rotation;
-      textureUpdated = false;
-      update();
+void CubeWidget::mouseMoveEvent(QMouseEvent* event) {
+   if (!event->buttons().testFlag(Qt::LeftButton)) {
+      QOpenGLWidget::mouseMoveEvent(event);
+      return;
    }
+   const QVector2D currentPosition(event->position());
+   QVector2D movement = currentPosition - mousePosition;
+   mousePosition = currentPosition;
+   if (movement.isNull()) {
+      return;
+   }
+   if (qAbs(movement.y()) * 4.0F < qAbs(movement.x())) {
+      movement.setY(0.0F);
+   } else if (qAbs(movement.x()) * 4.0F < qAbs(movement.y())) {
+      movement.setX(0.0F);
+   }
+   const float degreesPerPixel = 180.0F / static_cast<float>(qMax(1, qMin(width(), height())));
+   const QQuaternion yaw =
+       QQuaternion::fromAxisAndAngle(QVector3D(0.0F, 1.0F, 0.0F), movement.x() * degreesPerPixel);
+   const QQuaternion pitch =
+       QQuaternion::fromAxisAndAngle(QVector3D(1.0F, 0.0F, 0.0F), movement.y() * degreesPerPixel);
+   rotation = (pitch * yaw * rotation).normalized();
+   update();
+   event->accept();
 }
 
 void CubeWidget::initializeGL() {
@@ -73,12 +92,12 @@ void CubeWidget::initializeGL() {
    CubeWidget::VertexData vertices[] = {
        {QVector3D(-1, -1, 1), QVector2D(0, 0)},  {QVector3D(1, -1, 1), QVector2D(1, 0)},
        {QVector3D(-1, 1, 1), QVector2D(0, 1)},   {QVector3D(1, 1, 1), QVector2D(1, 1)},
-       {QVector3D(1, -1, 1), QVector2D(0, 1)},   {QVector3D(1, -1, -1), QVector2D(0, 0)},
-       {QVector3D(1, 1, 1), QVector2D(1, 1)},    {QVector3D(1, 1, -1), QVector2D(1, 0)},
+       {QVector3D(1, -1, 1), QVector2D(0, 0)},   {QVector3D(1, -1, -1), QVector2D(1, 0)},
+       {QVector3D(1, 1, 1), QVector2D(0, 1)},    {QVector3D(1, 1, -1), QVector2D(1, 1)},
        {QVector3D(1, -1, -1), QVector2D(1, 0)},  {QVector3D(-1, -1, -1), QVector2D(0, 0)},
        {QVector3D(1, 1, -1), QVector2D(1, 1)},   {QVector3D(-1, 1, -1), QVector2D(0, 1)},
-       {QVector3D(-1, -1, -1), QVector2D(0, 0)}, {QVector3D(-1, -1, 1), QVector2D(0, 1)},
-       {QVector3D(-1, 1, -1), QVector2D(1, 0)},  {QVector3D(-1, 1, 1), QVector2D(1, 1)},
+       {QVector3D(-1, -1, -1), QVector2D(0, 0)}, {QVector3D(-1, -1, 1), QVector2D(1, 0)},
+       {QVector3D(-1, 1, -1), QVector2D(0, 1)},  {QVector3D(-1, 1, 1), QVector2D(1, 1)},
        {QVector3D(-1, -1, -1), QVector2D(0, 0)}, {QVector3D(1, -1, -1), QVector2D(1, 0)},
        {QVector3D(-1, -1, 1), QVector2D(0, 1)},  {QVector3D(1, -1, 1), QVector2D(1, 1)},
        {QVector3D(-1, 1, 1), QVector2D(0, 1)},   {QVector3D(1, 1, 1), QVector2D(1, 1)},
@@ -91,8 +110,6 @@ void CubeWidget::initializeGL() {
    // Transfer index data to VBO 1
    indexBuf.bind();
    indexBuf.allocate(indices, 34 * sizeof(GLushort));
-   // Use QBasicTimer because its faster than QTimer
-   timer.start(24, this);
    initialized = true;
    uploadTexture();
 }
@@ -111,20 +128,19 @@ void CubeWidget::setBackgroundColor(const QColor& bg) {
 void CubeWidget::setTexture(const QPixmap& pixmap) {
    pendingTexture = pixmap;
    if (!initialized) {
-      textureUpdated = true;
       update();
       return;
    }
    makeCurrent();
    uploadTexture();
    doneCurrent();
+   update();
 }
 
 void CubeWidget::uploadTexture() {
    if (texture) {
       texture->release();
       texture.reset();
-      textureUpdated = true;
    }
    if (!pendingTexture.isNull() && !pendingTexture.size().isEmpty()) {
       QImage image = pendingTexture.toImage();
@@ -136,7 +152,6 @@ void CubeWidget::uploadTexture() {
       texture = std::make_unique<QOpenGLTexture>(image);
       texture->setMinificationFilter(QOpenGLTexture::Nearest);
       texture->setMagnificationFilter(QOpenGLTexture::Linear);
-      textureUpdated = true;
    }
 }
 
@@ -145,8 +160,8 @@ void CubeWidget::resizeGL(int width, int height) {
    // Reset projection
    projection.setToIdentity();
    // Set perspective projection
-   // Near plane to 3.0, far plane to 7.0, field of view 45 degrees
-   projection.perspective(45.0, aspectRatio, 3.0, 7.0);
+   // Keep the near plane well in front of the cube so rotations are not clipped.
+   projection.perspective(45.0, aspectRatio, 1.0, 10.0);
 }
 
 void CubeWidget::paintGL() {
@@ -166,7 +181,7 @@ void CubeWidget::paintGL() {
    }
    // Calculate model view transformation
    QMatrix4x4 matrix;
-   matrix.translate(0.0, 0.0, -5.0);
+   matrix.translate(0.0, 0.0, -4.0);
    matrix.rotate(rotation);
    program.setUniformValue("mvp_matrix", projection * matrix);
    program.setUniformValue("texture", 0);

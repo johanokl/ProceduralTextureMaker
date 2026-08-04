@@ -11,7 +11,6 @@
 #include <QOpenGLFunctions>
 #include <QVector3D>
 #include <memory>
-#include <QBasicTimer>
 #include <QOpenGLShaderProgram>
 #include <QOpenGLTexture>
 #include <QOpenGLFunctions>
@@ -37,6 +36,14 @@ public:
    /// @brief Releases the cube's OpenGL resources.
    ~CubeWidget() override;
 
+   /// @brief Returns the preferred square viewport size.
+   QSize sizeHint() const override;
+
+   /// @brief Returns the square viewport height for the available width.
+   /// @param width Available viewport width.
+   /// @return Matching viewport height.
+   int heightForWidth(int width) const override;
+
    /// @brief Schedules a pixmap for display on all six sides of the cube.
    /// @param pixmap Texture to display.
    void setTexture(const QPixmap& pixmap);
@@ -50,17 +57,13 @@ public slots:
    void setBackgroundColor(const QColor& color);
 
 protected:
-   /// @brief Stores the starting position for a mouse-driven rotation.
-   /// @param e Mouse press event.
-   void mousePressEvent(QMouseEvent* e) override;
+   /// @brief Starts a left-button rotation or resets it with the right button.
+   /// @param event Mouse press event.
+   void mousePressEvent(QMouseEvent* event) override;
 
-   /// @brief Updates cube rotation from the completed mouse drag.
-   /// @param e Mouse release event.
-   void mouseReleaseEvent(QMouseEvent* e) override;
-
-   /// @brief Advances cube rotation using the current angular speed.
-   /// @param e Timer event.
-   void timerEvent(QTimerEvent* e) override;
+   /// @brief Rotates the cube while the left mouse button is dragged.
+   /// @param event Mouse move event.
+   void mouseMoveEvent(QMouseEvent* event) override;
 
    /// @brief Initializes OpenGL resources and cube geometry.
    void initializeGL() override;
@@ -80,24 +83,16 @@ private:
    /// @brief Uploads the pending texture to the GPU.
    void uploadTexture();
 
-   /// @brief Timer driving inertial cube rotation.
-   QBasicTimer timer;
    /// @brief Shader program used to render the cube.
    QOpenGLShaderProgram program;
    /// @brief Texture currently uploaded to the GPU.
    std::unique_ptr<QOpenGLTexture> texture;
    /// @brief Pixmap waiting to be uploaded as the cube texture.
    QPixmap pendingTexture;
-   /// @brief Whether the pending texture must be uploaded.
-   bool textureUpdated{false};
    /// @brief Perspective projection matrix.
    QMatrix4x4 projection;
-   /// @brief Position at which the current mouse drag began.
-   QVector2D mousePressPosition;
-   /// @brief Axis used for inertial cube rotation.
-   QVector3D rotationAxis;
-   /// @brief Current inertial rotation speed.
-   double angularSpeed{0.0};
+   /// @brief Most recent position in the active mouse drag.
+   QVector2D mousePosition;
    /// @brief Current cube orientation.
    QQuaternion rotation;
    /// @brief Whether a texture is available for rendering.
