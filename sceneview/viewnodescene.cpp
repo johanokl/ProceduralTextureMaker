@@ -17,6 +17,7 @@
 #include <QKeyEvent>
 #include <QMenu>
 #include <QMessageBox>
+#include <QPainter>
 #include <QMimeData>
 #include <QSettings>
 
@@ -281,11 +282,16 @@ void ViewNodeScene::settingsUpdated() {
    if (settingsManager != nullptr) {
       QColor backgroundColor = settingsManager->getBackgroundColor();
       auto brushStyle = Qt::BrushStyle(settingsManager->getBackgroundBrush());
-      if (brushStyle == Qt::NoBrush) {
-         brushStyle = Qt::SolidPattern;
-      }
-      setBackgroundBrush(QBrush(backgroundColor, brushStyle));
+      setBackgroundBrush(QBrush(backgroundColor, Qt::SolidPattern));
+      backgroundPatternBrush = QBrush(settingsManager->getBackgroundBrushColor(), brushStyle);
       update();
+   }
+}
+
+void ViewNodeScene::drawBackground(QPainter* painter, const QRectF& rect) {
+   QGraphicsScene::drawBackground(painter, rect);
+   if (backgroundPatternBrush.style() != Qt::NoBrush) {
+      painter->fillRect(rect, backgroundPatternBrush);
    }
 }
 

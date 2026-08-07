@@ -64,6 +64,7 @@ set(PROCEDURAL_TEXTURE_MAKER_SOURCES
     gui/clipboardoperations.cpp
     gui/clipboardoperations.h
 
+    base/backgroundbrushstyles.h
     base/settingsmanager.cpp
     base/settingsmanager.h
     base/projectfileservice.cpp
@@ -103,6 +104,7 @@ set(PROCEDURAL_TEXTURE_MAKER_SOURCES
     gui/nodesettingswidget.h
     gui/previewimagepanel.cpp
     gui/previewimagepanel.h
+    gui/texturebackground.h
     gui/qdoubleslider.h
     gui/sceneinfowidget.cpp
     gui/sceneinfowidget.h

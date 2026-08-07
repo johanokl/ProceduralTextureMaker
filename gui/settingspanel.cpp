@@ -5,6 +5,7 @@
 // Johan Lindqvist (johan.lindqvist@gmail.com)
 
 #include "base/settingsmanager.h"
+#include "base/backgroundbrushstyles.h"
 #include "gui/mainwindow.h"
 #include "gui/menuactions.h"
 #include "settingspanel.h"
@@ -24,6 +25,16 @@
 #include <QSlider>
 #include <QSpinBox>
 #include <QVBoxLayout>
+
+namespace {
+
+void populateBackgroundBrushStyles(QComboBox* combobox) {
+   for (const BackgroundBrushStyles::Option& option : BackgroundBrushStyles::options) {
+      combobox->addItem(option.label, static_cast<int>(option.style));
+   }
+}
+
+}  // namespace
 
 SettingsPanel::SettingsPanel(MainWindow* parent, SettingsManager* settingsmanager)
     : QWidget(parent), settingsmanager(settingsmanager), mainwindow(parent) {
@@ -55,25 +66,20 @@ SettingsPanel::SettingsPanel(MainWindow* parent, SettingsManager* settingsmanage
    sceneLayout->addWidget(backgroundColorLabel, 0, 0);
    sceneLayout->addWidget(backgroundColorButton, 0, 1);
 
-   QLabel* backgroundBrushLabel = new QLabel("Background brush:");
+   QLabel* backgroundBrushColorLabel = new QLabel("Background overlay color:");
+   backgroundBrushColorButton = new QPushButton("");
+   QObject::connect(backgroundBrushColorButton,
+                    static_cast<void (QPushButton::*)(bool)>(&QPushButton::clicked),
+                    [=](bool) { this->colorDialog(backgroundBrushColorButton); });
+   sceneLayout->addWidget(backgroundBrushColorLabel, 1, 0);
+   sceneLayout->addWidget(backgroundBrushColorButton, 1, 1);
+
+   QLabel* backgroundBrushLabel = new QLabel("Background overlay style:");
    backgroundBrushCombobox = new QComboBox;
-   backgroundBrushCombobox->addItem("Solid", static_cast<int>(Qt::SolidPattern));
-   backgroundBrushCombobox->addItem("Horizontal", static_cast<int>(Qt::HorPattern));
-   backgroundBrushCombobox->addItem("Vertical", static_cast<int>(Qt::VerPattern));
-   backgroundBrushCombobox->addItem("Cross", static_cast<int>(Qt::CrossPattern));
-   backgroundBrushCombobox->addItem("Backward Diagonal", static_cast<int>(Qt::BDiagPattern));
-   backgroundBrushCombobox->addItem("Forward Diagonal", static_cast<int>(Qt::FDiagPattern));
-   backgroundBrushCombobox->addItem("Diagonal Cross", static_cast<int>(Qt::DiagCrossPattern));
-   backgroundBrushCombobox->addItem("Dense 1", static_cast<int>(Qt::Dense1Pattern));
-   backgroundBrushCombobox->addItem("Dense 2", static_cast<int>(Qt::Dense2Pattern));
-   backgroundBrushCombobox->addItem("Dense 3", static_cast<int>(Qt::Dense3Pattern));
-   backgroundBrushCombobox->addItem("Dense 4", static_cast<int>(Qt::Dense4Pattern));
-   backgroundBrushCombobox->addItem("Dense 5", static_cast<int>(Qt::Dense5Pattern));
-   backgroundBrushCombobox->addItem("Dense 6", static_cast<int>(Qt::Dense6Pattern));
-   backgroundBrushCombobox->addItem("Dense 7", static_cast<int>(Qt::Dense7Pattern));
+   populateBackgroundBrushStyles(backgroundBrushCombobox);
    backgroundBrushCombobox->setCurrentIndex(0);
-   sceneLayout->addWidget(backgroundBrushLabel, 1, 0);
-   sceneLayout->addWidget(backgroundBrushCombobox, 1, 1);
+   sceneLayout->addWidget(backgroundBrushLabel, 2, 0);
+   sceneLayout->addWidget(backgroundBrushCombobox, 2, 1);
 
    QLabel* zoomSpeedLabel = new QLabel("Zoom speed:");
    zoomSpeedSlider = new QSlider(Qt::Horizontal, this);
@@ -81,11 +87,11 @@ SettingsPanel::SettingsPanel(MainWindow* parent, SettingsManager* settingsmanage
    zoomSpeedSlider->setMaximum(4);
    zoomSpeedSlider->setSingleStep(1);
    zoomSpeedValueLabel = new QLabel(this);
-   sceneLayout->addWidget(zoomSpeedLabel, 2, 0);
-   sceneLayout->addWidget(zoomSpeedSlider, 2, 1);
-   sceneLayout->addWidget(zoomSpeedValueLabel, 2, 2);
+   sceneLayout->addWidget(zoomSpeedLabel, 3, 0);
+   sceneLayout->addWidget(zoomSpeedSlider, 3, 1);
+   sceneLayout->addWidget(zoomSpeedValueLabel, 3, 2);
 
-   QGroupBox* nodeWidget = new QGroupBox("Node");
+   QGroupBox* nodeWidget = new QGroupBox("Nodes");
    auto* nodeLayout = new QGridLayout;
    nodeWidget->setLayout(nodeLayout);
    nodeWidget->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Preferred);
@@ -114,6 +120,28 @@ SettingsPanel::SettingsPanel(MainWindow* parent, SettingsManager* settingsmanage
    nodeLayout->addWidget(headerSizeLabel, 2, 0);
    nodeLayout->addWidget(headerSizeSlider, 2, 1);
    nodeLayout->addWidget(headerSizeValueLabel, 2, 2);
+
+   QLabel* nodeBackgroundColorLabel = new QLabel("Background color:");
+   nodeBackgroundColorButton = new QPushButton("");
+   QObject::connect(nodeBackgroundColorButton,
+                    static_cast<void (QPushButton::*)(bool)>(&QPushButton::clicked),
+                    [=](bool) { this->colorDialog(nodeBackgroundColorButton); });
+   nodeLayout->addWidget(nodeBackgroundColorLabel, 3, 0);
+   nodeLayout->addWidget(nodeBackgroundColorButton, 3, 1);
+
+   QLabel* nodeBackgroundBrushColorLabel = new QLabel("Background overlay color:");
+   nodeBackgroundBrushColorButton = new QPushButton("");
+   QObject::connect(nodeBackgroundBrushColorButton,
+                    static_cast<void (QPushButton::*)(bool)>(&QPushButton::clicked),
+                    [=](bool) { this->colorDialog(nodeBackgroundBrushColorButton); });
+   nodeLayout->addWidget(nodeBackgroundBrushColorLabel, 4, 0);
+   nodeLayout->addWidget(nodeBackgroundBrushColorButton, 4, 1);
+
+   QLabel* nodeBackgroundBrushLabel = new QLabel("Background overlay style:");
+   nodeBackgroundBrushCombobox = new QComboBox;
+   populateBackgroundBrushStyles(nodeBackgroundBrushCombobox);
+   nodeLayout->addWidget(nodeBackgroundBrushLabel, 5, 0);
+   nodeLayout->addWidget(nodeBackgroundBrushCombobox, 5, 1);
 
    QGroupBox* connectionsWidget = new QGroupBox("Connections");
    auto* connectionsLayout = new QGridLayout;
@@ -203,13 +231,13 @@ SettingsPanel::SettingsPanel(MainWindow* parent, SettingsManager* settingsmanage
    previewWidget->setLayout(previewLayout);
    previewWidget->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Preferred);
    contentsLayout->addWidget(previewWidget);
-   QLabel* previewBackgroundColorLabel = new QLabel("Background color:");
+   QLabel* previewBackgroundColorLabel = new QLabel("3D view background:");
    previewBackgroundColorButton = new QPushButton("");
    QObject::connect(previewBackgroundColorButton,
                     static_cast<void (QPushButton::*)(bool)>(&QPushButton::clicked),
                     [=](bool) { this->colorDialog(previewBackgroundColorButton); });
-   previewLayout->addWidget(previewBackgroundColorLabel, 2, 0);
-   previewLayout->addWidget(previewBackgroundColorButton, 2, 1);
+   previewLayout->addWidget(previewBackgroundColorLabel, 0, 0);
+   previewLayout->addWidget(previewBackgroundColorButton, 0, 1);
 
    QGroupBox* saveButtonBox = new QGroupBox("");
    auto* saveButtonLayout = new QGridLayout;
@@ -238,6 +266,8 @@ SettingsPanel::SettingsPanel(MainWindow* parent, SettingsManager* settingsmanage
    QObject::connect(headerSizeSlider, sliderChanged, this, &SettingsPanel::applySettings);
    QObject::connect(zoomSpeedSlider, sliderChanged, this, &SettingsPanel::applySettings);
    QObject::connect(backgroundBrushCombobox, comboboxChanged, this, &SettingsPanel::applySettings);
+   QObject::connect(nodeBackgroundBrushCombobox, comboboxChanged, this,
+                    &SettingsPanel::applySettings);
    QObject::connect(jsGeneratorEnabledCheckbox, &QCheckBox::toggled, this,
                     &SettingsPanel::applySettings);
    QObject::connect(displaySourceNamesCheckbox, &QCheckBox::toggled, this,
@@ -315,7 +345,11 @@ void SettingsPanel::applySettings() {
        QSize(thumbnailWidthSpinbox->value(), thumbnailHeightSpinbox->value()));
    settingsmanager->setPreviewBackgroundColor(QColor(previewBackgroundColorButton->text()));
    settingsmanager->setBackgroundColor(QColor(backgroundColorButton->text()));
+   settingsmanager->setBackgroundBrushColor(QColor(backgroundBrushColorButton->text()));
    settingsmanager->setBackgroundBrush(backgroundBrushCombobox->currentData().toInt());
+   settingsmanager->setNodeBackgroundColor(QColor(nodeBackgroundColorButton->text()));
+   settingsmanager->setNodeBackgroundBrushColor(QColor(nodeBackgroundBrushColorButton->text()));
+   settingsmanager->setNodeBackgroundBrush(nodeBackgroundBrushCombobox->currentData().toInt());
    settingsmanager->setJSTextureGeneratorsPath(jsGeneratorPathEdit->text());
    settingsmanager->setJSTextureGeneratorsEnabled(jsGeneratorEnabledCheckbox->isChecked());
    settingsmanager->setConnectionLabelSize(connectionLabelSizeSlider->value());
@@ -450,10 +484,17 @@ void SettingsPanel::settingsUpdated() {
    zoomSpeedSlider->setValue(zoomSliderForFactor(zoomFactor));
    jsGeneratorEnabledCheckbox->setChecked(settingsmanager->getJSTextureGeneratorsEnabled());
    styleColorButton(backgroundColorButton, settingsmanager->getBackgroundColor());
+   styleColorButton(backgroundBrushColorButton, settingsmanager->getBackgroundBrushColor());
+   styleColorButton(nodeBackgroundColorButton, settingsmanager->getNodeBackgroundColor());
+   styleColorButton(nodeBackgroundBrushColorButton, settingsmanager->getNodeBackgroundBrushColor());
    styleColorButton(previewBackgroundColorButton, settingsmanager->getPreviewBackgroundColor());
    int index = backgroundBrushCombobox->findData(settingsmanager->getBackgroundBrush());
    if (index != -1) {
       backgroundBrushCombobox->setCurrentIndex(index);
+   }
+   index = nodeBackgroundBrushCombobox->findData(settingsmanager->getNodeBackgroundBrush());
+   if (index != -1) {
+      nodeBackgroundBrushCombobox->setCurrentIndex(index);
    }
    blockSlot = false;
    applySettings();
@@ -475,10 +516,17 @@ void SettingsPanel::resetSettings() {
    jsGeneratorPathEdit->setText(QDir::toNativeSeparators(QDir::homePath() + "/TexGen"));
    jsGeneratorEnabledCheckbox->setChecked(false);
    styleColorButton(backgroundColorButton, QColor("#c8c8c8"));
+   styleColorButton(backgroundBrushColorButton, QColor("#000000"));
+   styleColorButton(nodeBackgroundColorButton, QColor("#ffffff"));
+   styleColorButton(nodeBackgroundBrushColorButton, QColor("#dedede"));
    styleColorButton(previewBackgroundColorButton, QColor("#c8c8c8"));
-   int index = backgroundBrushCombobox->findData(static_cast<int>(Qt::SolidPattern));
+   int index = backgroundBrushCombobox->findData(static_cast<int>(Qt::NoBrush));
    if (index != -1) {
       backgroundBrushCombobox->setCurrentIndex(index);
+   }
+   index = nodeBackgroundBrushCombobox->findData(static_cast<int>(Qt::CrossPattern));
+   if (index != -1) {
+      nodeBackgroundBrushCombobox->setCurrentIndex(index);
    }
    blockSlot = false;
    applySettings();
@@ -513,7 +561,11 @@ void SettingsPanel::saveSettings() {
    settingsmanager->setDisplayReceiverNames(displayReceiverNamesCheckbox->isChecked());
    settingsmanager->setPreviewBackgroundColor(QColor(previewBackgroundColorButton->text()));
    settingsmanager->setBackgroundColor(QColor(backgroundColorButton->text()));
+   settingsmanager->setBackgroundBrushColor(QColor(backgroundBrushColorButton->text()));
    settingsmanager->setBackgroundBrush(backgroundBrushCombobox->currentData().toInt());
+   settingsmanager->setNodeBackgroundColor(QColor(nodeBackgroundColorButton->text()));
+   settingsmanager->setNodeBackgroundBrushColor(QColor(nodeBackgroundBrushColorButton->text()));
+   settingsmanager->setNodeBackgroundBrush(nodeBackgroundBrushCombobox->currentData().toInt());
    if (!settingsmanager->saveSettings()) {
       QMessageBox::warning(this, QStringLiteral("Settings error"),
                            QStringLiteral("Could not save the application settings."));

@@ -9,6 +9,7 @@
 #include "global.h"
 #include "gui/cubewidget.h"
 #include "gui/previewimagepanel.h"
+#include "gui/texturebackground.h"
 #include <QComboBox>
 #include <QEvent>
 #include <QGroupBox>
@@ -395,14 +396,27 @@ QPixmap PreviewImagePanel::nodePixmap(int id) {
    return newImage;
 }
 
+QPixmap PreviewImagePanel::pixmapWithNodeBackground(const QPixmap& pixmap) const {
+   if (pixmap.isNull()) {
+      return {};
+   }
+   const SettingsManager* settingsManager = project.getSettingsManager();
+   if (settingsManager == nullptr) {
+      return pixmap;
+   }
+   return TextureBackground::composite(pixmap, settingsManager->getNodeBackgroundColor(),
+                                       settingsManager->getNodeBackgroundBrushColor(),
+                                       Qt::BrushStyle(settingsManager->getNodeBackgroundBrush()));
+}
+
 bool PreviewImagePanel::loadSelectedNodeImage() {
    const QPixmap newImage = nodePixmap(selectedNodeId);
    if (newImage.isNull()) {
       return false;
    }
-   selectedImageLabel->setPixmap(newImage);
+   selectedImageLabel->setPixmap(pixmapWithNodeBackground(newImage));
    selectedImageLabel->show();
-   cubeWidget->setTexture(newImage);
+   cubeWidget->setTexture(pixmapWithNodeBackground(newImage));
    cubeWidget->setVisible(showThreeDButton->isChecked());
    updatePreviewLayout();
    return true;
@@ -413,7 +427,7 @@ bool PreviewImagePanel::loadLockedNodeImage() {
    if (newImage.isNull()) {
       return false;
    }
-   lockedImageLabel->setPixmap(newImage);
+   lockedImageLabel->setPixmap(pixmapWithNodeBackground(newImage));
    lockedImageLabel->show();
    updatePreviewLayout();
    return true;
@@ -473,7 +487,7 @@ void PreviewImagePanel::nodeRemoved(int id) {
 
 QPixmap PreviewImagePanel::tilePixmap(const QPixmap& pixmap, int number) {
    QPixmap newPixmap(pixmap.size() * number);
-   newPixmap.fill(QColor(255, 255, 255, 255));
+   newPixmap.fill(Qt::transparent);
    QPainter painter(&newPixmap);
    painter.setCompositionMode(QPainter::CompositionMode_SourceOver);
    painter.fillRect(0, 0, newPixmap.width(), newPixmap.height(), QBrush(pixmap));

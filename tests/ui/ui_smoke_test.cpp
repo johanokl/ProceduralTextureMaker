@@ -7,6 +7,7 @@
 #include "gui/mainwindow.h"
 #include "gui/nodesettingswidget.h"
 #include "gui/previewimagepanel.h"
+#include "gui/texturebackground.h"
 #include "sceneview/viewnodeline.h"
 #include "sceneview/viewnodeitem.h"
 #include "sceneview/viewnodescene.h"
@@ -45,6 +46,8 @@ class UiSmokeTest : public QObject {
 private slots:
    /// @brief Isolates application settings and initializes the test environment.
    void initTestCase();
+   /// @brief Verifies transparent texture backgrounds are composited consistently.
+   void compositesTextureBackground();
    /// @brief Verifies that a tracked project loads into a scene-backed window.
    void loadsProjectIntoSceneBackedWindow();
    /// @brief Verifies ownership of temporary connection and drag items.
@@ -75,6 +78,24 @@ void UiSmokeTest::initTestCase() {
    QSettings::setPath(QSettings::IniFormat, QSettings::UserScope, settingsDirectory->path());
    QSettings settings;
    settings.setValue(QStringLiteral("showhelpstartup"), false);
+}
+
+void UiSmokeTest::compositesTextureBackground() {
+   QImage textureImage(16, 16, QImage::Format_ARGB32);
+   textureImage.fill(Qt::transparent);
+   textureImage.setPixelColor(0, 0, Qt::red);
+   const QPixmap texture = QPixmap::fromImage(textureImage);
+
+   const QPixmap withoutOverlay = TextureBackground::composite(
+       texture, QColor(QStringLiteral("#ffffff")), QColor(QStringLiteral("#dedede")), Qt::NoBrush);
+   const QImage withoutOverlayImage = withoutOverlay.toImage();
+   QCOMPARE(withoutOverlayImage.pixelColor(0, 0), QColor(Qt::red));
+   QCOMPARE(withoutOverlayImage.pixelColor(1, 1), QColor(Qt::white));
+
+   const QPixmap withOverlay =
+       TextureBackground::composite(texture, QColor(QStringLiteral("#ffffff")),
+                                    QColor(QStringLiteral("#dedede")), Qt::CrossPattern);
+   QVERIFY(withOverlay.toImage() != withoutOverlayImage);
 }
 
 void UiSmokeTest::loadsProjectIntoSceneBackedWindow() {

@@ -131,7 +131,15 @@ private:
    QCheckBox* displayReceiverNamesCheckbox{nullptr};
    /// @brief Button representing the graph background color.
    QPushButton* backgroundColorButton{nullptr};
-   /// @brief Button representing the image-preview background color.
+   /// @brief Button representing the graph background brush color.
+   QPushButton* backgroundBrushColorButton{nullptr};
+   /// @brief Button representing the base color behind transparent node textures.
+   QPushButton* nodeBackgroundColorButton{nullptr};
+   /// @brief Button representing the overlay color behind transparent node textures.
+   QPushButton* nodeBackgroundBrushColorButton{nullptr};
+   /// @brief Selector for the overlay style behind transparent node textures.
+   QComboBox* nodeBackgroundBrushCombobox{nullptr};
+   /// @brief Button representing the 3D-view background color.
    QPushButton* previewBackgroundColorButton{nullptr};
    /// @brief Selector for the graph background brush style.
    QComboBox* backgroundBrushCombobox{nullptr};

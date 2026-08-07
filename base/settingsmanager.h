@@ -49,6 +49,19 @@ public:
    /// @return The configured node graph background color.
    QColor getBackgroundColor() const;
 
+   /// @brief Gets the color used by the node graph background brush.
+   /// @return The configured node graph background brush color.
+   QColor getBackgroundBrushColor() const;
+
+   /// @brief Gets the base color shown behind transparent node textures.
+   QColor getNodeBackgroundColor() const;
+
+   /// @brief Gets the overlay color shown behind transparent node textures.
+   QColor getNodeBackgroundBrushColor() const;
+
+   /// @brief Gets the overlay brush style shown behind transparent node textures.
+   int getNodeBackgroundBrush() const;
+
    /// @brief Gets the background brush style for the node graph view.
    /// @return The saved integer value corresponding to `Qt::BrushStyle`.
    int getBackgroundBrush() const;
@@ -90,6 +103,19 @@ public slots:
    /// @param value The new node graph background color.
    void setBackgroundColor(const QColor& value);
 
+   /// @brief Sets the color used by the node graph background brush.
+   /// @param value The new node graph background brush color.
+   void setBackgroundBrushColor(const QColor& value);
+
+   /// @brief Sets the base color shown behind transparent node textures.
+   void setNodeBackgroundColor(const QColor& value);
+
+   /// @brief Sets the overlay color shown behind transparent node textures.
+   void setNodeBackgroundBrushColor(const QColor& value);
+
+   /// @brief Sets the overlay brush style shown behind transparent node textures.
+   void setNodeBackgroundBrush(int value);
+
    /// @brief Sets the background brush style for the node graph view.
    /// @param val The new integer value corresponding to `Qt::BrushStyle`.
    void setBackgroundBrush(int val);
@@ -128,6 +154,14 @@ private:
    QColor previewBackgroundColor;
    /// @brief Background color used by the node graph view.
    QColor backgroundColor;
+   /// @brief Color used by the node graph background brush.
+   QColor backgroundBrushColor;
+   /// @brief Base color shown behind transparent node textures.
+   QColor nodeBackgroundColor;
+   /// @brief Overlay color shown behind transparent node textures.
+   QColor nodeBackgroundBrushColor;
+   /// @brief Integer value of the transparent node texture overlay brush style.
+   int nodeBackgroundBrush;
    /// @brief Integer value of the node graph's Qt brush style.
    int backgroundBrush;
    /// @brief Font size used for connection endpoint labels.

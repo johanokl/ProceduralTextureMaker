@@ -19,6 +19,7 @@ class TextureGenerator;
 class MainWindow;
 class QAction;
 class QGraphicsRectItem;
+class QPainter;
 
 /// @brief Visualizes a texture project as an interactive node graph.
 /// Manages node items, connection lines, selection, and graph editing gestures.
@@ -90,6 +91,9 @@ public:
    void setSelectedLine(int sourceNode, int receiverNode, const QString& slot);
 
 protected:
+   /// @brief Paints the base scene color and optional brush pattern.
+   void drawBackground(QPainter* painter, const QRectF& rect) override;
+
    /// @brief Updates selection when the scene is clicked.
    /// @param mouseEvent Mouse press event.
    void mousePressEvent(QGraphicsSceneMouseEvent* mouseEvent) override;
@@ -220,6 +224,8 @@ private:
    std::tuple<int, int, QString> selectedLine{-1, 0, QString()};
    /// @brief Whether an interactive connection operation is active.
    bool lineDrawing{false};
+   /// @brief Optional brush painted over the solid scene background.
+   QBrush backgroundPatternBrush;
 };
 
 #endif  // VIEWNODESCENE_H

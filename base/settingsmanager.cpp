@@ -5,6 +5,7 @@
 // Johan Lindqvist (johan.lindqvist@gmail.com)
 
 #include "settingsmanager.h"
+#include "backgroundbrushstyles.h"
 #include <QColor>
 #include <QDir>
 #include <QSettings>
@@ -30,9 +31,7 @@ QColor validColorOrDefault(const QColor& value, const QColor& fallback) {
 }
 
 int validBrushOrDefault(const int value, const int fallback) {
-   return value >= static_cast<int>(Qt::NoBrush) && value <= static_cast<int>(Qt::TexturePattern)
-              ? value
-              : fallback;
+   return BackgroundBrushStyles::isSupported(value) ? value : fallback;
 }
 
 }  // namespace
@@ -40,7 +39,8 @@ int validBrushOrDefault(const int value, const int fallback) {
 SettingsManager::SettingsManager(QObject* parent)
     : QObject(parent),
       jsTextureGeneratorsEnabled(false),
-      backgroundBrush(0),
+      nodeBackgroundBrush(static_cast<int>(Qt::CrossPattern)),
+      backgroundBrush(static_cast<int>(Qt::NoBrush)),
       connectionLabelSize(12),
       displaySourceNames(false),
       displayReceiverNames(false) {
@@ -114,10 +114,58 @@ void SettingsManager::setBackgroundColor(const QColor& val) {
    }
 }
 
+QColor SettingsManager::getBackgroundBrushColor() const { return backgroundBrushColor; }
+
+void SettingsManager::setBackgroundBrushColor(const QColor& val) {
+   if (!val.isValid()) {
+      return;
+   }
+   if (val != backgroundBrushColor) {
+      backgroundBrushColor = val;
+      emit settingsUpdated();
+   }
+}
+
+QColor SettingsManager::getNodeBackgroundColor() const { return nodeBackgroundColor; }
+
+void SettingsManager::setNodeBackgroundColor(const QColor& val) {
+   if (!val.isValid()) {
+      return;
+   }
+   if (val != nodeBackgroundColor) {
+      nodeBackgroundColor = val;
+      emit settingsUpdated();
+   }
+}
+
+QColor SettingsManager::getNodeBackgroundBrushColor() const { return nodeBackgroundBrushColor; }
+
+void SettingsManager::setNodeBackgroundBrushColor(const QColor& val) {
+   if (!val.isValid()) {
+      return;
+   }
+   if (val != nodeBackgroundBrushColor) {
+      nodeBackgroundBrushColor = val;
+      emit settingsUpdated();
+   }
+}
+
+int SettingsManager::getNodeBackgroundBrush() const { return nodeBackgroundBrush; }
+
+void SettingsManager::setNodeBackgroundBrush(int val) {
+   if (!BackgroundBrushStyles::isSupported(val)) {
+      return;
+   }
+   if (val != nodeBackgroundBrush) {
+      nodeBackgroundBrush = val;
+      emit settingsUpdated();
+   }
+}
+
 int SettingsManager::getBackgroundBrush() const { return backgroundBrush; }
 
 void SettingsManager::setBackgroundBrush(int val) {
-   if (val < static_cast<int>(Qt::NoBrush) || val > static_cast<int>(Qt::TexturePattern)) {
+   if (!BackgroundBrushStyles::isSupported(val)) {
       return;
    }
    if (val != backgroundBrush) {
@@ -170,7 +218,11 @@ bool SettingsManager::saveSettings() const {
    settings.setValue("jstexturegeneratorsenabled", jsTextureGeneratorsEnabled);
    settings.setValue("previewbackgroundcolor", previewBackgroundColor.name());
    settings.setValue("backgroundcolor", backgroundColor.name());
+   settings.setValue("backgroundbrushcolor", backgroundBrushColor.name());
    settings.setValue("backgroundbrush", backgroundBrush);
+   settings.setValue("nodebackgroundcolor", nodeBackgroundColor.name());
+   settings.setValue("nodebackgroundbrushcolor", nodeBackgroundBrushColor.name());
+   settings.setValue("nodebackgroundbrush", nodeBackgroundBrush);
    settings.setValue("connectionlabelsize", connectionLabelSize);
    settings.setValue("displaysourcenames", displaySourceNames);
    settings.setValue("displayreceivernames", displayReceiverNames);
@@ -196,7 +248,24 @@ bool SettingsManager::readSettings() {
                            defaultBackgroundColor);
    QColor newBackgroundColor = validColorOrDefault(
        QColor(settings.value("backgroundcolor", "#c8c8c8").toString()), defaultBackgroundColor);
-   int newBackgroundBrush = validBrushOrDefault(settings.value("backgroundbrush", 1).toInt(), 1);
+   const QColor defaultBackgroundBrushColor(QStringLiteral("#000000"));
+   QColor newBackgroundBrushColor =
+       validColorOrDefault(QColor(settings.value("backgroundbrushcolor", "#000000").toString()),
+                           defaultBackgroundBrushColor);
+   int newBackgroundBrush =
+       validBrushOrDefault(settings.value("backgroundbrush", static_cast<int>(Qt::NoBrush)).toInt(),
+                           static_cast<int>(Qt::NoBrush));
+   const QColor defaultNodeBackgroundColor(QStringLiteral("#ffffff"));
+   QColor newNodeBackgroundColor =
+       validColorOrDefault(QColor(settings.value("nodebackgroundcolor", "#ffffff").toString()),
+                           defaultNodeBackgroundColor);
+   const QColor defaultNodeBackgroundBrushColor(QStringLiteral("#dedede"));
+   QColor newNodeBackgroundBrushColor =
+       validColorOrDefault(QColor(settings.value("nodebackgroundbrushcolor", "#dedede").toString()),
+                           defaultNodeBackgroundBrushColor);
+   int newNodeBackgroundBrush = validBrushOrDefault(
+       settings.value("nodebackgroundbrush", static_cast<int>(Qt::CrossPattern)).toInt(),
+       static_cast<int>(Qt::CrossPattern));
    int newConnectionLabelSize = settings.value("connectionlabelsize", 12).toInt();
    if (newConnectionLabelSize < 8 || newConnectionLabelSize > 24) {
       newConnectionLabelSize = 12;
@@ -204,14 +273,18 @@ bool SettingsManager::readSettings() {
    bool newDisplaySourceNames = settings.value("displaysourcenames", true).toBool();
    bool newDisplayReceiverNames = settings.value("displayreceivernames", false).toBool();
 
-   bool changed = previewSize != newPreviewSize || thumbnailSize != newThumbnailSize ||
-                  jsTextureGeneratorsPath != newJsTextureGeneratorsPath ||
-                  jsTextureGeneratorsEnabled != newJsTextureGeneratorsEnabled ||
-                  previewBackgroundColor != newPreviewBackgroundColor ||
-                  backgroundColor != newBackgroundColor || backgroundBrush != newBackgroundBrush ||
-                  connectionLabelSize != newConnectionLabelSize ||
-                  displaySourceNames != newDisplaySourceNames ||
-                  displayReceiverNames != newDisplayReceiverNames;
+   bool changed =
+       previewSize != newPreviewSize || thumbnailSize != newThumbnailSize ||
+       jsTextureGeneratorsPath != newJsTextureGeneratorsPath ||
+       jsTextureGeneratorsEnabled != newJsTextureGeneratorsEnabled ||
+       previewBackgroundColor != newPreviewBackgroundColor ||
+       backgroundColor != newBackgroundColor || backgroundBrushColor != newBackgroundBrushColor ||
+       backgroundBrush != newBackgroundBrush || nodeBackgroundColor != newNodeBackgroundColor ||
+       nodeBackgroundBrushColor != newNodeBackgroundBrushColor ||
+       nodeBackgroundBrush != newNodeBackgroundBrush ||
+       connectionLabelSize != newConnectionLabelSize ||
+       displaySourceNames != newDisplaySourceNames ||
+       displayReceiverNames != newDisplayReceiverNames;
 
    previewSize = newPreviewSize;
    thumbnailSize = newThumbnailSize;
@@ -219,7 +292,11 @@ bool SettingsManager::readSettings() {
    jsTextureGeneratorsEnabled = newJsTextureGeneratorsEnabled;
    previewBackgroundColor = newPreviewBackgroundColor;
    backgroundColor = newBackgroundColor;
+   backgroundBrushColor = newBackgroundBrushColor;
    backgroundBrush = newBackgroundBrush;
+   nodeBackgroundColor = newNodeBackgroundColor;
+   nodeBackgroundBrushColor = newNodeBackgroundBrushColor;
+   nodeBackgroundBrush = newNodeBackgroundBrush;
    connectionLabelSize = newConnectionLabelSize;
    displaySourceNames = newDisplaySourceNames;
    displayReceiverNames = newDisplayReceiverNames;

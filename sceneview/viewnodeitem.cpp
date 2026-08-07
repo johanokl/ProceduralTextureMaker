@@ -4,9 +4,11 @@
 // Released under GPLv3.
 // Johan Lindqvist (johan.lindqvist@gmail.com)
 
+#include "base/settingsmanager.h"
 #include "base/textureproject.h"
 #include "gui/clipboardoperations.h"
 #include "gui/mainwindow.h"
+#include "gui/texturebackground.h"
 #include "base/editmanager.h"
 #include "sceneview/viewnodeitem.h"
 #include "sceneview/viewnodeline.h"
@@ -174,7 +176,16 @@ void ViewNodeItem::imageAvailable(QSize size) {
          return;
       }
       const TextureImage& texture = *image;
-      pixmap = QPixmap::fromImage(texture.toQImageView());
+      const QPixmap texturePixmap = QPixmap::fromImage(texture.toQImageView());
+      const SettingsManager* settingsManager = scene.getTextureProject().getSettingsManager();
+      if (settingsManager == nullptr) {
+         pixmap = texturePixmap;
+      } else {
+         pixmap = TextureBackground::composite(
+             texturePixmap, settingsManager->getNodeBackgroundColor(),
+             settingsManager->getNodeBackgroundBrushColor(),
+             Qt::BrushStyle(settingsManager->getNodeBackgroundBrush()));
+      }
       imageValid = true;
       update();
    }

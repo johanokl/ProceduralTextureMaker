@@ -71,6 +71,9 @@ private:
    /// @return The tiled thumbnail, or a null pixmap when no cached image is available.
    QPixmap nodePixmap(int id);
 
+   /// @brief Composites a texture over the configured transparent-node background.
+   QPixmap pixmapWithNodeBackground(const QPixmap& pixmap) const;
+
    /// @brief Repeats a pixmap in a square tile arrangement.
    /// @param pixmap Source image.
    /// @param number Number of tiles along each dimension.
