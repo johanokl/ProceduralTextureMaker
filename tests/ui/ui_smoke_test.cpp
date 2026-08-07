@@ -1,8 +1,10 @@
 #include "base/settingsmanager.h"
+#include "base/editmanager.h"
 #include "base/jstexgen.h"
 #include "base/textureproject.h"
 #include "gui/addnodepanel.h"
 #include "gui/cubewidget.h"
+#include "gui/generatorinfowidget.h"
 #include "gui/iteminfopanel.h"
 #include "gui/mainwindow.h"
 #include "gui/nodesettingswidget.h"
@@ -14,8 +16,10 @@
 #include "texgenapplication.h"
 #include <QGraphicsSceneDragDropEvent>
 #include <QGraphicsView>
+#include <QFormLayout>
 #include <QGridLayout>
 #include <QGroupBox>
+#include <QLabel>
 #include <QComboBox>
 #include <QMimeData>
 #include <QPushButton>
@@ -60,6 +64,10 @@ private slots:
    void restoresPersistedComboBoxSelection();
    /// @brief Verifies custom generator origins are routed to the three dedicated palette groups.
    void groupsCustomJavaScriptGenerators();
+   /// @brief Verifies clicking a palette button displays its generator metadata.
+   void selectsGeneratorFromAddNodePanel();
+   /// @brief Verifies generator and graph selections clear one another.
+   void keepsGeneratorAndGraphSelectionsExclusive();
    /// @brief Verifies preview ordering, node locking, and the optional 3D view.
    void arrangesPreviewPanelViews();
 
@@ -293,6 +301,213 @@ void UiSmokeTest::groupsCustomJavaScriptGenerators() {
          QVERIFY(groupLayout->itemAt(index)->alignment().testFlag(Qt::AlignLeft));
       }
    }
+}
+
+void UiSmokeTest::selectsGeneratorFromAddNodePanel() {
+   const QString description = QStringLiteral(
+       "Generator details that are deliberately long enough to wrap across several lines in the "
+       "information panel without being clipped or partially rendered.");
+   const QString sourceIdentity = QStringLiteral(
+       "C:/test-data/procedural-texture-maker/javascript-generators/long-path/inspectable.js");
+   TextureProject project(false);
+   EditManager editManager(project);
+   AddNodePanel addNodePanel(project);
+   ItemInfoPanel infoPanel(nullptr, &project, &editManager);
+   QObject::connect(&addNodePanel, &AddNodePanel::generatorSelected, &infoPanel,
+                    &ItemInfoPanel::setActiveGenerator);
+
+   const QString script =
+       QStringLiteral(
+           "const generator={apiVersion:1,name:'Inspectable',description:'%1',"
+           "type:'filter',inputs:['Image','Mask'],settings:{amount:{type:'integer',name:'Amount',"
+           "description:'Effect strength',default:4,min:0,max:10,order:1}},"
+           "generate(size,settings,output){void size;void settings;output.data.fill(0);}};")
+           .arg(description);
+   const TextureGeneratorPtr generator(
+       new JsTexGen(script, sourceIdentity, TextureGenerator::Origin::Custom));
+   QVERIFY(static_cast<JsTexGen*>(generator.data())->isValid());
+   project.addGenerator(generator);
+
+   addNodePanel.show();
+   infoPanel.resize(340, 450);
+   infoPanel.show();
+   QApplication::processEvents();
+   QPushButton* generatorButton = nullptr;
+   for (QPushButton* button : addNodePanel.findChildren<QPushButton*>()) {
+      if (button->text() == QStringLiteral("Inspectable")) {
+         generatorButton = button;
+         break;
+      }
+   }
+   QVERIFY(generatorButton != nullptr);
+   QCOMPARE(project.getNumNodes(), 0);
+   QTest::mouseClick(generatorButton, Qt::LeftButton);
+   QApplication::processEvents();
+   QCOMPARE(project.getNumNodes(), 0);
+
+   auto* generatorInfo =
+       infoPanel.findChild<GeneratorInfoWidget*>(QStringLiteral("generatorInfoInspector"));
+   QVERIFY(generatorInfo != nullptr);
+   QVERIFY(!generatorInfo->isHidden());
+   QCOMPARE(generatorInfo->getGenerator(), generator);
+   auto* nameLabel = infoPanel.findChild<QLabel*>(QStringLiteral("generatorInfoName"));
+   QCOMPARE(nameLabel->text(), QStringLiteral("Inspectable"));
+   QVERIFY(qobject_cast<QGroupBox*>(nameLabel->parentWidget()) == nullptr);
+   QVERIFY(nameLabel->font().bold());
+   QVERIFY(nameLabel->font().pointSizeF() > QApplication::font().pointSizeF());
+   QCOMPARE(nameLabel->alignment(), Qt::AlignLeft | Qt::AlignVCenter);
+   QCOMPARE(nameLabel->contentsMargins().left(), 8);
+
+   QMap<QString, QGroupBox*> infoGroups;
+   for (QGroupBox* group : generatorInfo->findChildren<QGroupBox*>()) {
+      infoGroups.insert(group->title(), group);
+   }
+   QCOMPARE(infoGroups.keys(),
+            QStringList({QStringLiteral("Available properties"), QStringLiteral("Description"),
+                         QStringLiteral("Details"), QStringLiteral("Inputs")}));
+   QCOMPARE(infoPanel.findChild<QLabel*>(QStringLiteral("generatorInfoType"))->text(),
+            QStringLiteral("Filter"));
+   QCOMPARE(infoPanel.findChild<QLabel*>(QStringLiteral("generatorInfoOrigin"))->text(),
+            QStringLiteral("Custom"));
+   auto* descriptionLabel =
+       infoPanel.findChild<QLabel*>(QStringLiteral("generatorInfoDescription"));
+   QCOMPARE(descriptionLabel->text(), description);
+   QVERIFY(descriptionLabel->wordWrap());
+   QVERIFY(descriptionLabel->font().bold());
+   QVERIFY(descriptionLabel->height() >=
+           descriptionLabel->heightForWidth(descriptionLabel->width()));
+   const QList<QLabel*> inputLabels =
+       infoPanel.findChildren<QLabel*>(QStringLiteral("generatorInfoInput"));
+   QCOMPARE(inputLabels.size(), 2);
+   QCOMPARE(inputLabels.at(0)->text(), QStringLiteral("Image"));
+   QCOMPARE(inputLabels.at(1)->text(), QStringLiteral("Mask"));
+   QVERIFY(inputLabels.at(0)->font().bold());
+   QVERIFY(inputLabels.at(1)->font().bold());
+   QVERIFY(inputLabels.at(1)->geometry().top() > inputLabels.at(0)->geometry().bottom());
+   auto* sourceLabel = infoPanel.findChild<QLabel*>(QStringLiteral("generatorInfoSource"));
+   auto* sourceKeyLabel = infoPanel.findChild<QLabel*>(QStringLiteral("generatorInfoSourceKey"));
+   QCOMPARE(sourceLabel->text(), sourceIdentity);
+   QVERIFY(sourceLabel->wordWrap());
+   auto* detailsGroup = infoPanel.findChild<QGroupBox*>(QStringLiteral("generatorInfoDetails"));
+   auto* detailsLayout = qobject_cast<QFormLayout*>(detailsGroup->layout());
+   int sourceKeyRow = -1;
+   int sourceValueRow = -1;
+   QFormLayout::ItemRole sourceKeyRole = QFormLayout::SpanningRole;
+   QFormLayout::ItemRole sourceValueRole = QFormLayout::SpanningRole;
+   detailsLayout->getWidgetPosition(sourceKeyLabel, &sourceKeyRow, &sourceKeyRole);
+   detailsLayout->getWidgetPosition(sourceLabel, &sourceValueRow, &sourceValueRole);
+   QCOMPARE(sourceKeyRow, sourceValueRow);
+   QCOMPARE(sourceKeyRole, QFormLayout::LabelRole);
+   QCOMPARE(sourceValueRole, QFormLayout::FieldRole);
+   QCOMPARE(sourceKeyLabel->alignment(), Qt::AlignLeft | Qt::AlignTop);
+   QCOMPARE(sourceLabel->geometry().left(),
+            infoPanel.findChild<QLabel*>(QStringLiteral("generatorInfoType"))->geometry().left());
+   QCOMPARE(sourceLabel->geometry().left(),
+            infoPanel.findChild<QLabel*>(QStringLiteral("generatorInfoOrigin"))->geometry().left());
+   QVERIFY2(sourceLabel->height() >= sourceLabel->heightForWidth(sourceLabel->width()),
+            qPrintable(QStringLiteral("source size %1x%2 requires height %3 (minimum %4)")
+                           .arg(sourceLabel->width())
+                           .arg(sourceLabel->height())
+                           .arg(sourceLabel->heightForWidth(sourceLabel->width()))
+                           .arg(sourceLabel->minimumHeight())));
+
+   infoPanel.resize(500, 450);
+   QApplication::processEvents();
+   infoPanel.resize(340, 450);
+   QApplication::processEvents();
+   QCOMPARE(sourceLabel->text(), sourceIdentity);
+   QVERIFY(sourceLabel->height() >= sourceLabel->heightForWidth(sourceLabel->width()));
+
+   const int wrappedSourceHeight = sourceLabel->height();
+   const int wrappedDetailsHeight = detailsGroup->height();
+   const TextureGeneratorPtr shortSourceGenerator(
+       new JsTexGen(script, QString(), TextureGenerator::Origin::Custom));
+   QVERIFY(static_cast<JsTexGen*>(shortSourceGenerator.data())->isValid());
+   infoPanel.setActiveGenerator(shortSourceGenerator);
+   QApplication::processEvents();
+   QCOMPARE(sourceLabel->text(), QStringLiteral("Built-in C++"));
+   QVERIFY(sourceLabel->height() < wrappedSourceHeight);
+   QVERIFY(detailsGroup->height() < wrappedDetailsHeight);
+   for (QLabel* label : generatorInfo->findChildren<QLabel*>()) {
+      QVERIFY(!label->text().contains(QStringLiteral("Default:")));
+   }
+}
+
+void UiSmokeTest::keepsGeneratorAndGraphSelectionsExclusive() {
+   auto* application = qobject_cast<TexGenApplication*>(QCoreApplication::instance());
+   QVERIFY(application != nullptr);
+   MainWindow window(application);
+   window.openFile(QStringLiteral(PTM_SOURCE_DIR "/examples/wall.txl"));
+
+   auto* addNodePanel = window.findChild<AddNodePanel*>();
+   auto* infoPanel = window.findChild<ItemInfoPanel*>();
+   auto* view = window.findChild<QGraphicsView*>();
+   QVERIFY(addNodePanel != nullptr);
+   QVERIFY(infoPanel != nullptr);
+   QVERIFY(view != nullptr);
+   auto* scene = dynamic_cast<ViewNodeScene*>(view->scene());
+   QVERIFY(scene != nullptr);
+
+   QPushButton* generatorButton = nullptr;
+   QPushButton* filterButton = nullptr;
+   for (QPushButton* button : addNodePanel->findChildren<QPushButton*>()) {
+      if (button->text() == QStringLiteral("Fill")) {
+         generatorButton = button;
+      } else if (button->text() == QStringLiteral("Box blur")) {
+         filterButton = button;
+      }
+   }
+   QVERIFY(generatorButton != nullptr);
+   QVERIFY(filterButton != nullptr);
+
+   generatorButton->click();
+   QVERIFY(generatorButton->isChecked());
+   filterButton->click();
+   QVERIFY(filterButton->isChecked());
+   QVERIFY(!generatorButton->isChecked());
+   generatorButton->click();
+   QVERIFY(generatorButton->isChecked());
+   QVERIFY(!filterButton->isChecked());
+   QVERIFY(scene->selectedItems().isEmpty());
+   QCOMPARE(scene->getSelectedNode(), -1);
+   QVERIFY(!infoPanel->findChild<GeneratorInfoWidget*>(QStringLiteral("generatorInfoInspector"))
+                ->isHidden());
+
+   ViewNodeItem* nodeItem = scene->getItem(13);
+   QVERIFY(nodeItem != nullptr);
+   nodeItem->setSelected(true);
+   scene->setSelectedNode(nodeItem->getId());
+   QVERIFY(!generatorButton->isChecked());
+
+   generatorButton->click();
+   QVERIFY(generatorButton->isChecked());
+   QVERIFY(!nodeItem->isSelected());
+   QCOMPARE(scene->getSelectedNode(), -1);
+
+   ViewNodeLine* lineItem = nullptr;
+   for (QGraphicsItem* item : scene->items()) {
+      lineItem = dynamic_cast<ViewNodeLine*>(item);
+      if (lineItem != nullptr) {
+         break;
+      }
+   }
+   QVERIFY(lineItem != nullptr);
+   scene->clearSelection();
+   lineItem->setSelected(true);
+   scene->setSelectedLine(lineItem->getStartItemId(), lineItem->getEndItemId(),
+                          lineItem->getSlot());
+   QVERIFY(!generatorButton->isChecked());
+
+   generatorButton->click();
+   QVERIFY(generatorButton->isChecked());
+   QVERIFY(!lineItem->isSelected());
+   QCOMPARE(scene->getSelectedNode(), -1);
+
+   auto* generatorInfo =
+       infoPanel->findChild<GeneratorInfoWidget*>(QStringLiteral("generatorInfoInspector"));
+   scene->selectSceneBackground();
+   QVERIFY(!generatorButton->isChecked());
+   QVERIFY(generatorInfo->isHidden());
 }
 
 void UiSmokeTest::arrangesPreviewPanelViews() {

@@ -210,6 +210,19 @@ void ViewNodeScene::setSelectedLine(int sourceNode, int receiverNode, const QStr
    emit lineSelected(sourceNode, receiverNode, slot);
 }
 
+void ViewNodeScene::clearGraphSelection() {
+   QGraphicsScene::clearSelection();
+   selectedNode = -1;
+   selectedLine = std::tuple<int, int, QString>(-1, 0, QString());
+   emit nodeSelected(-1);
+}
+
+void ViewNodeScene::selectSceneBackground() {
+   QGraphicsScene::clearSelection();
+   setSelectedNode(-1);
+   emit sceneBackgroundSelected();
+}
+
 void ViewNodeScene::nodeSettingsUpdated(int id) {
    ViewNodeItem* node = nodeItems.value(id);
    if (node) {
@@ -336,10 +349,15 @@ void ViewNodeScene::startLineDrawing(int nodeId) {
 }
 
 void ViewNodeScene::mousePressEvent(QGraphicsSceneMouseEvent* mouseEvent) {
+   const bool backgroundSelected = mouseEvent->button() == Qt::LeftButton &&
+                                   itemAt(mouseEvent->scenePos(), QTransform()) == nullptr;
    if (lineDrawing && mouseEvent->button() == Qt::LeftButton) {
       endLineDrawing(-1);
    }
    QGraphicsScene::mousePressEvent(mouseEvent);
+   if (backgroundSelected) {
+      selectSceneBackground();
+   }
 }
 
 void ViewNodeScene::mouseMoveEvent(QGraphicsSceneMouseEvent* mouseEvent) {

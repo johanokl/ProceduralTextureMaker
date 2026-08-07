@@ -11,6 +11,7 @@
 #include <QMap>
 #include <QWidget>
 class TextureProject;
+class QButtonGroup;
 class QGridLayout;
 class QGroupBox;
 
@@ -39,12 +40,22 @@ public slots:
    /// @param generator Generator whose button is removed.
    void removeGenerator(const TextureGeneratorPtr& generator);
 
+   /// @brief Unchecks the currently selected generator button, if any.
+   void clearGeneratorSelection();
+
+signals:
+   /// @brief Emitted when a generator button is clicked without being dragged.
+   /// @param generator Generator represented by the selected button.
+   void generatorSelected(TextureGeneratorPtr generator);
+
 private:
    QGridLayout* layoutFor(const TextureGeneratorPtr& generator) const;
    void updateCustomGroupVisibility();
 
    /// @brief Maps each registered generator to its draggable button.
    QMap<TextureGeneratorPtr, QWidget*> widgets;
+   /// @brief Enforces one selected generator button across all category groups.
+   QButtonGroup* buttonGroup{nullptr};
    /// @brief Grid layout for filter generator buttons.
    QGridLayout* filtersLayout{nullptr};
    /// @brief Grid layout for combiner generator buttons.

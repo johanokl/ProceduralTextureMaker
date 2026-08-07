@@ -11,6 +11,7 @@
 #include "gui/connectionwidget.h"
 #include "gui/nodesettingswidget.h"
 #include <QApplication>
+#include <QButtonGroup>
 #include <QDrag>
 #include <QGroupBox>
 #include <QLabel>
@@ -42,11 +43,16 @@ public:
    /// @param event Mouse move event.
    void mouseMoveEvent(QMouseEvent* event) override;
 
+   /// @brief Completes an ordinary click unless the press started a drag.
+   void mouseReleaseEvent(QMouseEvent* event) override;
+
 private:
    /// @brief Position where the current mouse press began.
    QPoint dragStartPosition;
    /// @brief Generator name placed in drag mime data.
    QString generatorName;
+   /// @brief Whether the current press has started a drag operation.
+   bool dragStarted{false};
 };
 
 AddNodeButton::~AddNodeButton() = default;
@@ -54,21 +60,39 @@ AddNodeButton::~AddNodeButton() = default;
 void AddNodeButton::mousePressEvent(QMouseEvent* event) {
    if (event->button() == Qt::LeftButton) {
       dragStartPosition = event->pos();
+      dragStarted = false;
    }
+   QPushButton::mousePressEvent(event);
 }
 
 void AddNodeButton::mouseMoveEvent(QMouseEvent* event) {
    if (((event->buttons() & Qt::LeftButton) > 0) &&
        (event->pos() - dragStartPosition).manhattanLength() > QApplication::startDragDistance()) {
+      dragStarted = true;
+      setDown(false);
       auto* drag = new QDrag(this);
       auto* mimeData = new QMimeData;
       mimeData->setText(generatorName);
       drag->setMimeData(mimeData);
       drag->exec(Qt::CopyAction | Qt::MoveAction);
+      return;
    }
+   QPushButton::mouseMoveEvent(event);
+}
+
+void AddNodeButton::mouseReleaseEvent(QMouseEvent* event) {
+   if (dragStarted) {
+      dragStarted = false;
+      setDown(false);
+      event->accept();
+      return;
+   }
+   QPushButton::mouseReleaseEvent(event);
 }
 
 AddNodePanel::AddNodePanel(TextureProject& project) {
+   buttonGroup = new QButtonGroup(this);
+   buttonGroup->setExclusive(true);
    auto* layout = new QVBoxLayout(this);
    auto* area = new QScrollArea;
    area->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
@@ -147,6 +171,14 @@ void AddNodePanel::removeGenerator(const TextureGeneratorPtr& generator) {
    }
 }
 
+void AddNodePanel::clearGeneratorSelection() {
+   buttonGroup->setExclusive(false);
+   for (QAbstractButton* button : buttonGroup->buttons()) {
+      button->setChecked(false);
+   }
+   buttonGroup->setExclusive(true);
+}
+
 void AddNodePanel::addGenerator(const TextureGeneratorPtr& generator) {
    if (widgets.contains(generator)) {
       return;
@@ -159,6 +191,10 @@ void AddNodePanel::addGenerator(const TextureGeneratorPtr& generator) {
       }
    }
    auto* newButton = new AddNodeButton(this, generatorName);
+   newButton->setCheckable(true);
+   buttonGroup->addButton(newButton);
+   QObject::connect(newButton, &QPushButton::clicked, this,
+                    [this, generator]() { emit generatorSelected(generator); });
    widgets.insert(generator, newButton);
 #ifdef Q_OS_MAC
    newButton->setFixedSize(112, 56);
@@ -182,7 +218,11 @@ void AddNodePanel::addGenerator(const TextureGeneratorPtr& generator) {
                                     "  padding: 6px;"
                                     "}"
                                     "QPushButton:hover { background-color: %3; }"
-                                    "QPushButton:pressed { background-color: %4; }")
+                                    "QPushButton:pressed { background-color: %4; }"
+                                    "QPushButton:checked {"
+                                    "  background-color: %4;"
+                                    "  border: 3px solid palette(highlight);"
+                                    "}")
                                 .arg(buttonColor.name(), fontColor, buttonColor.lighter(112).name(),
                                      buttonColor.darker(120).name()));
    QGridLayout* destLayout = layoutFor(generator);

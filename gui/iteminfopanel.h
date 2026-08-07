@@ -16,6 +16,7 @@ class TextureProject;
 class NodeSettingsWidget;
 class ConnectionWidget;
 class SceneInfoWidget;
+class GeneratorInfoWidget;
 class EditManager;
 
 /// @brief Displays scene, node, or connection information for the current graph selection.
@@ -48,6 +49,9 @@ public slots:
    /// @param slot Receiver input slot identifier.
    void setActiveLine(int sourceNodeId, int receiverNodeId, QString slot);
 
+   /// @brief Displays metadata for a generator selected in the add-node panel.
+   void setActiveGenerator(const TextureGeneratorPtr& generator);
+
    /// @brief Removes cached information for a deleted node.
    /// @param id Deleted node identifier.
    void removeNode(int id);
@@ -79,6 +83,10 @@ private:
    QPointer<NodeSettingsWidget> currWidget;
    /// @brief Widget displayed when no graph item is selected.
    SceneInfoWidget* sceneWidget{nullptr};
+   /// @brief Widget displaying the selected generator definition.
+   GeneratorInfoWidget* generatorWidget{nullptr};
+   /// @brief Generator definition currently displayed by the panel.
+   TextureGeneratorPtr currGenerator;
    /// @brief Identifier of the currently displayed node.
    int currNodeId{0};
    /// @brief Source, receiver, and slot of the currently displayed connection.

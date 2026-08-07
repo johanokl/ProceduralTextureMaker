@@ -6,6 +6,7 @@
 
 #include "base/textureproject.h"
 #include "gui/connectionwidget.h"
+#include "gui/generatorinfowidget.h"
 #include "gui/iteminfopanel.h"
 #include "gui/nodesettingswidget.h"
 #include "gui/sceneinfowidget.h"
@@ -16,17 +17,26 @@ ItemInfoPanel::ItemInfoPanel(QWidget* parent, TextureProject* project, EditManag
     : QWidget(parent), texproject(project), editManager(editManager) {
    sceneWidget = new SceneInfoWidget(*this);
    lineWidget = new ConnectionWidget(*this);
+   generatorWidget = new GeneratorInfoWidget(this);
    auto* layout = new QVBoxLayout;
    layout->setContentsMargins(0, 0, 0, 0);
    layout->addWidget(lineWidget);
    layout->addWidget(sceneWidget);
+   layout->addWidget(generatorWidget);
    setLayout(layout);
    lineWidget->hide();
+   generatorWidget->hide();
    sceneWidget->show();
    QObject::connect(texproject, &TextureProject::nodeRemoved, this, &ItemInfoPanel::removeNode);
    QObject::connect(texproject, &TextureProject::nodesDisconnected, this,
                     &ItemInfoPanel::nodesDisconnected);
    QObject::connect(texproject, &TextureProject::nodeAdded, this, &ItemInfoPanel::addNode);
+   QObject::connect(texproject, &TextureProject::generatorRemoved, this,
+                    [this](const TextureGeneratorPtr& generator) {
+                       if (currGenerator == generator) {
+                          setActiveNode(0);
+                       }
+                    });
 }
 
 void ItemInfoPanel::addNode(const TextureNodePtr& node) {
@@ -70,13 +80,12 @@ void ItemInfoPanel::sourceUpdated(int id) {
 }
 
 void ItemInfoPanel::setActiveNode(int id) {
-   if (currNodeId == id) {
-      return;
-   }
    if (currWidget != nullptr) {
       currWidget->hide();
    }
    lineWidget->hide();
+   generatorWidget->hide();
+   currGenerator.clear();
    currWidget = nullptr;
    currNodeId = 0;
    currLine = std::tuple<int, int, QString>(0, 0, QString());
@@ -113,9 +122,29 @@ void ItemInfoPanel::setActiveLine(int sourceNodeId, int receiverNodeId, QString 
       currWidget->hide();
    }
    sceneWidget->hide();
+   generatorWidget->hide();
+   currGenerator.clear();
    currWidget = nullptr;
    currNodeId = 0;
    currLine = std::tuple<int, int, QString>(sourceNodeId, receiverNodeId, slot);
    lineWidget->setNodes(sourceNodeId, receiverNodeId, slot);
    lineWidget->show();
+}
+
+void ItemInfoPanel::setActiveGenerator(const TextureGeneratorPtr& generator) {
+   if (generator.isNull()) {
+      setActiveNode(0);
+      return;
+   }
+   if (currWidget != nullptr) {
+      currWidget->hide();
+   }
+   sceneWidget->hide();
+   lineWidget->hide();
+   currWidget = nullptr;
+   currNodeId = 0;
+   currLine = std::tuple<int, int, QString>(0, 0, QString());
+   currGenerator = generator;
+   generatorWidget->setGenerator(generator);
+   generatorWidget->show();
 }

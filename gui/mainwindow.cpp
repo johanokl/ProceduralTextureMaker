@@ -277,6 +277,20 @@ std::unique_ptr<ViewNodeScene> MainWindow::createScene(ViewNodeScene* source) {
                     &PreviewImagePanel::setActiveNode);
    QObject::connect(newscene.get(), &ViewNodeScene::lineSelected, iteminfopanel,
                     &ItemInfoPanel::setActiveLine);
+   QObject::connect(newscene.get(), &ViewNodeScene::nodeSelected, addnodewidget, [this](int id) {
+      if (id >= 0) {
+         addnodewidget->clearGeneratorSelection();
+      }
+   });
+   QObject::connect(newscene.get(), &ViewNodeScene::lineSelected, addnodewidget,
+                    &AddNodePanel::clearGeneratorSelection);
+   QObject::connect(newscene.get(), &ViewNodeScene::sceneBackgroundSelected, addnodewidget,
+                    &AddNodePanel::clearGeneratorSelection);
+   QObject::connect(addnodewidget, &AddNodePanel::generatorSelected, newscene.get(),
+                    [this, scene = newscene.get()](const TextureGeneratorPtr& generator) {
+                       scene->clearGraphSelection();
+                       iteminfopanel->setActiveGenerator(generator);
+                    });
    return newscene;
 }
 

@@ -92,6 +92,8 @@ set(PROCEDURAL_TEXTURE_MAKER_SOURCES
     gui/addnodepanel.h
     gui/connectionwidget.cpp
     gui/connectionwidget.h
+    gui/generatorinfowidget.cpp
+    gui/generatorinfowidget.h
     gui/cubewidget.cpp
     gui/cubewidget.h
     gui/iteminfopanel.cpp

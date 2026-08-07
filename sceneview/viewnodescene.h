@@ -90,6 +90,12 @@ public:
    /// @param slot Receiver input slot name.
    void setSelectedLine(int sourceNode, int receiverNode, const QString& slot);
 
+   /// @brief Clears selected node and connection items and publishes an empty node selection.
+   void clearGraphSelection();
+
+   /// @brief Selects the scene background and publishes the resulting empty graph selection.
+   void selectSceneBackground();
+
 protected:
    /// @brief Paints the base scene color and optional brush pattern.
    void drawBackground(QPainter* painter, const QRectF& rect) override;
@@ -185,6 +191,9 @@ signals:
    /// @param receiverNode Receiver node identifier.
    /// @param slot Receiver input slot name.
    void lineSelected(int sourceNode, int receiverNode, QString slot);
+
+   /// @brief Notifies observers that the scene background was selected.
+   void sceneBackgroundSelected();
 
 private:
    /// @brief Removes and deletes the active generator drop indicator.
