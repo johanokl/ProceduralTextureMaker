@@ -11,38 +11,58 @@
 #include <QVector>
 class QMenu;
 class MainWindow;
+class QString;
 
-/// @brief The TexGenApplication class
-/// Manages the instances of class MainWindow.
-///
-/// All instances of MainWindow has this as their parent object, and all windows' menu
-/// bars contain links to all the other instances.
-///
-/// Inherits QApplication and adds some convenient application specifc functions.
-/// Will be destroyed (and the application process exited) when the
-/// last visible MainWindow is closed.
+/// @brief Manages application windows and application-level file-open events.
+/// @details Owns each MainWindow and keeps their window menus synchronized. The
+/// application exits when its last visible MainWindow is closed.
 class TexGenApplication : public QApplication {
    Q_OBJECT
 
 public:
+   /// @brief Constructs the application from command-line arguments.
+   /// @param argc The number of arguments, including the application name.
+   /// @param argv The arguments as C strings.
    TexGenApplication(int& argc, char* argv[]);
+
+   /// @brief Destroys the application and its child windows.
    virtual ~TexGenApplication() {}
 
 signals:
+   /// @brief Emitted when the set of windows or a window title changes.
    void windowsChanged();
 
 public slots:
+   /// @brief Creates, tracks, and displays an empty main window.
+   /// @return The newly created window.
    MainWindow* addWindow();
+
+   /// @brief Loads a project, reusing only an empty window without unsaved changes.
+   /// @param currentWindow The window requesting the load, or null if none exists.
+   /// @param fileName The project file to load.
+   /// @return The window used for the project, or null if no file name was supplied.
+   MainWindow* openProject(MainWindow* currentWindow, const QString& fileName);
+
+   /// @brief Closes every window, stopping if a window refuses to close.
    void quitApplication();
-   void windowUpdated(QString);
+
+   /// @brief Notifies all windows that their window menus may need updating.
+   /// @param title The updated window title; the value itself is not used.
+   void windowUpdated(QString title);
 
 protected:
+   /// @brief Handles application events, including requests to open project files.
+   /// @param event The event delivered to the application.
+   /// @return @c true if the event was handled; otherwise the base-class result.
    bool event(QEvent* event);
 
 private:
+   /// @brief Removes a window from the tracked window list.
+   /// @param window The window to remove.
    void removeWindow(MainWindow* window);
 
 public:
+   /// @brief Main windows currently tracked by the application.
    QVector<MainWindow*> mainwindows;
 };
 

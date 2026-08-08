@@ -358,7 +358,7 @@ void MenuActions::openFile() {
       return;
    }
    lastOpenedDirectory = QFileInfo(fileName).path();
-   parent()->openFile(fileName);
+   parent()->parent()->openProject(parent(), fileName);
 }
 
 void MenuActions::windowsChanged() {

@@ -62,6 +62,8 @@ private slots:
    void compositesTextureBackground();
    /// @brief Verifies that a tracked project loads into a scene-backed window.
    void loadsProjectIntoSceneBackedWindow();
+   /// @brief Verifies opening a project reuses only clean, empty windows.
+   void opensProjectWithoutDiscardingChanges();
    /// @brief Verifies ownership of temporary connection and drag items.
    void managesTemporarySceneItems();
    /// @brief Verifies that node removal clears scene item observers.
@@ -145,6 +147,51 @@ void UiSmokeTest::loadsProjectIntoSceneBackedWindow() {
       window.reloadSceneView();
    }
    QCOMPARE(window.getTextureProject()->getNumNodes(), 11);
+}
+
+void UiSmokeTest::opensProjectWithoutDiscardingChanges() {
+   auto* application = qobject_cast<TexGenApplication*>(QCoreApplication::instance());
+   QVERIFY(application != nullptr);
+   const qsizetype initialWindowCount = application->mainwindows.size();
+
+   MainWindow* reusableWindow = application->addWindow();
+   MainWindow* reusedWindow = application->openProject(
+       reusableWindow, QStringLiteral(PTM_SOURCE_DIR "/examples/wall.txl"));
+   QCOMPARE(reusedWindow, reusableWindow);
+   QCOMPARE(application->mainwindows.size(), initialWindowCount + 1);
+   QCOMPARE(reusableWindow->getTextureProject()->getNumNodes(), 11);
+   delete reusableWindow;
+
+   MainWindow* savedWindow = application->addWindow();
+   savedWindow->openFile(QStringLiteral(PTM_SOURCE_DIR "/examples/wall.txl"));
+   QVERIFY(!savedWindow->getTextureProject()->isModified());
+   MainWindow* savedProjectWindow =
+       application->openProject(savedWindow, QStringLiteral(PTM_SOURCE_DIR "/examples/wall.txl"));
+   QVERIFY(savedProjectWindow != savedWindow);
+   QCOMPARE(application->mainwindows.size(), initialWindowCount + 2);
+   QCOMPARE(savedWindow->getTextureProject()->getNumNodes(), 11);
+   QCOMPARE(savedProjectWindow->getTextureProject()->getNumNodes(), 11);
+   delete savedProjectWindow;
+   delete savedWindow;
+
+   MainWindow* existingWindow = application->addWindow();
+   const int nodeId = existingWindow->getTextureProject()->newNode(1)->getId();
+   existingWindow->getTextureProject()->removeNode(nodeId);
+   QCOMPARE(existingWindow->getTextureProject()->getNumNodes(), 0);
+   QVERIFY(existingWindow->getTextureProject()->isModified());
+
+   MainWindow* openedWindow = application->openProject(
+       existingWindow, QStringLiteral(PTM_SOURCE_DIR "/examples/wall.txl"));
+   QVERIFY(openedWindow != nullptr);
+   QVERIFY(openedWindow != existingWindow);
+   QCOMPARE(application->mainwindows.size(), initialWindowCount + 2);
+   QCOMPARE(existingWindow->getTextureProject()->getNumNodes(), 0);
+   QVERIFY(existingWindow->getTextureProject()->isModified());
+   QCOMPARE(openedWindow->getTextureProject()->getNumNodes(), 11);
+
+   delete openedWindow;
+   delete existingWindow;
+   QCOMPARE(application->mainwindows.size(), initialWindowCount);
 }
 
 void UiSmokeTest::managesTemporarySceneItems() {
