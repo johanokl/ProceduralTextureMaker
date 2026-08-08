@@ -91,6 +91,7 @@ void AddNodeButton::mouseReleaseEvent(QMouseEvent* event) {
 }
 
 AddNodePanel::AddNodePanel(TextureProject& project) {
+   setObjectName(QStringLiteral("addNodePanel"));
    buttonGroup = new QButtonGroup(this);
    buttonGroup->setExclusive(true);
    auto* layout = new QVBoxLayout(this);

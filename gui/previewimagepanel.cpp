@@ -252,6 +252,7 @@ void ImageLabel::resizeImage() {
 }
 
 PreviewImagePanel::PreviewImagePanel(TextureProject& project) : project(project) {
+   setObjectName(QStringLiteral("previewImagePanel"));
    imageSize = project.getThumbnailSize();
 
    auto* layout = new QVBoxLayout(this);

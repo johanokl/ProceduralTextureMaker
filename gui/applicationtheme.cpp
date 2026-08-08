@@ -108,7 +108,23 @@ QGroupBox {
    margin-top: 24px;
    padding-top: 19px;
 }
-)");
+
+#addNodePanel,
+#addNodePanel QScrollArea,
+#addNodePanel QScrollArea > QWidget > QWidget,
+#generatorInfoInspector,
+#generatorInfoInspector QScrollArea,
+#generatorInfoInspector QScrollArea > QWidget > QWidget,
+#previewImagePanel,
+#previewScrollArea,
+#previewScrollArea > QWidget > QWidget,
+#settingsPanel,
+#settingsPanel QScrollArea,
+#settingsPanel QScrollArea > QWidget > QWidget {
+   background: %1;
+}
+)")
+                          .arg(window);
    }
 
    return QString(R"(

@@ -38,6 +38,7 @@ void populateBackgroundBrushStyles(QComboBox* combobox) {
 
 SettingsPanel::SettingsPanel(MainWindow* parent, SettingsManager* settingsmanager)
     : QWidget(parent), settingsmanager(settingsmanager), mainwindow(parent) {
+   setObjectName(QStringLiteral("settingsPanel"));
    auto* layout = new QVBoxLayout(this);
    auto* area = new QScrollArea;
    area->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
