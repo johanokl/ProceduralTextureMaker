@@ -12,7 +12,6 @@
 #include <QScrollArea>
 #include <QTimer>
 #include <QVBoxLayout>
-#include <algorithm>
 
 namespace {
 
@@ -218,11 +217,7 @@ void GeneratorInfoWidget::setGenerator(const TextureGeneratorPtr& newGenerator) 
       inputsLayout->addWidget(inputLabel);
    }
 
-   QList<TextureGeneratorSetting> definitions = generator->getSettings().values();
-   std::stable_sort(definitions.begin(), definitions.end(),
-                    [](const TextureGeneratorSetting& left, const TextureGeneratorSetting& right) {
-                       return left.order < right.order;
-                    });
+   const TextureGeneratorSettings& definitions = generator->getSettings();
    if (definitions.isEmpty()) {
       settingsLayout->addWidget(new QLabel(QStringLiteral("No configurable properties.")));
       return;
@@ -230,6 +225,7 @@ void GeneratorInfoWidget::setGenerator(const TextureGeneratorPtr& newGenerator) 
 
    for (const TextureGeneratorSetting& definition : definitions) {
       auto* label = new QLabel;
+      label->setObjectName(QStringLiteral("generatorInfoSetting"));
       label->setWordWrap(true);
       const QString displayName =
           definition.name.isEmpty() ? QStringLiteral("Unnamed property") : definition.name;

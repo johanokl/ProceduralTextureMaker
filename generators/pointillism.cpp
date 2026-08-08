@@ -13,49 +13,55 @@
 PointillismTextureGenerator::PointillismTextureGenerator() {
    TextureGeneratorSetting points;
    points.defaultvalue = QVariant((int)10000);
-   points.name = "Points";
+   points.name = "Point count";
+   points.description = "Number of randomly positioned ellipses used to recreate the image.";
    points.min = QVariant(0);
    points.max = QVariant(250 * 1000);
-   points.order = 1;
-   configurables.insert("points", points);
+   points.id = "points";
+   configurables.append(points);
 
    TextureGeneratorSetting width;
    width.defaultvalue = QVariant((double)1);
-   width.name = "Width";
+   width.name = "Horizontal radius (%)";
+   width.description = "Horizontal radius of each ellipse as a percentage of the texture width.";
    width.min = QVariant(0.2);
    width.max = QVariant(50);
-   width.order = 2;
    width.group = "size";
-   configurables.insert("width", width);
+   width.id = "width";
+   configurables.append(width);
 
    TextureGeneratorSetting height;
    height.defaultvalue = QVariant((double)1);
-   height.name = "Height";
+   height.name = "Vertical radius (%)";
+   height.description = "Vertical radius of each ellipse as a percentage of the texture height.";
    height.min = QVariant(0.2);
    height.max = QVariant(50);
-   height.order = 3;
    height.group = "size";
-   configurables.insert("height", height);
+   height.id = "height";
+   configurables.append(height);
 
    TextureGeneratorSetting includesource;
    includesource.defaultvalue = QVariant((bool)true);
-   includesource.name = "Include source";
-   includesource.order = 4;
-   configurables.insert("includesource", includesource);
+   includesource.name = "Include source image";
+   includesource.description = "Keeps the original input visible beneath the generated points.";
+   includesource.id = "includesource";
+   configurables.append(includesource);
 
    TextureGeneratorSetting antialiasing;
    antialiasing.defaultvalue = QVariant((bool)true);
    antialiasing.name = "Antialiasing";
-   antialiasing.order = 5;
-   configurables.insert("antialiasing", antialiasing);
+   antialiasing.description = "Smooths the edges of the generated ellipses.";
+   antialiasing.id = "antialiasing";
+   configurables.append(antialiasing);
 
    TextureGeneratorSetting randseed;
    randseed.defaultvalue = QVariant((int)500);
    randseed.name = "Random seed";
+   randseed.description = "Selects the repeatable positions and sampled colours of the points.";
    randseed.min = QVariant(0);
    randseed.max = QVariant(1000);
-   randseed.order = 6;
-   configurables.insert("randseed", randseed);
+   randseed.id = "randseed";
+   configurables.append(randseed);
 }
 void PointillismTextureGenerator::generate(QSize size, TexturePixel* destimage,
                                            const QMap<QString, TextureImagePtr>& sourceimages,

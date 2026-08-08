@@ -9,10 +9,12 @@
 BoxBlurTextureGenerator::BoxBlurTextureGenerator() {
    TextureGeneratorSetting neighbourssetting;
    neighbourssetting.defaultvalue = QVariant((int)5);
-   neighbourssetting.name = "Blur level";
+   neighbourssetting.name = "Blur radius (px)";
+   neighbourssetting.description = "Controls the radius of the area averaged around each pixel.";
    neighbourssetting.min = QVariant(0);
    neighbourssetting.max = QVariant(30);
-   configurables.insert("numneighbours", neighbourssetting);
+   neighbourssetting.id = "numneighbours";
+   configurables.append(neighbourssetting);
 }
 void BoxBlurTextureGenerator::generate(QSize size, TexturePixel* destimage,
                                        const QMap<QString, TextureImagePtr>& sourceimages,

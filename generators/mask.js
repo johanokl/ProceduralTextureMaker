@@ -1,10 +1,10 @@
 const generator = {
   apiVersion: 1,
   name: "Mask",
-  description: "Replaces an image's alpha channel with that of the mask",
+  description: "Replaces the image's alpha channel with the mask image's alpha channel.",
   type: "combiner",
   inputs: ["Image", "Mask"],
-  settings: {},
+  settings: [],
 
   generate(size, settings, output, inputs) {
     const destination = output.data;

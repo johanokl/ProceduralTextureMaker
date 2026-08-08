@@ -19,7 +19,9 @@ public:
                  const TextureNodeSettings& settings) const override;
    QString getName() const override { return QString("Star"); }
    const TextureGeneratorSettings& getSettings() const override { return configurables; }
-   QString getDescription() const override { return QString("Draws a star."); }
+   QString getDescription() const override {
+      return QString("Draws a configurable multi-pointed star with an optional cut-out.");
+   }
    TextureGenerator::Type getType() const override { return TextureGenerator::Type::Generator; }
 
 private:

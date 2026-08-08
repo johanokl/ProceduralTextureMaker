@@ -4,6 +4,44 @@
 #include "support/testgenerators.h"
 #include <QTemporaryDir>
 #include <QTest>
+#include <algorithm>
+#include <utility>
+
+namespace {
+
+class SchemaGenerator final : public TextureGenerator {
+public:
+   SchemaGenerator(QString name, TextureGeneratorSettings settings)
+       : name(std::move(name)), settings(std::move(settings)) {}
+
+   void generate(QSize size, TexturePixel* destination,
+                 const QMap<QString, TextureImagePtr>& sources,
+                 const TextureNodeSettings& nodeSettings) const override {
+      Q_UNUSED(sources);
+      Q_UNUSED(nodeSettings);
+      std::fill_n(destination, static_cast<qsizetype>(size.width()) * size.height(),
+                  TexturePixel(0, 0, 0, 255));
+   }
+   const TextureGeneratorSettings& getSettings() const override { return settings; }
+   Type getType() const override { return Type::Generator; }
+   QStringList getSourceSlots() const override { return {}; }
+   QString getName() const override { return name; }
+   QString getDescription() const override { return {}; }
+
+private:
+   QString name;
+   TextureGeneratorSettings settings;
+};
+
+TextureGeneratorSetting integerSetting(const QString& id, const int defaultValue) {
+   TextureGeneratorSetting setting;
+   setting.id = id;
+   setting.name = id;
+   setting.defaultvalue = defaultValue;
+   return setting;
+}
+
+}  // namespace
 
 /// @brief Verifies graph ownership, rendering caches, copying, and saved state.
 class TextureProjectTest : public QObject {
@@ -18,6 +56,8 @@ private slots:
    void copiesAndTracksSavedState();
    /// @brief Verifies named render inputs are routed independently of alphabetical order.
    void routesNamedRenderInputs();
+   /// @brief Verifies setting ID validation and ordered generator metadata serialization.
+   void validatesAndSerializesSettingSchemas();
 };
 
 void TextureProjectTest::maintainsGraphAndIds() {
@@ -119,6 +159,40 @@ void TextureProjectTest::routesNamedRenderInputs() {
    QCOMPARE(output->getSources().value(QStringLiteral("Zulu")), first->getId());
    QCOMPARE(output->getSources().value(QStringLiteral("Alpha")), second->getId());
    QCOMPARE(output->renderImage(QSize(2, 2))->data()[0].r, static_cast<unsigned char>(23));
+}
+
+void TextureProjectTest::validatesAndSerializesSettingSchemas() {
+   TextureProject project(false);
+   const TextureGeneratorSettings orderedSettings{integerSetting(QStringLiteral("zeta"), 1),
+                                                  integerSetting(QStringLiteral("alpha"), 2)};
+   const TextureGeneratorPtr valid(
+       new SchemaGenerator(QStringLiteral("Ordered schema"), orderedSettings));
+   project.addGenerator(valid);
+   QCOMPARE(project.getGenerator(QStringLiteral("Ordered schema")), valid);
+   const TextureNodePtr node = project.newNode(1, valid);
+
+   const TextureGeneratorSettings duplicateSettings{integerSetting(QStringLiteral("duplicate"), 1),
+                                                    integerSetting(QStringLiteral("duplicate"), 2)};
+   const TextureGeneratorPtr invalidAdd(
+       new SchemaGenerator(QStringLiteral("Invalid schema"), duplicateSettings));
+   project.addGenerator(invalidAdd);
+   QVERIFY(project.getGenerator(QStringLiteral("Invalid schema")).isNull());
+
+   const TextureGeneratorPtr emptyId(new SchemaGenerator(QStringLiteral("Empty setting ID"),
+                                                         {integerSetting(QStringLiteral(" "), 1)}));
+   project.addGenerator(emptyId);
+   QVERIFY(project.getGenerator(QStringLiteral("Empty setting ID")).isNull());
+
+   const TextureGeneratorPtr invalidReplacement(
+       new SchemaGenerator(QStringLiteral("Ordered schema"), duplicateSettings));
+   QVERIFY(!project.replaceGenerator(valid, invalidReplacement));
+   QCOMPARE(project.getGenerator(QStringLiteral("Ordered schema")), valid);
+   QCOMPARE(node->getGenerator(), valid);
+
+   const QDomNodeList definitions = project.saveAsXML(true).elementsByTagName("generatorsetting");
+   QCOMPARE(definitions.size(), 2);
+   QCOMPARE(definitions.at(0).toElement().attribute(QStringLiteral("id")), QStringLiteral("zeta"));
+   QCOMPARE(definitions.at(1).toElement().attribute(QStringLiteral("id")), QStringLiteral("alpha"));
 }
 
 QTEST_APPLESS_MAIN(TextureProjectTest)

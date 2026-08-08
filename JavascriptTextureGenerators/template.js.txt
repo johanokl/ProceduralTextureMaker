@@ -5,14 +5,15 @@ const generator = {
   type: "generator", // "generator", "filter", or "combiner"
   inputs: [],
 
-  settings: {
-    color: {
+  settings: [
+    {
+      id: "color",
       type: "color",
-      name: "Color",
+      name: "Colour",
+      description: "Colour used to fill the generated texture.",
       default: { r: 40, g: 160, b: 220, a: 255 },
-      order: 1
     }
-  },
+  ],
 
   generate(size, settings, output, inputs) {
     void inputs;

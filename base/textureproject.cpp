@@ -149,12 +149,9 @@ QDomDocument TextureProject::saveAsXML(bool includegenerators) {
          QDomElement generatorNode = xmldoc.createElement("generator");
          generatorNode.setAttribute("name", generator->getName());
          xmlGenerators.appendChild(generatorNode);
-         QMapIterator<QString, TextureGeneratorSetting> settingsiterator(generator->getSettings());
-         while (settingsiterator.hasNext()) {
-            settingsiterator.next();
+         for (const TextureGeneratorSetting& value : generator->getSettings()) {
             QDomElement settingnode = xmldoc.createElement("generatorsetting");
-            TextureGeneratorSetting value = settingsiterator.value();
-            settingnode.setAttribute("id", settingsiterator.key());
+            settingnode.setAttribute("id", value.id);
             settingnode.setAttribute("type", value.defaultvalue.typeName());
             settingnode.setAttribute("default", value.defaultvalue.toString());
             settingnode.setAttribute("name", value.name);
@@ -314,6 +311,12 @@ void TextureProject::addGenerator(const TextureGeneratorPtr& gen) {
    if (gen.isNull()) {
       return;
    }
+   const QString settingsError = validateTextureGeneratorSettings(gen->getSettings());
+   if (!settingsError.isEmpty()) {
+      qWarning().noquote() << QStringLiteral("Generator '%1' has invalid settings: %2")
+                                  .arg(gen->getName(), settingsError);
+      return;
+   }
    QSet<QString> uniqueSourceSlots;
    for (const QString& slot : gen->getSourceSlots()) {
       if (slot.trimmed().isEmpty() || uniqueSourceSlots.contains(slot)) {
@@ -342,6 +345,12 @@ bool TextureProject::replaceGenerator(const TextureGeneratorPtr& oldGenerator,
                                       const TextureGeneratorPtr& newGenerator) {
    if (oldGenerator.isNull() || newGenerator.isNull() ||
        generators.value(oldGenerator->getName()) != oldGenerator) {
+      return false;
+   }
+   const QString settingsError = validateTextureGeneratorSettings(newGenerator->getSettings());
+   if (!settingsError.isEmpty()) {
+      qWarning().noquote() << QStringLiteral("Generator '%1' has invalid settings: %2")
+                                  .arg(newGenerator->getName(), settingsError);
       return false;
    }
    const TextureGeneratorPtr collision = generators.value(newGenerator->getName());
@@ -373,9 +382,7 @@ bool TextureProject::replaceGenerator(const TextureGeneratorPtr& oldGenerator,
 
    for (const NodeState& state : std::as_const(affectedNodes)) {
       TextureNodeSettings migratedSettings;
-      for (auto definition = newDefinitions.cbegin(); definition != newDefinitions.cend();
-           ++definition) {
-         const TextureGeneratorSetting& newSetting = definition.value();
+      for (const TextureGeneratorSetting& newSetting : newDefinitions) {
          QVariant value = newSetting.defaultvalue;
          if (value.typeId() == QMetaType::QStringList) {
             const QStringList choices = value.toStringList();
@@ -383,17 +390,18 @@ bool TextureProject::replaceGenerator(const TextureGeneratorPtr& oldGenerator,
                         ? QVariant(choices.at(newSetting.defaultindex))
                         : QVariant(QString());
          }
-         const auto oldDefinition = oldDefinitions.constFind(definition.key());
-         if (oldDefinition != oldDefinitions.cend() && state.settings.contains(definition.key()) &&
+         const TextureGeneratorSetting* oldDefinition =
+             findTextureGeneratorSetting(oldDefinitions, newSetting.id);
+         if (oldDefinition != nullptr && state.settings.contains(newSetting.id) &&
              oldDefinition->defaultvalue.typeId() == newSetting.defaultvalue.typeId() &&
              oldDefinition->multiline == newSetting.multiline) {
-            const QVariant previous = state.settings.value(definition.key());
+            const QVariant previous = state.settings.value(newSetting.id);
             if (newSetting.defaultvalue.typeId() != QMetaType::QStringList ||
                 newSetting.defaultvalue.toStringList().contains(previous.toString())) {
                value = previous;
             }
          }
-         migratedSettings.insert(definition.key(), value);
+         migratedSettings.insert(newSetting.id, value);
       }
       QMap<QString, int> migratedSources;
       for (const QString& slot : newGenerator->getSourceSlots()) {

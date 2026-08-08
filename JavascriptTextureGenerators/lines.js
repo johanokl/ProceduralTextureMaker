@@ -5,38 +5,42 @@ const generator = {
   type: "filter",
   inputs: ["Input"],
 
-  settings: {
-    color: {
+  settings: [
+    {
+      id: "color",
       type: "color",
-      name: "Line color",
+      name: "Line colour",
+      description: "Colour used to draw the lines.",
       default: { r: 255, g: 100, b: 50, a: 255 },
-      order: 1
     },
-    height: {
+    {
+      id: "height",
       type: "integer",
-      name: "Line height",
+      name: "Line thickness (%)",
+      description: "Thickness of each line as a percentage of the texture height.",
       default: 10,
       min: 0,
       max: 100,
-      order: 2
     },
-    distance: {
+    {
+      id: "distance",
       type: "integer",
-      name: "Distance",
+      name: "Gap size (%)",
+      description: "Gap between adjacent lines as a percentage of the texture height.",
       default: 10,
       min: 0,
       max: 100,
-      order: 3
     },
-    offset: {
+    {
+      id: "offset",
       type: "integer",
-      name: "Offset",
+      name: "Pattern offset (%)",
+      description: "Shifts the repeating line pattern vertically.",
       default: 0,
       min: 0,
       max: 100,
-      order: 4
     }
-  },
+  ],
 
   generate(size, settings, output, inputs) {
     const destination = output.data;

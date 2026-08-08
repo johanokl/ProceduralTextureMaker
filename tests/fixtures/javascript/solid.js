@@ -4,7 +4,7 @@ const generator = {
   description: "Fills the image with a fixed RGBA color for integration tests.",
   type: "generator",
   inputs: [],
-  settings: {},
+  settings: [],
 
   generate(size, settings, output, inputs) {
     void settings;

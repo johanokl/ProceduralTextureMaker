@@ -21,7 +21,7 @@ public:
    QString getName() const override { return QString("Fill"); }
    const TextureGeneratorSettings& getSettings() const override { return configurables; }
    QString getDescription() const override {
-      return QString("Fills the whole texture with the specified color.");
+      return QString("Fills the entire texture with a solid colour.");
    }
    TextureGenerator::Type getType() const override { return TextureGenerator::Type::Generator; }
 

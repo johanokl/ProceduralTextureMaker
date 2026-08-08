@@ -43,7 +43,7 @@ public:
    QString getName() const override { return name; }
 
    /// @brief Gets the configurable settings declared by the script.
-   /// @return Validated setting definitions keyed by stable identifiers.
+   /// @return Validated setting definitions in descriptor order, each with a stable unique ID.
    const TextureGeneratorSettings& getSettings() const override { return configurables; }
 
    /// @brief Gets the user-facing description declared by the script.
@@ -102,7 +102,7 @@ private:
                            const QMap<QString, TextureImagePtr>& sourceimages,
                            const TextureNodeSettings& settings) const;
 
-   /// @brief Validated setting definitions keyed by stable identifier.
+   /// @brief Validated setting definitions in descriptor order.
    TextureGeneratorSettings configurables;
    /// @brief Public generator name parsed from the definition.
    QString name;

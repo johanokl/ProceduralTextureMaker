@@ -19,7 +19,9 @@ public:
                  const TextureNodeSettings& settings) const override;
    QString getName() const override { return QString("Checkboard"); }
    const TextureGeneratorSettings& getSettings() const override { return configurables; }
-   QString getDescription() const override { return QString("Draws a checkboard."); }
+   QString getDescription() const override {
+      return QString("Draws a chequerboard pattern over an optional input image.");
+   }
    TextureGenerator::Type getType() const override { return TextureGenerator::Type::Generator; }
 
 private:

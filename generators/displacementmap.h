@@ -23,7 +23,7 @@ public:
    QString getName() const override { return QString("Displacement"); }
    const TextureGeneratorSettings& getSettings() const override { return configurables; }
    QString getDescription() const override {
-      return QString("Transforms the image based on a gray-scale transform map.");
+      return QString("Distorts the source image using the luminance of a displacement map.");
    }
    TextureGenerator::Type getType() const override { return TextureGenerator::Type::Filter; }
 

@@ -208,9 +208,9 @@ void TextureRenderManager::renderNode(const TextureNodeRenderTask& task) {
 
    TextureNodeSettings settings = snapshot.settings;
    const TextureGeneratorSettings& generatorSettings = snapshot.generator->getSettings();
-   for (auto setting = generatorSettings.cbegin(); setting != generatorSettings.cend(); ++setting) {
-      if (!settings.contains(setting.key())) {
-         settings.insert(setting.key(), setting.value().defaultvalue);
+   for (const TextureGeneratorSetting& setting : generatorSettings) {
+      if (!settings.contains(setting.id)) {
+         settings.insert(setting.id, setting.defaultvalue);
       }
    }
 

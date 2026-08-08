@@ -19,7 +19,9 @@ public:
                  const TextureNodeSettings& settings) const override;
    QString getName() const override { return QString("Box blur"); }
    const TextureGeneratorSettings& getSettings() const override { return configurables; }
-   QString getDescription() const override { return QString("Blurs the source image."); }
+   QString getDescription() const override {
+      return QString("Softens the input image by averaging neighbouring pixels.");
+   }
    TextureGenerator::Type getType() const override { return TextureGenerator::Type::Filter; }
 
 private:

@@ -19,7 +19,9 @@ public:
                  const TextureNodeSettings& settings) const override;
    QString getName() const override { return QString("Shadow"); }
    const TextureGeneratorSettings& getSettings() const override { return configurables; }
-   QString getDescription() const override { return QString("Adds a shadow under the object."); }
+   QString getDescription() const override {
+      return QString("Adds a coloured, blurred, and offset shadow behind the input image.");
+   }
    TextureGenerator::Type getType() const override { return TextureGenerator::Type::Filter; }
 
 private:

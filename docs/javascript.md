@@ -1,6 +1,6 @@
 # JavaScript generators
 
-JavaScript is the easiest way to add a new generators. Scripts can be edited and reloaded without
+JavaScript is the easiest way to add new generators. Scripts can be edited and reloaded without
 rebuilding ProceduralTextureMaker.
 
 ## Templates
@@ -32,20 +32,21 @@ Every new script defines one `generator` descriptor:
 const generator = {
   apiVersion: 1,
   name: "Blue Fill",
-  description: "Fills the image with blue.",
+  description: "Fills the image with a solid blue colour.",
   type: "generator",
   inputs: [],
 
-  settings: {
-    opacity: {
+  settings: [
+    {
+      id: "opacity",
       type: "integer",
       name: "Opacity",
+      description: "Controls the opacity of the generated colour.",
       default: 255,
       min: 0,
       max: 255,
-      order: 1,
     },
-  },
+  ],
 
   generate(size, settings, output, inputs) {
     void size;
@@ -81,7 +82,9 @@ Supported setting types are:
 | `color`     | `{r, g, b, a}`     | Channels are integers from 0 to 255     |
 | `choice`    | string             | Requires a unique string `values` array |
 
-All types also support `name`, `description`, `order`, `group`, and `enabler` metadata.
+Each setting requires a unique, non-empty string `id`. Settings appear in the interface in array
+order; there is no separate `order` property. All types also support `name`, `description`,
+`group`, and `enabler` metadata. Use `settings: []` when a generator has no settings.
 
 ## Image layout and ownership
 

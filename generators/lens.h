@@ -19,7 +19,9 @@ public:
                  const TextureNodeSettings& settings) const override;
    QString getName() const override { return QString("Lens"); }
    const TextureGeneratorSettings& getSettings() const override { return configurables; }
-   QString getDescription() const override { return QString("Applies a lens effect."); }
+   QString getDescription() const override {
+      return QString("Warps the input image through a configurable circular lens.");
+   }
    TextureGenerator::Type getType() const override { return TextureGenerator::Type::Filter; }
 
 private:

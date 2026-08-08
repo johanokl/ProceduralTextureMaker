@@ -19,7 +19,9 @@ public:
                  const TextureNodeSettings& settings) const override;
    QString getName() const override { return QString("Invert"); }
    const TextureGeneratorSettings& getSettings() const override { return configurables; }
-   QString getDescription() const override { return QString("Inverts the colors."); }
+   QString getDescription() const override {
+      return QString("Selectively inverts the red, green, blue, and alpha channels.");
+   }
    TextureGenerator::Type getType() const override { return TextureGenerator::Type::Filter; }
 
 private:

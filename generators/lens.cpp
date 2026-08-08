@@ -11,35 +11,39 @@
 LensTextureGenerator::LensTextureGenerator() {
    TextureGeneratorSetting offsetleft;
    offsetleft.defaultvalue = QVariant((int)0);
-   offsetleft.name = "Offset left";
+   offsetleft.name = "Horizontal offset (%)";
+   offsetleft.description = "Moves the lens centre horizontally across the texture.";
    offsetleft.min = QVariant(-100);
    offsetleft.max = QVariant(100);
-   offsetleft.order = 0;
-   configurables.insert("offsetleft", offsetleft);
+   offsetleft.id = "offsetleft";
+   configurables.append(offsetleft);
 
    TextureGeneratorSetting offsettop;
    offsettop.defaultvalue = QVariant((int)0);
-   offsettop.name = "Offset top";
+   offsettop.name = "Vertical offset (%)";
+   offsettop.description = "Moves the lens centre vertically across the texture.";
    offsettop.min = QVariant(-100);
    offsettop.max = QVariant(100);
-   offsettop.order = 1;
-   configurables.insert("offsettop", offsettop);
+   offsettop.id = "offsettop";
+   configurables.append(offsettop);
 
    TextureGeneratorSetting size;
    size.defaultvalue = QVariant((double)50);
-   size.name = "Size";
+   size.name = "Lens diameter (%)";
+   size.description = "Diameter of the lens as a percentage of the texture height.";
    size.min = QVariant(0);
    size.max = QVariant(300);
-   size.order = 2;
-   configurables.insert("size", size);
+   size.id = "size";
+   configurables.append(size);
 
    TextureGeneratorSetting strength;
    strength.defaultvalue = QVariant((double)200);
    strength.name = "Strength";
+   strength.description = "Controls the distortion intensity inside the lens.";
    strength.min = QVariant(0);
    strength.max = QVariant(300);
-   strength.order = 3;
-   configurables.insert("strength", strength);
+   strength.id = "strength";
+   configurables.append(strength);
 }
 void LensTextureGenerator::generate(QSize size, TexturePixel* destimage,
                                     const QMap<QString, TextureImagePtr>& sourceimages,

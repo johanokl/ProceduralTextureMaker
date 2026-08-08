@@ -21,6 +21,7 @@ void BuiltinGeneratorsTest::rendersEveryGenerator() {
 
    for (auto it = generators.cbegin(); it != generators.cend(); ++it) {
       const TextureGeneratorPtr& generator = it.value();
+      QVERIFY2(!generator->getDescription().trimmed().isEmpty(), qPrintable(it.key()));
       const QStringList sourceSlots = generator->getSourceSlots();
       QSet<QString> uniqueSlots;
       for (const QString& slot : sourceSlots) {
@@ -28,6 +29,19 @@ void BuiltinGeneratorsTest::rendersEveryGenerator() {
          QVERIFY2(!uniqueSlots.contains(slot), qPrintable(it.key()));
          uniqueSlots.insert(slot);
       }
+      QSet<QString> uniqueSettingIds;
+      for (const TextureGeneratorSetting& setting : generator->getSettings()) {
+         QVERIFY2(!setting.id.trimmed().isEmpty(), qPrintable(it.key()));
+         QVERIFY2(!uniqueSettingIds.contains(setting.id), qPrintable(it.key()));
+         QVERIFY2(!setting.name.trimmed().isEmpty(),
+                  qPrintable(QStringLiteral("%1: %2 has no name").arg(it.key(), setting.id)));
+         QVERIFY2(
+             !setting.description.trimmed().isEmpty(),
+             qPrintable(QStringLiteral("%1: %2 has no description").arg(it.key(), setting.id)));
+         uniqueSettingIds.insert(setting.id);
+      }
+      QVERIFY2(validateTextureGeneratorSettings(generator->getSettings()).isEmpty(),
+               qPrintable(it.key()));
       if (sourceSlots.size() == 1) {
          QCOMPARE(sourceSlots.first(), QStringLiteral("Input"));
       }
@@ -53,6 +67,11 @@ void BuiltinGeneratorsTest::rendersEveryGenerator() {
    QCOMPARE(project.getGenerator(QStringLiteral("Set channels"))->getSourceSlots(),
             QStringList({QStringLiteral("First"), QStringLiteral("Second")}));
    QCOMPARE(project.getGenerator(QStringLiteral("Merge"))->getSourceSlots().size(), 10);
+   const TextureGeneratorSettings& transformSettings =
+       project.getGenerator(QStringLiteral("Transform"))->getSettings();
+   QCOMPARE(transformSettings.at(0).id, QStringLiteral("xscale"));
+   QCOMPARE(transformSettings.at(1).id, QStringLiteral("yscale"));
+   QCOMPARE(transformSettings.at(2).id, QStringLiteral("rotation"));
    const TextureGeneratorPtr mask = project.getGenerator(QStringLiteral("Mask"));
    QVERIFY(!mask.isNull());
    QCOMPARE(mask->getType(), TextureGenerator::Type::Combiner);

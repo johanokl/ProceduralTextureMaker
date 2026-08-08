@@ -423,11 +423,9 @@ TextureImagePtr TextureNode::renderImage(QSize size) {
          }
       }
 
-      QMapIterator<QString, TextureGeneratorSetting> settingsIterator(generator->getSettings());
-      while (settingsIterator.hasNext()) {
-         settingsIterator.next();
-         if (!settingsCopy.contains(settingsIterator.key())) {
-            settingsCopy.insert(settingsIterator.key(), settingsIterator.value().defaultvalue);
+      for (const TextureGeneratorSetting& setting : generator->getSettings()) {
+         if (!settingsCopy.contains(setting.id)) {
+            settingsCopy.insert(setting.id, setting.defaultvalue);
          }
       }
 
@@ -478,12 +476,12 @@ bool TextureNode::setGenerator(TextureGeneratorPtr newgenerator) {
 
    const TextureGeneratorSettings generatorSettings = newgenerator->getSettings();
    TextureNodeSettings newSettings;
-   for (auto it = generatorSettings.constBegin(); it != generatorSettings.constEnd(); ++it) {
-      newSettings.insert(it.key(), it.value().defaultvalue);
-      if (it.value().defaultvalue.typeId() == QMetaType::QStringList) {
-         const QStringList values = it.value().defaultvalue.toStringList();
-         if (it.value().defaultindex >= 0 && it.value().defaultindex < values.size()) {
-            newSettings.insert(it.key(), values.at(it.value().defaultindex));
+   for (const TextureGeneratorSetting& setting : generatorSettings) {
+      newSettings.insert(setting.id, setting.defaultvalue);
+      if (setting.defaultvalue.typeId() == QMetaType::QStringList) {
+         const QStringList values = setting.defaultvalue.toStringList();
+         if (setting.defaultindex >= 0 && setting.defaultindex < values.size()) {
+            newSettings.insert(setting.id, values.at(setting.defaultindex));
          }
       }
    }

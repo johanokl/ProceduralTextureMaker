@@ -19,7 +19,9 @@ public:
                  const TextureNodeSettings& settings) const override;
    QString getName() const override { return QString("Sine plasma"); }
    const TextureGeneratorSettings& getSettings() const override { return configurables; }
-   QString getDescription() const override { return QString("Repeating sine plasma."); }
+   QString getDescription() const override {
+      return QString("Generates a repeating two-dimensional sine-wave plasma.");
+   }
    TextureGenerator::Type getType() const override { return TextureGenerator::Type::Generator; }
 
 private:

@@ -15,86 +15,97 @@ GradientTextureGenerator::GradientTextureGenerator() {
    gradients.append("Radial Gradient");
    gradients.append("Conical Gradient");
    TextureGeneratorSetting gradient;
-   gradient.name = "Gradient";
+   gradient.name = "Gradient type";
+   gradient.description = "Selects a linear, radial, or conical gradient.";
    gradient.defaultvalue = QVariant(gradients);
-   gradient.order = 1;
-   configurables.insert("gradient", gradient);
+   gradient.id = "gradient";
+   configurables.append(gradient);
 
    QStringList spreads;
    spreads.append("Pad Spread");
    spreads.append("Reflect Spread");
    spreads.append("Repeat Spread");
    TextureGeneratorSetting spread;
-   spread.name = "Spread";
+   spread.name = "Spread mode";
+   spread.description = "Controls how the gradient continues beyond its start and end points.";
    spread.defaultvalue = QVariant(spreads);
-   spread.order = 2;
-   configurables.insert("spread", spread);
+   spread.id = "spread";
+   configurables.append(spread);
 
    TextureGeneratorSetting startcolor;
-   startcolor.name = "Start color";
+   startcolor.name = "Start colour";
+   startcolor.description = "Colour at the beginning of the gradient.";
    startcolor.defaultvalue = QVariant(QColor(255, 0, 0, 100));
-   startcolor.order = 3;
-   configurables.insert("startcolor", startcolor);
+   startcolor.id = "startcolor";
+   configurables.append(startcolor);
 
    TextureGeneratorSetting middlecolor;
-   middlecolor.name = "Middle color";
+   middlecolor.name = "Middle colour";
+   middlecolor.description = "Colour at the configurable middle position.";
    middlecolor.defaultvalue = QVariant(QColor(0, 255, 0, 255));
-   middlecolor.order = 4;
-   configurables.insert("middlecolor", middlecolor);
+   middlecolor.id = "middlecolor";
+   configurables.append(middlecolor);
 
    TextureGeneratorSetting endcolor;
-   endcolor.name = "End color";
+   endcolor.name = "End colour";
+   endcolor.description = "Colour at the end of the gradient.";
    endcolor.defaultvalue = QVariant(QColor(0, 0, 255, 255));
-   endcolor.order = 5;
-   configurables.insert("endcolor", endcolor);
+   endcolor.id = "endcolor";
+   configurables.append(endcolor);
 
    TextureGeneratorSetting startposx;
-   startposx.name = "Start pos X";
+   startposx.name = "Start X (%)";
+   startposx.description = "Horizontal start position as a percentage of the texture width.";
    startposx.defaultvalue = QVariant((double)-20);
    startposx.min = QVariant(-100);
    startposx.max = QVariant(100);
-   startposx.order = 6;
-   configurables.insert("startposx", startposx);
+   startposx.id = "startposx";
+   configurables.append(startposx);
 
    TextureGeneratorSetting startposy;
-   startposy.name = "Start pos Y";
+   startposy.name = "Start Y (%)";
+   startposy.description = "Vertical start position as a percentage of the texture height.";
    startposy.defaultvalue = QVariant((double)-20);
    startposy.min = QVariant(-100);
    startposy.max = QVariant(100);
-   startposy.order = 7;
-   configurables.insert("startposy", startposy);
+   startposy.id = "startposy";
+   configurables.append(startposy);
 
    TextureGeneratorSetting middleposition;
    middleposition.name = "Middle position (%)";
+   middleposition.description = "Position of the middle colour between the gradient endpoints.";
    middleposition.defaultvalue = QVariant((double)50);
    middleposition.min = QVariant(0);
    middleposition.max = QVariant(100);
-   middleposition.order = 8;
-   configurables.insert("middleposition", middleposition);
+   middleposition.id = "middleposition";
+   configurables.append(middleposition);
 
    TextureGeneratorSetting endposx;
-   endposx.name = "End pos X";
+   endposx.name = "End X (%)";
+   endposx.description = "Horizontal end position as a percentage of the texture width.";
    endposx.defaultvalue = QVariant((double)0);
    endposx.min = QVariant(-100);
    endposx.max = QVariant(100);
-   endposx.order = 9;
-   configurables.insert("endposx", endposx);
+   endposx.id = "endposx";
+   configurables.append(endposx);
 
    TextureGeneratorSetting endposy;
-   endposy.name = "End pos Y";
+   endposy.name = "End Y (%)";
+   endposy.description = "Vertical end position as a percentage of the texture height.";
    endposy.defaultvalue = QVariant((double)20);
    endposy.min = QVariant(-100);
    endposy.max = QVariant(100);
-   endposy.order = 10;
-   configurables.insert("endposy", endposy);
+   endposy.id = "endposy";
+   configurables.append(endposy);
 
    TextureGeneratorSetting radius;
-   radius.name = "Radius (%)";
+   radius.name = "Radial radius (%)";
+   radius.description = "Radius of a radial gradient as a percentage of the texture width.";
    radius.defaultvalue = QVariant((double)50);
    radius.min = QVariant(0);
    radius.max = QVariant(200);
-   radius.order = 11;
-   configurables.insert("radius", radius);
+   radius.id = "radius";
+   configurables.append(radius);
 }
 void GradientTextureGenerator::generate(QSize size, TexturePixel* destimage,
                                         const QMap<QString, TextureImagePtr>& sourceimages,

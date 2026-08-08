@@ -9,97 +9,98 @@
 
 TransformTextureGenerator::TransformTextureGenerator() {
    TextureGeneratorSetting scaleX;
-   scaleX.name = "Scale X (%)";
-   scaleX.description = "";
+   scaleX.name = "Horizontal scale (%)";
+   scaleX.description = "Scales the input image horizontally around the texture centre.";
    scaleX.defaultvalue = QVariant((double)100);
    scaleX.min = QVariant(0);
    scaleX.max = QVariant(500);
-   scaleX.order = 1;
    scaleX.group = "scale";
-   configurables.insert("xscale", scaleX);
+   scaleX.id = "xscale";
+   configurables.append(scaleX);
 
    TextureGeneratorSetting scaleY;
-   scaleY.name = "Scale Y (%)";
-   scaleY.description = "";
+   scaleY.name = "Vertical scale (%)";
+   scaleY.description = "Scales the input image vertically around the texture centre.";
    scaleY.defaultvalue = QVariant((double)100);
    scaleY.min = QVariant(0);
    scaleY.max = QVariant(500);
-   scaleY.order = 2;
    scaleY.group = "scale";
-   configurables.insert("yscale", scaleY);
+   scaleY.id = "yscale";
+   configurables.append(scaleY);
 
    TextureGeneratorSetting rotation;
-   rotation.name = "Rotation";
-   rotation.description = "";
+   rotation.name = "Rotation (°)";
+   rotation.description = "Rotates the input image around the texture centre.";
    rotation.defaultvalue = QVariant((double)0);
    rotation.min = QVariant(-360);
    rotation.max = QVariant(360);
-   rotation.order = 3;
-   configurables.insert("rotation", rotation);
+   rotation.id = "rotation";
+   configurables.append(rotation);
 
    TextureGeneratorSetting offsetLeft;
-   offsetLeft.name = "Offset left";
-   offsetLeft.description = "";
+   offsetLeft.name = "Horizontal offset (%)";
+   offsetLeft.description = "Moves the input image horizontally across the texture.";
    offsetLeft.defaultvalue = QVariant((double)0);
    offsetLeft.min = QVariant(-200);
    offsetLeft.max = QVariant(200);
-   offsetLeft.order = 4;
-   configurables.insert("offsetleft", offsetLeft);
+   offsetLeft.id = "offsetleft";
+   configurables.append(offsetLeft);
 
    TextureGeneratorSetting offsetTop;
-   offsetTop.name = "Offset top";
-   offsetTop.description = "";
+   offsetTop.name = "Vertical offset (%)";
+   offsetTop.description = "Moves the input image vertically across the texture.";
    offsetTop.defaultvalue = QVariant((double)0);
    offsetTop.min = QVariant(-200);
    offsetTop.max = QVariant(200);
-   offsetTop.order = 5;
-   configurables.insert("offsettop", offsetTop);
+   offsetTop.id = "offsettop";
+   configurables.append(offsetTop);
 
    TextureGeneratorSetting colorsetting;
-   colorsetting.name = "Background";
+   colorsetting.name = "Background colour";
+   colorsetting.description = "Colour used where the transformed image leaves empty space.";
    colorsetting.defaultvalue = QVariant(QColor(0, 0, 0, 0));
-   colorsetting.order = 6;
-   configurables.insert("backgroundcolor", colorsetting);
+   colorsetting.id = "backgroundcolor";
+   configurables.append(colorsetting);
 
    TextureGeneratorSetting firstXtiles;
-   firstXtiles.name = "Tiles 1st pass (X)";
-   firstXtiles.description = "";
+   firstXtiles.name = "First-pass horizontal tiles";
+   firstXtiles.description = "Number of horizontal copies created before transformation.";
    firstXtiles.defaultvalue = QVariant((int)1);
    firstXtiles.min = QVariant(1);
    firstXtiles.max = QVariant(5);
    firstXtiles.group = "first tiles";
-   firstXtiles.order = 7;
-   configurables.insert("firstXtiles", firstXtiles);
+   firstXtiles.id = "firstXtiles";
+   configurables.append(firstXtiles);
 
    TextureGeneratorSetting firstYtiles;
-   firstYtiles.name = "Tiles 1st pass (Y)";
-   firstYtiles.description = "";
+   firstYtiles.name = "First-pass vertical tiles";
+   firstYtiles.description = "Number of vertical copies created before transformation.";
    firstYtiles.defaultvalue = QVariant((int)1);
    firstYtiles.min = QVariant(1);
    firstYtiles.max = QVariant(5);
    firstYtiles.group = "first tiles";
-   firstYtiles.order = 8;
-   configurables.insert("firstYtiles", firstYtiles);
+   firstYtiles.id = "firstYtiles";
+   configurables.append(firstYtiles);
 
    TextureGeneratorSetting secondXtiles;
-   secondXtiles.name = "Tiles 2nd pass (X)";
-   secondXtiles.description = "";
+   secondXtiles.name = "Second-pass horizontal tiles";
+   secondXtiles.description = "Number of horizontal copies created after transformation.";
    secondXtiles.defaultvalue = QVariant((int)1);
    secondXtiles.min = QVariant(1);
    secondXtiles.max = QVariant(50);
    secondXtiles.group = "second tiles";
-   secondXtiles.order = 9;
-   configurables.insert("secondXtiles", secondXtiles);
+   secondXtiles.id = "secondXtiles";
+   configurables.append(secondXtiles);
 
    TextureGeneratorSetting secondYtiles;
-   secondYtiles.name = "Tiles 2nd pass (Y)";
-   secondYtiles.description = "";
+   secondYtiles.name = "Second-pass vertical tiles";
+   secondYtiles.description = "Number of vertical copies created after transformation.";
    secondYtiles.defaultvalue = QVariant((int)1);
    secondYtiles.min = QVariant(1);
    secondYtiles.max = QVariant(50);
    secondYtiles.group = "second tiles";
-   secondYtiles.order = 10;
-   configurables.insert("secondYtiles", secondYtiles);
+   secondYtiles.id = "secondYtiles";
+   configurables.append(secondYtiles);
 }
 void TransformTextureGenerator::generate(QSize size, TexturePixel* destimage,
                                          const QMap<QString, TextureImagePtr>& sourceimages,

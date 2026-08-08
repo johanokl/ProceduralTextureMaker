@@ -13,31 +13,35 @@ InvertTextureGenerator::InvertTextureGenerator() {
 
    TextureGeneratorSetting channelRed;
    channelRed.name = "Invert red";
-   channelRed.order = 0;
+   channelRed.description = "Selects whether the red channel is inverted.";
    channelRed.defaultindex = 0;
    channelRed.defaultvalue = QVariant(options);
-   configurables.insert("channelRed", channelRed);
+   channelRed.id = "channelRed";
+   configurables.append(channelRed);
 
    TextureGeneratorSetting channelGreen;
    channelGreen.name = "Invert green";
-   channelGreen.order = 1;
+   channelGreen.description = "Selects whether the green channel is inverted.";
    channelGreen.defaultindex = 0;
    channelGreen.defaultvalue = QVariant(options);
-   configurables.insert("channelGreen", channelGreen);
+   channelGreen.id = "channelGreen";
+   configurables.append(channelGreen);
 
    TextureGeneratorSetting channelBlue;
    channelBlue.name = "Invert blue";
-   channelBlue.order = 2;
+   channelBlue.description = "Selects whether the blue channel is inverted.";
    channelBlue.defaultindex = 0;
    channelBlue.defaultvalue = QVariant(options);
-   configurables.insert("channelBlue", channelBlue);
+   channelBlue.id = "channelBlue";
+   configurables.append(channelBlue);
 
    TextureGeneratorSetting channelAlpha;
    channelAlpha.name = "Invert alpha";
-   channelAlpha.order = 3;
+   channelAlpha.description = "Selects whether the alpha channel is inverted.";
    channelAlpha.defaultindex = 1;
    channelAlpha.defaultvalue = QVariant(options);
-   configurables.insert("channelAlpha", channelAlpha);
+   channelAlpha.id = "channelAlpha";
+   configurables.append(channelAlpha);
 }
 void InvertTextureGenerator::generate(QSize size, TexturePixel* destimage,
                                       const QMap<QString, TextureImagePtr>& sourceimages,

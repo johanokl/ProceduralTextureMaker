@@ -23,7 +23,7 @@ public:
    QString getName() const override { return QString("Cutout"); }
    const TextureGeneratorSettings& getSettings() const override { return configurables; }
    QString getDescription() const override {
-      return QString("Cut alpha from one image using another.");
+      return QString("Subtracts one input image's alpha channel from the other.");
    }
    TextureGenerator::Type getType() const override { return TextureGenerator::Type::Combiner; }
 

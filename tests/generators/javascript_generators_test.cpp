@@ -19,7 +19,7 @@ namespace {
 /// @brief Returns a compact valid descriptor generator used by rendering tests.
 QString solidScript() {
    return QStringLiteral(
-       "const generator={apiVersion:1,name:'SolidJS',type:'generator',inputs:[],settings:{},"
+       "const generator={apiVersion:1,name:'SolidJS',type:'generator',inputs:[],settings:[],"
        "generate(size,settings,output){void settings;for(let i=0;i<size.width*size.height;++i){"
        "const p=i*4;output.data[p]=0x11;output.data[p+1]=0x22;output.data[p+2]=0x33;"
        "output.data[p+3]=0x44;}}};");
@@ -101,7 +101,7 @@ void JavaScriptGeneratorsTest::rendersAndReportsErrors() {
    QVERIFY(removedGlobalsApi.validationError().contains(QStringLiteral("globals API")));
 
    const QString throwing = QStringLiteral(
-       "const generator={apiVersion:1,name:'Failure',type:'generator',inputs:[],settings:{},"
+       "const generator={apiVersion:1,name:'Failure',type:'generator',inputs:[],settings:[],"
        "generate(){throw new Error('planned');}};");
    auto generator = TextureGeneratorPtr(new JsTexGen(throwing));
    TextureProject project(false);
@@ -141,7 +141,7 @@ void JavaScriptGeneratorsTest::loadsDirectory() {
 void JavaScriptGeneratorsTest::supportsNamedInputs() {
    const QString namedScript = QStringLiteral(
        "const generator={apiVersion:1,name:'Named',type:'combiner',inputs:['Left','Right'],"
-       "settings:{},generate(size,settings,output,inputs){void size;void settings;"
+       "settings:[],generate(size,settings,output,inputs){void size;void settings;"
        "output.data.set(inputs.Right.data);}};");
    JsTexGen namedGenerator(namedScript);
    QVERIFY(namedGenerator.isValid());
@@ -154,7 +154,7 @@ void JavaScriptGeneratorsTest::supportsNamedInputs() {
 
    const QString duplicateScript = QStringLiteral(
        "const generator={apiVersion:1,name:'Duplicate',type:'combiner',"
-       "inputs:['Input','Input'],settings:{},generate(){}};");
+       "inputs:['Input','Input'],settings:[],generate(){}};");
    QVERIFY(!JsTexGen(duplicateScript).isValid());
 }
 
@@ -166,15 +166,15 @@ const generator = {
   description: "All setting types",
   type: "generator",
   inputs: [],
-  settings: {
-    imagewidth: { type: "integer", name: "Image width setting", default: 7, min: 0, max: 20, order: 1 },
-    amount: { type: "real", default: 0.5, min: 0, max: 1, order: 2 },
-    enabled: { type: "boolean", default: true, group: "Behavior", order: 3 },
-    label: { type: "string", default: "hello", description: "A label", order: 4 },
-    notes: { type: "multiline", default: "two\nlines", enabler: "enabled", order: 5 },
-    color: { type: "color", default: { r: 9, g: 8, b: 7, a: 6 }, order: 6 },
-    mode: { type: "choice", values: ["Add", "Multiply", "Overlay"], default: "Overlay", order: 7 }
-  },
+  settings: [
+    { id: "imagewidth", type: "integer", name: "Image width setting", default: 7, min: 0, max: 20 },
+    { id: "amount", type: "real", default: 0.5, min: 0, max: 1 },
+    { id: "enabled", type: "boolean", default: true, group: "Behavior" },
+    { id: "label", type: "string", default: "hello", description: "A label" },
+    { id: "notes", type: "multiline", default: "two\nlines", enabler: "enabled" },
+    { id: "color", type: "color", default: { r: 9, g: 8, b: 7, a: 6 } },
+    { id: "mode", type: "choice", values: ["Add", "Multiply", "Overlay"], default: "Overlay" }
+  ],
   generate(size, settings, output, inputs) {
     if (!Object.isFrozen(size) || !Object.isFrozen(settings) || !Object.isFrozen(output) ||
         !Object.isFrozen(inputs)) throw new Error("arguments must be frozen");
@@ -196,19 +196,24 @@ const generator = {
    QCOMPARE(rawGenerator->getSourceSlots(), QStringList());
    const TextureGeneratorSettings& settings = rawGenerator->getSettings();
    QCOMPARE(settings.size(), 7);
-   QCOMPARE(settings.value(QStringLiteral("imagewidth")).defaultvalue, QVariant(7));
-   QCOMPARE(settings.value(QStringLiteral("amount")).defaultvalue, QVariant(0.5));
-   QCOMPARE(settings.value(QStringLiteral("enabled")).defaultvalue, QVariant(true));
-   QCOMPARE(settings.value(QStringLiteral("label")).defaultvalue,
-            QVariant(QStringLiteral("hello")));
-   QVERIFY(settings.value(QStringLiteral("notes")).multiline);
-   QCOMPARE(settings.value(QStringLiteral("notes")).enabler, QStringLiteral("enabled"));
-   QCOMPARE(settings.value(QStringLiteral("color")).defaultvalue.value<QColor>(),
-            QColor(9, 8, 7, 6));
+   QCOMPARE(settings.at(0).id, QStringLiteral("imagewidth"));
+   QCOMPARE(settings.at(1).id, QStringLiteral("amount"));
+   QCOMPARE(settings.at(2).id, QStringLiteral("enabled"));
+   QCOMPARE(settings.at(3).id, QStringLiteral("label"));
+   QCOMPARE(settings.at(4).id, QStringLiteral("notes"));
+   QCOMPARE(settings.at(5).id, QStringLiteral("color"));
+   QCOMPARE(settings.at(6).id, QStringLiteral("mode"));
+   QCOMPARE(settings.at(0).defaultvalue, QVariant(7));
+   QCOMPARE(settings.at(1).defaultvalue, QVariant(0.5));
+   QCOMPARE(settings.at(2).defaultvalue, QVariant(true));
+   QCOMPARE(settings.at(3).defaultvalue, QVariant(QStringLiteral("hello")));
+   QVERIFY(settings.at(4).multiline);
+   QCOMPARE(settings.at(4).enabler, QStringLiteral("enabled"));
+   QCOMPARE(settings.at(5).defaultvalue.value<QColor>(), QColor(9, 8, 7, 6));
    QCOMPARE(
-       settings.value(QStringLiteral("mode")).defaultvalue.toStringList(),
+       settings.at(6).defaultvalue.toStringList(),
        QStringList({QStringLiteral("Add"), QStringLiteral("Multiply"), QStringLiteral("Overlay")}));
-   QCOMPARE(settings.value(QStringLiteral("mode")).defaultindex, 2);
+   QCOMPARE(settings.at(6).defaultindex, 2);
 
    const TextureGeneratorPtr generator(rawGenerator);
    TextureProject project(false);
@@ -219,7 +224,7 @@ const generator = {
 
    const QString immutableInputScript = QStringLiteral(R"JS(
 const generator = {
-  apiVersion: 1, name: "Immutable", type: "filter", inputs: ["Input"], settings: {},
+  apiVersion: 1, name: "Immutable", type: "filter", inputs: ["Input"], settings: [],
   generate(size, settings, output, inputs) {
     void size; void settings;
     const original = inputs.Input.data[0];
@@ -239,7 +244,7 @@ const generator = {
 
 void JavaScriptGeneratorsTest::validatesVersion1Descriptors() {
    const QString typeScript = QStringLiteral(
-       "const generator={apiVersion:1,name:'Typed',type:'%1',inputs:[],settings:{},"
+       "const generator={apiVersion:1,name:'Typed',type:'%1',inputs:[],settings:[],"
        "generate(size,settings,output){output.data.fill(0);}};");
    const QList<QPair<QString, TextureGenerator::Type>> types{
        {QStringLiteral("generator"), TextureGenerator::Type::Generator},
@@ -254,24 +259,40 @@ void JavaScriptGeneratorsTest::validatesVersion1Descriptors() {
    const QStringList invalidScripts{
        QStringLiteral(
            "const generator={apiVersion:2,name:'UnreleasedVersion',type:'generator',inputs:[],"
-           "settings:{},generate(){}};"),
+           "settings:[],generate(){}};"),
        QStringLiteral(
-           "const generator={apiVersion:1,name:'NoType',inputs:[],settings:{},generate(){}};"),
+           "const generator={apiVersion:1,name:'NoType',inputs:[],settings:[],generate(){}};"),
        QStringLiteral("const "
-                      "generator={apiVersion:1,name:'BadType',type:'effect',inputs:[],settings:{},"
+                      "generator={apiVersion:1,name:'BadType',type:'effect',inputs:[],settings:[],"
                       "generate(){}};"),
        QStringLiteral("const "
                       "generator={apiVersion:1,name:'Slots',type:'filter',inputs:['Input','Input'],"
-                      "settings:{},generate(){}};"),
+                      "settings:[],generate(){}};"),
        QStringLiteral("const "
-                      "generator={apiVersion:1,name:'Range',type:'generator',inputs:[],settings:{"
-                      "value:{type:'integer',default:20,min:0,max:10}},generate(){}};"),
+                      "generator={apiVersion:1,name:'Range',type:'generator',inputs:[],settings:["
+                      "{id:'value',type:'integer',default:20,min:0,max:10}],generate(){}};"),
        QStringLiteral("const "
-                      "generator={apiVersion:1,name:'Choice',type:'generator',inputs:[],settings:{"
-                      "mode:{type:'choice',values:['A'],default:'B'}},generate(){}};"),
+                      "generator={apiVersion:1,name:'Choice',type:'generator',inputs:[],settings:["
+                      "{id:'mode',type:'choice',values:['A'],default:'B'}],generate(){}};"),
        QStringLiteral("const "
                       "generator={apiVersion:1,name:'Callable',type:'generator',inputs:[],settings:"
-                      "{},generate:3};")};
+                      "[],generate:3};"),
+       QStringLiteral("const generator={apiVersion:1,name:'ObjectSettings',type:'generator',"
+                      "inputs:[],settings:{},generate(){}};"),
+       QStringLiteral("const generator={apiVersion:1,name:'PrimitiveSetting',type:'generator',"
+                      "inputs:[],settings:[3],generate(){}};"),
+       QStringLiteral("const generator={apiVersion:1,name:'MissingId',type:'generator',inputs:[],"
+                      "settings:[{type:'integer',default:1}],generate(){}};"),
+       QStringLiteral("const generator={apiVersion:1,name:'EmptyId',type:'generator',inputs:[],"
+                      "settings:[{id:' ',type:'integer',default:1}],generate(){}};"),
+       QStringLiteral("const generator={apiVersion:1,name:'NumericId',type:'generator',inputs:[],"
+                      "settings:[{id:3,type:'integer',default:1}],generate(){}};"),
+       QStringLiteral(
+           "const generator={apiVersion:1,name:'DuplicateId',type:'generator',inputs:[],"
+           "settings:[{id:'amount',type:'integer',default:1},{id:'amount',type:'integer',"
+           "default:2}],generate(){}};"),
+       QStringLiteral("const generator={apiVersion:1,name:'Order',type:'generator',inputs:[],"
+                      "settings:[{id:'amount',type:'integer',default:1,order:1}],generate(){}};")};
    for (const QString& script : invalidScripts) {
       JsTexGen generator(script, QStringLiteral("invalid-v1.js"));
       QVERIFY(!generator.isValid());
@@ -280,7 +301,7 @@ void JavaScriptGeneratorsTest::validatesVersion1Descriptors() {
    }
 
    const QString throwing = QStringLiteral(
-       "const generator={apiVersion:1,name:'Throwing',type:'generator',inputs:[],settings:{},"
+       "const generator={apiVersion:1,name:'Throwing',type:'generator',inputs:[],settings:[],"
        "generate(){throw new Error('planned v1 failure');}};");
    JsTexGen generator(throwing, QStringLiteral("throwing-v1.js"));
    TexturePixel destination{};
@@ -291,7 +312,7 @@ void JavaScriptGeneratorsTest::validatesVersion1Descriptors() {
 
 void JavaScriptGeneratorsTest::cachesConcurrentRuntimesAndInterrupts() {
    const QString fillScript = QStringLiteral(
-       "const generator={apiVersion:1,name:'Cached',type:'generator',inputs:[],settings:{},"
+       "const generator={apiVersion:1,name:'Cached',type:'generator',inputs:[],settings:[],"
        "generate(size,settings,output){void size;void settings;output.data.fill(17);}};");
    JsTexGen generator(fillScript, QStringLiteral("cached.js"));
    TextureNodeSettings settings;
@@ -321,7 +342,7 @@ void JavaScriptGeneratorsTest::cachesConcurrentRuntimesAndInterrupts() {
    QCOMPARE(JsTexGen::runtimeEvaluationCount(), concurrentBefore + 2);
 
    const QString infiniteScript = QStringLiteral(
-       "const generator={apiVersion:1,name:'Infinite',type:'generator',inputs:[],settings:{},"
+       "const generator={apiVersion:1,name:'Infinite',type:'generator',inputs:[],settings:[],"
        "generate(){while(true){}}};");
    JsTexGen infinite(infiniteScript, QStringLiteral("infinite.js"));
    std::atomic_bool finished{false};
@@ -352,7 +373,7 @@ void JavaScriptGeneratorsTest::reloadsDefinitionsAtomically() {
    const QString firstRevision = QStringLiteral(R"JS(
 const generator = {
   apiVersion: 1, name: "Reloaded", type: "filter", inputs: ["Source"],
-  settings: { amount: { type: "integer", default: 2, min: 0, max: 20 } },
+  settings: [{ id: "amount", type: "integer", default: 2, min: 0, max: 20 }],
   generate(size, settings, output, inputs) {
     void size; output.data.fill(settings.amount);
     if (inputs.Source) output.data[3] = inputs.Source.data[3];
@@ -374,7 +395,7 @@ const generator = {
    QVERIFY(!firstGenerator.isNull());
    QCOMPARE(firstGenerator->getOrigin(), TextureGenerator::Origin::Custom);
    const TextureGeneratorPtr sourceGenerator(new JsTexGen(QStringLiteral(
-       "const generator={apiVersion:1,name:'ReloadSource',type:'generator',inputs:[],settings:{},"
+       "const generator={apiVersion:1,name:'ReloadSource',type:'generator',inputs:[],settings:[],"
        "generate(size,settings,output){void size;void settings;output.data.fill(255);}};")));
    project.addGenerator(sourceGenerator);
    const TextureNodePtr sourceNode = project.newNode(1, sourceGenerator);
@@ -387,10 +408,10 @@ const generator = {
    const QString secondRevision = QStringLiteral(R"JS(
 const generator = {
   apiVersion: 1, name: "Reloaded", type: "combiner", inputs: ["Source", "Mask"],
-  settings: {
-    amount: { type: "integer", default: 3, min: 0, max: 20 },
-    enabled: { type: "boolean", default: true }
-  },
+  settings: [
+    { id: "enabled", type: "boolean", default: true },
+    { id: "amount", type: "integer", default: 3, min: 0, max: 20 }
+  ],
   generate(size, settings, output, inputs) {
     void size; void inputs; output.data.fill(settings.enabled ? settings.amount : 0);
   }

@@ -19,24 +19,27 @@ FireTextureGenerator::FireTextureGenerator() {
    falloff.min = QVariant(0);
    falloff.max = QVariant(0.5);
    falloff.name = "Falloff";
-   falloff.order = 1;
-   configurables.insert("falloff", falloff);
+   falloff.description = "Controls how quickly the flames fade as they rise.";
+   falloff.id = "falloff";
+   configurables.append(falloff);
 
    TextureGeneratorSetting iterations;
    iterations.defaultvalue = QVariant((int)150);
    iterations.min = QVariant(1);
    iterations.max = QVariant(400);
    iterations.name = "Iterations";
-   iterations.order = 2;
-   configurables.insert("iterations", iterations);
+   iterations.description = "Sets how many simulation steps are used to develop the flames.";
+   iterations.id = "iterations";
+   configurables.append(iterations);
 
    TextureGeneratorSetting randomize;
    randomize.defaultvalue = QVariant((int)5);
    randomize.min = QVariant(1);
    randomize.max = QVariant(500);
    randomize.name = "Random seed";
-   randomize.order = 3;
-   configurables.insert("randomize", randomize);
+   randomize.description = "Selects the repeatable random pattern used to generate the flames.";
+   randomize.id = "randomize";
+   configurables.append(randomize);
 }
 
 void FireTextureGenerator::generate(QSize size, TexturePixel* destimage,

@@ -10,60 +10,69 @@
 
 SineTransformTextureGenerator::SineTransformTextureGenerator() {
    TextureGeneratorSetting angle;
-   angle.name = "Angle";
+   angle.name = "Wave angle (°)";
+   angle.description = "Sets the direction along which both sine waves distort the image.";
    angle.defaultvalue = QVariant((double)45);
    angle.min = QVariant(0);
    angle.max = QVariant(90);
-   angle.order = 1;
-   configurables.insert("angle", angle);
+   angle.id = "angle";
+   configurables.append(angle);
 
    TextureGeneratorSetting frequencyone;
-   frequencyone.name = "Frequency (1)";
+   frequencyone.name = "First frequency";
+   frequencyone.description = "Controls how often the first wave repeats across the texture.";
    frequencyone.defaultvalue = QVariant((double)0.5);
    frequencyone.min = QVariant(0);
    frequencyone.max = QVariant(50);
-   frequencyone.order = 2;
-   configurables.insert("frequencyone", frequencyone);
+   frequencyone.id = "frequencyone";
+   configurables.append(frequencyone);
 
    TextureGeneratorSetting amplitudeone;
-   amplitudeone.name = "Amplitude (1)";
+   amplitudeone.name = "First amplitude (%)";
+   amplitudeone.description =
+       "Maximum displacement caused by the first wave as a percentage of the texture width.";
    amplitudeone.defaultvalue = QVariant((double)20);
    amplitudeone.min = QVariant(0);
    amplitudeone.max = QVariant(100);
-   amplitudeone.order = 3;
-   configurables.insert("amplitudeone", amplitudeone);
+   amplitudeone.id = "amplitudeone";
+   configurables.append(amplitudeone);
 
    TextureGeneratorSetting offsetone;
-   offsetone.name = "Offset (1)";
+   offsetone.name = "First phase offset";
+   offsetone.description = "Shifts the first wave along its cycle.";
    offsetone.defaultvalue = QVariant((double)0);
    offsetone.min = QVariant(-360);
    offsetone.max = QVariant(360);
-   offsetone.order = 4;
-   configurables.insert("offsetone", offsetone);
+   offsetone.id = "offsetone";
+   configurables.append(offsetone);
 
    TextureGeneratorSetting frequencytwo;
-   frequencytwo.name = "Frequency (2)";
+   frequencytwo.name = "Second frequency";
+   frequencytwo.description = "Controls how often the second wave repeats across the texture.";
    frequencytwo.defaultvalue = QVariant((double)10);
    frequencytwo.min = QVariant(0);
    frequencytwo.max = QVariant(50);
-   frequencytwo.order = 5;
-   configurables.insert("frequencytwo", frequencytwo);
+   frequencytwo.id = "frequencytwo";
+   configurables.append(frequencytwo);
 
    TextureGeneratorSetting amplitudetwo;
-   amplitudetwo.name = "Amplitude (2)";
+   amplitudetwo.name = "Second amplitude (%)";
+   amplitudetwo.description =
+       "Maximum displacement caused by the second wave as a percentage of the texture width.";
    amplitudetwo.defaultvalue = QVariant((double)6);
    amplitudetwo.min = QVariant(0);
    amplitudetwo.max = QVariant(50);
-   amplitudetwo.order = 6;
-   configurables.insert("amplitudetwo", amplitudetwo);
+   amplitudetwo.id = "amplitudetwo";
+   configurables.append(amplitudetwo);
 
    TextureGeneratorSetting offsettwo;
-   offsettwo.name = "Offset (2)";
+   offsettwo.name = "Second phase offset";
+   offsettwo.description = "Shifts the second wave along its cycle.";
    offsettwo.defaultvalue = QVariant((double)0);
    offsettwo.min = QVariant(-360);
    offsettwo.max = QVariant(360);
-   offsettwo.order = 7;
-   configurables.insert("offsettwo", offsettwo);
+   offsettwo.id = "offsettwo";
+   configurables.append(offsettwo);
 }
 void SineTransformTextureGenerator::generate(QSize size, TexturePixel* destimage,
                                              const QMap<QString, TextureImagePtr>& sourceimages,

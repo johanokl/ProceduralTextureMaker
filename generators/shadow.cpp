@@ -17,49 +17,55 @@
 ShadowTextureGenerator::ShadowTextureGenerator() {
    TextureGeneratorSetting color;
    color.defaultvalue = QVariant(QColor(100, 100, 100, 255));
-   color.name = "Color";
-   color.order = 1;
-   configurables.insert("color", color);
+   color.name = "Shadow colour";
+   color.description = "Colour used for the generated shadow.";
+   color.id = "color";
+   configurables.append(color);
 
    TextureGeneratorSetting scaleX;
-   scaleX.name = "Scale X (%)";
+   scaleX.name = "Horizontal scale (%)";
+   scaleX.description = "Scales the shadow horizontally relative to the input image.";
    scaleX.defaultvalue = QVariant((double)100);
    scaleX.min = QVariant(0);
    scaleX.max = QVariant(500);
-   scaleX.order = 2;
-   configurables.insert("xscale", scaleX);
+   scaleX.id = "xscale";
+   configurables.append(scaleX);
 
    TextureGeneratorSetting scaleY;
-   scaleY.name = "Scale Y (%)";
+   scaleY.name = "Vertical scale (%)";
+   scaleY.description = "Scales the shadow vertically relative to the input image.";
    scaleY.defaultvalue = QVariant((double)100);
    scaleY.min = QVariant(0);
    scaleY.max = QVariant(500);
-   scaleY.order = 3;
-   configurables.insert("yscale", scaleY);
+   scaleY.id = "yscale";
+   configurables.append(scaleY);
 
    TextureGeneratorSetting offsetLeft;
-   offsetLeft.name = "Offset left";
+   offsetLeft.name = "Horizontal offset (%)";
+   offsetLeft.description = "Moves the shadow horizontally across the texture.";
    offsetLeft.defaultvalue = QVariant((double)-10);
    offsetLeft.min = QVariant(-100);
    offsetLeft.max = QVariant(100);
-   offsetLeft.order = 4;
-   configurables.insert("offsetleft", offsetLeft);
+   offsetLeft.id = "offsetleft";
+   configurables.append(offsetLeft);
 
    TextureGeneratorSetting offsetTop;
-   offsetTop.name = "Offset top";
+   offsetTop.name = "Vertical offset (%)";
+   offsetTop.description = "Moves the shadow vertically across the texture.";
    offsetTop.defaultvalue = QVariant((double)10);
    offsetTop.min = QVariant(-100);
    offsetTop.max = QVariant(100);
-   offsetTop.order = 5;
-   configurables.insert("offsettop", offsetTop);
+   offsetTop.id = "offsettop";
+   configurables.append(offsetTop);
 
    TextureGeneratorSetting blursetting;
    blursetting.defaultvalue = QVariant((int)10);
-   blursetting.name = "Blur level";
+   blursetting.name = "Blur radius (px)";
+   blursetting.description = "Controls how softly the shadow fades at its edges.";
    blursetting.min = QVariant(0);
    blursetting.max = QVariant(20);
-   blursetting.order = 6;
-   configurables.insert("level", blursetting);
+   blursetting.id = "level";
+   configurables.append(blursetting);
 }
 void ShadowTextureGenerator::generate(QSize size, TexturePixel* destimage,
                                       const QMap<QString, TextureImagePtr>& sourceimages,
@@ -102,12 +108,8 @@ void ShadowTextureGenerator::generate(QSize size, TexturePixel* destimage,
    QMap<QString, TextureImagePtr> sourceForTransform;
    sourceForTransform.insert(QStringLiteral("Input"), blurredImagePtr);
    TextureNodeSettings settingsForTransform;
-   QMapIterator<QString, TextureGeneratorSetting> transformSettingsIterator(
-       transformgen.getSettings());
-   while (transformSettingsIterator.hasNext()) {
-      transformSettingsIterator.next();
-      settingsForTransform.insert(transformSettingsIterator.key(),
-                                  transformSettingsIterator.value().defaultvalue);
+   for (const TextureGeneratorSetting& setting : transformgen.getSettings()) {
+      settingsForTransform.insert(setting.id, setting.defaultvalue);
    }
    settingsForTransform.insert("offsetleft", QVariant(settings.value("offsetleft").toDouble()));
    settingsForTransform.insert("offsettop", QVariant(settings.value("offsettop").toDouble()));
@@ -122,11 +124,8 @@ void ShadowTextureGenerator::generate(QSize size, TexturePixel* destimage,
    sourceForBlend.insert(QStringLiteral("Base"), transformedImagePtr);
    sourceForBlend.insert(QStringLiteral("Blend"), sourceimages.value(QStringLiteral("Input")));
    TextureNodeSettings settingsForBlend;
-   QMapIterator<QString, TextureGeneratorSetting> blendSettingsIterator(blendinggen.getSettings());
-   while (blendSettingsIterator.hasNext()) {
-      blendSettingsIterator.next();
-      settingsForBlend.insert(blendSettingsIterator.key(),
-                              blendSettingsIterator.value().defaultvalue);
+   for (const TextureGeneratorSetting& setting : blendinggen.getSettings()) {
+      settingsForBlend.insert(setting.id, setting.defaultvalue);
    }
    auto* blendedImage = new TexturePixel[size.width() * size.height()];
    blendinggen.generate(size, blendedImage, sourceForBlend, settingsForBlend);

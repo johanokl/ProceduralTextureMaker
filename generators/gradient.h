@@ -19,7 +19,9 @@ public:
                  const TextureNodeSettings& settings) const override;
    QString getName() const override { return QString("Gradient"); }
    const TextureGeneratorSettings& getSettings() const override { return configurables; }
-   QString getDescription() const override { return QString("Draws a filled Gradient."); }
+   QString getDescription() const override {
+      return QString("Generates a linear, radial, or conical three-colour gradient.");
+   }
    TextureGenerator::Type getType() const override { return TextureGenerator::Type::Generator; }
 
 private:

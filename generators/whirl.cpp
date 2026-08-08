@@ -10,36 +10,40 @@
 
 WhirlTextureGenerator::WhirlTextureGenerator() {
    TextureGeneratorSetting radius;
-   radius.name = "Radius";
+   radius.name = "Radius (%)";
+   radius.description = "Radius of the affected area as a percentage of the texture width.";
    radius.defaultvalue = QVariant((double)50);
    radius.min = QVariant(0);
    radius.max = QVariant(200);
-   radius.order = 1;
-   configurables.insert("radius", radius);
+   radius.id = "radius";
+   configurables.append(radius);
 
    TextureGeneratorSetting strength;
    strength.name = "Strength";
+   strength.description = "Controls the amount and direction of twisting.";
    strength.defaultvalue = QVariant((double)40);
    strength.min = QVariant(-500);
    strength.max = QVariant(500);
-   strength.order = 2;
-   configurables.insert("strength", strength);
+   strength.id = "strength";
+   configurables.append(strength);
 
    TextureGeneratorSetting offsetleft;
-   offsetleft.name = "Offset left";
+   offsetleft.name = "Horizontal centre offset (%)";
+   offsetleft.description = "Moves the centre of the whirl horizontally.";
    offsetleft.defaultvalue = QVariant((double)0);
    offsetleft.min = QVariant(-100);
    offsetleft.max = QVariant(100);
-   offsetleft.order = 3;
-   configurables.insert("offsetleft", offsetleft);
+   offsetleft.id = "offsetleft";
+   configurables.append(offsetleft);
 
    TextureGeneratorSetting offsettop;
-   offsettop.name = "Offset top";
+   offsettop.name = "Vertical centre offset (%)";
+   offsettop.description = "Moves the centre of the whirl vertically.";
    offsettop.defaultvalue = QVariant((double)0);
    offsettop.min = QVariant(-100);
    offsettop.max = QVariant(100);
-   offsettop.order = 4;
-   configurables.insert("offsettop", offsettop);
+   offsettop.id = "offsettop";
+   configurables.append(offsettop);
 }
 void WhirlTextureGenerator::generate(QSize size, TexturePixel* destimage,
                                      const QMap<QString, TextureImagePtr>& sourceimages,

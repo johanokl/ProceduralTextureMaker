@@ -19,7 +19,9 @@ public:
                  const TextureNodeSettings& settings) const override;
    QString getName() const override { return QString("Noise"); }
    const TextureGeneratorSettings& getSettings() const override { return configurables; }
-   QString getDescription() const override { return QString("Pure noise."); }
+   QString getDescription() const override {
+      return QString("Generates coloured random noise over an optional input image.");
+   }
    TextureGenerator::Type getType() const override { return TextureGenerator::Type::Generator; }
 
 private:

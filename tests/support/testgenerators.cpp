@@ -12,9 +12,10 @@ RecordingGenerator::RecordingGenerator(QString name, const int sourceSlots, cons
       }
    }
    TextureGeneratorSetting value;
+   value.id = QStringLiteral("value");
    value.name = QStringLiteral("Value");
    value.defaultvalue = defaultValue;
-   schema.insert(QStringLiteral("value"), value);
+   schema.append(value);
 }
 
 void RecordingGenerator::generate(const QSize size, TexturePixel* destination,

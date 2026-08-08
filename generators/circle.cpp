@@ -10,47 +10,47 @@
 
 CircleTextureGenerator::CircleTextureGenerator() {
    TextureGeneratorSetting colorsetting;
-   colorsetting.name = "Color";
-   colorsetting.description = "Color of the circle";
+   colorsetting.name = "Colour";
+   colorsetting.description = "Colour used to draw the circle or ring.";
    colorsetting.defaultvalue = QVariant(QColor(200, 100, 0, 255));
-   colorsetting.order = 1;
-   configurables.insert("color", colorsetting);
+   colorsetting.id = "color";
+   configurables.append(colorsetting);
 
    TextureGeneratorSetting innerRadius;
-   innerRadius.name = "Inner radius";
-   innerRadius.description = "Inner radius of the circle in percent of width";
+   innerRadius.name = "Inner radius (%)";
+   innerRadius.description = "Inner radius as a percentage of half the texture height.";
    innerRadius.defaultvalue = QVariant((double)0);
    innerRadius.min = QVariant(0);
    innerRadius.max = QVariant(200);
-   innerRadius.order = 2;
-   configurables.insert("innerradius", innerRadius);
+   innerRadius.id = "innerradius";
+   configurables.append(innerRadius);
 
    TextureGeneratorSetting outerRadius;
-   outerRadius.name = "Outer radius";
-   outerRadius.description = "Outer radius of the circle in percent of width";
+   outerRadius.name = "Outer radius (%)";
+   outerRadius.description = "Outer radius as a percentage of half the texture height.";
    outerRadius.defaultvalue = QVariant((double)100);
    outerRadius.min = QVariant(0);
    outerRadius.max = QVariant(200);
-   outerRadius.order = 3;
-   configurables.insert("outerradius", outerRadius);
+   outerRadius.id = "outerradius";
+   configurables.append(outerRadius);
 
    TextureGeneratorSetting offsetLeft;
-   offsetLeft.name = "Offset left";
-   offsetLeft.description = "Inner radius of the circle in percent of width";
+   offsetLeft.name = "Horizontal offset (%)";
+   offsetLeft.description = "Moves the centre horizontally as a percentage of the texture width.";
    offsetLeft.defaultvalue = QVariant((double)0);
    offsetLeft.min = QVariant(-100);
    offsetLeft.max = QVariant(100);
-   offsetLeft.order = 4;
-   configurables.insert("offsetleft", offsetLeft);
+   offsetLeft.id = "offsetleft";
+   configurables.append(offsetLeft);
 
    TextureGeneratorSetting offsetTop;
-   offsetTop.name = "Offset top";
-   offsetTop.description = "Outer radius of the circle in percent of width";
+   offsetTop.name = "Vertical offset (%)";
+   offsetTop.description = "Moves the centre vertically as a percentage of the texture height.";
    offsetTop.defaultvalue = QVariant((double)0);
    offsetTop.min = QVariant(-100);
    offsetTop.max = QVariant(100);
-   offsetTop.order = 5;
-   configurables.insert("offsettop", offsetTop);
+   offsetTop.id = "offsettop";
+   configurables.append(offsetTop);
 }
 void CircleTextureGenerator::generate(QSize size, TexturePixel* destimage,
                                       const QMap<QString, TextureImagePtr>& sourceimages,

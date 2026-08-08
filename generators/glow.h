@@ -19,7 +19,9 @@ public:
                  const TextureNodeSettings& settings) const override;
    QString getName() const override { return QString("Glow"); }
    const TextureGeneratorSettings& getSettings() const override { return configurables; }
-   QString getDescription() const override { return QString("Adds a glow around the object."); }
+   QString getDescription() const override {
+      return QString("Creates a coloured glow around the opaque parts of the input image.");
+   }
    TextureGenerator::Type getType() const override { return TextureGenerator::Type::Filter; }
 
 private:

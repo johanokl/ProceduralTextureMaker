@@ -22,7 +22,7 @@ public:
    }
    QString getName() const override { return QString("Empty"); }
    const TextureGeneratorSettings& getSettings() const override { return _settings; }
-   QString getDescription() const override { return QString("Empty generator."); }
+   QString getDescription() const override { return QString("Produces a transparent texture."); }
    TextureGenerator::Type getType() const override { return TextureGenerator::Type::Generator; }
 
 private:

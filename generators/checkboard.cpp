@@ -10,42 +10,47 @@
 
 CheckboardTextureGenerator::CheckboardTextureGenerator() {
    TextureGeneratorSetting color;
-   color.name = "Color";
+   color.name = "Colour";
+   color.description = "Colour used for alternating squares.";
    color.defaultvalue = QVariant(QColor(0, 0, 0, 255));
-   color.order = 1;
-   configurables.insert("color", color);
+   color.id = "color";
+   configurables.append(color);
 
    TextureGeneratorSetting brickwidth;
-   brickwidth.name = "Brick width";
+   brickwidth.name = "Square width";
+   brickwidth.description = "Width of each square, relative to a 300-pixel texture width.";
    brickwidth.defaultvalue = QVariant((int)10);
    brickwidth.min = QVariant(1);
    brickwidth.max = QVariant(300);
-   brickwidth.order = 2;
-   configurables.insert("brickwidth", brickwidth);
+   brickwidth.id = "brickwidth";
+   configurables.append(brickwidth);
 
    TextureGeneratorSetting brickheight;
-   brickheight.name = "Brick height";
+   brickheight.name = "Square height";
+   brickheight.description = "Height of each square, relative to a 300-pixel texture height.";
    brickheight.defaultvalue = QVariant((int)10);
    brickheight.min = QVariant(1);
    brickheight.max = QVariant(300);
-   brickheight.order = 3;
-   configurables.insert("brickheight", brickheight);
+   brickheight.id = "brickheight";
+   configurables.append(brickheight);
 
    TextureGeneratorSetting offsetx;
-   offsetx.name = "Offset left";
+   offsetx.name = "Horizontal offset (%)";
+   offsetx.description = "Moves the pattern horizontally as a percentage of the texture width.";
    offsetx.defaultvalue = QVariant((int)0);
    offsetx.min = QVariant(-100);
    offsetx.max = QVariant(100);
-   offsetx.order = 4;
-   configurables.insert("offsetx", offsetx);
+   offsetx.id = "offsetx";
+   configurables.append(offsetx);
 
    TextureGeneratorSetting offsety;
-   offsety.name = "Offset top";
+   offsety.name = "Vertical offset (%)";
+   offsety.description = "Moves the pattern vertically as a percentage of the texture height.";
    offsety.defaultvalue = QVariant((int)0);
    offsety.min = QVariant(-100);
    offsety.max = QVariant(100);
-   offsety.order = 5;
-   configurables.insert("offsety", offsety);
+   offsety.id = "offsety";
+   configurables.append(offsety);
 }
 void CheckboardTextureGenerator::generate(QSize size, TexturePixel* destimage,
                                           const QMap<QString, TextureImagePtr>& sourceimages,

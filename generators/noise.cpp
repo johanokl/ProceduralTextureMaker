@@ -15,72 +15,82 @@
 NoiseTextureGenerator::NoiseTextureGenerator() {
    TextureGeneratorSetting colorsetting;
    colorsetting.defaultvalue = QVariant(QColor(0, 0, 0));
-   colorsetting.name = "Color";
-   colorsetting.order = 1;
-   configurables.insert("color", colorsetting);
+   colorsetting.name = "Colour";
+   colorsetting.description = "Colour assigned to the generated noise pixels.";
+   colorsetting.id = "color";
+   configurables.append(colorsetting);
 
    TextureGeneratorSetting alphamin;
    alphamin.defaultvalue = QVariant((int)0);
-   alphamin.name = "Min alpha";
+   alphamin.name = "Minimum alpha";
+   alphamin.description = "Lowest alpha value assigned to a generated noise pixel.";
    alphamin.min = QVariant(0);
    alphamin.max = QVariant(255);
-   alphamin.order = 2;
-   configurables.insert("alphamin", alphamin);
+   alphamin.id = "alphamin";
+   configurables.append(alphamin);
 
    TextureGeneratorSetting alphamax;
    alphamax.defaultvalue = QVariant((int)255);
-   alphamax.name = "Max alpha";
+   alphamax.name = "Maximum alpha";
+   alphamax.description = "Highest alpha value assigned to a generated noise pixel.";
    alphamax.min = QVariant(0);
    alphamax.max = QVariant(255);
-   alphamax.order = 3;
-   configurables.insert("alphamax", alphamax);
+   alphamax.id = "alphamax";
+   configurables.append(alphamax);
 
    TextureGeneratorSetting width;
    width.defaultvalue = QVariant((int)300);
-   width.name = "Width";
+   width.name = "Noise width (px)";
+   width.description = "Width in pixels of the intermediate noise image before scaling.";
    width.min = QVariant(0);
    width.max = QVariant(1000);
    width.group = "size";
-   width.order = 4;
-   configurables.insert("width", width);
+   width.id = "width";
+   configurables.append(width);
 
    TextureGeneratorSetting height;
    height.defaultvalue = QVariant((int)300);
-   height.name = "Height";
+   height.name = "Noise height (px)";
+   height.description = "Height in pixels of the intermediate noise image before scaling.";
    height.min = QVariant(0);
    height.max = QVariant(1000);
    height.group = "size";
-   height.order = 5;
-   configurables.insert("height", height);
+   height.id = "height";
+   configurables.append(height);
 
    TextureGeneratorSetting scatter;
    scatter.defaultvalue = QVariant((bool)true);
-   scatter.name = "Scatter";
-   scatter.order = 6;
-   configurables.insert("scatter", scatter);
+   scatter.name = "Scatter points";
+   scatter.description = "Generates isolated noise points instead of filling every pixel.";
+   scatter.id = "scatter";
+   configurables.append(scatter);
 
    TextureGeneratorSetting numpoints;
    numpoints.defaultvalue = QVariant((int)10 * 1000);
-   numpoints.name = "Number of points";
+   numpoints.name = "Point count";
+   numpoints.description = "Number of random points generated when scattering is enabled.";
    numpoints.min = QVariant(0);
    numpoints.max = QVariant(1000 * 1000);
-   numpoints.order = 7;
    numpoints.enabler = "scatter";
-   configurables.insert("numpoints", numpoints);
+   numpoints.id = "numpoints";
+   configurables.append(numpoints);
 
    TextureGeneratorSetting randomizer;
    randomizer.defaultvalue = QVariant((int)500);
    randomizer.min = QVariant(0);
    randomizer.max = QVariant(1000);
    randomizer.name = "Random seed";
-   randomizer.order = 8;
-   configurables.insert("randomizer", randomizer);
+   randomizer.description = "Selects the repeatable random noise pattern.";
+   randomizer.id = "randomizer";
+   configurables.append(randomizer);
 
    TextureGeneratorSetting smoothscale;
    smoothscale.defaultvalue = QVariant((bool)false);
-   smoothscale.name = "Smooth scale";
-   smoothscale.order = 9;
-   configurables.insert("smoothscale", smoothscale);
+   smoothscale.name = "Smooth scaling";
+   smoothscale.description =
+       "Uses smooth interpolation when resizing the intermediate noise image.";
+   smoothscale.id = "smoothscale";
+   configurables.append(smoothscale);
 }
 void NoiseTextureGenerator::generate(QSize size, TexturePixel* destimage,
                                      const QMap<QString, TextureImagePtr>& sourceimages,

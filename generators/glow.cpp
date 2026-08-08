@@ -21,75 +21,84 @@
 GlowTextureGenerator::GlowTextureGenerator() {
    TextureGeneratorSetting color;
    color.defaultvalue = QVariant(QColor(255, 255, 0, 255));
-   color.name = "Color";
-   color.order = 1;
-   configurables.insert("color", color);
+   color.name = "Glow colour";
+   color.description = "Colour used for the generated glow.";
+   color.id = "color";
+   configurables.append(color);
 
    TextureGeneratorSetting size;
-   size.name = "Size";
+   size.name = "Glow size (%)";
+   size.description = "Controls how far the glow expands beyond the source shape.";
    size.defaultvalue = QVariant((double)4);
    size.min = QVariant(0);
    size.max = QVariant(20);
-   size.order = 2;
-   configurables.insert("size", size);
+   size.id = "size";
+   configurables.append(size);
 
    TextureGeneratorSetting firstblur;
    firstblur.defaultvalue = QVariant((double)3);
-   firstblur.name = "First blur";
+   firstblur.name = "Outer blur radius (px)";
+   firstblur.description = "Softens the expanded outline before it is composited.";
    firstblur.min = QVariant(0);
    firstblur.max = QVariant(25);
-   firstblur.order = 3;
-   configurables.insert("firstblurlevel", firstblur);
+   firstblur.id = "firstblurlevel";
+   configurables.append(firstblur);
 
    QStringList modes;
    modes.append("Multiply");
    modes.append("Enlarge");
    TextureGeneratorSetting mode;
-   mode.name = "Mode";
+   mode.name = "Expansion mode";
+   mode.description = "Selects whether the outline is expanded by copies or by scaling.";
    mode.defaultvalue = QVariant(modes);
-   mode.order = 4;
-   configurables.insert("mode", mode);
+   mode.id = "mode";
+   configurables.append(mode);
 
    TextureGeneratorSetting ontop;
    ontop.name = "Glow on top";
+   ontop.description = "Allows the glow to extend over the opaque area of the source image.";
    ontop.defaultvalue = QVariant((bool)false);
-   ontop.order = 5;
-   configurables.insert("ontop", ontop);
+   ontop.id = "ontop";
+   configurables.append(ontop);
 
    TextureGeneratorSetting cutoutx;
-   cutoutx.name = "Cutout X (%)";
+   cutoutx.name = "Cut-out width (%)";
+   cutoutx.description = "Width of the inner area removed when the glow is drawn on top.";
    cutoutx.defaultvalue = QVariant((double)95);
    cutoutx.min = QVariant(0);
    cutoutx.max = QVariant(100);
    cutoutx.group = "cutout";
-   cutoutx.order = 6;
    cutoutx.enabler = "ontop";
-   configurables.insert("cutoutx", cutoutx);
+   cutoutx.id = "cutoutx";
+   configurables.append(cutoutx);
 
    TextureGeneratorSetting cutouty;
-   cutouty.name = "Cutout Y (%)";
+   cutouty.name = "Cut-out height (%)";
+   cutouty.description = "Height of the inner area removed when the glow is drawn on top.";
    cutouty.defaultvalue = QVariant((double)95);
    cutouty.min = QVariant(0);
    cutouty.max = QVariant(100);
    cutouty.group = "cutout";
    cutouty.enabler = "ontop";
-   cutouty.order = 7;
-   configurables.insert("cutouty", cutouty);
+   cutouty.id = "cutouty";
+   configurables.append(cutouty);
 
    TextureGeneratorSetting secondblur;
    secondblur.defaultvalue = QVariant((double)3);
-   secondblur.name = "Second blur";
+   secondblur.name = "Inner blur radius (px)";
+   secondblur.description = "Softens the cut-out edge when the glow is drawn on top.";
    secondblur.min = QVariant(0);
    secondblur.max = QVariant(25);
    secondblur.enabler = "ontop";
-   secondblur.order = 8;
-   configurables.insert("secondblurlevel", secondblur);
+   secondblur.id = "secondblurlevel";
+   configurables.append(secondblur);
 
    TextureGeneratorSetting includesource;
-   includesource.name = "Include source";
+   includesource.name = "Include source image";
+   includesource.description = "Composites the original input image with the generated glow.";
    includesource.defaultvalue = QVariant((bool)true);
-   includesource.order = 9;
-   configurables.insert("includesource", includesource);
+   includesource.id = "includesource";
+   configurables.append(includesource);
 }
 void GlowTextureGenerator::generate(QSize size, TexturePixel* destimage,
                                     const QMap<QString, TextureImagePtr>& sourceimages,
@@ -109,12 +118,8 @@ void GlowTextureGenerator::generate(QSize size, TexturePixel* destimage,
 
    TransformTextureGenerator transformgen;
    TextureNodeSettings settingsForTransform;
-   QMapIterator<QString, TextureGeneratorSetting> transformSettingsIterator(
-       transformgen.getSettings());
-   while (transformSettingsIterator.hasNext()) {
-      transformSettingsIterator.next();
-      settingsForTransform.insert(transformSettingsIterator.key(),
-                                  transformSettingsIterator.value().defaultvalue);
+   for (const TextureGeneratorSetting& setting : transformgen.getSettings()) {
+      settingsForTransform.insert(setting.id, setting.defaultvalue);
    }
    auto mergedImagePtr = TextureImage::create(size);
    auto* mergedImage = mergedImagePtr->getData();
@@ -263,12 +268,8 @@ void GlowTextureGenerator::generate(QSize size, TexturePixel* destimage,
       sourceForBlend.insert(QStringLiteral("Base"), sourceimages.value(QStringLiteral("Input")));
       sourceForBlend.insert(QStringLiteral("Blend"), firstblurredImagePtr);
       TextureNodeSettings settingsForBlend;
-      QMapIterator<QString, TextureGeneratorSetting> blendSettingsIterator(
-          blendinggen.getSettings());
-      while (blendSettingsIterator.hasNext()) {
-         blendSettingsIterator.next();
-         settingsForBlend.insert(blendSettingsIterator.key(),
-                                 blendSettingsIterator.value().defaultvalue);
+      for (const TextureGeneratorSetting& setting : blendinggen.getSettings()) {
+         settingsForBlend.insert(setting.id, setting.defaultvalue);
       }
       auto* blendedImage = new TexturePixel[size.width() * size.height()];
       blendinggen.generate(size, blendedImage, sourceForBlend, settingsForBlend);

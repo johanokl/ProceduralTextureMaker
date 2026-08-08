@@ -10,9 +10,10 @@
 FillTextureGenerator::FillTextureGenerator() {
    TextureGeneratorSetting colorsetting;
    colorsetting.defaultvalue = QVariant(QColor(255, 255, 255, 255));
-   colorsetting.name = "Color";
-   colorsetting.description = "Color to fill the texture with.";
-   configurables.insert("color", colorsetting);
+   colorsetting.name = "Colour";
+   colorsetting.description = "Colour used to fill the texture.";
+   colorsetting.id = "color";
+   configurables.append(colorsetting);
 }
 void FillTextureGenerator::generate(QSize size, TexturePixel* destimage,
                                     const QMap<QString, TextureImagePtr>& sourceimages,

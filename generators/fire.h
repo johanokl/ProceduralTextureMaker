@@ -20,7 +20,9 @@ public:
                  const TextureNodeSettings& settings) const override;
    const TextureGeneratorSettings& getSettings() const override { return configurables; }
    QString getName() const override { return "Fire"; }
-   QString getDescription() const override { return QString("Early 90's fire effect"); }
+   QString getDescription() const override {
+      return QString("Generates a flame-like texture from layered noise.");
+   }
    TextureGenerator::Type getType() const override { return TextureGenerator::Type::Generator; }
 
 private:

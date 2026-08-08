@@ -6,6 +6,7 @@
 #ifndef TEXGENGLOBAL_H
 #define TEXGENGLOBAL_H
 
+#include <QList>
 #include <QMap>
 #include <QVariant>
 #include <QtGlobal>
@@ -99,14 +100,14 @@ static_assert(offsetof(TexturePixel, a) == 3, "Alpha must be the fourth texture 
 
 /// @brief Describes one user-configurable texture-generator setting.
 struct TextureGeneratorSetting {
+   /// @brief Stable, case-sensitive ID used by persistence and runtime setting values.
+   QString id;
    /// @brief Default value and setting type used when creating a node.
    QVariant defaultvalue;
    /// @brief User-facing setting name.
    QString name;
    /// @brief Optional user-facing setting description.
    QString description;
-   /// @brief Presentation order within the setting group.
-   int order = 0;
    /// @brief Default selected index when defaultvalue contains a QStringList.
    int defaultindex = 0;
    /// @brief Optional inclusive minimum for numeric settings.
@@ -121,8 +122,8 @@ struct TextureGeneratorSetting {
    bool multiline = false;
 };
 
-/// @brief Generator setting definitions keyed by stable setting ID.
-using TextureGeneratorSettings = QMap<QString, TextureGeneratorSetting>;
+/// @brief Generator setting definitions stored in presentation order.
+using TextureGeneratorSettings = QList<TextureGeneratorSetting>;
 
 /// @brief Current node setting values keyed by stable setting ID.
 using TextureNodeSettings = QMap<QString, QVariant>;

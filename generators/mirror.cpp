@@ -13,10 +13,12 @@ MirrorTextureGenerator::MirrorTextureGenerator() {
    directions.append("Mirror horizentally");
    directions.append("Mirror vertically");
    TextureGeneratorSetting direction;
-   direction.name = "Direction";
-   direction.description = "Which way?";
+   direction.name = "Operation";
+   direction.description =
+       "Selects the axis and whether to flip or symmetrically mirror the image.";
    direction.defaultvalue = QVariant(directions);
-   configurables.insert("direction", direction);
+   direction.id = "direction";
+   configurables.append(direction);
 }
 void MirrorTextureGenerator::generate(QSize size, TexturePixel* destimage,
                                       const QMap<QString, TextureImagePtr>& sourceimages,

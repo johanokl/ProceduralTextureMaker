@@ -35,7 +35,10 @@ public:
    }
    QString getName() const override { return QString("Set channels"); }
    const TextureGeneratorSettings& getSettings() const override { return configurables; }
-   QString getDescription() const override { return QString(""); }
+   QString getDescription() const override {
+      return QString(
+          "Builds an image by assigning each output channel from an input or fixed value.");
+   }
    TextureGenerator::Type getType() const override { return TextureGenerator::Type::Combiner; }
 
 private:

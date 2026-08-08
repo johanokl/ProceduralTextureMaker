@@ -12,40 +12,42 @@
 PerlinNoiseTextureGenerator::PerlinNoiseTextureGenerator() {
    TextureGeneratorSetting colorsetting;
    colorsetting.defaultvalue = QVariant(QColor(255, 255, 255));
-   colorsetting.name = "Color";
-   colorsetting.description = "Color of the circle";
-   colorsetting.order = 1;
-   configurables.insert("color", colorsetting);
+   colorsetting.name = "Colour";
+   colorsetting.description = "Colour used to tint the generated noise.";
+   colorsetting.id = "color";
+   configurables.append(colorsetting);
 
    TextureGeneratorSetting numOctaves;
    numOctaves.defaultvalue = QVariant((int)5);
    numOctaves.name = "Octaves";
-   numOctaves.description = "Number of octaves";
-   numOctaves.order = 2;
-   configurables.insert("numoctaves", numOctaves);
+   numOctaves.description = "Number of frequency layers combined to form the noise.";
+   numOctaves.id = "numoctaves";
+   configurables.append(numOctaves);
 
    TextureGeneratorSetting persistence;
    persistence.defaultvalue = QVariant((double)0.5);
    persistence.name = "Persistence";
-   persistence.description = "This controls the roughness of the picture,";
-   persistence.order = 3;
-   configurables.insert("persistence", persistence);
+   persistence.description = "Controls how strongly each successive octave contributes.";
+   persistence.id = "persistence";
+   configurables.append(persistence);
 
    TextureGeneratorSetting zoom;
    zoom.defaultvalue = QVariant((double)75);
    zoom.min = QVariant(10);
    zoom.max = QVariant(200);
    zoom.name = "Zoom";
-   zoom.order = 4;
-   configurables.insert("zoom", zoom);
+   zoom.description = "Controls the scale of features in the noise pattern.";
+   zoom.id = "zoom";
+   configurables.append(zoom);
 
    TextureGeneratorSetting randomizer;
    randomizer.defaultvalue = QVariant((double)500);
    randomizer.min = QVariant(0);
    randomizer.max = QVariant(1000);
    randomizer.name = "Random seed";
-   randomizer.order = 5;
-   configurables.insert("randomizer", randomizer);
+   randomizer.description = "Offsets the repeatable noise pattern to produce a different result.";
+   randomizer.id = "randomizer";
+   configurables.append(randomizer);
 }
 
 double PerlinNoiseTextureGenerator::findnoise2(double x, double y) const {

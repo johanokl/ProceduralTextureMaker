@@ -20,7 +20,9 @@ public:
    QStringList getSourceSlots() const override;
    QString getName() const override { return QString("Merge"); }
    const TextureGeneratorSettings& getSettings() const override { return configurables; }
-   QString getDescription() const override { return QString("Merge multiple textures."); }
+   QString getDescription() const override {
+      return QString("Composites up to ten input images into a single texture.");
+   }
    TextureGenerator::Type getType() const override { return TextureGenerator::Type::Combiner; }
 
 private:

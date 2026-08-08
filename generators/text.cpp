@@ -10,18 +10,19 @@
 
 TextTextureGenerator::TextTextureGenerator() {
    TextureGeneratorSetting colorsetting;
-   colorsetting.name = "Color";
+   colorsetting.name = "Colour";
+   colorsetting.description = "Colour used to render the text.";
    colorsetting.defaultvalue = QVariant(QColor(255, 0, 0));
-   colorsetting.order = 1;
-   configurables.insert("color", colorsetting);
+   colorsetting.id = "color";
+   configurables.append(colorsetting);
 
    TextureGeneratorSetting text;
    text.name = "Text";
-   text.description = "";
+   text.description = "Text content to render; multiple lines are supported.";
    text.defaultvalue = QVariant(QString("Text"));
-   text.order = 2;
    text.multiline = true;
-   configurables.insert("text", text);
+   text.id = "text";
+   configurables.append(text);
 
    TextureGeneratorSetting alignment;
    QStringList alignments;
@@ -29,10 +30,11 @@ TextTextureGenerator::TextTextureGenerator() {
    alignments.append("Center");
    alignments.append("Right");
    alignment.name = "Alignment";
+   alignment.description = "Sets the horizontal alignment of the text within the texture.";
    alignment.defaultvalue = QVariant(alignments);
    alignment.defaultindex = 1;
-   alignment.order = 3;
-   configurables.insert("alignment", alignment);
+   alignment.id = "alignment";
+   configurables.append(alignment);
 
    TextureGeneratorSetting font;
    QStringList fonts;
@@ -45,52 +47,54 @@ TextTextureGenerator::TextTextureGenerator() {
    fonts.append("Cursive");
    fonts.append("Monospace");
    fonts.append("Fantasy");
-   font.name = "Font";
+   font.name = "Font category";
+   font.description = "Generic font category used to select a suitable installed typeface.";
    font.defaultvalue = QVariant(fonts);
-   font.order = 4;
-   configurables.insert("fontname", font);
+   font.id = "fontname";
+   configurables.append(font);
 
    TextureGeneratorSetting fontsize;
-   fontsize.name = "Size";
-   fontsize.description = "";
+   fontsize.name = "Font size (%)";
+   fontsize.description = "Text size as a percentage of the texture height.";
    fontsize.defaultvalue = QVariant((double)20);
    fontsize.min = QVariant(1);
    fontsize.max = QVariant(200);
-   fontsize.order = 5;
-   configurables.insert("fontsize", fontsize);
+   fontsize.id = "fontsize";
+   configurables.append(fontsize);
 
    TextureGeneratorSetting rotation;
-   rotation.name = "Rotation";
-   rotation.description = "";
+   rotation.name = "Rotation (°)";
+   rotation.description = "Rotates the text around the texture centre.";
    rotation.defaultvalue = QVariant((double)0);
    rotation.min = QVariant(-360);
    rotation.max = QVariant(360);
-   rotation.order = 6;
-   configurables.insert("rotation", rotation);
+   rotation.id = "rotation";
+   configurables.append(rotation);
 
    TextureGeneratorSetting offsetLeft;
-   offsetLeft.name = "Offset left";
-   offsetLeft.description = "";
+   offsetLeft.name = "Horizontal offset (%)";
+   offsetLeft.description = "Moves the text horizontally from its aligned position.";
    offsetLeft.defaultvalue = QVariant((double)0);
    offsetLeft.min = QVariant(-200);
    offsetLeft.max = QVariant(200);
-   offsetLeft.order = 7;
-   configurables.insert("offsetleft", offsetLeft);
+   offsetLeft.id = "offsetleft";
+   configurables.append(offsetLeft);
 
    TextureGeneratorSetting offsetTop;
-   offsetTop.name = "Offset top";
-   offsetTop.description = "";
+   offsetTop.name = "Vertical offset (%)";
+   offsetTop.description = "Moves the text vertically from its aligned position.";
    offsetTop.defaultvalue = QVariant((double)0);
    offsetTop.min = QVariant(-200);
    offsetTop.max = QVariant(200);
-   offsetTop.order = 8;
-   configurables.insert("offsettop", offsetTop);
+   offsetTop.id = "offsettop";
+   configurables.append(offsetTop);
 
    TextureGeneratorSetting antialiasing;
    antialiasing.defaultvalue = QVariant((bool)true);
    antialiasing.name = "Antialiasing";
-   antialiasing.order = 9;
-   configurables.insert("antialiasing", antialiasing);
+   antialiasing.description = "Smooths the edges of rendered glyphs.";
+   antialiasing.id = "antialiasing";
+   configurables.append(antialiasing);
 }
 void TextTextureGenerator::generate(QSize size, TexturePixel* destimage,
                                     const QMap<QString, TextureImagePtr>& sourceimages,

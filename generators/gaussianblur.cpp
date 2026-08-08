@@ -11,21 +11,23 @@
 GaussianBlurTextureGenerator::GaussianBlurTextureGenerator() {
    TextureGeneratorSetting neighbourssetting;
    neighbourssetting.defaultvalue = QVariant((int)1);
-   neighbourssetting.name = "Neighbours";
-   neighbourssetting.description = "Number of neighbours";
+   neighbourssetting.name = "Blur radius (px)";
+   neighbourssetting.description =
+       "Sets the number of neighbouring pixels sampled in each direction.";
    neighbourssetting.min = QVariant(1);
    neighbourssetting.max = QVariant(30);
-   neighbourssetting.order = 1;
-   configurables.insert("numneighbours", neighbourssetting);
+   neighbourssetting.id = "numneighbours";
+   configurables.append(neighbourssetting);
 
    TextureGeneratorSetting weightsetting;
    weightsetting.defaultvalue = QVariant((double)1);
-   weightsetting.name = "Weight";
-   weightsetting.description = "";
+   weightsetting.name = "Centre weight";
+   weightsetting.description =
+       "Controls how strongly pixels near the centre of the kernel are favoured.";
    weightsetting.min = QVariant(0);
    weightsetting.max = QVariant(4);
-   weightsetting.order = 2;
-   configurables.insert("weight", weightsetting);
+   weightsetting.id = "weight";
+   configurables.append(weightsetting);
 }
 
 float* GaussianBlurTextureGenerator::ComputeGaussianKernel(const int inRadius,

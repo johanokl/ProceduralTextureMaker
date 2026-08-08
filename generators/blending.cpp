@@ -24,30 +24,30 @@ BlendingTextureGenerator::BlendingTextureGenerator() {
    modes.append("Difference");
    modes.append("Exclusion");
    TextureGeneratorSetting mode;
-   mode.name = "Mode";
-   mode.description = "How to blend";
+   mode.name = "Blend mode";
+   mode.description = "Controls how the Blend image's colours are combined with the Base image.";
    mode.defaultvalue = QVariant(modes);
-   mode.order = 1;
-   configurables.insert("mode", mode);
+   mode.id = "mode";
+   configurables.append(mode);
 
    QStringList ordering;
    ordering.append("Blend on top of Base");
    ordering.append("Base on top of Blend");
    TextureGeneratorSetting order;
-   order.name = "Order";
-   order.description = "";
+   order.name = "Layer order";
+   order.description = "Selects which input image is composited on top.";
    order.defaultvalue = QVariant(ordering);
-   order.order = 2;
-   configurables.insert("order", order);
+   order.id = "order";
+   configurables.append(order);
 
    TextureGeneratorSetting blendingAlpha;
    blendingAlpha.defaultvalue = QVariant((double)100);
-   blendingAlpha.name = "Level";
+   blendingAlpha.name = "Opacity (%)";
    blendingAlpha.min = 0;
    blendingAlpha.max = 100;
-   blendingAlpha.description = "Alpha value of the blending (0-100)";
-   blendingAlpha.order = 3;
-   configurables.insert("alpha", blendingAlpha);
+   blendingAlpha.description = "Controls the opacity of the image placed on top.";
+   blendingAlpha.id = "alpha";
+   configurables.append(blendingAlpha);
 }
 
 int BlendingTextureGenerator::alphaCompose(double originAlpha, double addAlpha,

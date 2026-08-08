@@ -11,20 +11,22 @@ CutoutTextureGenerator::CutoutTextureGenerator() {
    ordering.append("Mask cut out from Image");
    ordering.append("Image cut out from Mask");
    TextureGeneratorSetting order;
-   order.name = "Order";
+   order.name = "Cut-out order";
+   order.description = "Selects which input supplies the image and which supplies the cut-out.";
    order.defaultvalue = QVariant(ordering);
    order.defaultindex = 0;
-   order.order = 1;
-   configurables.insert("order", order);
+   order.id = "order";
+   configurables.append(order);
 
    TextureGeneratorSetting factor;
-   factor.name = "Factor";
+   factor.name = "Alpha threshold factor";
+   factor.description = "Multiplies the cut-out alpha when testing how much image alpha remains.";
    factor.defaultvalue = QVariant((int)1);
    factor.min = 1;
    factor.max = 255;
    factor.defaultindex = 0;
-   factor.order = 2;
-   configurables.insert("factor", factor);
+   factor.id = "factor";
+   configurables.append(factor);
 }
 void CutoutTextureGenerator::generate(QSize size, TexturePixel* destimage,
                                       const QMap<QString, TextureImagePtr>& sourceimages,

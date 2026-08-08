@@ -19,7 +19,9 @@ public:
                  const TextureNodeSettings& settings) const override;
    const TextureGeneratorSettings& getSettings() const override { return configurables; }
    QString getName() const override { return "Perlin noise"; }
-   QString getDescription() const override { return QString("Basic Perlin Noise"); }
+   QString getDescription() const override {
+      return QString("Generates multi-octave Perlin noise tinted with a selected colour.");
+   }
    TextureGenerator::Type getType() const override { return TextureGenerator::Type::Generator; }
 
 private:

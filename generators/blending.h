@@ -37,7 +37,9 @@ public:
    }
    QString getName() const override { return QString("Blending"); }
    const TextureGeneratorSettings& getSettings() const override { return configurables; }
-   QString getDescription() const override { return QString("Blends two textures together."); }
+   QString getDescription() const override {
+      return QString("Combines two input images using a selectable blend mode and opacity.");
+   }
    TextureGenerator::Type getType() const override { return TextureGenerator::Type::Combiner; }
 
 private:

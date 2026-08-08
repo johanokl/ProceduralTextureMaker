@@ -75,7 +75,7 @@ void runCase(const BenchmarkCase& benchmark, const QSize size) {
 int main(int argc, char** argv) {
    QCoreApplication application(argc, argv);
    const QString descriptorStart = QStringLiteral(
-       "const generator={apiVersion:1,name:'Benchmark',type:'generator',inputs:%1,settings:{},"
+       "const generator={apiVersion:1,name:'Benchmark',type:'generator',inputs:%1,settings:[],"
        "generate(size,settings,output,inputs){void settings;");
    const QList<BenchmarkCase> cases{
        {QStringLiteral("fill"),

@@ -6,6 +6,7 @@
 
 #include "base/textureproject.h"
 #include "base/editmanager.h"
+#include "base/texturegenerator.h"
 #include "gui/iteminfopanel.h"
 #include "gui/nodesettingswidget.h"
 #include "gui/qdoubleslider.h"
@@ -168,11 +169,13 @@ bool NodeSettingsWidget::saveSettings() {
    while (settingElementIterator.hasNext()) {
       settingElementIterator.next();
       QString settingsId = settingElementIterator.key();
-      if (!texNode->getGenerator()->getSettings().contains(settingsId)) {
+      const TextureGeneratorSetting* settingDefinition =
+          findTextureGeneratorSetting(texNode->getGenerator()->getSettings(), settingsId);
+      if (settingDefinition == nullptr) {
          continue;
       }
       QWidget* settingWidget = settingElementIterator.value();
-      switch (texNode->getGenerator()->getSettings().value(settingsId).defaultvalue.typeId()) {
+      switch (settingDefinition->defaultvalue.typeId()) {
          case QMetaType::Int: {
             QSpinBox* spinbox = dynamic_cast<QSpinBox*>(settingWidget);
             if (spinbox) {
@@ -271,16 +274,6 @@ void NodeSettingsWidget::styleButton(QPushButton* button, const QColor& color) {
    }
 }
 
-/// @brief Compares generator settings by display order.
-bool settingsComperator(const TextureGeneratorSetting& v1, const TextureGeneratorSetting& v2) {
-   return v1.order < v2.order;
-}
-
-/// @brief Compares the identifying fields of two generator settings.
-bool operator==(const TextureGeneratorSetting& lhs, const TextureGeneratorSetting& rhs) {
-   return lhs.name == rhs.name && lhs.order == rhs.order;
-}
-
 void NodeSettingsWidget::generatorUpdated() {
    TextureGeneratorPtr generator = texNode->getGenerator();
    generatorNameLabel->setText(generator->getName());
@@ -306,14 +299,12 @@ void NodeSettingsWidget::generatorUpdated() {
    settingSliders.clear();
    settingValues.clear();
 
-   TextureGeneratorSettings settings = generator->getSettings();
-   QList<TextureGeneratorSetting> settingsvalues = settings.values();
-   std::sort(settingsvalues.begin(), settingsvalues.end(), settingsComperator);
-   QListIterator<TextureGeneratorSetting> settingsIterator(settingsvalues);
+   const TextureGeneratorSettings& settings = generator->getSettings();
+   QListIterator<TextureGeneratorSetting> settingsIterator(settings);
 
    while (settingsIterator.hasNext()) {
       TextureGeneratorSetting currSetting = settingsIterator.next();
-      QString settingsId = settings.key(currSetting);
+      const QString settingsId = currSetting.id;
       QWidget* newWidget;
       switch (currSetting.defaultvalue.typeId()) {
          case QMetaType::QString:
@@ -424,6 +415,7 @@ void NodeSettingsWidget::generatorUpdated() {
          }
       }
       auto* newLabel = new QLabel(currSetting.name + ":");
+      newLabel->setObjectName(QStringLiteral("nodeSettingLabel"));
       settingLabels[settingsId] = newLabel;
       settingElements[settingsId] = newWidget;
       if (newSlider != nullptr) {
@@ -469,14 +461,12 @@ void NodeSettingsWidget::generatorUpdated() {
 }
 
 void NodeSettingsWidget::setGroupAlignment(const QString& group, bool aligned) {
-   TextureGeneratorSettings settings = texNode->getGenerator()->getSettings();
-   QList<TextureGeneratorSetting> settingsvalues = settings.values();
-   std::sort(settingsvalues.begin(), settingsvalues.end(), settingsComperator);
-   QListIterator<TextureGeneratorSetting> settingsIterator(settingsvalues);
+   const TextureGeneratorSettings& settings = texNode->getGenerator()->getSettings();
+   QListIterator<TextureGeneratorSetting> settingsIterator(settings);
    QString firstsetting;
    while (settingsIterator.hasNext()) {
       TextureGeneratorSetting currSetting = settingsIterator.next();
-      QString settingsId = settings.key(currSetting);
+      const QString settingsId = currSetting.id;
       if (currSetting.group == group) {
          if (firstsetting.isEmpty()) {
             firstsetting = settingsId;
@@ -579,21 +569,21 @@ void NodeSettingsWidget::settingsUpdated() {
    while (settingElementIterator.hasNext()) {
       settingElementIterator.next();
       QString settingsId = settingElementIterator.key();
-      if (!texNode->getGenerator()->getSettings().contains(settingsId)) {
+      const TextureGeneratorSetting* settingDefinition =
+          findTextureGeneratorSetting(texNode->getGenerator()->getSettings(), settingsId);
+      if (settingDefinition == nullptr) {
          continue;
       }
-      const TextureGeneratorSetting settingDefinition =
-          texNode->getGenerator()->getSettings().value(settingsId);
-      const QVariant defaultvalue = settingDefinition.defaultvalue;
+      const QVariant defaultvalue = settingDefinition->defaultvalue;
       QVariant nodevalue = defaultvalue;
       const TextureNodeSettings nodeSettings = texNode->getSettings();
       if (nodeSettings.contains(settingsId)) {
          nodevalue = nodeSettings.value(settingsId);
       } else if (defaultvalue.typeId() == QMetaType::QStringList) {
          const QStringList values = defaultvalue.toStringList();
-         if (settingDefinition.defaultindex >= 0 &&
-             settingDefinition.defaultindex < values.size()) {
-            nodevalue = values.at(settingDefinition.defaultindex);
+         if (settingDefinition->defaultindex >= 0 &&
+             settingDefinition->defaultindex < values.size()) {
+            nodevalue = values.at(settingDefinition->defaultindex);
          }
       }
 

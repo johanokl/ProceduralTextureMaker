@@ -7,7 +7,6 @@
 #include <QColor>
 #include <QCryptographicHash>
 #include <QJSEngine>
-#include <QJSValueIterator>
 #include <QMetaType>
 #include <QSet>
 #include <QtGlobal>
@@ -147,25 +146,31 @@ bool parseColor(const QJSValue& value, QColor& color, QString& error, const QStr
 }
 
 /// @brief Parses one descriptor-API setting definition.
-/// @param id Stable setting identifier.
 /// @param definition JavaScript setting descriptor.
+/// @param index Position of the setting in the descriptor array.
 /// @param setting Destination for the validated setting.
 /// @param error Destination for a validation failure.
 /// @return @c true when the definition has a supported type and valid constraints.
-bool parseDescriptorSetting(const QString& id, const QJSValue& definition,
+bool parseDescriptorSetting(const QJSValue& definition, const quint32 index,
                             TextureGeneratorSetting& setting, QString& error) {
-   const QString context = QStringLiteral("settings.%1").arg(id);
+   const QString context = QStringLiteral("generator.settings[%1]").arg(index);
    if (!definition.isObject()) {
       error = QStringLiteral("%1 must be an object").arg(context);
       return false;
    }
+   const QJSValue idValue = definition.property(QStringLiteral("id"));
+   if (!idValue.isString() || idValue.toString().trimmed().isEmpty()) {
+      error = QStringLiteral("%1.id must be a non-empty string").arg(context);
+      return false;
+   }
+   setting.id = idValue.toString();
    const QJSValue typeValue = definition.property(QStringLiteral("type"));
    if (!typeValue.isString()) {
       error = QStringLiteral("%1.type must be a string").arg(context);
       return false;
    }
    const QString type = typeValue.toString().toLower();
-   setting.name = id;
+   setting.name = setting.id;
    if (!readOptionalString(definition, QStringLiteral("name"), setting.name, error, context) ||
        !readOptionalString(definition, QStringLiteral("description"), setting.description, error,
                            context) ||
@@ -174,9 +179,9 @@ bool parseDescriptorSetting(const QString& id, const QJSValue& definition,
                            context)) {
       return false;
    }
-   const QJSValue order = definition.property(QStringLiteral("order"));
-   if (!order.isUndefined() && !readInteger(order, setting.order)) {
-      error = QStringLiteral("%1.order must be an integer").arg(context);
+   if (!definition.property(QStringLiteral("order")).isUndefined()) {
+      error = QStringLiteral("%1.order has been removed; array order controls presentation")
+                  .arg(context);
       return false;
    }
 
@@ -371,25 +376,27 @@ bool parseDescriptor(const QJSValue& descriptor, TextureGeneratorSettings& setti
       uniqueSlots.insert(slot.toString());
    }
 
-   const QJSValue settingObject = descriptor.property(QStringLiteral("settings"));
-   if (!settingObject.isUndefined() && !settingObject.isObject()) {
-      error = QStringLiteral("generator.settings must be an object");
+   const QJSValue settingArray = descriptor.property(QStringLiteral("settings"));
+   if (!settingArray.isUndefined() && !settingArray.isArray()) {
+      error = QStringLiteral("generator.settings must be an array");
       return false;
    }
-   if (!settingObject.isUndefined()) {
-      QJSValueIterator iterator(settingObject);
-      while (iterator.hasNext()) {
-         iterator.next();
-         const QString id = iterator.name();
-         if (id.trimmed().isEmpty()) {
-            error = QStringLiteral("setting IDs must not be empty");
-            return false;
-         }
+   if (!settingArray.isUndefined()) {
+      QSet<QString> uniqueSettingIds;
+      const quint32 settingCount = settingArray.property(QStringLiteral("length")).toUInt();
+      for (quint32 index = 0; index < settingCount; ++index) {
          TextureGeneratorSetting setting;
-         if (!parseDescriptorSetting(id, iterator.value(), setting, error)) {
+         if (!parseDescriptorSetting(settingArray.property(index), index, setting, error)) {
             return false;
          }
-         settings.insert(id, setting);
+         if (uniqueSettingIds.contains(setting.id)) {
+            error = QStringLiteral("generator.settings[%1].id duplicates '%2'")
+                        .arg(index)
+                        .arg(setting.id);
+            return false;
+         }
+         uniqueSettingIds.insert(setting.id);
+         settings.append(setting);
       }
    }
    return true;

@@ -20,7 +20,7 @@ public:
    QString getName() const override { return QString("Sine transform"); }
    const TextureGeneratorSettings& getSettings() const override { return configurables; }
    QString getDescription() const override {
-      return QString("Stretches the texture along a sinus wave.");
+      return QString("Warps the input image with one or two configurable sine waves.");
    }
    TextureGenerator::Type getType() const override { return TextureGenerator::Type::Filter; }
 

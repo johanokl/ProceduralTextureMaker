@@ -12,28 +12,31 @@ using namespace std;
 
 DisplacementMapTextureGenerator::DisplacementMapTextureGenerator() {
    TextureGeneratorSetting angle;
-   angle.name = "Angle";
+   angle.name = "Direction (°)";
+   angle.description = "Direction in which the displacement map moves source pixels.";
    angle.defaultvalue = QVariant((double)45);
    angle.min = QVariant(-360);
    angle.max = QVariant(360);
-   angle.order = 1;
-   configurables.insert("angle", angle);
+   angle.id = "angle";
+   configurables.append(angle);
 
    TextureGeneratorSetting strength;
-   strength.name = "Strength";
+   strength.name = "Map strength";
+   strength.description = "Controls how far luminance values displace source pixels.";
    strength.defaultvalue = QVariant((double)0.5);
    strength.min = QVariant(0);
    strength.max = QVariant(3);
-   strength.order = 3;
-   configurables.insert("strength", strength);
+   strength.id = "strength";
+   configurables.append(strength);
 
    TextureGeneratorSetting offset;
-   offset.name = "Offset";
+   offset.name = "Distance offset (%)";
+   offset.description = "Offsets the map-derived distance by a percentage of the texture width.";
    offset.defaultvalue = QVariant((double)0);
    offset.min = QVariant(-360);
    offset.max = QVariant(360);
-   offset.order = 4;
-   configurables.insert("offset", offset);
+   offset.id = "offset";
+   configurables.append(offset);
 }
 void DisplacementMapTextureGenerator::generate(QSize size, TexturePixel* destimage,
                                                const QMap<QString, TextureImagePtr>& sourceimages,

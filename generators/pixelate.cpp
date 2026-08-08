@@ -9,37 +9,41 @@
 PixelateTextureGenerator::PixelateTextureGenerator() {
    TextureGeneratorSetting width;
    width.defaultvalue = QVariant((double)5);
-   width.name = "Width";
+   width.name = "Block width (%)";
+   width.description = "Width of each pixel block as a percentage of the texture width.";
    width.min = QVariant(0);
    width.max = QVariant(50);
    width.group = "size";
-   width.order = 1;
-   configurables.insert("width", width);
+   width.id = "width";
+   configurables.append(width);
 
    TextureGeneratorSetting height;
    height.defaultvalue = QVariant((double)5);
-   height.name = "Height";
+   height.name = "Block height (%)";
+   height.description = "Height of each pixel block as a percentage of the texture height.";
    height.min = QVariant(0);
    height.max = QVariant(50);
    height.group = "size";
-   height.order = 2;
-   configurables.insert("height", height);
+   height.id = "height";
+   configurables.append(height);
 
    TextureGeneratorSetting offsetx;
    offsetx.defaultvalue = QVariant((double)0);
-   offsetx.name = "Offset left";
+   offsetx.name = "Horizontal offset (%)";
+   offsetx.description = "Moves the block grid horizontally across the texture.";
    offsetx.min = QVariant(-50);
    offsetx.max = QVariant(50);
-   offsetx.order = 3;
-   configurables.insert("offsetx", offsetx);
+   offsetx.id = "offsetx";
+   configurables.append(offsetx);
 
    TextureGeneratorSetting offsety;
    offsety.defaultvalue = QVariant((double)0);
-   offsety.name = "Offset top";
+   offsety.name = "Vertical offset (%)";
+   offsety.description = "Moves the block grid vertically across the texture.";
    offsety.min = QVariant(-50);
    offsety.max = QVariant(50);
-   offsety.order = 4;
-   configurables.insert("offsety", offsety);
+   offsety.id = "offsety";
+   configurables.append(offsety);
 }
 void PixelateTextureGenerator::generate(QSize size, TexturePixel* destimage,
                                         const QMap<QString, TextureImagePtr>& sourceimages,

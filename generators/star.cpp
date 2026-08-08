@@ -13,108 +13,110 @@
 
 StarTextureGenerator::StarTextureGenerator() {
    TextureGeneratorSetting colorsetting;
-   colorsetting.name = "Color";
+   colorsetting.name = "Colour";
+   colorsetting.description = "Colour used to draw the star.";
    colorsetting.defaultvalue = QVariant(QColor(200, 100, 0));
-   colorsetting.order = 1;
-   configurables.insert("color", colorsetting);
+   colorsetting.id = "color";
+   configurables.append(colorsetting);
 
    TextureGeneratorSetting shapeWidth;
-   shapeWidth.name = "Width";
-   shapeWidth.description = "";
+   shapeWidth.name = "Width (%)";
+   shapeWidth.description = "Width of the star as a percentage of the texture width.";
    shapeWidth.defaultvalue = QVariant((double)80);
    shapeWidth.min = QVariant(0);
    shapeWidth.max = QVariant(200);
    shapeWidth.group = "size";
-   shapeWidth.order = 2;
-   configurables.insert("width", shapeWidth);
+   shapeWidth.id = "width";
+   configurables.append(shapeWidth);
 
    TextureGeneratorSetting shapeHeight;
-   shapeHeight.name = "Height";
-   shapeHeight.description = "";
+   shapeHeight.name = "Height (%)";
+   shapeHeight.description = "Height of the star as a percentage of the texture height.";
    shapeHeight.defaultvalue = QVariant((double)80);
    shapeHeight.min = QVariant(0);
    shapeHeight.max = QVariant(200);
    shapeHeight.group = "size";
-   shapeHeight.order = 3;
-   configurables.insert("height", shapeHeight);
+   shapeHeight.id = "height";
+   configurables.append(shapeHeight);
 
    TextureGeneratorSetting rotation;
-   rotation.name = "Rotation";
-   rotation.description = "";
+   rotation.name = "Rotation (°)";
+   rotation.description = "Rotates the star around its centre.";
    rotation.defaultvalue = QVariant((double)50);
    rotation.min = QVariant(0);
    rotation.max = QVariant(360);
-   rotation.order = 4;
-   configurables.insert("rotation", rotation);
+   rotation.id = "rotation";
+   configurables.append(rotation);
 
    TextureGeneratorSetting offsetLeft;
-   offsetLeft.name = "Offset left";
-   offsetLeft.description = "";
+   offsetLeft.name = "Horizontal offset (%)";
+   offsetLeft.description = "Moves the star horizontally from the texture centre.";
    offsetLeft.defaultvalue = QVariant((double)0);
    offsetLeft.min = QVariant(-100);
    offsetLeft.max = QVariant(100);
-   offsetLeft.order = 5;
-   configurables.insert("offsetleft", offsetLeft);
+   offsetLeft.id = "offsetleft";
+   configurables.append(offsetLeft);
 
    TextureGeneratorSetting offsetTop;
-   offsetTop.name = "Offset top";
-   offsetTop.description = "";
+   offsetTop.name = "Vertical offset (%)";
+   offsetTop.description = "Moves the star vertically from the texture centre.";
    offsetTop.defaultvalue = QVariant((double)0);
    offsetTop.min = QVariant(-100);
    offsetTop.max = QVariant(100);
-   offsetTop.order = 6;
-   configurables.insert("offsettop", offsetTop);
+   offsetTop.id = "offsettop";
+   configurables.append(offsetTop);
 
    TextureGeneratorSetting arms;
-   arms.name = "Number of points";
-   arms.description = "";
+   arms.name = "Point count";
+   arms.description = "Number of points around the star.";
    arms.defaultvalue = QVariant((int)6);
    arms.min = QVariant(3);
    arms.max = QVariant(13);
-   arms.order = 7;
-   configurables.insert("numarms", arms);
+   arms.id = "numarms";
+   configurables.append(arms);
 
    TextureGeneratorSetting innerRadius;
-   innerRadius.name = "Innner radius";
-   innerRadius.description = "";
+   innerRadius.name = "Inner radius (%)";
+   innerRadius.description = "Radius of the valleys between the star's points.";
    innerRadius.defaultvalue = QVariant((double)25);
    innerRadius.min = QVariant(0);
    innerRadius.max = QVariant(100);
-   innerRadius.order = 8;
-   configurables.insert("innerradius", innerRadius);
+   innerRadius.id = "innerradius";
+   configurables.append(innerRadius);
 
    TextureGeneratorSetting outerRadius;
-   outerRadius.name = "Outer radius";
-   outerRadius.description = "";
+   outerRadius.name = "Outer radius (%)";
+   outerRadius.description = "Radius from the centre to the tips of the star.";
    outerRadius.defaultvalue = QVariant((double)100);
    outerRadius.min = QVariant(0);
    outerRadius.max = QVariant(100);
-   outerRadius.order = 9;
-   configurables.insert("outerradius", outerRadius);
+   outerRadius.id = "outerradius";
+   configurables.append(outerRadius);
 
    TextureGeneratorSetting cutoutInnerRadius;
-   cutoutInnerRadius.name = "Cutout innner radius";
-   cutoutInnerRadius.description = "";
+   cutoutInnerRadius.name = "Cut-out inner radius (%)";
+   cutoutInnerRadius.description = "Inner radius of the star-shaped transparent area.";
    cutoutInnerRadius.defaultvalue = QVariant((double)15);
    cutoutInnerRadius.min = QVariant(0);
    cutoutInnerRadius.max = QVariant(100);
-   cutoutInnerRadius.order = 10;
-   configurables.insert("cutoutinnerradius", cutoutInnerRadius);
+   cutoutInnerRadius.id = "cutoutinnerradius";
+   configurables.append(cutoutInnerRadius);
 
    TextureGeneratorSetting cutoutOuterRadius;
-   cutoutOuterRadius.name = "Cutout outer radius";
-   cutoutOuterRadius.description = "";
+   cutoutOuterRadius.name = "Cut-out outer radius (%)";
+   cutoutOuterRadius.description = "Outer radius of the star-shaped transparent area.";
    cutoutOuterRadius.defaultvalue = QVariant((double)65);
    cutoutOuterRadius.min = QVariant(0);
    cutoutOuterRadius.max = QVariant(100);
-   cutoutOuterRadius.order = 11;
-   configurables.insert("cutoutouterradius", cutoutOuterRadius);
+   cutoutOuterRadius.id = "cutoutouterradius";
+   configurables.append(cutoutOuterRadius);
 
    TextureGeneratorSetting antialiasing;
    antialiasing.defaultvalue = QVariant((bool)true);
    antialiasing.name = "Antialiasing";
-   antialiasing.order = 12;
-   configurables.insert("antialiasing", antialiasing);
+   antialiasing.description = "Smooths the edges of the star and its cut-out.";
+   antialiasing.id = "antialiasing";
+   configurables.append(antialiasing);
 }
 void StarTextureGenerator::generate(QSize size, TexturePixel* destimage,
                                     const QMap<QString, TextureImagePtr>& sourceimages,

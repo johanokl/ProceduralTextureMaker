@@ -337,7 +337,7 @@ void UiSmokeTest::groupsCustomJavaScriptGenerators() {
                                      const TextureGenerator::Origin origin) {
       const QString script = QStringLiteral(
                                  "const generator={apiVersion:1,name:'%1',type:'%2',inputs:[],"
-                                 "settings:{},generate(size,settings,output){void size;void "
+                                 "settings:[],generate(size,settings,output){void size;void "
                                  "settings;output.data.fill(0);}};")
                                  .arg(name, type);
       auto* generator = new JsTexGen(script, QStringLiteral("test.js"), origin);
@@ -395,8 +395,10 @@ void UiSmokeTest::selectsGeneratorFromAddNodePanel() {
    const QString script =
        QStringLiteral(
            "const generator={apiVersion:1,name:'Inspectable',description:'%1',"
-           "type:'filter',inputs:['Image','Mask'],settings:{amount:{type:'integer',name:'Amount',"
-           "description:'Effect strength',default:4,min:0,max:10,order:1}},"
+           "type:'filter',inputs:['Image','Mask'],settings:["
+           "{id:'zeta',type:'integer',name:'Zulu property',description:'First',default:4,min:0,"
+           "max:10},{id:'alpha',type:'integer',name:'Alpha property',description:'Second',"
+           "default:2,min:0,max:10}],"
            "generate(size,settings,output){void size;void settings;output.data.fill(0);}};")
            .arg(description);
    const TextureGeneratorPtr generator(
@@ -460,6 +462,12 @@ void UiSmokeTest::selectsGeneratorFromAddNodePanel() {
    QVERIFY(inputLabels.at(0)->font().bold());
    QVERIFY(inputLabels.at(1)->font().bold());
    QVERIFY(inputLabels.at(1)->geometry().top() > inputLabels.at(0)->geometry().bottom());
+   const QList<QLabel*> settingInfoLabels =
+       generatorInfo->findChildren<QLabel*>(QStringLiteral("generatorInfoSetting"));
+   QCOMPARE(settingInfoLabels.size(), 2);
+   QVERIFY(settingInfoLabels.at(0)->text().contains(QStringLiteral("Zulu property")));
+   QVERIFY(settingInfoLabels.at(1)->text().contains(QStringLiteral("Alpha property")));
+   QVERIFY(settingInfoLabels.at(1)->geometry().top() > settingInfoLabels.at(0)->geometry().top());
    auto* sourceLabel = infoPanel.findChild<QLabel*>(QStringLiteral("generatorInfoSource"));
    auto* sourceKeyLabel = infoPanel.findChild<QLabel*>(QStringLiteral("generatorInfoSourceKey"));
    QCOMPARE(sourceLabel->text(), sourceIdentity);
@@ -507,6 +515,21 @@ void UiSmokeTest::selectsGeneratorFromAddNodePanel() {
    for (QLabel* label : generatorInfo->findChildren<QLabel*>()) {
       QVERIFY(!label->text().contains(QStringLiteral("Default:")));
    }
+
+   const TextureNodePtr node = project.newNode(1, generator);
+   QVERIFY(!node.isNull());
+   infoPanel.setActiveNode(node->getId());
+   QApplication::processEvents();
+   auto* nodeSettings =
+       infoPanel.findChild<NodeSettingsWidget*>(QStringLiteral("nodeSettingsInspector"));
+   QVERIFY(nodeSettings != nullptr);
+   const QList<QLabel*> settingLabels =
+       nodeSettings->findChildren<QLabel*>(QStringLiteral("nodeSettingLabel"));
+   QCOMPARE(settingLabels.size(), 2);
+   QCOMPARE(settingLabels.at(0)->text(), QStringLiteral("Zulu property:"));
+   QCOMPARE(settingLabels.at(1)->text(), QStringLiteral("Alpha property:"));
+   QVERIFY(settingLabels.at(1)->parentWidget()->geometry().top() >
+           settingLabels.at(0)->parentWidget()->geometry().top());
 }
 
 void UiSmokeTest::keepsGeneratorAndGraphSelectionsExclusive() {

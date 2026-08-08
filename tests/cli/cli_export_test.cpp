@@ -150,6 +150,8 @@ void CliExportTest::printsJavaScriptSources() {
    QCOMPARE(templateResult.exitCode, 0);
    QVERIFY(templateResult.standardOutput.contains("apiVersion: 1"));
    QVERIFY(templateResult.standardOutput.contains("My Generator"));
+   QVERIFY(templateResult.standardOutput.contains("settings: ["));
+   QVERIFY(templateResult.standardOutput.contains("id: \"color\""));
 
    const ProcessResult maskResult = runApplication(
        {QStringLiteral("--print-js-generator"), QStringLiteral("Mask")}, directory.path());

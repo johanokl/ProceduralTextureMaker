@@ -8,7 +8,7 @@
 
 ModifyLevelsTextureGenerator::ModifyLevelsTextureGenerator() {
    TextureGeneratorSetting channel;
-   channel.name = "Channels";
+   channel.name = "Channels to adjust";
    QStringList channels;
    channels.append("All channels");
    channels.append("All colors, not alpha");
@@ -16,28 +16,31 @@ ModifyLevelsTextureGenerator::ModifyLevelsTextureGenerator() {
    channels.append("Only green");
    channels.append("Only blue");
    channels.append("Only alpha");
-   channel.description = "";
-   channel.order = 0;
+   channel.description = "Selects which colour or alpha channels are modified.";
    channel.defaultindex = 1;
    channel.defaultvalue = QVariant(channels);
-   configurables.insert("channel", channel);
+   channel.id = "channel";
+   configurables.append(channel);
 
    TextureGeneratorSetting mode;
-   mode.name = "Mode";
+   mode.name = "Adjustment mode";
+   mode.description = "Selects whether each channel is multiplied by or increased by the amount.";
    QStringList modes;
    modes.append("Multiply");
    modes.append("Add");
    mode.defaultvalue = QVariant(modes);
-   mode.order = 1;
-   configurables.insert("mode", mode);
+   mode.id = "mode";
+   configurables.append(mode);
 
    TextureGeneratorSetting blendingAlpha;
-   blendingAlpha.name = "Amount";
+   blendingAlpha.name = "Adjustment amount";
+   blendingAlpha.description =
+       "Acts as a percentage in Multiply mode and a channel-value offset in Add mode.";
    blendingAlpha.defaultvalue = QVariant((double)100);
    blendingAlpha.min = -500;
    blendingAlpha.max = 500;
-   blendingAlpha.order = 2;
-   configurables.insert("level", blendingAlpha);
+   blendingAlpha.id = "level";
+   configurables.append(blendingAlpha);
 }
 void ModifyLevelsTextureGenerator::generate(QSize size, TexturePixel* destimage,
                                             const QMap<QString, TextureImagePtr>& sourceimages,

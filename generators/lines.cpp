@@ -11,42 +11,47 @@
 
 LinesTextureGenerator::LinesTextureGenerator() {
    TextureGeneratorSetting color;
-   color.name = "Line color";
+   color.name = "Line colour";
+   color.description = "Colour used to draw the lines.";
    color.defaultvalue = QVariant(QColor(255, 100, 50, 255));
-   color.order = 1;
-   configurables.insert("color", color);
+   color.id = "color";
+   configurables.append(color);
 
    TextureGeneratorSetting lineheight;
-   lineheight.name = "Line width";
+   lineheight.name = "Line thickness (%)";
+   lineheight.description = "Thickness of each line as a percentage of the texture height.";
    lineheight.defaultvalue = QVariant((int)10);
    lineheight.min = QVariant(0);
    lineheight.max = QVariant(100);
-   lineheight.order = 2;
-   configurables.insert("lineheight", lineheight);
+   lineheight.id = "lineheight";
+   configurables.append(lineheight);
 
    TextureGeneratorSetting spacing;
-   spacing.name = "Spacing";
+   spacing.name = "Gap size (%)";
+   spacing.description = "Gap between adjacent lines as a percentage of the texture height.";
    spacing.defaultvalue = QVariant((int)10);
    spacing.min = QVariant(0);
    spacing.max = QVariant(100);
-   spacing.order = 3;
-   configurables.insert("spacing", spacing);
+   spacing.id = "spacing";
+   configurables.append(spacing);
 
    TextureGeneratorSetting offset;
-   offset.name = "Offset";
+   offset.name = "Pattern offset (%)";
+   offset.description = "Shifts the repeating line pattern along its perpendicular axis.";
    offset.defaultvalue = QVariant((int)0);
    offset.min = QVariant(-100);
    offset.max = QVariant(0);
-   offset.order = 4;
-   configurables.insert("offset", offset);
+   offset.id = "offset";
+   configurables.append(offset);
 
    TextureGeneratorSetting angle;
-   angle.name = "Angle";
+   angle.name = "Angle (°)";
+   angle.description = "Rotation angle of the lines.";
    angle.defaultvalue = QVariant((double)0);
    angle.min = QVariant(0);
    angle.max = QVariant(180);
-   angle.order = 5;
-   configurables.insert("angle", angle);
+   angle.id = "angle";
+   configurables.append(angle);
 }
 void LinesTextureGenerator::generate(QSize size, TexturePixel* destimage,
                                      const QMap<QString, TextureImagePtr>& sourceimages,

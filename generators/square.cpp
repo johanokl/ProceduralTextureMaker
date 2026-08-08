@@ -11,83 +11,87 @@
 
 SquareTextureGenerator::SquareTextureGenerator() {
    TextureGeneratorSetting colorsetting;
-   colorsetting.name = "Color";
+   colorsetting.name = "Colour";
+   colorsetting.description = "Colour used to draw the rectangle.";
    colorsetting.defaultvalue = QVariant(QColor(200, 100, 0));
-   colorsetting.order = 1;
-   configurables.insert("color", colorsetting);
+   colorsetting.id = "color";
+   configurables.append(colorsetting);
 
    TextureGeneratorSetting shapeWidth;
-   shapeWidth.name = "Width";
-   shapeWidth.description = "";
+   shapeWidth.name = "Width (%)";
+   shapeWidth.description = "Width of the rectangle as a percentage of the texture width.";
    shapeWidth.defaultvalue = QVariant((double)80);
    shapeWidth.min = QVariant(0);
    shapeWidth.max = QVariant(200);
-   shapeWidth.order = 2;
    shapeWidth.group = "size";
-   configurables.insert("width", shapeWidth);
+   shapeWidth.id = "width";
+   configurables.append(shapeWidth);
 
    TextureGeneratorSetting shapeHeight;
-   shapeHeight.name = "Height";
-   shapeHeight.description = "";
+   shapeHeight.name = "Height (%)";
+   shapeHeight.description = "Height of the rectangle as a percentage of the texture height.";
    shapeHeight.defaultvalue = QVariant((double)80);
    shapeHeight.min = QVariant(0);
    shapeHeight.max = QVariant(200);
-   shapeHeight.order = 3;
    shapeHeight.group = "size";
-   configurables.insert("height", shapeHeight);
+   shapeHeight.id = "height";
+   configurables.append(shapeHeight);
 
    TextureGeneratorSetting rotation;
-   rotation.name = "Rotation";
-   rotation.description = "";
+   rotation.name = "Rotation (°)";
+   rotation.description = "Rotates the rectangle around its centre.";
    rotation.defaultvalue = QVariant((double)50);
    rotation.min = QVariant(0);
    rotation.max = QVariant(360);
-   rotation.order = 4;
-   configurables.insert("rotation", rotation);
+   rotation.id = "rotation";
+   configurables.append(rotation);
 
    TextureGeneratorSetting offsetLeft;
-   offsetLeft.name = "Offset left";
-   offsetLeft.description = "";
+   offsetLeft.name = "Horizontal offset (%)";
+   offsetLeft.description = "Moves the rectangle horizontally from the texture centre.";
    offsetLeft.defaultvalue = QVariant((double)0);
    offsetLeft.min = QVariant(-100);
    offsetLeft.max = QVariant(100);
-   offsetLeft.order = 5;
-   configurables.insert("offsetleft", offsetLeft);
+   offsetLeft.id = "offsetleft";
+   configurables.append(offsetLeft);
 
    TextureGeneratorSetting offsetTop;
-   offsetTop.name = "Offset top";
-   offsetTop.description = "";
+   offsetTop.name = "Vertical offset (%)";
+   offsetTop.description = "Moves the rectangle vertically from the texture centre.";
    offsetTop.defaultvalue = QVariant((double)0);
    offsetTop.min = QVariant(-100);
    offsetTop.max = QVariant(100);
-   offsetTop.order = 6;
-   configurables.insert("offsettop", offsetTop);
+   offsetTop.id = "offsettop";
+   configurables.append(offsetTop);
 
    TextureGeneratorSetting cutoutInnerRadius;
-   cutoutInnerRadius.name = "Cutout width";
-   cutoutInnerRadius.description = "";
+   cutoutInnerRadius.name = "Cut-out width (%)";
+   cutoutInnerRadius.description =
+       "Width of the transparent area as a percentage of the rectangle width.";
    cutoutInnerRadius.defaultvalue = QVariant((double)0);
    cutoutInnerRadius.min = QVariant(0);
    cutoutInnerRadius.max = QVariant(100);
-   cutoutInnerRadius.order = 7;
    cutoutInnerRadius.group = "cutout";
-   configurables.insert("cutoutwidth", cutoutInnerRadius);
+   cutoutInnerRadius.id = "cutoutwidth";
+   configurables.append(cutoutInnerRadius);
 
    TextureGeneratorSetting cutoutOuterRadius;
-   cutoutOuterRadius.name = "Cutout height";
-   cutoutOuterRadius.description = "";
+   cutoutOuterRadius.name = "Cut-out height (%)";
+   cutoutOuterRadius.description =
+       "Height of the transparent area as a percentage of the rectangle height.";
    cutoutOuterRadius.defaultvalue = QVariant((double)0);
    cutoutOuterRadius.min = QVariant(0);
    cutoutOuterRadius.max = QVariant(100);
-   cutoutOuterRadius.order = 8;
    cutoutOuterRadius.group = "cutout";
-   configurables.insert("cutoutheight", cutoutOuterRadius);
+   cutoutOuterRadius.id = "cutoutheight";
+   configurables.append(cutoutOuterRadius);
 
    TextureGeneratorSetting antialiasing;
    antialiasing.defaultvalue = QVariant((bool)true);
    antialiasing.name = "Antialiasing";
-   antialiasing.order = 9;
-   configurables.insert("antialiasing", antialiasing);
+   antialiasing.description = "Smooths the edges of the rectangle and its cut-out.";
+   antialiasing.id = "antialiasing";
+   configurables.append(antialiasing);
 }
 void SquareTextureGenerator::generate(QSize size, TexturePixel* destimage,
                                       const QMap<QString, TextureImagePtr>& sourceimages,

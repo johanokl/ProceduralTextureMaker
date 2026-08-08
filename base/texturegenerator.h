@@ -47,7 +47,7 @@ public:
                          const TextureNodeSettings& settings) const = 0;
 
    /// @brief Gets the configurable settings exposed by the generator.
-   /// @return Setting definitions keyed by their stable identifiers.
+   /// @return Setting definitions in presentation order, each with a stable unique ID.
    virtual const TextureGeneratorSettings& getSettings() const = 0;
 
    /// @brief Gets the generator category used by the add-node panel.
@@ -79,6 +79,18 @@ public:
    /// @return The canonical slot name, or an empty string if the identifier cannot be resolved.
    QString resolveSourceSlot(const QString& serializedSlot) const;
 };
+
+/// @brief Finds a generator setting definition by its stable ID.
+/// @param settings Ordered setting definitions to search.
+/// @param id Case-sensitive setting ID.
+/// @return A non-owning pointer to the definition, or null if no definition matches.
+const TextureGeneratorSetting* findTextureGeneratorSetting(const TextureGeneratorSettings& settings,
+                                                           const QString& id);
+
+/// @brief Validates that generator setting IDs are non-empty and unique.
+/// @param settings Ordered setting definitions to validate.
+/// @return An empty string when valid, otherwise a diagnostic describing the first invalid ID.
+QString validateTextureGeneratorSettings(const TextureGeneratorSettings& settings);
 
 /// @brief Shared ownership pointer used for registered texture generators.
 using TextureGeneratorPtr = QSharedPointer<TextureGenerator>;

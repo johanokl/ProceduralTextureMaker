@@ -23,32 +23,36 @@ SetChannelsTextureGenerator::SetChannelsTextureGenerator() {
    channels.append("Second's alpha");
 
    TextureGeneratorSetting channelRed;
-   channelRed.name = "Source for red";
-   channelRed.order = 0;
+   channelRed.name = "Red channel source";
+   channelRed.description = "Selects the value copied into the output red channel.";
    channelRed.defaultindex = 2;
    channelRed.defaultvalue = QVariant(channels);
-   configurables.insert("channelRed", channelRed);
+   channelRed.id = "channelRed";
+   configurables.append(channelRed);
 
    TextureGeneratorSetting channelGreen;
-   channelGreen.name = "Source for green";
-   channelGreen.order = 1;
+   channelGreen.name = "Green channel source";
+   channelGreen.description = "Selects the value copied into the output green channel.";
    channelGreen.defaultindex = 3;
    channelGreen.defaultvalue = QVariant(channels);
-   configurables.insert("channelGreen", channelGreen);
+   channelGreen.id = "channelGreen";
+   configurables.append(channelGreen);
 
    TextureGeneratorSetting channelBlue;
-   channelBlue.name = "Source for blue";
-   channelBlue.order = 2;
+   channelBlue.name = "Blue channel source";
+   channelBlue.description = "Selects the value copied into the output blue channel.";
    channelBlue.defaultindex = 4;
    channelBlue.defaultvalue = QVariant(channels);
-   configurables.insert("channelBlue", channelBlue);
+   channelBlue.id = "channelBlue";
+   configurables.append(channelBlue);
 
    TextureGeneratorSetting channelAlpha;
-   channelAlpha.name = "Source for alpha";
-   channelAlpha.order = 3;
+   channelAlpha.name = "Alpha channel source";
+   channelAlpha.description = "Selects the value copied into the output alpha channel.";
    channelAlpha.defaultindex = 5;
    channelAlpha.defaultvalue = QVariant(channels);
-   configurables.insert("channelAlpha", channelAlpha);
+   channelAlpha.id = "channelAlpha";
+   configurables.append(channelAlpha);
 }
 
 quint8 SetChannelsTextureGenerator::getColorFromChannel(

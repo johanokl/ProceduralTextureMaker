@@ -10,52 +10,58 @@
 
 BricksTextureGenerator::BricksTextureGenerator() {
    TextureGeneratorSetting color;
-   color.name = "Color";
+   color.name = "Colour";
+   color.description = "Colour used to draw the mortar lines.";
    color.defaultvalue = QVariant(QColor(200, 200, 200, 255));
-   color.order = 1;
-   configurables.insert("color", color);
+   color.id = "color";
+   configurables.append(color);
 
    TextureGeneratorSetting linewidth;
    linewidth.name = "Line width";
+   linewidth.description = "Width of the mortar lines, relative to a 300-pixel texture height.";
    linewidth.defaultvalue = QVariant((int)10);
    linewidth.min = QVariant(0);
    linewidth.max = QVariant(100);
-   linewidth.order = 2;
-   configurables.insert("linewidth", linewidth);
+   linewidth.id = "linewidth";
+   configurables.append(linewidth);
 
    TextureGeneratorSetting brickwidth;
    brickwidth.name = "Brick width";
+   brickwidth.description = "Width of each brick, relative to a 300-pixel texture width.";
    brickwidth.defaultvalue = QVariant((int)120);
    brickwidth.min = QVariant(0);
    brickwidth.max = QVariant(300);
    brickwidth.group = "size";
-   brickwidth.order = 3;
-   configurables.insert("brickwidth", brickwidth);
+   brickwidth.id = "brickwidth";
+   configurables.append(brickwidth);
 
    TextureGeneratorSetting brickheight;
    brickheight.name = "Brick height";
+   brickheight.description = "Height of each brick, relative to a 300-pixel texture height.";
    brickheight.defaultvalue = QVariant((int)45);
    brickheight.min = QVariant(0);
    brickheight.max = QVariant(300);
    brickheight.group = "size";
-   brickheight.order = 4;
-   configurables.insert("brickheight", brickheight);
+   brickheight.id = "brickheight";
+   configurables.append(brickheight);
 
    TextureGeneratorSetting offsetx;
-   offsetx.name = "Offset left";
+   offsetx.name = "Horizontal offset (%)";
+   offsetx.description = "Moves the brickwork horizontally as a percentage of the texture width.";
    offsetx.defaultvalue = QVariant((int)0);
    offsetx.min = QVariant(-100);
    offsetx.max = QVariant(100);
-   offsetx.order = 5;
-   configurables.insert("offsetx", offsetx);
+   offsetx.id = "offsetx";
+   configurables.append(offsetx);
 
    TextureGeneratorSetting offsety;
-   offsety.name = "Offset top";
+   offsety.name = "Vertical offset (%)";
+   offsety.description = "Moves the brickwork vertically as a percentage of the texture height.";
    offsety.defaultvalue = QVariant((int)0);
    offsety.min = QVariant(-100);
    offsety.max = QVariant(100);
-   offsety.order = 6;
-   configurables.insert("offsety", offsety);
+   offsety.id = "offsety";
+   configurables.append(offsety);
 }
 void BricksTextureGenerator::generate(QSize size, TexturePixel* destimage,
                                       const QMap<QString, TextureImagePtr>& sourceimages,

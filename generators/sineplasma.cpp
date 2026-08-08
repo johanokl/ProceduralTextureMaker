@@ -12,48 +12,48 @@
 SinePlasmaTextureGenerator::SinePlasmaTextureGenerator() {
    TextureGeneratorSetting colorsetting;
    colorsetting.defaultvalue = QVariant(QColor(255, 0, 0));
-   colorsetting.name = "Color";
-   colorsetting.description = "Color of the circle";
-   colorsetting.order = 1;
-   configurables.insert("color", colorsetting);
+   colorsetting.name = "Colour";
+   colorsetting.description = "Colour mixed into the generated plasma pattern.";
+   colorsetting.id = "color";
+   configurables.append(colorsetting);
 
    TextureGeneratorSetting xoffset;
    xoffset.defaultvalue = QVariant((double)10);
-   xoffset.name = "Offset left";
-   xoffset.description = "Offset along the x axis";
+   xoffset.name = "Horizontal offset (%)";
+   xoffset.description = "Shifts the plasma horizontally across the texture.";
    xoffset.min = QVariant(-100);
    xoffset.max = QVariant(100);
-   xoffset.order = 2;
-   configurables.insert("xoffset", xoffset);
+   xoffset.id = "xoffset";
+   configurables.append(xoffset);
 
    TextureGeneratorSetting yoffset;
    yoffset.defaultvalue = QVariant((double)10);
-   yoffset.name = "Offset top";
-   yoffset.description = "Offset along the y axis";
+   yoffset.name = "Vertical offset (%)";
+   yoffset.description = "Shifts the plasma vertically across the texture.";
    yoffset.min = QVariant(-100);
    yoffset.max = QVariant(100);
-   yoffset.order = 3;
-   configurables.insert("yoffset", yoffset);
+   yoffset.id = "yoffset";
+   configurables.append(yoffset);
 
    TextureGeneratorSetting xfrequency;
    xfrequency.defaultvalue = QVariant((double)10);
-   xfrequency.name = "Frequency X axis";
-   xfrequency.description = "How often it repeats along the y axis";
+   xfrequency.name = "Horizontal frequency";
+   xfrequency.description = "Controls how often the pattern repeats along the horizontal axis.";
    xfrequency.min = QVariant(0);
    xfrequency.max = QVariant(100);
    xfrequency.group = "frequencies";
-   xfrequency.order = 4;
-   configurables.insert("xfrequency", xfrequency);
+   xfrequency.id = "xfrequency";
+   configurables.append(xfrequency);
 
    TextureGeneratorSetting yfrequency;
    yfrequency.defaultvalue = QVariant((double)10);
-   yfrequency.name = "Frequency Y axis";
-   yfrequency.description = "How often it repeats along the y axis";
+   yfrequency.name = "Vertical frequency";
+   yfrequency.description = "Controls how often the pattern repeats along the vertical axis.";
    yfrequency.min = QVariant(0);
    yfrequency.max = QVariant(100);
    yfrequency.group = "frequencies";
-   yfrequency.order = 5;
-   configurables.insert("yfrequency", yfrequency);
+   yfrequency.id = "yfrequency";
+   configurables.append(yfrequency);
 }
 void SinePlasmaTextureGenerator::generate(QSize size, TexturePixel* destimage,
                                           const QMap<QString, TextureImagePtr>& sourceimages,

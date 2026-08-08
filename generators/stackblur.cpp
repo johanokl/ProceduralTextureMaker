@@ -9,10 +9,12 @@
 StackBlurTextureGenerator::StackBlurTextureGenerator() {
    TextureGeneratorSetting level;
    level.defaultvalue = QVariant((double)10);
-   level.name = "Blur level";
+   level.name = "Blur radius (px)";
+   level.description = "Controls the radius of the stack-blur kernel.";
    level.min = QVariant(0);
    level.max = QVariant(20);
-   configurables.insert("level", level);
+   level.id = "level";
+   configurables.append(level);
 }
 void StackBlurTextureGenerator::generate(QSize size, TexturePixel* destimage,
                                          const QMap<QString, TextureImagePtr>& sourceimages,
