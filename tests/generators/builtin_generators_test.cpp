@@ -42,9 +42,7 @@ void BuiltinGeneratorsTest::rendersEveryGenerator() {
       }
       QVERIFY2(validateTextureGeneratorSettings(generator->getSettings()).isEmpty(),
                qPrintable(it.key()));
-      if (sourceSlots.size() == 1) {
-         QCOMPARE(sourceSlots.first(), QStringLiteral("Input"));
-      }
+      QVERIFY2(!sourceSlots.contains(QStringLiteral("Input")), qPrintable(it.key()));
       const TextureNodePtr source =
           project.newNode(1, project.getGenerator(QStringLiteral("Fill")));
       const TextureNodePtr output = project.newNode(100, generator);
@@ -58,6 +56,16 @@ void BuiltinGeneratorsTest::rendersEveryGenerator() {
    }
 
    QCOMPARE(project.getGenerator(QStringLiteral("Fill"))->getSourceSlots(), QStringList());
+   QCOMPARE(project.getGenerator(QStringLiteral("Circle"))->getSourceSlots(),
+            QStringList({QStringLiteral("Canvas")}));
+   QCOMPARE(project.getGenerator(QStringLiteral("Bricks"))->getSourceSlots(),
+            QStringList({QStringLiteral("Background")}));
+   QCOMPARE(project.getGenerator(QStringLiteral("Box blur"))->getSourceSlots(),
+            QStringList({QStringLiteral("Image")}));
+   QCOMPARE(project.getGenerator(QStringLiteral("Shadow"))->getSourceSlots(),
+            QStringList({QStringLiteral("Foreground")}));
+   QCOMPARE(project.getGenerator(QStringLiteral("Normal-map"))->getSourceSlots(),
+            QStringList({QStringLiteral("Height map")}));
    QCOMPARE(project.getGenerator(QStringLiteral("Blending"))->getSourceSlots(),
             QStringList({QStringLiteral("Base"), QStringLiteral("Blend")}));
    QCOMPARE(project.getGenerator(QStringLiteral("Cutout"))->getSourceSlots(),

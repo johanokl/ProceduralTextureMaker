@@ -69,10 +69,10 @@ void GaussianBlurTextureGenerator::generate(QSize size, TexturePixel* destimage,
 
    memset(destimage, 0, size.width() * size.height() * sizeof(TexturePixel));
 
-   if (!sourceimages.contains(QStringLiteral("Input"))) {
+   if (!sourceimages.contains(QStringLiteral("Image"))) {
       return;
    }
-   TexturePixel* sourceImage = sourceimages.value(QStringLiteral("Input")).data()->getData();
+   TexturePixel* sourceImage = sourceimages.value(QStringLiteral("Image")).data()->getData();
 
    int pixels_on_row = 1 + (numNeightbours * 2);
 

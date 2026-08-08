@@ -64,7 +64,7 @@ public:
 
    /// @brief Returns the ordered, stable names of the generator's input slots.
    /// @return Input slot names in serialization and presentation order.
-   virtual QStringList getSourceSlots() const { return {QStringLiteral("Input")}; }
+   virtual QStringList getSourceSlots() const = 0;
 
    /// @brief Gets the public name used to register and display the generator.
    /// @return The unique generator name.

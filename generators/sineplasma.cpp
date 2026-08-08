@@ -67,8 +67,8 @@ void SinePlasmaTextureGenerator::generate(QSize size, TexturePixel* destimage,
    double xfrequency = settings.value("xfrequency").toDouble() * 5 / size.width();
    double yfrequency = settings.value("yfrequency").toDouble() * 5 / size.height();
 
-   if (sourceimages.contains(QStringLiteral("Input"))) {
-      memcpy(destimage, sourceimages.value(QStringLiteral("Input"))->getData(),
+   if (sourceimages.contains(QStringLiteral("Background"))) {
+      memcpy(destimage, sourceimages.value(QStringLiteral("Background"))->getData(),
              size.width() * size.height() * sizeof(TexturePixel));
    } else {
       memset(destimage, 0, size.width() * size.height() * sizeof(TexturePixel));

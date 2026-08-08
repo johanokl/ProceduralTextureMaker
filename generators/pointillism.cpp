@@ -76,16 +76,16 @@ void PointillismTextureGenerator::generate(QSize size, TexturePixel* destimage,
    bool includesource = settings.value("includesource").toBool();
    bool antialiasing = settings.value("antialiasing").toBool();
 
-   if (!sourceimages.contains(QStringLiteral("Input"))) {
+   if (!sourceimages.contains(QStringLiteral("Image"))) {
       memset(destimage, 0, size.width() * size.height() * sizeof(TexturePixel));
       return;
    }
 
    QRandomGenerator random(randseed);
 
-   TexturePixel* sourceImage = sourceimages.value(QStringLiteral("Input"))->getData();
+   TexturePixel* sourceImage = sourceimages.value(QStringLiteral("Image"))->getData();
    if (includesource) {
-      memcpy(destimage, sourceimages.value(QStringLiteral("Input"))->getData(),
+      memcpy(destimage, sourceimages.value(QStringLiteral("Image"))->getData(),
              size.width() * size.height() * sizeof(TexturePixel));
    } else {
       memset(destimage, 0, size.width() * size.height() * sizeof(TexturePixel));

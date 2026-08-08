@@ -78,8 +78,8 @@ void BricksTextureGenerator::generate(QSize size, TexturePixel* destimage,
    int offsetx = settings.value("offsetx").toDouble() * size.width() / 100;
    int offsety = settings.value("offsety").toDouble() * size.height() / 100;
 
-   if (sourceimages.contains(QStringLiteral("Input"))) {
-      memcpy(destimage, sourceimages.value(QStringLiteral("Input"))->getData(),
+   if (sourceimages.contains(QStringLiteral("Background"))) {
+      memcpy(destimage, sourceimages.value(QStringLiteral("Background"))->getData(),
              size.width() * size.height() * sizeof(TexturePixel));
    } else {
       memset(destimage, 0, size.width() * size.height() * sizeof(TexturePixel));

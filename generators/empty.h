@@ -17,9 +17,7 @@ public:
    void generate(QSize size, TexturePixel* destimage,
                  const QMap<QString, TextureImagePtr>& sourceimages,
                  const TextureNodeSettings& settings) const override;
-   QStringList getSourceSlots() const override {
-      return {QStringLiteral("Input 1"), QStringLiteral("Input 2"), QStringLiteral("Input 3")};
-   }
+   QStringList getSourceSlots() const override { return {}; }
    QString getName() const override { return QString("Empty"); }
    const TextureGeneratorSettings& getSettings() const override { return _settings; }
    QString getDescription() const override { return QString("Produces a transparent texture."); }

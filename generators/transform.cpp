@@ -122,8 +122,8 @@ void TransformTextureGenerator::generate(QSize size, TexturePixel* destimage,
 
    QImage tempimage = makeTextureImageView(size, destimage);
 
-   if (sourceimages.contains(QStringLiteral("Input"))) {
-      memcpy(destimage, sourceimages.value(QStringLiteral("Input"))->getData(),
+   if (sourceimages.contains(QStringLiteral("Image"))) {
+      memcpy(destimage, sourceimages.value(QStringLiteral("Image"))->getData(),
              size.width() * size.height() * sizeof(TexturePixel));
    } else {
       memset(destimage, 0, size.width() * size.height() * sizeof(TexturePixel));

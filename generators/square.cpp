@@ -13,7 +13,7 @@ SquareTextureGenerator::SquareTextureGenerator() {
    TextureGeneratorSetting colorsetting;
    colorsetting.name = "Colour";
    colorsetting.description = "Colour used to draw the rectangle.";
-   colorsetting.defaultvalue = QVariant(QColor(200, 100, 0));
+   colorsetting.defaultvalue = QVariant(QColor(30, 100, 30));
    colorsetting.id = "color";
    configurables.append(colorsetting);
 
@@ -40,7 +40,7 @@ SquareTextureGenerator::SquareTextureGenerator() {
    TextureGeneratorSetting rotation;
    rotation.name = "Rotation (°)";
    rotation.description = "Rotates the rectangle around its centre.";
-   rotation.defaultvalue = QVariant((double)50);
+   rotation.defaultvalue = QVariant((double)0);
    rotation.min = QVariant(0);
    rotation.max = QVariant(360);
    rotation.id = "rotation";
@@ -110,8 +110,8 @@ void SquareTextureGenerator::generate(QSize size, TexturePixel* destimage,
    double cutoutOuterRadius = settings.value("cutoutheight").toDouble() / 100;
    bool antialiasing = settings.value("antialiasing").toBool();
 
-   if (sourceimages.contains(QStringLiteral("Input"))) {
-      memcpy(destimage, sourceimages.value(QStringLiteral("Input"))->getData(),
+   if (sourceimages.contains(QStringLiteral("Canvas"))) {
+      memcpy(destimage, sourceimages.value(QStringLiteral("Canvas"))->getData(),
              size.width() * size.height() * sizeof(TexturePixel));
    } else {
       memset(destimage, 0, size.width() * size.height() * sizeof(TexturePixel));

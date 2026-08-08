@@ -17,6 +17,7 @@ public:
    void generate(QSize size, TexturePixel* destimage,
                  const QMap<QString, TextureImagePtr>& sourceimages,
                  const TextureNodeSettings& settings) const override;
+   QStringList getSourceSlots() const override { return {QStringLiteral("Background")}; }
    const TextureGeneratorSettings& getSettings() const override { return configurables; }
    QString getName() const override { return "Perlin noise"; }
    QString getDescription() const override {

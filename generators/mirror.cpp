@@ -28,11 +28,11 @@ void MirrorTextureGenerator::generate(QSize size, TexturePixel* destimage,
    }
    QString direction = settings.value("direction").toString();
 
-   if (!sourceimages.contains(QStringLiteral("Input"))) {
+   if (!sourceimages.contains(QStringLiteral("Image"))) {
       memset(destimage, 255, size.width() * size.height() * sizeof(TexturePixel));
       return;
    }
-   TexturePixel* sourceImage = sourceimages.value(QStringLiteral("Input"))->getData();
+   TexturePixel* sourceImage = sourceimages.value(QStringLiteral("Image"))->getData();
 
    if (direction == "Flip horizentally" || direction == "Flip vertically") {
       for (int y = 0; y < size.height(); y++) {

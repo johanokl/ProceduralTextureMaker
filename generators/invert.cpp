@@ -55,8 +55,8 @@ void InvertTextureGenerator::generate(QSize size, TexturePixel* destimage,
    auto channelAlphaStr = settings.value("channelAlpha").toString();
    int numPixels = size.width() * size.height();
    TexturePixel* source = nullptr;
-   if (sourceimages.contains(QStringLiteral("Input"))) {
-      source = sourceimages.value(QStringLiteral("Input")).data()->getData();
+   if (sourceimages.contains(QStringLiteral("Image"))) {
+      source = sourceimages.value(QStringLiteral("Image")).data()->getData();
    }
    if (!source) {
       memset(destimage, 0, numPixels * sizeof(TexturePixel));

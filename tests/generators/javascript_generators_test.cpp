@@ -224,18 +224,18 @@ const generator = {
 
    const QString immutableInputScript = QStringLiteral(R"JS(
 const generator = {
-  apiVersion: 1, name: "Immutable", type: "filter", inputs: ["Input"], settings: [],
+  apiVersion: 1, name: "Immutable", type: "filter", inputs: ["Image"], settings: [],
   generate(size, settings, output, inputs) {
     void size; void settings;
-    const original = inputs.Input.data[0];
-    inputs.Input.data[0] = 0;
-    output.data.set(inputs.Input.data);
+    const original = inputs.Image.data[0];
+    inputs.Image.data[0] = 0;
+    output.data.set(inputs.Image.data);
     output.data[0] = original;
   }
 };
 )JS");
    TextureImagePtr source = sourceImage(QColor(3, 4, 5, 6));
-   QCOMPARE(renderWithSources(immutableInputScript, {{QStringLiteral("Input"), source}}),
+   QCOMPARE(renderWithSources(immutableInputScript, {{QStringLiteral("Image"), source}}),
             QColor(3, 4, 5, 6));
    QCOMPARE(
        QColor(source->data()[0].r, source->data()[0].g, source->data()[0].b, source->data()[0].a),

@@ -49,11 +49,11 @@ void ModifyLevelsTextureGenerator::generate(QSize size, TexturePixel* destimage,
       return;
    }
    int numpixels = size.width() * size.height();
-   if (!sourceimages.contains(QStringLiteral("Input"))) {
+   if (!sourceimages.contains(QStringLiteral("Image"))) {
       memset(destimage, 0, numpixels * sizeof(TexturePixel));
       return;
    }
-   memcpy(destimage, sourceimages.value(QStringLiteral("Input"))->getData(),
+   memcpy(destimage, sourceimages.value(QStringLiteral("Image"))->getData(),
           numpixels * sizeof(TexturePixel));
 
    QString mode = settings.value("mode").toString();

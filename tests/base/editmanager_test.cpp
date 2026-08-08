@@ -144,7 +144,7 @@ void EditManagerTest::clearsAndRestoresTheWholeGraph() {
    const TextureNodePtr receiver = project.newNode(9, filterGenerator);
    source->setName(QStringLiteral("Restored source"));
    source->setPos(QPointF(30.0, 40.0));
-   QVERIFY(receiver->setSourceSlot(QStringLiteral("Input"), source->getId()));
+   QVERIFY(receiver->setSourceSlot(QStringLiteral("Image"), source->getId()));
 
    EditManager editManager(project);
    editManager.reset();
@@ -157,7 +157,7 @@ void EditManagerTest::clearsAndRestoresTheWholeGraph() {
    QCOMPARE(project.getNumNodes(), 2);
    QCOMPARE(project.getNode(4)->getName(), QStringLiteral("Restored source"));
    QCOMPARE(project.getNode(4)->getPos(), QPointF(30.0, 40.0));
-   QCOMPARE(project.getNode(9)->getSources().value(QStringLiteral("Input")), 4);
+   QCOMPARE(project.getNode(9)->getSources().value(QStringLiteral("Image")), 4);
    QVERIFY(!project.isModified());
 
    editManager.stack().redo();

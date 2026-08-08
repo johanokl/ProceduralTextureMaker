@@ -73,7 +73,7 @@ void ShadowTextureGenerator::generate(QSize size, TexturePixel* destimage,
    if (!destimage || !size.isValid()) {
       return;
    }
-   if (!sourceimages.contains(QStringLiteral("Input"))) {
+   if (!sourceimages.contains(QStringLiteral("Foreground"))) {
       memset(destimage, 0, size.width() * size.height() * sizeof(TexturePixel));
       return;
    }
@@ -85,7 +85,8 @@ void ShadowTextureGenerator::generate(QSize size, TexturePixel* destimage,
    SetChannelsTextureGenerator setchannelsgen;
    QMap<QString, TextureImagePtr> setchannelImages;
    setchannelImages.insert(QStringLiteral("First"), filledImagePtr);
-   setchannelImages.insert(QStringLiteral("Second"), sourceimages.value(QStringLiteral("Input")));
+   setchannelImages.insert(QStringLiteral("Second"),
+                           sourceimages.value(QStringLiteral("Foreground")));
    TextureNodeSettings settingsForSetchannels;
    settingsForSetchannels.insert("channelRed", QVariant("First's red"));
    settingsForSetchannels.insert("channelGreen", QVariant("First's green"));
@@ -97,7 +98,7 @@ void ShadowTextureGenerator::generate(QSize size, TexturePixel* destimage,
 
    StackBlurTextureGenerator stackblurgen;
    QMap<QString, TextureImagePtr> blurSettingsIterator;
-   blurSettingsIterator.insert(QStringLiteral("Input"), setchannelsImagePtr);
+   blurSettingsIterator.insert(QStringLiteral("Image"), setchannelsImagePtr);
    TextureNodeSettings settingsForBlur;
    settingsForBlur.insert("level", QVariant(settings.value("level").toInt()));
    auto blurredImagePtr = TextureImage::create(size);
@@ -106,7 +107,7 @@ void ShadowTextureGenerator::generate(QSize size, TexturePixel* destimage,
 
    TransformTextureGenerator transformgen;
    QMap<QString, TextureImagePtr> sourceForTransform;
-   sourceForTransform.insert(QStringLiteral("Input"), blurredImagePtr);
+   sourceForTransform.insert(QStringLiteral("Image"), blurredImagePtr);
    TextureNodeSettings settingsForTransform;
    for (const TextureGeneratorSetting& setting : transformgen.getSettings()) {
       settingsForTransform.insert(setting.id, setting.defaultvalue);
@@ -122,7 +123,7 @@ void ShadowTextureGenerator::generate(QSize size, TexturePixel* destimage,
    BlendingTextureGenerator blendinggen;
    QMap<QString, TextureImagePtr> sourceForBlend;
    sourceForBlend.insert(QStringLiteral("Base"), transformedImagePtr);
-   sourceForBlend.insert(QStringLiteral("Blend"), sourceimages.value(QStringLiteral("Input")));
+   sourceForBlend.insert(QStringLiteral("Blend"), sourceimages.value(QStringLiteral("Foreground")));
    TextureNodeSettings settingsForBlend;
    for (const TextureGeneratorSetting& setting : blendinggen.getSettings()) {
       settingsForBlend.insert(setting.id, setting.defaultvalue);

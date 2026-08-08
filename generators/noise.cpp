@@ -106,8 +106,8 @@ void NoiseTextureGenerator::generate(QSize size, TexturePixel* destimage,
    int height = settings.value("height").toInt();
    int numpoints = settings.value("numpoints").toInt();
 
-   if (sourceimages.contains(QStringLiteral("Input"))) {
-      memcpy(destimage, sourceimages.value(QStringLiteral("Input"))->getData(),
+   if (sourceimages.contains(QStringLiteral("Background"))) {
+      memcpy(destimage, sourceimages.value(QStringLiteral("Background"))->getData(),
              size.width() * size.height() * sizeof(TexturePixel));
    } else {
       memset(destimage, 0, size.width() * size.height() * sizeof(TexturePixel));
