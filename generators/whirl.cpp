@@ -51,7 +51,7 @@ void WhirlTextureGenerator::generate(QSize size, TexturePixel* destimage,
    if (!destimage || !size.isValid()) {
       return;
    }
-   if (!sourceimages.contains(QStringLiteral("Input"))) {
+   if (!sourceimages.contains(QStringLiteral("Image"))) {
       memset(destimage, 0, size.width() * size.height() * sizeof(TexturePixel));
       return;
    }
@@ -61,7 +61,7 @@ void WhirlTextureGenerator::generate(QSize size, TexturePixel* destimage,
    double offsetleft = settings.value("offsetleft").toDouble() * size.width() / 100;
    double offsettop = settings.value("offsettop").toDouble() * size.height() / 100;
 
-   TexturePixel* source = sourceimages.value(QStringLiteral("Input"))->getData();
+   TexturePixel* source = sourceimages.value(QStringLiteral("Image"))->getData();
    if (radius <= 0 || strength == 0) {
       memcpy(destimage, source, size.width() * size.height() * sizeof(TexturePixel));
       return;

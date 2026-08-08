@@ -55,11 +55,11 @@ void LensTextureGenerator::generate(QSize size, TexturePixel* destimage,
    int offsettop = settings.value("offsettop").toDouble() * size.height() / 100;
    int lenssize = settings.value("size").toDouble() * size.height() / 100;
    double strength = (300 - settings.value("strength").toDouble()) * size.width() / 100;
-   if (!sourceimages.contains(QStringLiteral("Input"))) {
+   if (!sourceimages.contains(QStringLiteral("Image"))) {
       memset(destimage, 0, size.width() * size.height() * sizeof(TexturePixel));
       return;
    }
-   TexturePixel* sourceimage = sourceimages.value(QStringLiteral("Input")).data()->getData();
+   TexturePixel* sourceimage = sourceimages.value(QStringLiteral("Image")).data()->getData();
 
    memcpy(destimage, sourceimage, size.width() * size.height() * sizeof(TexturePixel));
 

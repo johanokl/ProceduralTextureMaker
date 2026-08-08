@@ -138,8 +138,8 @@ void StarTextureGenerator::generate(QSize size, TexturePixel* destimage,
    double cutoutOuterRadius = settings.value("cutoutouterradius").toDouble() / 100;
    bool antialiasing = settings.value("antialiasing").toBool();
 
-   if (sourceimages.contains(QStringLiteral("Input"))) {
-      memcpy(destimage, sourceimages.value(QStringLiteral("Input"))->getData(),
+   if (sourceimages.contains(QStringLiteral("Canvas"))) {
+      memcpy(destimage, sourceimages.value(QStringLiteral("Canvas"))->getData(),
              size.width() * size.height() * sizeof(TexturePixel));
    } else {
       memset(destimage, 0, size.width() * size.height() * sizeof(TexturePixel));

@@ -28,7 +28,7 @@ CircleTextureGenerator::CircleTextureGenerator() {
    TextureGeneratorSetting outerRadius;
    outerRadius.name = "Outer radius (%)";
    outerRadius.description = "Outer radius as a percentage of half the texture height.";
-   outerRadius.defaultvalue = QVariant((double)100);
+   outerRadius.defaultvalue = QVariant((double)80);
    outerRadius.min = QVariant(0);
    outerRadius.max = QVariant(200);
    outerRadius.id = "outerradius";
@@ -65,8 +65,8 @@ void CircleTextureGenerator::generate(QSize size, TexturePixel* destimage,
    int offsetTop = settings.value("offsettop").toDouble() * size.height() / 100;
 
    bool blend = false;
-   if (sourceimages.contains(QStringLiteral("Input"))) {
-      memcpy(destimage, sourceimages.value(QStringLiteral("Input"))->getData(),
+   if (sourceimages.contains(QStringLiteral("Canvas"))) {
+      memcpy(destimage, sourceimages.value(QStringLiteral("Canvas"))->getData(),
              size.width() * size.height() * sizeof(TexturePixel));
       blend = true;
    } else {

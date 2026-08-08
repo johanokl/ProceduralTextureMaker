@@ -5,7 +5,7 @@
 RecordingGenerator::RecordingGenerator(QString name, const int sourceSlots, const int defaultValue)
     : generatorName(std::move(name)) {
    if (sourceSlots == 1) {
-      this->sourceSlots.append(QStringLiteral("Input"));
+      this->sourceSlots.append(QStringLiteral("Image"));
    } else {
       for (int i = 1; i <= sourceSlots; ++i) {
          this->sourceSlots.append(QStringLiteral("Input %1").arg(i));

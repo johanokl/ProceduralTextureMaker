@@ -99,7 +99,7 @@ void TextureProjectTest::cachesAndInvalidatesRenders() {
    const TextureNodePtr output = project.newNode(2, project.getGenerator(QStringLiteral("Filter")));
    const TextureNodePtr unrelated =
        project.newNode(3, project.getGenerator(QStringLiteral("Source")));
-   QVERIFY(output->setSourceSlot(QStringLiteral("Input"), source->getId()));
+   QVERIFY(output->setSourceSlot(QStringLiteral("Image"), source->getId()));
 
    const QSize size(5, 3);
    const TextureImagePtr first = output->renderImage(size);

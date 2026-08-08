@@ -130,8 +130,8 @@ void TextTextureGenerator::generate(QSize size, TexturePixel* destimage,
       styleHint = QFont::StyleHint::Fantasy;
    }
 
-   if (sourceimages.contains(QStringLiteral("Input"))) {
-      memcpy(destimage, sourceimages.value(QStringLiteral("Input"))->getData(),
+   if (sourceimages.contains(QStringLiteral("Canvas"))) {
+      memcpy(destimage, sourceimages.value(QStringLiteral("Canvas"))->getData(),
              size.width() * size.height() * sizeof(TexturePixel));
    } else {
       memset(destimage, 0, size.width() * size.height() * sizeof(TexturePixel));

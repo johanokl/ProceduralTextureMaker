@@ -55,11 +55,11 @@ void PixelateTextureGenerator::generate(QSize size, TexturePixel* destimage,
    int height = qMax(settings.value("height").toDouble() / 100 * size.height(), (double)1);
    int offsetx = settings.value("offsetx").toDouble() / 100 * size.width();
    int offsety = settings.value("offsety").toDouble() / 100 * size.height();
-   if (!sourceimages.contains(QStringLiteral("Input"))) {
+   if (!sourceimages.contains(QStringLiteral("Image"))) {
       memset(destimage, 0, size.width() * size.height() * sizeof(TexturePixel));
       return;
    }
-   TexturePixel* sourceImage = sourceimages.value(QStringLiteral("Input")).data()->getData();
+   TexturePixel* sourceImage = sourceimages.value(QStringLiteral("Image")).data()->getData();
    int y = offsety - size.height();
    while (y < size.height()) {
       if (y + height > 0) {

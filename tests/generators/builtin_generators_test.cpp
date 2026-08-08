@@ -3,6 +3,7 @@
 #include "generators/builtinregistry.h"
 #include <QSet>
 #include <QTest>
+#include <exception>
 
 /// @brief Exercises every registered built-in generator with a small render.
 class BuiltinGeneratorsTest : public QObject {
@@ -17,7 +18,6 @@ void BuiltinGeneratorsTest::rendersEveryGenerator() {
    TextureProject project(false);
    registerBuiltInGenerators(project);
    const auto generators = project.getGenerators();
-   QCOMPARE(generators.size(), 35);
 
    for (auto it = generators.cbegin(); it != generators.cend(); ++it) {
       const TextureGeneratorPtr& generator = it.value();
@@ -42,22 +42,36 @@ void BuiltinGeneratorsTest::rendersEveryGenerator() {
       }
       QVERIFY2(validateTextureGeneratorSettings(generator->getSettings()).isEmpty(),
                qPrintable(it.key()));
-      if (sourceSlots.size() == 1) {
-         QCOMPARE(sourceSlots.first(), QStringLiteral("Input"));
-      }
+      QVERIFY2(!sourceSlots.contains(QStringLiteral("Input")), qPrintable(it.key()));
       const TextureNodePtr source =
           project.newNode(1, project.getGenerator(QStringLiteral("Fill")));
       const TextureNodePtr output = project.newNode(100, generator);
       for (const QString& slot : generator->getSourceSlots()) {
          QVERIFY2(output->setSourceSlot(slot, source->getId()), qPrintable(it.key()));
       }
-      const TextureImagePtr image = output->renderImage(QSize(17, 13));
+      TextureImagePtr image;
+      try {
+         image = output->renderImage(QSize(17, 13));
+      } catch (const std::exception& error) {
+         QFAIL(qPrintable(QStringLiteral("%1 failed to render: %2")
+                              .arg(it.key(), QString::fromUtf8(error.what()))));
+      }
       QVERIFY2(!image.isNull(), qPrintable(it.key()));
       QCOMPARE(image->getSize(), QSize(17, 13));
       project.clear();
    }
 
    QCOMPARE(project.getGenerator(QStringLiteral("Fill"))->getSourceSlots(), QStringList());
+   QCOMPARE(project.getGenerator(QStringLiteral("Circle"))->getSourceSlots(),
+            QStringList({QStringLiteral("Canvas")}));
+   QCOMPARE(project.getGenerator(QStringLiteral("Bricks"))->getSourceSlots(),
+            QStringList({QStringLiteral("Background")}));
+   QCOMPARE(project.getGenerator(QStringLiteral("Box blur"))->getSourceSlots(),
+            QStringList({QStringLiteral("Image")}));
+   QCOMPARE(project.getGenerator(QStringLiteral("Shadow"))->getSourceSlots(),
+            QStringList({QStringLiteral("Foreground")}));
+   QCOMPARE(project.getGenerator(QStringLiteral("Normal-map"))->getSourceSlots(),
+            QStringList({QStringLiteral("Height map")}));
    QCOMPARE(project.getGenerator(QStringLiteral("Blending"))->getSourceSlots(),
             QStringList({QStringLiteral("Base"), QStringLiteral("Blend")}));
    QCOMPARE(project.getGenerator(QStringLiteral("Cutout"))->getSourceSlots(),

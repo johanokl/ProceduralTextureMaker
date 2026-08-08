@@ -13,11 +13,11 @@ void GreyscaleTextureGenerator::generate(QSize size, TexturePixel* destimage,
    if (!destimage || !size.isValid()) {
       return;
    }
-   if (!sourceimages.contains(QStringLiteral("Input"))) {
+   if (!sourceimages.contains(QStringLiteral("Image"))) {
       memset(destimage, 0, size.width() * size.height() * sizeof(TexturePixel));
       return;
    }
-   TexturePixel* sourceImage = sourceimages.value(QStringLiteral("Input")).data()->getData();
+   TexturePixel* sourceImage = sourceimages.value(QStringLiteral("Image")).data()->getData();
 
    for (int j = 0; j < size.height(); j++) {
       for (int i = 0; i < size.width(); i++) {

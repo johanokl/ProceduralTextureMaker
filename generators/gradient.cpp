@@ -126,8 +126,8 @@ void GradientTextureGenerator::generate(QSize size, TexturePixel* destimage,
    double radius = settings.value("radius").toDouble() * size.width() / 100;
 
    QImage tempimage = makeTextureImageView(size, destimage);
-   if (sourceimages.contains(QStringLiteral("Input"))) {
-      memcpy(destimage, sourceimages.value(QStringLiteral("Input"))->getData(),
+   if (sourceimages.contains(QStringLiteral("Background"))) {
+      memcpy(destimage, sourceimages.value(QStringLiteral("Background"))->getData(),
              size.width() * size.height() * sizeof(TexturePixel));
    } else {
       memset(destimage, 0, size.width() * size.height() * sizeof(TexturePixel));

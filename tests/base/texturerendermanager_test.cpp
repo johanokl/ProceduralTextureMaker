@@ -129,7 +129,7 @@ void TextureRenderManagerTest::reusesCachedSnapshotsWithoutRepublishingThem() {
    cachedSnapshot.cachedImage = TextureImage::create(QSize(2, 2));
    const auto manager = makeManager(state, 1);
    manager->render(TextureGraphSnapshot{
-       QSize(2, 2), {cachedSnapshot, snapshot(2, receiver, 2, {{QStringLiteral("Input"), 1}})}});
+       QSize(2, 2), {cachedSnapshot, snapshot(2, receiver, 2, {{QStringLiteral("Image"), 1}})}});
    QVERIFY(state.waitFor(1));
    QCOMPARE(cachedRaw->callCount(), 0);
    std::lock_guard lock(state.mutex);

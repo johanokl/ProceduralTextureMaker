@@ -87,8 +87,8 @@ void PerlinNoiseTextureGenerator::generate(QSize size, TexturePixel* destimage,
    double yFactor = (double)500 / size.height();
    bool blend = false;
    TexturePixel* sourceImg = nullptr;
-   if (sourceimages.contains(QStringLiteral("Input"))) {
-      sourceImg = sourceimages.value(QStringLiteral("Input"))->getData();
+   if (sourceimages.contains(QStringLiteral("Background"))) {
+      sourceImg = sourceimages.value(QStringLiteral("Background"))->getData();
       blend = true;
    }
    for (int y = 0; y < size.height(); y++) {

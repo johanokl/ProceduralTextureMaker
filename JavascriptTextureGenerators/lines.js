@@ -1,9 +1,9 @@
 const generator = {
   apiVersion: 1,
   name: "LinesJS",
-  description: "Draws horizontal lines over an optional source image.",
+  description: "Draws horizontal lines on an optional canvas.",
   type: "filter",
-  inputs: ["Input"],
+  inputs: ["Canvas"],
 
   settings: [
     {
@@ -44,14 +44,14 @@ const generator = {
 
   generate(size, settings, output, inputs) {
     const destination = output.data;
-    const source = inputs.Input?.data;
+    const canvas = inputs.Canvas?.data;
     const lineHeight = Math.round((settings.height * size.height) / 100);
     const distance = Math.round((settings.distance * size.height) / 100);
     const offset = Math.round((settings.offset * size.height) / 100);
     const period = lineHeight + distance;
 
-    if (source) {
-      destination.set(source);
+    if (canvas) {
+      destination.set(canvas);
     }
 
     for (let y = 0; y < size.height; ++y) {
@@ -63,7 +63,7 @@ const generator = {
           destination[pixel + 1] = settings.color.g;
           destination[pixel + 2] = settings.color.b;
           destination[pixel + 3] = settings.color.a;
-        } else if (!source) {
+        } else if (!canvas) {
           destination[pixel] = 0;
           destination[pixel + 1] = 0;
           destination[pixel + 2] = 0;

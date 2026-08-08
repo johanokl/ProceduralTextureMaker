@@ -22,11 +22,11 @@ void BoxBlurTextureGenerator::generate(QSize size, TexturePixel* destimage,
    if (!destimage || !size.isValid()) {
       return;
    }
-   if (!sourceimages.contains(QStringLiteral("Input"))) {
+   if (!sourceimages.contains(QStringLiteral("Image"))) {
       memset(destimage, 0, size.width() * size.height() * sizeof(TexturePixel));
       return;
    }
-   TexturePixel* sourceImage = sourceimages.value(QStringLiteral("Input")).data()->getData();
+   TexturePixel* sourceImage = sourceimages.value(QStringLiteral("Image")).data()->getData();
    if (settings.value("numneighbours").toInt() == 0) {
       memcpy(destimage, sourceImage, size.width() * size.height() * sizeof(TexturePixel));
       return;

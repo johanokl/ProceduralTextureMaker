@@ -24,10 +24,10 @@ void StackBlurTextureGenerator::generate(QSize size, TexturePixel* destimage,
    }
    int level = settings.value("level").toDouble() * qMax(size.width() / 100, 1);
    memset(destimage, 0, size.width() * size.height() * sizeof(TexturePixel));
-   if (!sourceimages.contains(QStringLiteral("Input"))) {
+   if (!sourceimages.contains(QStringLiteral("Image"))) {
       return;
    }
-   TexturePixel* sourceImage = sourceimages.value(QStringLiteral("Input")).data()->getData();
+   TexturePixel* sourceImage = sourceimages.value(QStringLiteral("Image")).data()->getData();
    memcpy(destimage, sourceImage, size.width() * size.height() * sizeof(TexturePixel));
    if (level <= 0) {
       return;

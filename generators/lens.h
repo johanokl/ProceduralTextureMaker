@@ -17,6 +17,7 @@ public:
    void generate(QSize size, TexturePixel* destimage,
                  const QMap<QString, TextureImagePtr>& sourceimages,
                  const TextureNodeSettings& settings) const override;
+   QStringList getSourceSlots() const override { return {QStringLiteral("Image")}; }
    QString getName() const override { return QString("Lens"); }
    const TextureGeneratorSettings& getSettings() const override { return configurables; }
    QString getDescription() const override {
