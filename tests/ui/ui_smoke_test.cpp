@@ -277,14 +277,15 @@ void UiSmokeTest::showsLabelsForHighlightedOrSelectedNodes() {
    ViewNodeItem* sourceItem = scene->getItem(source->getId());
    QVERIFY(sourceItem != nullptr);
    sourceItem->setSelected(true);
-   QVERIFY(connection->endpointLabelsVisible());
-   QVERIFY(connection->sourceNameLabelVisible());
+   QVERIFY(!connection->endpointLabelsVisible());
+   QVERIFY(!connection->sourceNameLabelVisible());
    QVERIFY(!connection->receiverNameLabelVisible());
    QVERIFY(connection->zValue() > sourceItem->zValue());
 
    SettingsManager* settingsManager = window.getTextureProject()->getSettingsManager();
    QVERIFY(settingsManager != nullptr);
    settingsManager->setConnectionLabelSize(18);
+   settingsManager->setDisplaySourceNames(true);
    settingsManager->setDisplayReceiverNames(true);
    QCOMPARE(connection->getLabelFontSize(), 18);
    QVERIFY(connection->sourceNameLabelVisible());

@@ -224,7 +224,7 @@ private:
    /// @brief Font size used for connection endpoint labels.
    int connectionLabelSize{12};
    /// @brief Whether receiving-edge labels show source node names.
-   bool displaySourceNames{true};
+   bool displaySourceNames{false};
    /// @brief Whether source-edge labels show receiver node names.
    bool displayReceiverNames{false};
    /// @brief Height of node title areas.

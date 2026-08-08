@@ -28,7 +28,7 @@ ViewNodeLine::ViewNodeLine(ViewNodeScene& scene, int sourceItem, int receiverIte
    highlightedWidth = 4;
    arrowSize = 12;
    labelFontSize = 12;
-   displaySourceNames = true;
+   displaySourceNames = false;
    displayReceiverNames = false;
    setNodes(sourceItem, receiverItem);
    setAcceptHoverEvents(true);

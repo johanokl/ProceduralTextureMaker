@@ -295,7 +295,7 @@ bool SettingsManager::readSettings() {
    if (newConnectionLabelSize < 8 || newConnectionLabelSize > 24) {
       newConnectionLabelSize = 12;
    }
-   bool newDisplaySourceNames = settings.value("displaysourcenames", true).toBool();
+   bool newDisplaySourceNames = settings.value("displaysourcenames", false).toBool();
    bool newDisplayReceiverNames = settings.value("displayreceivernames", false).toBool();
    const TextureFiltering newTextureFiltering = validTextureFilteringOrDefault(
        settings.value("texturefiltering", static_cast<int>(TextureFiltering::Smooth)).toInt());
