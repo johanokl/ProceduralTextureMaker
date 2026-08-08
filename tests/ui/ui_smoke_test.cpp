@@ -13,6 +13,7 @@
 #include "sceneview/viewnodeline.h"
 #include "sceneview/viewnodeitem.h"
 #include "sceneview/viewnodescene.h"
+#include "sceneview/viewnodeview.h"
 #include "texgenapplication.h"
 #include <QGraphicsSceneDragDropEvent>
 #include <QGraphicsView>
@@ -30,6 +31,7 @@
 #include <QTemporaryDir>
 #include <QTest>
 #include <QVBoxLayout>
+#include <QWheelEvent>
 #include <memory>
 
 /// @brief Exposes protected drag handlers for focused scene lifetime tests.
@@ -41,6 +43,12 @@ public:
    using ViewNodeScene::dragEnterEvent;
    using ViewNodeScene::dragLeaveEvent;
    using ViewNodeScene::dropEvent;
+};
+
+/// @brief Exposes wheel handling for focused scene-view zoom tests.
+class TestViewNodeView : public ViewNodeView {
+public:
+   using ViewNodeView::wheelEvent;
 };
 
 /// @brief Performs a minimal offscreen smoke test of the graphical application.
@@ -62,6 +70,8 @@ private slots:
    void showsLabelsForHighlightedOrSelectedNodes();
    /// @brief Verifies loaded list settings select their persisted combo-box values.
    void restoresPersistedComboBoxSelection();
+   /// @brief Verifies unmodified mouse-wheel scrolling zooms the scene view.
+   void zoomsSceneWithMouseWheel();
    /// @brief Verifies custom generator origins are routed to the three dedicated palette groups.
    void groupsCustomJavaScriptGenerators();
    /// @brief Verifies clicking a palette button displays its generator metadata.
@@ -86,6 +96,24 @@ void UiSmokeTest::initTestCase() {
    QSettings::setPath(QSettings::IniFormat, QSettings::UserScope, settingsDirectory->path());
    QSettings settings;
    settings.setValue(QStringLiteral("showhelpstartup"), false);
+}
+
+void UiSmokeTest::zoomsSceneWithMouseWheel() {
+   TestViewNodeView view;
+   view.resize(200, 200);
+   const QPointF wheelPosition(100, 100);
+   QWheelEvent zoomInEvent(wheelPosition, wheelPosition, QPoint(), QPoint(0, 120), Qt::NoButton,
+                           Qt::NoModifier, Qt::NoScrollPhase, false);
+   view.wheelEvent(&zoomInEvent);
+   QVERIFY(zoomInEvent.isAccepted());
+   QTRY_VERIFY(view.transform().m11() > 1.0);
+
+   const qreal zoomedScale = view.transform().m11();
+   QWheelEvent zoomOutEvent(wheelPosition, wheelPosition, QPoint(), QPoint(0, -120), Qt::NoButton,
+                            Qt::NoModifier, Qt::NoScrollPhase, false);
+   view.wheelEvent(&zoomOutEvent);
+   QVERIFY(zoomOutEvent.isAccepted());
+   QTRY_VERIFY(view.transform().m11() < zoomedScale);
 }
 
 void UiSmokeTest::compositesTextureBackground() {

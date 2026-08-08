@@ -193,20 +193,16 @@ void ViewNodeView::resizeEvent(QResizeEvent* event) {
 }
 
 void ViewNodeView::wheelEvent(QWheelEvent* event) {
-   if (event->modifiers() & (Qt::ShiftModifier | Qt::AltModifier)) {
-      double angle = event->angleDelta().y();
-      if (angle == 0) {
-         event->accept();
-         return;
-      }
-      double factor = qPow(scrollZoomFactor, angle);
-      if (angle > 0) {
-         zoomAt(event->position().toPoint(), factor);
-      } else {
-         zoomCentered(factor);
-      }
+   double angle = event->angleDelta().y();
+   if (angle == 0) {
       event->accept();
       return;
    }
-   QGraphicsView::wheelEvent(event);
+   double factor = qPow(scrollZoomFactor, angle);
+   if (angle > 0) {
+      zoomAt(event->position().toPoint(), factor);
+   } else {
+      zoomCentered(factor);
+   }
+   event->accept();
 }

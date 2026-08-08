@@ -48,7 +48,7 @@ protected:
    /// @param event Resize event.
    void resizeEvent(QResizeEvent* event) override;
 
-   /// @brief Handles scrolling and modifier-assisted zooming.
+   /// @brief Zooms the scene in or out in response to mouse-wheel scrolling.
    /// @param event Mouse-wheel event.
    void wheelEvent(QWheelEvent* event) override;
 
