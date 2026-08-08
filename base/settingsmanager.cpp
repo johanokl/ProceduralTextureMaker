@@ -34,6 +34,15 @@ int validBrushOrDefault(const int value, const int fallback) {
    return BackgroundBrushStyles::isSupported(value) ? value : fallback;
 }
 
+SettingsManager::TextureFiltering validTextureFilteringOrDefault(const int value) {
+   switch (static_cast<SettingsManager::TextureFiltering>(value)) {
+      case SettingsManager::TextureFiltering::Smooth:
+      case SettingsManager::TextureFiltering::Nearest:
+         return static_cast<SettingsManager::TextureFiltering>(value);
+   }
+   return SettingsManager::TextureFiltering::Smooth;
+}
+
 }  // namespace
 
 SettingsManager::SettingsManager(QObject* parent)
@@ -43,7 +52,8 @@ SettingsManager::SettingsManager(QObject* parent)
       backgroundBrush(static_cast<int>(Qt::NoBrush)),
       connectionLabelSize(12),
       displaySourceNames(false),
-      displayReceiverNames(false) {
+      displayReceiverNames(false),
+      textureFiltering(TextureFiltering::Smooth) {
    readSettings();
 }
 
@@ -204,6 +214,20 @@ void SettingsManager::setDisplayReceiverNames(bool enabled) {
    }
 }
 
+SettingsManager::TextureFiltering SettingsManager::getTextureFiltering() const {
+   return textureFiltering;
+}
+
+void SettingsManager::setTextureFiltering(const TextureFiltering filtering) {
+   if (filtering != TextureFiltering::Smooth && filtering != TextureFiltering::Nearest) {
+      return;
+   }
+   if (filtering != textureFiltering) {
+      textureFiltering = filtering;
+      emit settingsUpdated();
+   }
+}
+
 void SettingsManager::loadSettings() {
    if (readSettings()) {
       emit settingsUpdated();
@@ -226,6 +250,7 @@ bool SettingsManager::saveSettings() const {
    settings.setValue("connectionlabelsize", connectionLabelSize);
    settings.setValue("displaysourcenames", displaySourceNames);
    settings.setValue("displayreceivernames", displayReceiverNames);
+   settings.setValue("texturefiltering", static_cast<int>(textureFiltering));
    settings.sync();
    return settings.status() == QSettings::NoError;
 }
@@ -272,6 +297,8 @@ bool SettingsManager::readSettings() {
    }
    bool newDisplaySourceNames = settings.value("displaysourcenames", true).toBool();
    bool newDisplayReceiverNames = settings.value("displayreceivernames", false).toBool();
+   const TextureFiltering newTextureFiltering = validTextureFilteringOrDefault(
+       settings.value("texturefiltering", static_cast<int>(TextureFiltering::Smooth)).toInt());
 
    bool changed =
        previewSize != newPreviewSize || thumbnailSize != newThumbnailSize ||
@@ -284,7 +311,7 @@ bool SettingsManager::readSettings() {
        nodeBackgroundBrush != newNodeBackgroundBrush ||
        connectionLabelSize != newConnectionLabelSize ||
        displaySourceNames != newDisplaySourceNames ||
-       displayReceiverNames != newDisplayReceiverNames;
+       displayReceiverNames != newDisplayReceiverNames || textureFiltering != newTextureFiltering;
 
    previewSize = newPreviewSize;
    thumbnailSize = newThumbnailSize;
@@ -300,5 +327,6 @@ bool SettingsManager::readSettings() {
    connectionLabelSize = newConnectionLabelSize;
    displaySourceNames = newDisplaySourceNames;
    displayReceiverNames = newDisplayReceiverNames;
+   textureFiltering = newTextureFiltering;
    return changed;
 }

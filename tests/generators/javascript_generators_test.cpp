@@ -303,6 +303,7 @@ void JavaScriptGeneratorsTest::cachesConcurrentRuntimesAndInterrupts() {
 
    const quint64 concurrentBefore = JsTexGen::runtimeEvaluationCount();
    std::vector<std::thread> workers;
+   workers.reserve(2);
    std::atomic_int completed{0};
    for (int index = 0; index < 2; ++index) {
       workers.emplace_back([&generator, &completed]() {

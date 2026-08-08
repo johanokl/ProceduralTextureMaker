@@ -48,6 +48,12 @@ public:
    /// @param pixmap Texture to display.
    void setTexture(const QPixmap& pixmap);
 
+   /// @brief Enables linear magnification or nearest-neighbor magnification.
+   void setSmoothFiltering(bool enabled);
+
+   /// @brief Checks whether linear texture magnification is enabled.
+   bool hasSmoothFiltering() const { return smoothFiltering; }
+
 public slots:
    /// @brief Requests a repaint after the current image becomes invalid.
    void imageUpdated();
@@ -105,6 +111,8 @@ private:
    QColor backgroundcolor;
    /// @brief Whether OpenGL resources have been initialized.
    bool initialized{false};
+   /// @brief Whether texture magnification uses linear filtering.
+   bool smoothFiltering{true};
 };
 
 #endif  // PREVIEW3DPANEL_H

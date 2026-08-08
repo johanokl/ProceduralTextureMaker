@@ -180,7 +180,7 @@ protected:
 ImageLabel::ImageLabel(QWidget* parent) : QWidget(parent) {
    label = new QLabel(this);
    label->setPixmap(QPixmap(0, 0));
-   label->setScaledContents(true);
+   label->setScaledContents(false);
    label->setFixedSize(0, 0);
    label->setObjectName("previewImage");
    label->setFrameShape(QFrame::NoFrame);
@@ -200,12 +200,20 @@ void ImageLabel::resizeEvent(QResizeEvent* event) {
 }
 
 void ImageLabel::setPixmap(const QPixmap& pixmap) {
-   label->setPixmap(pixmap);
+   sourcePixmap = pixmap;
    setRendering(false);
    updateGeometry();
    if (parentWidget() != nullptr) {
       parentWidget()->updateGeometry();
    }
+   resizeImage();
+}
+
+void ImageLabel::setSmoothFiltering(const bool enabled) {
+   if (smoothFiltering == enabled) {
+      return;
+   }
+   smoothFiltering = enabled;
    resizeImage();
 }
 
@@ -217,7 +225,7 @@ void ImageLabel::setRendering(const bool rendering) {
 }
 
 QSize ImageLabel::sizeHint() const {
-   QSize preferredSize = label->pixmap(Qt::ReturnByValue).size();
+   QSize preferredSize = sourcePixmap.size();
    if (preferredSize.isEmpty()) {
       return {};
    }
@@ -226,7 +234,7 @@ QSize ImageLabel::sizeHint() const {
 }
 
 int ImageLabel::heightForWidth(const int width) const {
-   const QSize pixmapSize = label->pixmap(Qt::ReturnByValue).size();
+   const QSize pixmapSize = sourcePixmap.size();
    if (width <= 0 || pixmapSize.width() <= 0) {
       return 0;
    }
@@ -234,7 +242,7 @@ int ImageLabel::heightForWidth(const int width) const {
 }
 
 QPixmap ImageLabel::pixmapWithRenderingOverlay() const {
-   QPixmap pixmap = label->pixmap(Qt::ReturnByValue);
+   QPixmap pixmap = sourcePixmap;
    if (pixmap.isNull()) {
       return {};
    }
@@ -244,9 +252,16 @@ QPixmap ImageLabel::pixmapWithRenderingOverlay() const {
 }
 
 void ImageLabel::resizeImage() {
-   QSize pixSize = label->pixmap(Qt::ReturnByValue).size();
+   QSize pixSize = sourcePixmap.size();
    pixSize.scale(size(), Qt::KeepAspectRatio);
    label->setFixedSize(pixSize);
+   if (sourcePixmap.isNull() || pixSize.isEmpty()) {
+      label->setPixmap(QPixmap());
+   } else {
+      const Qt::TransformationMode mode =
+          smoothFiltering ? Qt::SmoothTransformation : Qt::FastTransformation;
+      label->setPixmap(sourcePixmap.scaled(pixSize, Qt::IgnoreAspectRatio, mode));
+   }
    renderingOverlay->setGeometry(label->geometry());
    renderingOverlay->raise();
 }
@@ -497,7 +512,13 @@ QPixmap PreviewImagePanel::tilePixmap(const QPixmap& pixmap, int number) {
 
 void PreviewImagePanel::settingsUpdated() {
    if (project.getSettingsManager() != nullptr) {
-      cubeWidget->setBackgroundColor(project.getSettingsManager()->getPreviewBackgroundColor());
+      const SettingsManager* settingsManager = project.getSettingsManager();
+      cubeWidget->setBackgroundColor(settingsManager->getPreviewBackgroundColor());
+      const bool smoothFiltering =
+          settingsManager->getTextureFiltering() == SettingsManager::TextureFiltering::Smooth;
+      selectedImageLabel->setSmoothFiltering(smoothFiltering);
+      lockedImageLabel->setSmoothFiltering(smoothFiltering);
+      cubeWidget->setSmoothFiltering(smoothFiltering);
    }
    numTiles = tileCountComboBox->currentData().toInt();
    if (!this->isHidden()) {

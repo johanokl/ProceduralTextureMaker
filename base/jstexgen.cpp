@@ -104,6 +104,22 @@ bool readInteger(const QJSValue& value, int& destination) {
    return true;
 }
 
+/// @brief Converts a finite JavaScript number to a C++ double.
+/// @param value JavaScript value to validate.
+/// @param destination Destination for the converted value.
+/// @return @c true when the value is a finite number.
+bool readFiniteNumber(const QJSValue& value, double& destination) {
+   if (!value.isNumber()) {
+      return false;
+   }
+   const double number = value.toNumber();
+   if (!std::isfinite(number)) {
+      return false;
+   }
+   destination = number;
+   return true;
+}
+
 /// @brief Parses an RGBA color object whose channel values range from 0 to 255.
 /// @param value JavaScript `{r, g, b, a}` object to parse.
 /// @param color Destination for the converted color.
@@ -197,7 +213,8 @@ bool parseDescriptorSetting(const QString& id, const QJSValue& definition,
    }
 
    if (type == QStringLiteral("real")) {
-      if (!defaultValue.isNumber() || !std::isfinite(defaultValue.toNumber())) {
+      double value = 0.0;
+      if (!readFiniteNumber(defaultValue, value)) {
          error = QStringLiteral("%1.default must be a finite number").arg(context);
          return false;
       }
@@ -205,16 +222,13 @@ bool parseDescriptorSetting(const QString& id, const QJSValue& definition,
       double maximum = std::numeric_limits<double>::max();
       const QJSValue minValue = definition.property(QStringLiteral("min"));
       const QJSValue maxValue = definition.property(QStringLiteral("max"));
-      if ((!minValue.isUndefined() &&
-           (!minValue.isNumber() || !std::isfinite(minimum = minValue.toNumber()))) ||
-          (!maxValue.isUndefined() &&
-           (!maxValue.isNumber() || !std::isfinite(maximum = maxValue.toNumber()))) ||
-          minimum > maximum || defaultValue.toNumber() < minimum ||
-          defaultValue.toNumber() > maximum) {
+      if ((!minValue.isUndefined() && !readFiniteNumber(minValue, minimum)) ||
+          (!maxValue.isUndefined() && !readFiniteNumber(maxValue, maximum)) || minimum > maximum ||
+          value < minimum || value > maximum) {
          error = QStringLiteral("%1 has an invalid real range or default").arg(context);
          return false;
       }
-      setting.defaultvalue = defaultValue.toNumber();
+      setting.defaultvalue = value;
       if (!minValue.isUndefined()) {
          setting.min = minimum;
       }

@@ -19,6 +19,13 @@ class SettingsManager : public QObject {
    Q_OBJECT
 
 public:
+   /// @brief Filtering used when texture previews are scaled for display.
+   enum class TextureFiltering {
+      Smooth = 0,
+      Nearest = 1,
+   };
+   Q_ENUM(TextureFiltering)
+
    /// @brief Constructs the settings manager and loads persisted settings.
    explicit SettingsManager(QObject* parent = nullptr);
 
@@ -75,6 +82,9 @@ public:
 
    /// @brief Checks whether receiver node names are shown at source edges.
    bool getDisplayReceiverNames() const;
+
+   /// @brief Gets the filtering used for scaled texture previews.
+   TextureFiltering getTextureFiltering() const;
 
    /// @brief Reloads persisted settings and emits `settingsUpdated()` if any value changes.
    void loadSettings();
@@ -137,6 +147,9 @@ public slots:
    /// @brief Sets whether receiver node names are shown at source edges.
    void setDisplayReceiverNames(bool enabled);
 
+   /// @brief Sets the filtering used for scaled texture previews.
+   void setTextureFiltering(TextureFiltering filtering);
+
 private:
    /// @brief Reads and applies values from `QSettings`.
    /// @return @c true if at least one value changes.
@@ -170,6 +183,8 @@ private:
    bool displaySourceNames;
    /// @brief Whether source-edge labels include receiver node names.
    bool displayReceiverNames;
+   /// @brief Filtering used by node, 2D, and 3D texture previews.
+   TextureFiltering textureFiltering;
 };
 
 #endif  // SETTINGSMANAGER_H

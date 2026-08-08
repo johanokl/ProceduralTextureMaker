@@ -44,6 +44,7 @@ void SettingsManagerTest::defaultsChangesAndPersistence() {
    QCOMPARE(settings.getConnectionLabelSize(), 12);
    QVERIFY(settings.getDisplaySourceNames());
    QVERIFY(!settings.getDisplayReceiverNames());
+   QCOMPARE(settings.getTextureFiltering(), SettingsManager::TextureFiltering::Smooth);
 
    QSignalSpy updates(&settings, &SettingsManager::settingsUpdated);
    settings.setPreviewSize(settings.getPreviewSize());
@@ -59,7 +60,8 @@ void SettingsManagerTest::defaultsChangesAndPersistence() {
    settings.setNodeBackgroundColor(QColor(QStringLiteral("#fedcba")));
    settings.setNodeBackgroundBrushColor(QColor(QStringLiteral("#654321")));
    settings.setNodeBackgroundBrush(static_cast<int>(Qt::DiagCrossPattern));
-   QCOMPARE(updates.count(), 12);
+   settings.setTextureFiltering(SettingsManager::TextureFiltering::Nearest);
+   QCOMPARE(updates.count(), 13);
    settings.setPreviewSize(QSize());
    settings.setBackgroundColor(QColor());
    settings.setConnectionLabelSize(40);
@@ -69,7 +71,7 @@ void SettingsManagerTest::defaultsChangesAndPersistence() {
    settings.setNodeBackgroundBrush(100);
    settings.setBackgroundBrush(static_cast<int>(Qt::LinearGradientPattern));
    settings.setNodeBackgroundBrush(static_cast<int>(Qt::TexturePattern));
-   QCOMPARE(updates.count(), 12);
+   QCOMPARE(updates.count(), 13);
    QVERIFY(settings.saveSettings());
 
    SettingsManager loaded;
@@ -85,6 +87,7 @@ void SettingsManagerTest::defaultsChangesAndPersistence() {
    QCOMPARE(loaded.getNodeBackgroundColor(), QColor(QStringLiteral("#fedcba")));
    QCOMPARE(loaded.getNodeBackgroundBrushColor(), QColor(QStringLiteral("#654321")));
    QCOMPARE(loaded.getNodeBackgroundBrush(), static_cast<int>(Qt::DiagCrossPattern));
+   QCOMPARE(loaded.getTextureFiltering(), SettingsManager::TextureFiltering::Nearest);
 
    QSettings persisted;
    persisted.setValue(QStringLiteral("previewsize"), QSize(-1, 0));
@@ -96,6 +99,7 @@ void SettingsManagerTest::defaultsChangesAndPersistence() {
    persisted.setValue(QStringLiteral("nodebackgroundbrushcolor"), QStringLiteral("invalid"));
    persisted.setValue(QStringLiteral("nodebackgroundbrush"), static_cast<int>(Qt::TexturePattern));
    persisted.setValue(QStringLiteral("connectionlabelsize"), 40);
+   persisted.setValue(QStringLiteral("texturefiltering"), 100);
    persisted.sync();
    SettingsManager recovered;
    QCOMPARE(recovered.getPreviewSize(), QSize(800, 800));
@@ -106,6 +110,7 @@ void SettingsManagerTest::defaultsChangesAndPersistence() {
    QCOMPARE(recovered.getNodeBackgroundBrushColor(), QColor(QStringLiteral("#dedede")));
    QCOMPARE(recovered.getNodeBackgroundBrush(), static_cast<int>(Qt::CrossPattern));
    QCOMPARE(recovered.getConnectionLabelSize(), 12);
+   QCOMPARE(recovered.getTextureFiltering(), SettingsManager::TextureFiltering::Smooth);
 }
 
 QTEST_APPLESS_MAIN(SettingsManagerTest)

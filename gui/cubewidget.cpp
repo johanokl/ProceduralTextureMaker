@@ -137,6 +137,20 @@ void CubeWidget::setTexture(const QPixmap& pixmap) {
    update();
 }
 
+void CubeWidget::setSmoothFiltering(const bool enabled) {
+   if (smoothFiltering == enabled) {
+      return;
+   }
+   smoothFiltering = enabled;
+   if (initialized && texture != nullptr) {
+      makeCurrent();
+      texture->setMagnificationFilter(smoothFiltering ? QOpenGLTexture::Linear
+                                                      : QOpenGLTexture::Nearest);
+      doneCurrent();
+   }
+   update();
+}
+
 void CubeWidget::uploadTexture() {
    if (texture) {
       texture->release();
@@ -151,7 +165,8 @@ void CubeWidget::uploadTexture() {
 #endif
       texture = std::make_unique<QOpenGLTexture>(image);
       texture->setMinificationFilter(QOpenGLTexture::Nearest);
-      texture->setMagnificationFilter(QOpenGLTexture::Linear);
+      texture->setMagnificationFilter(smoothFiltering ? QOpenGLTexture::Linear
+                                                      : QOpenGLTexture::Nearest);
    }
 }
 

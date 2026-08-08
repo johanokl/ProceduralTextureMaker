@@ -39,8 +39,10 @@ std::size_t checkedPixelCount(const QSize size) {
 /// @throws std::length_error if the stride cannot be represented.
 qsizetype checkedBytesPerLine(const QSize size) {
    constexpr qsizetype bytesPerPixel = sizeof(TexturePixel);
-   if (size.width() > std::numeric_limits<qsizetype>::max() / bytesPerPixel) {
-      throw std::length_error("Texture image row stride exceeds Qt image capacity");
+   if constexpr (sizeof(qsizetype) <= sizeof(int)) {
+      if (size.width() > std::numeric_limits<qsizetype>::max() / bytesPerPixel) {
+         throw std::length_error("Texture image row stride exceeds Qt image capacity");
+      }
    }
    return static_cast<qsizetype>(size.width()) * bytesPerPixel;
 }

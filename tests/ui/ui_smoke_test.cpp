@@ -546,6 +546,15 @@ void UiSmokeTest::arrangesPreviewPanelViews() {
    QVERIFY(cube != nullptr);
    QVERIFY(selectedRenderingOverlay != nullptr);
    QVERIFY(lockedRenderingOverlay != nullptr);
+   QVERIFY(selectedImage->hasSmoothFiltering());
+   QVERIFY(lockedImage->hasSmoothFiltering());
+   QVERIFY(cube->hasSmoothFiltering());
+
+   settingsManager.setTextureFiltering(SettingsManager::TextureFiltering::Nearest);
+   QVERIFY(!selectedImage->hasSmoothFiltering());
+   QVERIFY(!lockedImage->hasSmoothFiltering());
+   QVERIFY(!cube->hasSmoothFiltering());
+   settingsManager.setTextureFiltering(SettingsManager::TextureFiltering::Smooth);
 
    auto* layout = qobject_cast<QVBoxLayout*>(panel.layout());
    QVERIFY(layout != nullptr);

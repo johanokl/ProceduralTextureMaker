@@ -7,6 +7,7 @@
 #ifndef PREVIEWIMAGEPANEL_H
 #define PREVIEWIMAGEPANEL_H
 
+#include <QPixmap>
 #include <QWidget>
 class TextureProject;
 class QPushButton;
@@ -137,6 +138,9 @@ public slots:
    /// @param pixmap Image to display.
    void setPixmap(const QPixmap& pixmap);
 
+   /// @brief Enables smooth linear scaling or crisp nearest-neighbor scaling.
+   void setSmoothFiltering(bool enabled);
+
    /// @brief Shows or hides the stale-image grid over the current pixmap.
    /// @param rendering Whether a replacement image is being rendered.
    void setRendering(bool rendering);
@@ -154,6 +158,9 @@ public:
    /// @return Grid-marked pixmap, or a null pixmap when no image is displayed.
    QPixmap pixmapWithRenderingOverlay() const;
 
+   /// @brief Checks whether smooth linear scaling is enabled.
+   bool hasSmoothFiltering() const { return smoothFiltering; }
+
 protected:
    /// @brief Rescales the image after the widget size changes.
    /// @param event Resize event.
@@ -166,8 +173,12 @@ private slots:
 private:
    /// @brief Label that renders the current pixmap.
    QLabel* label{nullptr};
+   /// @brief Unscaled source pixmap retained across widget resizes.
+   QPixmap sourcePixmap;
    /// @brief Transparent grid displayed over a stale pixmap during rendering.
    QWidget* renderingOverlay{nullptr};
+   /// @brief Whether scaled images use linear rather than nearest-neighbor filtering.
+   bool smoothFiltering{true};
 };
 
 #endif  // PREVIEWIMAGEPANEL_H

@@ -296,8 +296,12 @@ void ViewNodeItem::paint(QPainter* painter, const QStyleOptionGraphicsItem*, QWi
    const QRectF imageRect(cardRect.left(), imageTop, cardRect.width(),
                           cardRect.bottom() - imageTop);
 
-   painter->setRenderHints(
-       QPainter::Antialiasing | QPainter::SmoothPixmapTransform | QPainter::TextAntialiasing, true);
+   painter->setRenderHints(QPainter::Antialiasing | QPainter::TextAntialiasing, true);
+   const SettingsManager* settingsManager = scene.getTextureProject().getSettingsManager();
+   const bool smoothFiltering =
+       settingsManager == nullptr ||
+       settingsManager->getTextureFiltering() == SettingsManager::TextureFiltering::Smooth;
+   painter->setRenderHint(QPainter::SmoothPixmapTransform, smoothFiltering);
 
    painter->setPen(Qt::NoPen);
    painter->setBrush(QColor(0, 0, 0, 32));

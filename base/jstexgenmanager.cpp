@@ -333,7 +333,7 @@ void JsTexGenManager::commitScan(const QSet<QString>& encounteredPaths) {
 
    for (auto iterator = pendingGenerators.cbegin(); iterator != pendingGenerators.cend();
         ++iterator) {
-      const TextureGeneratorPtr generator = iterator.value();
+      const TextureGeneratorPtr& generator = iterator.value();
       const TextureGeneratorPtr collision = project->getGenerators().value(generator->getName());
       if (!collision.isNull()) {
          pendingDiagnostics.append(collisionDiagnostic(collision, generator));

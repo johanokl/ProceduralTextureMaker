@@ -112,37 +112,47 @@ SettingsPanel::SettingsPanel(MainWindow* parent, SettingsManager* settingsmanage
    nodeLayout->addWidget(thumbnailHeightLabel, 1, 0);
    nodeLayout->addWidget(thumbnailHeightSpinbox, 1, 1);
 
+   QLabel* textureFilteringLabel = new QLabel("Texture filtering:");
+   textureFilteringCombobox = new QComboBox;
+   textureFilteringCombobox->setObjectName(QStringLiteral("textureFilteringCombobox"));
+   textureFilteringCombobox->addItem(QStringLiteral("Smooth (linear)"),
+                                     static_cast<int>(SettingsManager::TextureFiltering::Smooth));
+   textureFilteringCombobox->addItem(QStringLiteral("Pixelated (nearest)"),
+                                     static_cast<int>(SettingsManager::TextureFiltering::Nearest));
+   nodeLayout->addWidget(textureFilteringLabel, 2, 0);
+   nodeLayout->addWidget(textureFilteringCombobox, 2, 1);
+
    QLabel* headerSizeLabel = new QLabel("Header size:");
    headerSizeSlider = new QSlider(Qt::Horizontal, this);
    headerSizeSlider->setMinimum(0);
    headerSizeSlider->setMaximum(6);
    headerSizeSlider->setSingleStep(1);
    headerSizeValueLabel = new QLabel(this);
-   nodeLayout->addWidget(headerSizeLabel, 2, 0);
-   nodeLayout->addWidget(headerSizeSlider, 2, 1);
-   nodeLayout->addWidget(headerSizeValueLabel, 2, 2);
+   nodeLayout->addWidget(headerSizeLabel, 3, 0);
+   nodeLayout->addWidget(headerSizeSlider, 3, 1);
+   nodeLayout->addWidget(headerSizeValueLabel, 3, 2);
 
    QLabel* nodeBackgroundColorLabel = new QLabel("Background color:");
    nodeBackgroundColorButton = new QPushButton("");
    QObject::connect(nodeBackgroundColorButton,
                     static_cast<void (QPushButton::*)(bool)>(&QPushButton::clicked),
                     [=](bool) { this->colorDialog(nodeBackgroundColorButton); });
-   nodeLayout->addWidget(nodeBackgroundColorLabel, 3, 0);
-   nodeLayout->addWidget(nodeBackgroundColorButton, 3, 1);
+   nodeLayout->addWidget(nodeBackgroundColorLabel, 4, 0);
+   nodeLayout->addWidget(nodeBackgroundColorButton, 4, 1);
 
    QLabel* nodeBackgroundBrushColorLabel = new QLabel("Background overlay color:");
    nodeBackgroundBrushColorButton = new QPushButton("");
    QObject::connect(nodeBackgroundBrushColorButton,
                     static_cast<void (QPushButton::*)(bool)>(&QPushButton::clicked),
                     [=](bool) { this->colorDialog(nodeBackgroundBrushColorButton); });
-   nodeLayout->addWidget(nodeBackgroundBrushColorLabel, 4, 0);
-   nodeLayout->addWidget(nodeBackgroundBrushColorButton, 4, 1);
+   nodeLayout->addWidget(nodeBackgroundBrushColorLabel, 5, 0);
+   nodeLayout->addWidget(nodeBackgroundBrushColorButton, 5, 1);
 
    QLabel* nodeBackgroundBrushLabel = new QLabel("Background overlay style:");
    nodeBackgroundBrushCombobox = new QComboBox;
    populateBackgroundBrushStyles(nodeBackgroundBrushCombobox);
-   nodeLayout->addWidget(nodeBackgroundBrushLabel, 5, 0);
-   nodeLayout->addWidget(nodeBackgroundBrushCombobox, 5, 1);
+   nodeLayout->addWidget(nodeBackgroundBrushLabel, 6, 0);
+   nodeLayout->addWidget(nodeBackgroundBrushCombobox, 6, 1);
 
    QGroupBox* connectionsWidget = new QGroupBox("Connections");
    auto* connectionsLayout = new QGridLayout;
@@ -191,14 +201,14 @@ SettingsPanel::SettingsPanel(MainWindow* parent, SettingsManager* settingsmanage
    exportWidget->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Preferred);
    contentsLayout->addWidget(exportWidget);
 
-   QLabel* exportImageWidthLabel = new QLabel("Image width:");
+   QLabel* exportImageWidthLabel = new QLabel("Image width (px):");
    exportImageWidthSpinbox = new QSpinBox(this);
    exportImageWidthSpinbox->setMinimum(50);
    exportImageWidthSpinbox->setMaximum(2000);
    exportLayout->addWidget(exportImageWidthLabel, 0, 0);
    exportLayout->addWidget(exportImageWidthSpinbox, 0, 1);
 
-   QLabel* exportImageHeightLabel = new QLabel("Image height:");
+   QLabel* exportImageHeightLabel = new QLabel("Image height (px):");
    exportImageHeightSpinbox = new QSpinBox(this);
    exportImageHeightSpinbox->setMinimum(50);
    exportImageHeightSpinbox->setMaximum(2000);
@@ -269,6 +279,7 @@ SettingsPanel::SettingsPanel(MainWindow* parent, SettingsManager* settingsmanage
    QObject::connect(backgroundBrushCombobox, comboboxChanged, this, &SettingsPanel::applySettings);
    QObject::connect(nodeBackgroundBrushCombobox, comboboxChanged, this,
                     &SettingsPanel::applySettings);
+   QObject::connect(textureFilteringCombobox, comboboxChanged, this, &SettingsPanel::applySettings);
    QObject::connect(jsGeneratorEnabledCheckbox, &QCheckBox::toggled, this,
                     &SettingsPanel::applySettings);
    QObject::connect(displaySourceNamesCheckbox, &QCheckBox::toggled, this,
@@ -351,6 +362,8 @@ void SettingsPanel::applySettings() {
    settingsmanager->setNodeBackgroundColor(QColor(nodeBackgroundColorButton->text()));
    settingsmanager->setNodeBackgroundBrushColor(QColor(nodeBackgroundBrushColorButton->text()));
    settingsmanager->setNodeBackgroundBrush(nodeBackgroundBrushCombobox->currentData().toInt());
+   settingsmanager->setTextureFiltering(static_cast<SettingsManager::TextureFiltering>(
+       textureFilteringCombobox->currentData().toInt()));
    settingsmanager->setJSTextureGeneratorsPath(jsGeneratorPathEdit->text());
    settingsmanager->setJSTextureGeneratorsEnabled(jsGeneratorEnabledCheckbox->isChecked());
    settingsmanager->setConnectionLabelSize(connectionLabelSizeSlider->value());
@@ -497,6 +510,11 @@ void SettingsPanel::settingsUpdated() {
    if (index != -1) {
       nodeBackgroundBrushCombobox->setCurrentIndex(index);
    }
+   index =
+       textureFilteringCombobox->findData(static_cast<int>(settingsmanager->getTextureFiltering()));
+   if (index != -1) {
+      textureFilteringCombobox->setCurrentIndex(index);
+   }
    blockSlot = false;
    applySettings();
 }
@@ -528,6 +546,11 @@ void SettingsPanel::resetSettings() {
    index = nodeBackgroundBrushCombobox->findData(static_cast<int>(Qt::CrossPattern));
    if (index != -1) {
       nodeBackgroundBrushCombobox->setCurrentIndex(index);
+   }
+   index = textureFilteringCombobox->findData(
+       static_cast<int>(SettingsManager::TextureFiltering::Smooth));
+   if (index != -1) {
+      textureFilteringCombobox->setCurrentIndex(index);
    }
    blockSlot = false;
    applySettings();
@@ -567,6 +590,8 @@ void SettingsPanel::saveSettings() {
    settingsmanager->setNodeBackgroundColor(QColor(nodeBackgroundColorButton->text()));
    settingsmanager->setNodeBackgroundBrushColor(QColor(nodeBackgroundBrushColorButton->text()));
    settingsmanager->setNodeBackgroundBrush(nodeBackgroundBrushCombobox->currentData().toInt());
+   settingsmanager->setTextureFiltering(static_cast<SettingsManager::TextureFiltering>(
+       textureFilteringCombobox->currentData().toInt()));
    if (!settingsmanager->saveSettings()) {
       QMessageBox::warning(this, QStringLiteral("Settings error"),
                            QStringLiteral("Could not save the application settings."));

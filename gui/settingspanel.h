@@ -139,6 +139,8 @@ private:
    QPushButton* nodeBackgroundBrushColorButton{nullptr};
    /// @brief Selector for the overlay style behind transparent node textures.
    QComboBox* nodeBackgroundBrushCombobox{nullptr};
+   /// @brief Selector for filtering scaled texture previews.
+   QComboBox* textureFilteringCombobox{nullptr};
    /// @brief Button representing the 3D-view background color.
    QPushButton* previewBackgroundColorButton{nullptr};
    /// @brief Selector for the graph background brush style.
