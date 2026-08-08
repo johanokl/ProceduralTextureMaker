@@ -23,7 +23,8 @@
       "displayName": "Release",
       "inherits": "base",
       "cacheVariables": {
-        "CMAKE_BUILD_TYPE": "Release"
+        "CMAKE_BUILD_TYPE": "Release",
+        "BUILD_TESTING": "OFF"
       }
     },
     {
@@ -32,6 +33,7 @@
       "inherits": "base",
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Release",
+        "BUILD_TESTING": "OFF",
         "PROCEDURAL_TEXTURE_MAKER_STATIC_BUILD": "ON"
       }
     }
@@ -91,14 +93,6 @@
       "name": "debug",
       "displayName": "Test Debug",
       "configurePreset": "debug",
-      "output": {
-        "outputOnFailure": true
-      }
-    },
-    {
-      "name": "release",
-      "displayName": "Test Release",
-      "configurePreset": "release",
       "output": {
         "outputOnFailure": true
       }
