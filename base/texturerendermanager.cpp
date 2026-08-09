@@ -215,7 +215,8 @@ void TextureRenderManager::renderNode(const TextureNodeRenderTask& task) {
    }
 
    TextureImagePtr image = TextureImage::create(task.renderState->size);
-   snapshot.generator->generate(task.renderState->size, image->data(), sourceImages, settings);
+   snapshot.generator->generateWithTiming(task.renderState->size, image->data(), sourceImages,
+                                          settings);
    completeNode(task, image, true);
 }
 

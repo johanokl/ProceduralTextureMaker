@@ -8,13 +8,23 @@
 
 #include "base/textureimage.h"
 #include "global.h"
+#include <QList>
 #include <QMap>
+#include <QMutex>
 #include <QSharedPointer>
 #include <QStringList>
 
 /// @brief Language-independent texture-generator contract used by the graph and renderer.
 class TextureGenerator {
 public:
+   /// @brief Snapshot of recently completed generation calls.
+   struct GenerationTiming {
+      /// @brief Average duration of the retained calls in milliseconds.
+      double averageMilliseconds{0.0};
+      /// @brief Number of calls represented by the average.
+      int runCount{0};
+   };
+
    /// @brief Identifies how a generator uses input images.
    enum class Type {
       /// @brief Transforms one input image.
@@ -45,6 +55,19 @@ public:
    virtual void generate(QSize size, TexturePixel* destimage,
                          const QMap<QString, TextureImagePtr>& sourceimages,
                          const TextureNodeSettings& settings) const = 0;
+
+   /// @brief Calls generate() and records its duration in the rolling timing window.
+   /// @param size Width and height of the destination and source images.
+   /// @param destimage Writable destination pixel buffer.
+   /// @param sourceimages Source images keyed by input-slot name.
+   /// @param settings Current generator settings.
+   void generateWithTiming(QSize size, TexturePixel* destimage,
+                           const QMap<QString, TextureImagePtr>& sourceimages,
+                           const TextureNodeSettings& settings) const;
+
+   /// @brief Returns timing data for up to the last ten completed generation calls.
+   /// @return A thread-safe snapshot; runCount is zero before the first completed call.
+   GenerationTiming getGenerationTiming() const;
 
    /// @brief Gets the configurable settings exposed by the generator.
    /// @return Setting definitions in presentation order, each with a stable unique ID.
@@ -78,6 +101,16 @@ public:
    /// @param serializedSlot A current slot name, zero-based numeric index, or legacy `Slot N` name.
    /// @return The canonical slot name, or an empty string if the identifier cannot be resolved.
    QString resolveSourceSlot(const QString& serializedSlot) const;
+
+private:
+   /// @brief Adds a completed call duration to the rolling timing window.
+   /// @param elapsedNanoseconds Duration reported by the monotonic timer.
+   void recordGenerationTime(qint64 elapsedNanoseconds) const;
+
+   /// @brief Protects generationTimesNanoseconds across render and UI threads.
+   mutable QMutex generationTimesMutex;
+   /// @brief Durations of the last ten completed generate() calls.
+   mutable QList<qint64> generationTimesNanoseconds;
 };
 
 /// @brief Finds a generator setting definition by its stable ID.

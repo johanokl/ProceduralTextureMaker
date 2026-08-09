@@ -90,6 +90,8 @@ private slots:
    void projectPublishesLatestThumbnailOnOwnerThread();
    /// @brief Verifies background rendering routes inputs by names rather than map order.
    void routesNamedInputs();
+   /// @brief Verifies timing samples are thread-safe and capped at ten recent calls.
+   void recordsRollingTimingAcrossThreads();
 };
 
 void TextureRenderManagerTest::rendersIndependentBranchesConcurrently() {
@@ -216,6 +218,22 @@ void TextureRenderManagerTest::routesNamedInputs() {
                     [](const TextureRenderResult& candidate) { return candidate.nodeId == 3; });
    QVERIFY(result != state.results.cend());
    QCOMPARE(result->image->data()[0].r, static_cast<unsigned char>(17));
+}
+
+void TextureRenderManagerTest::recordsRollingTimingAcrossThreads() {
+   CallbackState state;
+   TextureGeneratorPtr generator(new RecordingGenerator(QStringLiteral("Timed"), 0, 17));
+   const auto manager = makeManager(state, 4);
+   std::vector<TextureNodeSnapshot> nodes;
+   for (int id = 1; id <= 12; ++id) {
+      nodes.push_back(snapshot(id, generator, 17));
+   }
+
+   manager->render(TextureGraphSnapshot{QSize(2, 2), nodes});
+   QVERIFY(state.waitFor(12));
+   const TextureGenerator::GenerationTiming timing = generator->getGenerationTiming();
+   QCOMPARE(timing.runCount, 10);
+   QVERIFY(timing.averageMilliseconds >= 0.0);
 }
 
 QTEST_GUILESS_MAIN(TextureRenderManagerTest)

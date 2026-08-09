@@ -447,6 +447,19 @@ void UiSmokeTest::selectsGeneratorFromAddNodePanel() {
             QStringLiteral("Filter"));
    QCOMPARE(infoPanel.findChild<QLabel*>(QStringLiteral("generatorInfoOrigin"))->text(),
             QStringLiteral("Custom"));
+   auto* timingLabel = infoPanel.findChild<QLabel*>(QStringLiteral("generatorInfoTiming"));
+   QCOMPARE(infoPanel.findChild<QLabel*>(QStringLiteral("generatorInfoTimingKey"))->text(),
+            QStringLiteral("Generation time:"));
+   QCOMPARE(timingLabel->text(), QStringLiteral("N/A"));
+   TexturePixel timedPixel;
+   generator->generateWithTiming(QSize(1, 1), &timedPixel, {}, TextureNodeSettings());
+   QTRY_VERIFY(timingLabel->text().endsWith(QStringLiteral("(avg. 1 run)")));
+   generator->generateWithTiming(QSize(1, 1), &timedPixel, {}, TextureNodeSettings());
+   QTRY_VERIFY(timingLabel->text().endsWith(QStringLiteral("(avg. 2 runs)")));
+   for (int run = 0; run < 9; ++run) {
+      generator->generateWithTiming(QSize(1, 1), &timedPixel, {}, TextureNodeSettings());
+   }
+   QTRY_VERIFY(timingLabel->text().endsWith(QStringLiteral("(avg. 10 runs)")));
    auto* descriptionLabel =
        infoPanel.findChild<QLabel*>(QStringLiteral("generatorInfoDescription"));
    QCOMPARE(descriptionLabel->text(), description);

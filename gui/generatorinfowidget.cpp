@@ -137,6 +137,8 @@ GeneratorInfoWidget::GeneratorInfoWidget(QWidget* parent) : QWidget(parent) {
    sourceLabel->setMinimumWidth(0);
    sourceLabel->setTextFormat(Qt::PlainText);
    sourceLabel->setTextInteractionFlags(Qt::TextSelectableByMouse);
+   timingLabel = new QLabel(QStringLiteral("N/A"));
+   timingLabel->setObjectName(QStringLiteral("generatorInfoTiming"));
 
    auto* typeKeyLabel = new QLabel(QStringLiteral("Type:"));
    typeKeyLabel->setObjectName(QStringLiteral("generatorInfoTypeKey"));
@@ -145,10 +147,18 @@ GeneratorInfoWidget::GeneratorInfoWidget(QWidget* parent) : QWidget(parent) {
    auto* sourceKeyLabel = new QLabel(QStringLiteral("Source:"));
    sourceKeyLabel->setObjectName(QStringLiteral("generatorInfoSourceKey"));
    sourceKeyLabel->setAlignment(Qt::AlignLeft | Qt::AlignTop);
+   auto* timingKeyLabel = new QLabel(QStringLiteral("Generation time:"));
+   timingKeyLabel->setObjectName(QStringLiteral("generatorInfoTimingKey"));
    detailsLayout->addRow(typeKeyLabel, typeLabel);
    detailsLayout->addRow(originKeyLabel, originLabel);
    detailsLayout->addRow(sourceKeyLabel, sourceLabel);
+   detailsLayout->addRow(timingKeyLabel, timingLabel);
    contentsLayout->addWidget(details);
+
+   auto* timingRefreshTimer = new QTimer(this);
+   timingRefreshTimer->setInterval(250);
+   connect(timingRefreshTimer, &QTimer::timeout, this, &GeneratorInfoWidget::updateTiming);
+   timingRefreshTimer->start();
 
    auto* description = new QGroupBox(QStringLiteral("Description"));
    description->setProperty("inspectorSection", true);
@@ -191,6 +201,7 @@ void GeneratorInfoWidget::setGenerator(const TextureGeneratorPtr& newGenerator) 
    generator = newGenerator;
    clearLayout(inputsLayout);
    clearLayout(settingsLayout);
+   updateTiming();
    if (generator.isNull()) {
       return;
    }
@@ -236,4 +247,22 @@ void GeneratorInfoWidget::setGenerator(const TextureGeneratorPtr& newGenerator) 
       label->setText(details);
       settingsLayout->addWidget(label);
    }
+}
+
+void GeneratorInfoWidget::updateTiming() {
+   if (generator.isNull()) {
+      timingLabel->setText(QStringLiteral("N/A"));
+      return;
+   }
+
+   const TextureGenerator::GenerationTiming timing = generator->getGenerationTiming();
+   if (timing.runCount == 0) {
+      timingLabel->setText(QStringLiteral("N/A"));
+      return;
+   }
+
+   timingLabel->setText(QStringLiteral("%1 ms (avg. %2 run%3)")
+                            .arg(timing.averageMilliseconds, 0, 'f', 1)
+                            .arg(timing.runCount)
+                            .arg(timing.runCount == 1 ? QString() : QStringLiteral("s")));
 }

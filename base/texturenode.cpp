@@ -430,7 +430,7 @@ TextureImagePtr TextureNode::renderImage(QSize size) {
       }
 
       TextureImagePtr renderedImage = TextureImage::create(size);
-      generator->generate(size, renderedImage->data(), sourceImages, settingsCopy);
+      generator->generateWithTiming(size, renderedImage->data(), sourceImages, settingsCopy);
 
       bool imagePublished = false;
       {

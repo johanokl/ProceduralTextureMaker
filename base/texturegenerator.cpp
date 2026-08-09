@@ -4,6 +4,8 @@
 // Johan Lindqvist (johan.lindqvist@gmail.com)
 
 #include "base/texturegenerator.h"
+#include <QElapsedTimer>
+#include <QMutexLocker>
 #include <QRegularExpression>
 #include <QSet>
 
@@ -29,6 +31,45 @@ QString validateTextureGeneratorSettings(const TextureGeneratorSettings& setting
       ids.insert(setting.id);
    }
    return QString();
+}
+
+void TextureGenerator::generateWithTiming(const QSize size, TexturePixel* destimage,
+                                          const QMap<QString, TextureImagePtr>& sourceimages,
+                                          const TextureNodeSettings& settings) const {
+   QElapsedTimer timer;
+   timer.start();
+   try {
+      generate(size, destimage, sourceimages, settings);
+   } catch (...) {
+      recordGenerationTime(timer.nsecsElapsed());
+      throw;
+   }
+   recordGenerationTime(timer.nsecsElapsed());
+}
+
+TextureGenerator::GenerationTiming TextureGenerator::getGenerationTiming() const {
+   QMutexLocker lock(&generationTimesMutex);
+   GenerationTiming timing;
+   timing.runCount = generationTimesNanoseconds.size();
+   if (timing.runCount == 0) {
+      return timing;
+   }
+
+   qint64 totalNanoseconds = 0;
+   for (const qint64 elapsedNanoseconds : generationTimesNanoseconds) {
+      totalNanoseconds += elapsedNanoseconds;
+   }
+   timing.averageMilliseconds = static_cast<double>(totalNanoseconds) / timing.runCount / 1000000.0;
+   return timing;
+}
+
+void TextureGenerator::recordGenerationTime(const qint64 elapsedNanoseconds) const {
+   constexpr int maximumTimingSamples = 10;
+   QMutexLocker lock(&generationTimesMutex);
+   generationTimesNanoseconds.append(elapsedNanoseconds);
+   if (generationTimesNanoseconds.size() > maximumTimingSamples) {
+      generationTimesNanoseconds.removeFirst();
+   }
 }
 
 QString TextureGenerator::resolveSourceSlot(const QString& serializedSlot) const {

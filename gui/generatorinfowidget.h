@@ -35,6 +35,9 @@ private:
    /// @param layout Layout whose child items are removed.
    void clearLayout(QLayout* layout);
 
+   /// @brief Refreshes the non-blocking snapshot of recent generator timings.
+   void updateTiming();
+
    /// @brief Generator definition currently displayed by the inspector.
    TextureGeneratorPtr generator;
    /// @brief Header displaying the generator's public name.
@@ -47,6 +50,8 @@ private:
    QLabel* descriptionLabel{nullptr};
    /// @brief Auto-sizing label displaying the generator's source identity.
    QLabel* sourceLabel{nullptr};
+   /// @brief Label displaying the recent average generation time.
+   QLabel* timingLabel{nullptr};
    /// @brief Layout containing one label for each generator input slot.
    QVBoxLayout* inputsLayout{nullptr};
    /// @brief Layout containing the generator's configurable property descriptions.
