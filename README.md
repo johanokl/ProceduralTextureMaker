@@ -212,8 +212,13 @@ result can still depend on libraries provided by the operating system.
 
 ## Code analysis and formatting
 
-The repository includes clang-tidy and clang-format configuration. Install clang-tidy and
-clang-format, then configure the debug preset once:
+The repository uses clang-tidy and clang-format for C++, and ESLint with additional SonarJS and
+Unicorn analysis for JavaScript. Install clang-tidy, clang-format, and Node.js 22 or later. Install
+the JavaScript development dependencies and configure the debug preset once:
+
+```sh
+npm install
+```
 
 ```sh
 cmake --preset debug
@@ -225,7 +230,14 @@ Run clang-tidy with:
 cmake --build --preset clang-tidy
 ```
 
-To review all code with clang-tidy and clang-format:
+Run JavaScript analysis directly or through CMake with:
+
+```sh
+npm run lint:js
+cmake --build --preset eslint
+```
+
+To review all code with clang-tidy, ESLint, and clang-format:
 
 ```sh
 cmake --build --preset review-all-code
@@ -243,8 +255,8 @@ To format all C++ source and header files in place:
 cmake --build --preset clang-format
 ```
 
-Reconfigure after changing CMake files or installing a tool that was unavailable during the previous
-configuration.
+Run `npm install` again after the JavaScript dependencies change. Reconfigure after changing CMake
+files or installing a tool that was unavailable during the previous configuration.
 
 ## License
 

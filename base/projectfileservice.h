@@ -66,16 +66,20 @@ private:
    /// @brief Constructs a project from a parsed and validated XML document.
    /// @param document Parsed project document.
    /// @param project Project that receives the loaded graph.
+   /// @param path Path used to identify the project in validation errors.
    /// @return The operation result, including construction failures.
    [[nodiscard]] static ProjectFileResult loadDocument(const QDomDocument& document,
-                                                       TextureProject& project);
+                                                       TextureProject& project,
+                                                       const QString& path);
 
    /// @brief Validates project structure, generators, sources, and graph acyclicity.
    /// @param document Parsed project document to validate.
    /// @param project Project providing the available generator registry.
+   /// @param path Path used to identify the project in validation errors.
    /// @return Success when the document is valid, otherwise a validation failure.
    [[nodiscard]] static ProjectFileResult validate(const QDomDocument& document,
-                                                   const TextureProject& project);
+                                                   const TextureProject& project,
+                                                   const QString& path);
 };
 
 #endif  // PROJECTFILESERVICE_H

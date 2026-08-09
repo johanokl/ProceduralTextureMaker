@@ -84,11 +84,11 @@ ProjectFileResult ProjectFileService::load(const QString& path, TextureProject& 
                                                      .arg(errorMessage));
    }
 #endif
-   return loadDocument(document, project);
+   return loadDocument(document, project, path);
 }
 
 ProjectFileResult ProjectFileService::validate(const QDomDocument& document,
-                                               const TextureProject& project) {
+                                               const TextureProject& project, const QString& path) {
    const QDomElement root = document.documentElement();
    if (root.isNull() || root.tagName() != QStringLiteral("TextureSet")) {
       return failure(ProjectFileError::Validation,
@@ -98,6 +98,37 @@ ProjectFileResult ProjectFileService::validate(const QDomDocument& document,
    if (nodesElement.isNull()) {
       return failure(ProjectFileError::Validation,
                      QStringLiteral("The document does not contain a Nodes element"));
+   }
+
+   const QMap<QString, TextureGeneratorPtr> registeredGenerators = project.getGenerators();
+   QSet<QString> unavailableGenerators;
+   for (QDomElement node = nodesElement.firstChildElement(QStringLiteral("Node")); !node.isNull();
+        node = node.nextSiblingElement(QStringLiteral("Node"))) {
+      const QDomElement generatorElement = node.firstChildElement(QStringLiteral("generator"));
+      const QString generatorName = generatorElement.attribute(QStringLiteral("name"));
+      if (!generatorElement.isNull() && !generatorName.isEmpty() &&
+          !registeredGenerators.contains(generatorName)) {
+         unavailableGenerators.insert(generatorName);
+      }
+   }
+   if (!unavailableGenerators.isEmpty()) {
+      QStringList names = unavailableGenerators.values();
+      names.sort(Qt::CaseInsensitive);
+      for (QString& name : names) {
+         name = QStringLiteral("'%1'").arg(name);
+      }
+      if (names.size() == 1) {
+         return failure(
+             ProjectFileError::Validation,
+             QStringLiteral("The project file '%1' could not be loaded because it references a "
+                            "texture generator that is not available: %2.")
+                 .arg(path, names.constFirst()));
+      }
+      return failure(
+          ProjectFileError::Validation,
+          QStringLiteral("The project file '%1' could not be loaded because it references texture "
+                         "generators that are not available: %2.")
+              .arg(path, names.join(QStringLiteral(", "))));
    }
 
    QMap<int, QMap<QString, int>> sourcesByNode;
@@ -118,12 +149,11 @@ ProjectFileResult ProjectFileService::validate(const QDomDocument& document,
       }
       const QDomElement generatorElement = node.firstChildElement(QStringLiteral("generator"));
       const QString generatorName = generatorElement.attribute(QStringLiteral("name"));
-      const TextureGeneratorPtr generator = project.getGenerator(generatorName);
-      if (generatorElement.isNull() || generatorName.isEmpty() || generator.isNull()) {
-         return failure(
-             ProjectFileError::Validation,
-             QStringLiteral("Node %1 uses unknown generator '%2'").arg(nodeId).arg(generatorName));
+      if (generatorElement.isNull() || generatorName.isEmpty()) {
+         return failure(ProjectFileError::Validation,
+                        QStringLiteral("Node %1 does not specify a texture generator").arg(nodeId));
       }
+      const TextureGeneratorPtr generator = registeredGenerators.value(generatorName);
 
       QMap<QString, int> sources;
       const QDomElement sourcesElement = node.firstChildElement(QStringLiteral("Sources"));
@@ -194,8 +224,8 @@ ProjectFileResult ProjectFileService::validate(const QDomDocument& document,
 }
 
 ProjectFileResult ProjectFileService::loadDocument(const QDomDocument& document,
-                                                   TextureProject& project) {
-   ProjectFileResult validation = validate(document, project);
+                                                   TextureProject& project, const QString& path) {
+   ProjectFileResult validation = validate(document, project, path);
    if (!validation) {
       return validation;
    }

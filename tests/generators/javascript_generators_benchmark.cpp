@@ -1,6 +1,7 @@
 #include "base/jstexgen.h"
 #include <QCoreApplication>
 #include <QElapsedTimer>
+#include <QFile>
 #include <QJsonDocument>
 #include <QJsonObject>
 #include <QSysInfo>
@@ -13,7 +14,7 @@ namespace {
 struct BenchmarkCase {
    QString name;
    QString script;
-   int inputCount = 0;
+   QStringList inputs;
 };
 
 TextureImagePtr inputImage(const QSize size, const TexturePixel color) {
@@ -33,14 +34,16 @@ void runCase(const BenchmarkCase& benchmark, const QSize size) {
    }
 
    QMap<QString, TextureImagePtr> inputs;
-   if (benchmark.inputCount > 0) {
-      inputs.insert(QStringLiteral("First"), inputImage(size, TexturePixel(17, 63, 127, 255)));
+   for (qsizetype index = 0; index < benchmark.inputs.size(); ++index) {
+      const TexturePixel color =
+          index == 0 ? TexturePixel(17, 63, 127, 255) : TexturePixel(211, 157, 91, 255);
+      inputs.insert(benchmark.inputs.at(index), inputImage(size, color));
    }
-   if (benchmark.inputCount > 1) {
-      inputs.insert(QStringLiteral("Second"), inputImage(size, TexturePixel(211, 157, 91, 223)));
+   TextureNodeSettings settings;
+   for (const TextureGeneratorSetting& setting : generator.getSettings()) {
+      settings.insert(setting.id, setting.defaultvalue);
    }
    TextureImagePtr output = TextureImage::create(size);
-   TextureNodeSettings settings;
    timer.restart();
    generator.generate(size, output->data(), inputs, settings);
    const qint64 coldNanoseconds = timer.nsecsElapsed();
@@ -61,7 +64,7 @@ void runCase(const BenchmarkCase& benchmark, const QSize size) {
 #endif
        {QStringLiteral("cpuArchitecture"), QSysInfo::currentCpuArchitecture()},
        {QStringLiteral("workerCount"), 1},
-       {QStringLiteral("sourceCopies"), benchmark.inputCount},
+       {QStringLiteral("sourceCopies"), benchmark.inputs.size()},
        {QStringLiteral("outputCopies"), 1},
        {QStringLiteral("validationNs"), validationNanoseconds},
        {QStringLiteral("coldInvocationNs"), coldNanoseconds},
@@ -70,10 +73,19 @@ void runCase(const BenchmarkCase& benchmark, const QSize size) {
    QTextStream(stdout) << QJsonDocument(result).toJson(QJsonDocument::Compact) << Qt::endl;
 }
 
+QString bundledGeneratorScript(const QString& name) {
+   QFile file(QStringLiteral(":/generators/%1.js").arg(name));
+   if (!file.open(QIODevice::ReadOnly | QIODevice::Text)) {
+      return {};
+   }
+   return QString::fromUtf8(file.readAll());
+}
+
 }  // namespace
 
 int main(int argc, char** argv) {
    QCoreApplication application(argc, argv);
+   Q_INIT_RESOURCE(generators);
    const QString descriptorStart = QStringLiteral(
        "const generator={apiVersion:1,name:'Benchmark',type:'generator',inputs:%1,settings:[],"
        "generate(size,settings,output,inputs){void settings;");
@@ -81,23 +93,26 @@ int main(int argc, char** argv) {
        {QStringLiteral("fill"),
         descriptorStart.arg(QStringLiteral("[]")) +
             QStringLiteral("output.data.fill(127);void size;void inputs;}};"),
-        0},
+        {}},
        {QStringLiteral("copy"),
         descriptorStart.arg(QStringLiteral("['First']")) +
             QStringLiteral("output.data.set(inputs.First.data);void size;}};"),
-        1},
+        {QStringLiteral("First")}},
        {QStringLiteral("neighborhood"),
         descriptorStart.arg(QStringLiteral("['First']")) +
             QStringLiteral(
                 "const src=inputs.First.data,dst=output.data;for(let y=1;y<size.height-1;++y)"
                 "for(let x=1;x<size.width-1;++x){const p=y*output.stride+x*4;"
                 "for(let c=0;c<4;++c)dst[p+c]=(src[p-4+c]+src[p+c]+src[p+4+c])/3;}}};"),
-        1},
+        {QStringLiteral("First")}},
        {QStringLiteral("blend"),
         descriptorStart.arg(QStringLiteral("['First','Second']")) +
             QStringLiteral("const a=inputs.First.data,b=inputs.Second.data,d=output.data;void size;"
                            "for(let i=0;i<d.length;++i)d[i]=(a[i]+b[i])>>1;}};"),
-        2}};
+        {QStringLiteral("First"), QStringLiteral("Second")}},
+       {QStringLiteral("blending-normal-opaque"),
+        bundledGeneratorScript(QStringLiteral("blending")),
+        {QStringLiteral("Base"), QStringLiteral("Blend")}}};
    const QList<int> sizes{256, 512, 1024, 2048};
    for (const BenchmarkCase& benchmark : cases) {
       for (const int size : sizes) {

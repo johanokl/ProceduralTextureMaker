@@ -8,6 +8,7 @@
 #include <QSignalSpy>
 #include <QTemporaryDir>
 #include <QTest>
+#include <algorithm>
 #include <stdexcept>
 #include <atomic>
 #include <thread>
@@ -62,6 +63,28 @@ QColor renderWithSources(const QString& script, QMap<QString, TextureImagePtr> s
    return QColor(destination.r, destination.g, destination.b, destination.a);
 }
 
+/// @brief Renders a generator with its defaults plus selected setting overrides.
+/// @param generator Generator to execute.
+/// @param size Requested output size.
+/// @param sources Named source images supplied to the generator.
+/// @param overrides Setting values replacing descriptor defaults.
+/// @return The rendered texture image.
+TextureImagePtr renderGenerator(const TextureGeneratorPtr& generator, const QSize size,
+                                const QMap<QString, TextureImagePtr>& sources = {},
+                                const TextureNodeSettings& overrides = {}) {
+   TextureNodeSettings settings;
+   for (const TextureGeneratorSetting& setting : generator->getSettings()) {
+      settings.insert(setting.id, setting.defaultvalue);
+   }
+   for (auto iterator = overrides.cbegin(); iterator != overrides.cend(); ++iterator) {
+      settings.insert(iterator.key(), iterator.value());
+   }
+
+   TextureImagePtr output = TextureImage::create(size);
+   generator->generate(size, output->data(), sources, settings);
+   return output;
+}
+
 }  // namespace
 
 /// @brief Verifies JavaScript generator execution, diagnostics, and discovery.
@@ -89,6 +112,9 @@ private slots:
 
    /// @brief Verifies explicit reload, compatible node migration, and broken-edit fallback.
    void reloadsDefinitionsAtomically();
+
+   /// @brief Verifies corrected metadata, alpha handling, centring, and edge behaviour.
+   void rendersCorrectedBundledGenerators();
 };
 
 void JavaScriptGeneratorsTest::rendersAndReportsErrors() {
@@ -439,6 +465,204 @@ const generator = {
    manager.reload();
    QVERIFY(reloadSpy.wait(5000));
    QCOMPARE(project.getGenerator(QStringLiteral("Reloaded")), secondGenerator);
+}
+
+void JavaScriptGeneratorsTest::rendersCorrectedBundledGenerators() {
+   TextureProject project(false);
+   registerBuiltInGenerators(project);
+
+   const TextureGeneratorPtr checkboard = project.getGenerator(QStringLiteral("Checkboard"));
+   QVERIFY(!checkboard.isNull());
+
+   const TextureGeneratorPtr fire = project.getGenerator(QStringLiteral("Fire"));
+   QVERIFY(!fire.isNull());
+   for (const TextureGeneratorSetting& setting : fire->getSettings()) {
+      QVERIFY2(setting.group.isEmpty(), qPrintable(setting.id));
+   }
+
+   TextureImagePtr lowerLayer = TextureImage::create(QSize(4, 1));
+   lowerLayer->data()[0] = TexturePixel(10, 20, 30, 255);
+   lowerLayer->data()[1] = TexturePixel(20, 40, 60, 255);
+   lowerLayer->data()[2] = TexturePixel(0, 0, 255, 128);
+   lowerLayer->data()[3] = TexturePixel(10, 20, 30, 0);
+   TextureImagePtr upperLayer = TextureImage::create(QSize(4, 1));
+   upperLayer->data()[0] = TexturePixel(100, 110, 120, 255);
+   upperLayer->data()[1] = TexturePixel(200, 210, 220, 0);
+   upperLayer->data()[2] = TexturePixel(255, 0, 0, 128);
+   upperLayer->data()[3] = TexturePixel(200, 210, 220, 0);
+   const TextureGeneratorPtr blending = project.getGenerator(QStringLiteral("Blending"));
+   const QMap<QString, TextureImagePtr> layers = {
+       {QStringLiteral("Base"), lowerLayer},
+       {QStringLiteral("Blend"), upperLayer},
+   };
+   const TextureImagePtr normallyBlended = renderGenerator(blending, QSize(4, 1), layers);
+   QCOMPARE(normallyBlended->data()[0].toRGBA(), upperLayer->data()[0].toRGBA());
+   QCOMPARE(normallyBlended->data()[1].toRGBA(), lowerLayer->data()[1].toRGBA());
+   QCOMPARE(normallyBlended->data()[2].toRGBA(), TexturePixel(170, 0, 84, 191).toRGBA());
+   QCOMPARE(normallyBlended->data()[3].toRGBA(), TexturePixel(0, 0, 0, 0).toRGBA());
+
+   TextureNodeSettings reversedLayerSettings;
+   reversedLayerSettings.insert(QStringLiteral("order"), QStringLiteral("Base on top of Blend"));
+   const TextureImagePtr reversedLayers =
+       renderGenerator(blending, QSize(4, 1), layers, reversedLayerSettings);
+   QCOMPARE(reversedLayers->data()[0].toRGBA(), lowerLayer->data()[0].toRGBA());
+
+   const TextureGeneratorPtr lines = project.getGenerator(QStringLiteral("Lines"));
+   const auto phaseIterator =
+       std::find_if(lines->getSettings().cbegin(), lines->getSettings().cend(),
+                    [](const TextureGeneratorSetting& setting) {
+                       return setting.id == QStringLiteral("offset");
+                    });
+   QVERIFY(phaseIterator != lines->getSettings().cend());
+   QCOMPARE(phaseIterator->name, QStringLiteral("Pattern phase (%)"));
+   QCOMPARE(phaseIterator->min.toInt(), 0);
+   QCOMPARE(phaseIterator->max.toInt(), 100);
+
+   const TextureGeneratorPtr perlin = project.getGenerator(QStringLiteral("Perlin noise"));
+   QVERIFY(!perlin.isNull());
+   const TextureImagePtr firstNoise = renderGenerator(perlin, QSize(19, 13));
+   const TextureImagePtr repeatedNoise = renderGenerator(perlin, QSize(19, 13));
+   for (std::size_t pixel = 0; pixel < firstNoise->pixelCount(); ++pixel) {
+      QCOMPARE(firstNoise->data()[pixel].toRGBA(), repeatedNoise->data()[pixel].toRGBA());
+   }
+
+   TextureNodeSettings differentSeedSettings;
+   differentSeedSettings.insert(QStringLiteral("randomizer"), 501);
+   const TextureImagePtr differentNoise =
+       renderGenerator(perlin, QSize(19, 13), {}, differentSeedSettings);
+   bool seedChangedOutput = false;
+   for (std::size_t pixel = 0; pixel < firstNoise->pixelCount(); ++pixel) {
+      if (firstNoise->data()[pixel].toRGBA() != differentNoise->data()[pixel].toRGBA()) {
+         seedChangedOutput = true;
+         break;
+      }
+   }
+   QVERIFY(seedChangedOutput);
+
+   TextureNodeSettings seamlessSettings;
+   seamlessSettings.insert(QStringLiteral("seamless"), true);
+   const QSize seamlessSize(19, 13);
+   const TextureImagePtr seamlessNoise =
+       renderGenerator(perlin, seamlessSize, {}, seamlessSettings);
+   for (int y = 0; y < seamlessSize.height(); ++y) {
+      QCOMPARE(seamlessNoise->data()[y * seamlessSize.width()].toRGBA(),
+               seamlessNoise->data()[y * seamlessSize.width() + seamlessSize.width() - 1].toRGBA());
+   }
+   for (int x = 0; x < seamlessSize.width(); ++x) {
+      QCOMPARE(
+          seamlessNoise->data()[x].toRGBA(),
+          seamlessNoise->data()[(seamlessSize.height() - 1) * seamlessSize.width() + x].toRGBA());
+   }
+
+   TextureNodeSettings circleSettings;
+   circleSettings.insert(QStringLiteral("innerradius"), 50.0);
+   circleSettings.insert(QStringLiteral("outerradius"), 50.0);
+   const TextureImagePtr emptyCircle = renderGenerator(
+       project.getGenerator(QStringLiteral("Circle")), QSize(17, 13), {}, circleSettings);
+   for (std::size_t pixel = 0; pixel < emptyCircle->pixelCount(); ++pixel) {
+      QCOMPARE(emptyCircle->data()[pixel].a, static_cast<quint8>(0));
+   }
+
+   TextureNodeSettings brickSettings;
+   brickSettings.insert(QStringLiteral("color"), QColor(100, 80, 60, 128));
+   brickSettings.insert(QStringLiteral("linewidth"), 20.0);
+   brickSettings.insert(QStringLiteral("brickwidth"), 40.0);
+   brickSettings.insert(QStringLiteral("brickheight"), 40.0);
+   const TextureImagePtr bricks = renderGenerator(project.getGenerator(QStringLiteral("Bricks")),
+                                                  QSize(10, 10), {}, brickSettings);
+   int mortarPixels = 0;
+   for (std::size_t pixel = 0; pixel < bricks->pixelCount(); ++pixel) {
+      if (bricks->data()[pixel].a > 0) {
+         QCOMPARE(bricks->data()[pixel].a, static_cast<quint8>(128));
+         ++mortarPixels;
+      }
+   }
+   QVERIFY(mortarPixels > 0);
+
+   TextureImagePtr twoPixels = TextureImage::create(QSize(2, 1));
+   twoPixels->data()[0] = TexturePixel(255, 0, 0, 255);
+   twoPixels->data()[1] = TexturePixel(0, 0, 255, 0);
+   TextureNodeSettings pixelateSettings;
+   pixelateSettings.insert(QStringLiteral("width"), 100.0);
+   pixelateSettings.insert(QStringLiteral("height"), 100.0);
+   const TextureGeneratorPtr pixelate = project.getGenerator(QStringLiteral("Pixelate"));
+   const TextureImagePtr averaged = renderGenerator(
+       pixelate, QSize(2, 1), {{QStringLiteral("Image"), twoPixels}}, pixelateSettings);
+   QCOMPARE(averaged->data()[0].r, static_cast<quint8>(255));
+   QCOMPARE(averaged->data()[0].g, static_cast<quint8>(0));
+   QCOMPARE(averaged->data()[0].b, static_cast<quint8>(0));
+   QCOMPARE(averaged->data()[0].a, static_cast<quint8>(127));
+
+   pixelateSettings.insert(QStringLiteral("width"), 0.0);
+   const TextureImagePtr unpixelated = renderGenerator(
+       pixelate, QSize(2, 1), {{QStringLiteral("Image"), twoPixels}}, pixelateSettings);
+   QCOMPARE(unpixelated->data()[0].toRGBA(), twoPixels->data()[0].toRGBA());
+   QCOMPARE(unpixelated->data()[1].toRGBA(), twoPixels->data()[1].toRGBA());
+
+   TextureImagePtr centrePixel = TextureImage::create(QSize(5, 5));
+   for (std::size_t pixel = 0; pixel < centrePixel->pixelCount(); ++pixel) {
+      centrePixel->data()[pixel] = TexturePixel(0, 0, 0, 0);
+   }
+   centrePixel->data()[2 * 5 + 2] = TexturePixel(255, 255, 255, 255);
+   TextureNodeSettings glowSettings;
+   glowSettings.insert(QStringLiteral("color"), QColor(255, 255, 0, 0));
+   glowSettings.insert(QStringLiteral("includesource"), false);
+   const TextureImagePtr transparentGlow =
+       renderGenerator(project.getGenerator(QStringLiteral("Glow")), QSize(5, 5),
+                       {{QStringLiteral("Image"), centrePixel}}, glowSettings);
+   for (std::size_t pixel = 0; pixel < transparentGlow->pixelCount(); ++pixel) {
+      QCOMPARE(transparentGlow->data()[pixel].a, static_cast<quint8>(0));
+   }
+
+   TextureNodeSettings squareSettings;
+   squareSettings.insert(QStringLiteral("cutoutwidth"), 100.0);
+   squareSettings.insert(QStringLiteral("cutoutheight"), 100.0);
+   const TextureImagePtr emptySquare = renderGenerator(
+       project.getGenerator(QStringLiteral("Square")), QSize(17, 13), {}, squareSettings);
+   for (std::size_t pixel = 0; pixel < emptySquare->pixelCount(); ++pixel) {
+      QCOMPARE(emptySquare->data()[pixel].a, static_cast<quint8>(0));
+   }
+
+   TextureImagePtr transformSource = TextureImage::create(QSize(17, 13));
+   for (std::size_t pixel = 0; pixel < transformSource->pixelCount(); ++pixel) {
+      transformSource->data()[pixel] = TexturePixel(0, 0, 0, 0);
+   }
+   transformSource->data()[6 * 17 + 8] = TexturePixel(10, 20, 30, 255);
+   TextureNodeSettings transformSettings;
+   transformSettings.insert(QStringLiteral("rotation"), 90.0);
+   const TextureImagePtr transformed =
+       renderGenerator(project.getGenerator(QStringLiteral("Transform")), QSize(17, 13),
+                       {{QStringLiteral("Image"), transformSource}}, transformSettings);
+   QCOMPARE(transformed->data()[6 * 17 + 8].a, static_cast<quint8>(255));
+
+   TextureImagePtr shadowSource = TextureImage::create(QSize(5, 5));
+   for (std::size_t pixel = 0; pixel < shadowSource->pixelCount(); ++pixel) {
+      shadowSource->data()[pixel] = TexturePixel(0, 0, 0, 0);
+   }
+   shadowSource->data()[2 * 5] = TexturePixel(255, 255, 255, 255);
+   TextureNodeSettings shadowSettings;
+   shadowSettings.insert(QStringLiteral("offsetleft"), 100.0);
+   shadowSettings.insert(QStringLiteral("offsettop"), 0.0);
+   shadowSettings.insert(QStringLiteral("level"), 20.0);
+   const TextureImagePtr shadow =
+       renderGenerator(project.getGenerator(QStringLiteral("Shadow")), QSize(5, 5),
+                       {{QStringLiteral("Foreground"), shadowSource}}, shadowSettings);
+   QVERIFY(shadow->data()[2 * 5 + 4].a > 0);
+
+   TextureImagePtr background = TextureImage::create(QSize(1, 1));
+   background->data()[0] = TexturePixel(20, 30, 40, 255);
+   TextureNodeSettings perlinSettings;
+   perlinSettings.insert(QStringLiteral("color"), QColor(255, 0, 0, 0));
+   const TextureImagePtr transparentNoise = renderGenerator(
+       perlin, QSize(1, 1), {{QStringLiteral("Background"), background}}, perlinSettings);
+   QCOMPARE(transparentNoise->data()[0].toRGBA(), background->data()[0].toRGBA());
+
+   TextureNodeSettings plasmaSettings;
+   plasmaSettings.insert(QStringLiteral("color"), QColor(255, 0, 0, 0));
+   const TextureImagePtr plasma =
+       renderGenerator(project.getGenerator(QStringLiteral("Sine plasma")), QSize(1, 1),
+                       {{QStringLiteral("Background"), background}}, plasmaSettings);
+   QCOMPARE(plasma->data()[0].toRGBA(), background->data()[0].toRGBA());
 }
 
 QTEST_GUILESS_MAIN(JavaScriptGeneratorsTest)

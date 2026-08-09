@@ -40,6 +40,7 @@ CMakeLists.txt.user*
 /debug
 /release
 /build/
+/node_modules/
 
 .DS_store
 *~

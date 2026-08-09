@@ -136,11 +136,14 @@
          <pos x="203.985" y="318.303"/>
          <generator name="Circle"/>
          <Settings>
+            <setting id="antialiasing" type="bool" value="true"/>
             <setting id="color" type="QColor" value="#ffffff"/>
+            <setting id="horizontalscale" type="double" value="100"/>
             <setting id="innerradius" type="double" value="0"/>
             <setting id="offsetleft" type="double" value="0"/>
             <setting id="offsettop" type="double" value="0"/>
             <setting id="outerradius" type="double" value="82"/>
+            <setting id="rotation" type="double" value="0"/>
          </Settings>
          <Sources/>
       </Node>
@@ -199,11 +202,14 @@
          <pos x="639.98" y="496.979"/>
          <generator name="Circle"/>
          <Settings>
+            <setting id="antialiasing" type="bool" value="true"/>
             <setting id="color" type="QColor" value="#ffd45c"/>
+            <setting id="horizontalscale" type="double" value="100"/>
             <setting id="innerradius" type="double" value="72"/>
             <setting id="offsetleft" type="double" value="0"/>
             <setting id="offsettop" type="double" value="0"/>
             <setting id="outerradius" type="double" value="84"/>
+            <setting id="rotation" type="double" value="0"/>
          </Settings>
          <Sources/>
       </Node>
@@ -232,7 +238,7 @@
          <Settings>
             <setting id="alpha" type="double" value="100"/>
             <setting id="mode" type="QString" value="Normal"/>
-            <setting id="order" type="QString" value="Slot 2 on top of Slot 1"/>
+            <setting id="order" type="QString" value="Blend on top of Base"/>
          </Settings>
          <Sources>
             <source slot="0" source="14"/>
@@ -245,7 +251,7 @@
          <Settings>
             <setting id="alpha" type="double" value="100"/>
             <setting id="mode" type="QString" value="Normal"/>
-            <setting id="order" type="QString" value="Slot 2 on top of Slot 1"/>
+            <setting id="order" type="QString" value="Blend on top of Base"/>
          </Settings>
          <Sources>
             <source slot="0" source="44"/>
@@ -344,11 +350,14 @@
          <pos x="1319.09" y="934.745"/>
          <generator name="Circle"/>
          <Settings>
+            <setting id="antialiasing" type="bool" value="true"/>
             <setting id="color" type="QColor" value="#15214d"/>
+            <setting id="horizontalscale" type="double" value="100"/>
             <setting id="innerradius" type="double" value="0"/>
             <setting id="offsetleft" type="double" value="0"/>
             <setting id="offsettop" type="double" value="-8"/>
             <setting id="outerradius" type="double" value="17"/>
+            <setting id="rotation" type="double" value="0"/>
          </Settings>
          <Sources>
             <source slot="0" source="21"/>
@@ -358,11 +367,14 @@
          <pos x="1669.62" y="927.301"/>
          <generator name="Circle"/>
          <Settings>
+            <setting id="antialiasing" type="bool" value="true"/>
             <setting id="color" type="QColor" value="#48e9ff"/>
+            <setting id="horizontalscale" type="double" value="100"/>
             <setting id="innerradius" type="double" value="0"/>
             <setting id="offsetleft" type="double" value="0"/>
             <setting id="offsettop" type="double" value="-8"/>
             <setting id="outerradius" type="double" value="11"/>
+            <setting id="rotation" type="double" value="0"/>
          </Settings>
          <Sources>
             <source slot="0" source="22"/>
@@ -390,9 +402,16 @@
          <pos x="565.716" y="1647.16"/>
          <generator name="Fire"/>
          <Settings>
-            <setting id="falloff" type="double" value="0.18"/>
+            <setting id="embercolor" type="QColor" value="#960500"/>
+            <setting id="falloff" type="double" value="3"/>
+            <setting id="flamecolor" type="QColor" value="#ff5500"/>
+            <setting id="hotcolor" type="QColor" value="#fff5be"/>
             <setting id="iterations" type="int" value="190"/>
             <setting id="randomize" type="int" value="37"/>
+            <setting id="sinewave" type="bool" value="false"/>
+            <setting id="waveamplitude" type="double" value="6"/>
+            <setting id="wavefrequency" type="double" value="2"/>
+            <setting id="wavephase" type="double" value="0"/>
          </Settings>
          <Sources/>
       </Node>
@@ -437,7 +456,7 @@
          <Settings>
             <setting id="alpha" type="double" value="100"/>
             <setting id="mode" type="QString" value="Normal"/>
-            <setting id="order" type="QString" value="Slot 2 on top of Slot 1"/>
+            <setting id="order" type="QString" value="Blend on top of Base"/>
          </Settings>
          <Sources>
             <source slot="0" source="27"/>
@@ -469,7 +488,7 @@
          <Settings>
             <setting id="alpha" type="double" value="100"/>
             <setting id="mode" type="QString" value="Normal"/>
-            <setting id="order" type="QString" value="Slot 2 on top of Slot 1"/>
+            <setting id="order" type="QString" value="Blend on top of Base"/>
          </Settings>
          <Sources>
             <source slot="0" source="16"/>

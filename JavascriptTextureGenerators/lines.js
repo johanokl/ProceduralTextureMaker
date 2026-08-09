@@ -57,7 +57,7 @@ const generator = {
     for (let y = 0; y < size.height; ++y) {
       const drawLine = period > 0 && ((y + offset) % period) > distance;
       for (let x = 0; x < size.width; ++x) {
-        const pixel = TexGen.offset(x, y, output.stride);
+        const pixel = y * output.stride + x * 4;
         if (drawLine) {
           destination[pixel] = settings.color.r;
           destination[pixel + 1] = settings.color.g;

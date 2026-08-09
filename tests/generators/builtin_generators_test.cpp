@@ -70,6 +70,33 @@ void BuiltinGeneratorsTest::rendersEveryGenerator() {
             QStringList({QStringLiteral("Image")}));
    QCOMPARE(project.getGenerator(QStringLiteral("Shadow"))->getSourceSlots(),
             QStringList({QStringLiteral("Foreground")}));
+   const QMap<QString, QString> migratedGenerators = {
+       {QStringLiteral("Blending"), QStringLiteral("blending.js")},
+       {QStringLiteral("Bricks"), QStringLiteral("bricks.js")},
+       {QStringLiteral("Checkboard"), QStringLiteral("checkboard.js")},
+       {QStringLiteral("Circle"), QStringLiteral("circle.js")},
+       {QStringLiteral("Fill"), QStringLiteral("fill.js")},
+       {QStringLiteral("Fire"), QStringLiteral("fire.js")},
+       {QStringLiteral("Glow"), QStringLiteral("glow.js")},
+       {QStringLiteral("Lines"), QStringLiteral("lines.js")},
+       {QStringLiteral("Mask"), QStringLiteral("mask.js")},
+       {QStringLiteral("Noise"), QStringLiteral("noise.js")},
+       {QStringLiteral("Perlin noise"), QStringLiteral("perlinnoise.js")},
+       {QStringLiteral("Pixelate"), QStringLiteral("pixelate.js")},
+       {QStringLiteral("Shadow"), QStringLiteral("shadow.js")},
+       {QStringLiteral("Sine plasma"), QStringLiteral("sineplasma.js")},
+       {QStringLiteral("Square"), QStringLiteral("square.js")},
+       {QStringLiteral("Transform"), QStringLiteral("transform.js")},
+       {QStringLiteral("Whirl"), QStringLiteral("whirl.js")},
+   };
+   for (auto iterator = migratedGenerators.cbegin(); iterator != migratedGenerators.cend();
+        ++iterator) {
+      const TextureGeneratorPtr generator = project.getGenerator(iterator.key());
+      QVERIFY2(!generator.isNull(), qPrintable(iterator.key()));
+      QCOMPARE(generator->getOrigin(), TextureGenerator::Origin::BuiltIn);
+      QCOMPARE(generator->getSourceIdentity(),
+               QStringLiteral(":/generators/%1").arg(iterator.value()));
+   }
    QCOMPARE(project.getGenerator(QStringLiteral("Normal-map"))->getSourceSlots(),
             QStringList({QStringLiteral("Height map")}));
    QCOMPARE(project.getGenerator(QStringLiteral("Blending"))->getSourceSlots(),

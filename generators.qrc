@@ -1,6 +1,22 @@
 <RCC>
     <qresource prefix="/generators">
+        <file alias="blending.js">generators/blending.js</file>
+        <file alias="bricks.js">generators/bricks.js</file>
+        <file alias="checkboard.js">generators/checkboard.js</file>
+        <file alias="circle.js">generators/circle.js</file>
+        <file alias="fill.js">generators/fill.js</file>
+        <file alias="fire.js">generators/fire.js</file>
+        <file alias="glow.js">generators/glow.js</file>
+        <file alias="lines.js">generators/lines.js</file>
         <file alias="mask.js">generators/mask.js</file>
+        <file alias="noise.js">generators/noise.js</file>
+        <file alias="perlinnoise.js">generators/perlinnoise.js</file>
+        <file alias="pixelate.js">generators/pixelate.js</file>
+        <file alias="shadow.js">generators/shadow.js</file>
+        <file alias="sineplasma.js">generators/sineplasma.js</file>
+        <file alias="square.js">generators/square.js</file>
+        <file alias="transform.js">generators/transform.js</file>
+        <file alias="whirl.js">generators/whirl.js</file>
     </qresource>
     <qresource prefix="/generator-templates">
         <file alias="generator.js">JavascriptTextureGenerators/template.js.txt</file>

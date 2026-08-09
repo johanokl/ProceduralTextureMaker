@@ -55,6 +55,9 @@ private slots:
    /// @brief Verifies invalid documents do not partially replace the active project.
    void rejectsMalformedDocumentsTransactionally();
 
+   /// @brief Verifies missing generator errors identify the file and every generator.
+   void reportsUnavailableGenerators();
+
    /// @brief Verifies input parsing and output-writing error reporting.
    void reportsFileErrors();
 };
@@ -155,7 +158,7 @@ void ProjectFileServiceTest::rendersStableRawHashes_data() {
        << QSize(17, 13)
        << QByteArray("88570e6e206362c8ff826f3a441691ac49ab3b970bb62b490e4a3437d0416ae1");
 #ifdef Q_OS_WIN
-   const QByteArray wallDigest("2402cd6c88e9aa4022fe3ad9c2d44cfb38b91f0ab01a4ebd37f5a4656debaee0");
+   const QByteArray wallDigest("d47c98c22144a02409d13685f39102c2442a90e190f330982fa40913fc69f59b");
 #else
    const QByteArray wallDigest;
 #endif
@@ -230,6 +233,44 @@ void ProjectFileServiceTest::rejectsMalformedDocumentsTransactionally() {
    QCOMPARE(project.getNodeIds(), QList<int>({9}));
    QCOMPARE(project.isModified(), dirtyBefore);
    QCOMPARE(project.getNode(9)->cachedImage(QSize(2, 2)), cached);
+}
+
+void ProjectFileServiceTest::reportsUnavailableGenerators() {
+   const QString xml = QStringLiteral(
+       "<TextureSet><Nodes>"
+       "<Node id='1'><generator name='Missing B'/></Node>"
+       "<Node id='2'><generator name='Missing A'/></Node>"
+       "<Node id='3'><generator name='Missing B'/></Node>"
+       "</Nodes></TextureSet>");
+   QTemporaryDir directory;
+   QVERIFY(directory.isValid());
+   const QString path = directory.filePath(QStringLiteral("missing generators.txl"));
+   QFile file(path);
+   QVERIFY(file.open(QIODevice::WriteOnly));
+   QCOMPARE(file.write(xml.toUtf8()), qint64(xml.toUtf8().size()));
+   file.close();
+
+   TextureProject project(false);
+   registerBuiltInGenerators(project);
+   const ProjectFileResult result = ProjectFileService::load(path, project);
+   QCOMPARE(result.error, ProjectFileError::Validation);
+   QCOMPARE(
+       result.message,
+       QStringLiteral("The project file '%1' could not be loaded because it references texture "
+                      "generators that are not available: 'Missing A', 'Missing B'.")
+           .arg(path));
+
+   const QString singleXml = QStringLiteral(
+       "<TextureSet><Nodes><Node id='1'><generator name='Missing'/></Node></Nodes></TextureSet>");
+   QVERIFY(file.open(QIODevice::WriteOnly | QIODevice::Truncate));
+   QCOMPARE(file.write(singleXml.toUtf8()), qint64(singleXml.toUtf8().size()));
+   file.close();
+   const ProjectFileResult singleResult = ProjectFileService::load(path, project);
+   QCOMPARE(singleResult.error, ProjectFileError::Validation);
+   QCOMPARE(singleResult.message,
+            QStringLiteral("The project file '%1' could not be loaded because it references a "
+                           "texture generator that is not available: 'Missing'.")
+                .arg(path));
 }
 
 void ProjectFileServiceTest::reportsFileErrors() {

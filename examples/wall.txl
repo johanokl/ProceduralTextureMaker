@@ -5,10 +5,19 @@
          <pos y="-76.9614" x="-736.946"/>
          <generator name="Perlin noise"/>
          <Settings>
+            <setting id="brightness" value="0" type="double"/>
             <setting id="color" value="#ffffff" type="QColor"/>
-            <setting id="numoctaves" value="25" type="int"/>
+            <setting id="contrast" value="100" type="double"/>
+            <setting id="invert" value="false" type="bool"/>
+            <setting id="lacunarity" value="2" type="double"/>
+            <setting id="maximum" value="100" type="double"/>
+            <setting id="minimum" value="0" type="double"/>
+            <setting id="numoctaves" value="12" type="int"/>
+            <setting id="offsetx" value="0" type="double"/>
+            <setting id="offsety" value="0" type="double"/>
             <setting id="persistence" value="0.7999999999999999" type="double"/>
-            <setting id="randomizer" value="500" type="double"/>
+            <setting id="randomizer" value="500" type="int"/>
+            <setting id="seamless" value="false" type="bool"/>
             <setting id="zoom" value="40.36" type="double"/>
          </Settings>
          <Sources/>
@@ -17,10 +26,10 @@
          <pos y="-416.099" x="558.279"/>
          <generator name="Bricks"/>
          <Settings>
-            <setting id="brickheight" value="38" type="int"/>
-            <setting id="brickwidth" value="101" type="int"/>
+            <setting id="brickheight" value="12.67" type="double"/>
+            <setting id="brickwidth" value="33.67" type="double"/>
             <setting id="color" value="#3f3f3f" type="QColor"/>
-            <setting id="linewidth" value="10" type="int"/>
+            <setting id="linewidth" value="3.33" type="double"/>
             <setting id="offsetx" value="0" type="int"/>
             <setting id="offsety" value="11" type="int"/>
          </Settings>
@@ -40,7 +49,7 @@
          <Settings>
             <setting id="alpha" value="100" type="double"/>
             <setting id="mode" value="Normal" type="QString"/>
-            <setting id="order" value="Slot 2 on top of Slot 1" type="QString"/>
+            <setting id="order" value="Blend on top of Base" type="QString"/>
          </Settings>
          <Sources>
             <source slot="0" source="1"/>
@@ -69,7 +78,7 @@
          <Settings>
             <setting id="alpha" value="100" type="double"/>
             <setting id="mode" value="Normal" type="QString"/>
-            <setting id="order" value="Slot 2 on top of Slot 1" type="QString"/>
+            <setting id="order" value="Blend on top of Base" type="QString"/>
          </Settings>
          <Sources>
             <source slot="0" source="4"/>
@@ -80,10 +89,19 @@
          <pos y="815.076" x="1265.49"/>
          <generator name="Perlin noise"/>
          <Settings>
+            <setting id="brightness" value="0" type="double"/>
             <setting id="color" value="#d8d6e7" type="QColor"/>
+            <setting id="contrast" value="100" type="double"/>
+            <setting id="invert" value="false" type="bool"/>
+            <setting id="lacunarity" value="2" type="double"/>
+            <setting id="maximum" value="100" type="double"/>
+            <setting id="minimum" value="0" type="double"/>
             <setting id="numoctaves" value="10" type="int"/>
+            <setting id="offsetx" value="0" type="double"/>
+            <setting id="offsety" value="0" type="double"/>
             <setting id="persistence" value="0.7999999999999999" type="double"/>
-            <setting id="randomizer" value="500" type="double"/>
+            <setting id="randomizer" value="500" type="int"/>
+            <setting id="seamless" value="false" type="bool"/>
             <setting id="zoom" value="10" type="double"/>
          </Settings>
          <Sources/>
@@ -125,9 +143,9 @@
             <setting id="cutoutx" value="95" type="double"/>
             <setting id="cutouty" value="95" type="double"/>
             <setting id="firstblurlevel" value="3" type="double"/>
-            <setting id="includesource" value="" type=""/>
+            <setting id="includesource" value="true" type="bool"/>
             <setting id="mode" value="Multiply" type="QString"/>
-            <setting id="ontop" value="" type=""/>
+            <setting id="ontop" value="false" type="bool"/>
             <setting id="secondblurlevel" value="3" type="double"/>
             <setting id="size" value="4" type="double"/>
          </Settings>
@@ -141,7 +159,7 @@
          <Settings>
             <setting id="alpha" value="100" type="double"/>
             <setting id="mode" value="Normal" type="QString"/>
-            <setting id="order" value="Slot 2 on top of Slot 1" type="QString"/>
+            <setting id="order" value="Blend on top of Base" type="QString"/>
          </Settings>
          <Sources>
             <source slot="0" source="6"/>

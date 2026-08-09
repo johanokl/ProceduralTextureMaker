@@ -19,6 +19,7 @@ option(PROCEDURAL_TEXTURE_MAKER_UI_TESTS
 )
 find_program(CLANG_TIDY_EXE NAMES clang-tidy)
 find_program(CLANG_FORMAT_EXE NAMES clang-format)
+find_program(NPM_EXECUTABLE NAMES npm.cmd npm)
 if(CLANG_TIDY_EXE)
     find_package(Python3 COMPONENTS Interpreter QUIET)
     find_program(RUN_CLANG_TIDY_EXE NAMES run-clang-tidy run-clang-tidy.py)
@@ -122,32 +123,18 @@ set(PROCEDURAL_TEXTURE_MAKER_SOURCES
     sceneview/viewnodeview.cpp
     sceneview/viewnodeview.h
 
-    generators/blending.cpp
-    generators/blending.h
     generators/builtinregistry.cpp
     generators/builtinregistry.h
     generators/boxblur.cpp
     generators/boxblur.h
-    generators/bricks.cpp
-    generators/bricks.h
-    generators/checkboard.cpp
-    generators/checkboard.h
-    generators/circle.cpp
-    generators/circle.h
     generators/cutout.cpp
     generators/cutout.h
     generators/displacementmap.cpp
     generators/displacementmap.h
     generators/empty.cpp
     generators/empty.h
-    generators/fill.cpp
-    generators/fill.h
-    generators/fire.cpp
-    generators/fire.h
     generators/gaussianblur.cpp
     generators/gaussianblur.h
-    generators/glow.cpp
-    generators/glow.h
     generators/gradient.cpp
     generators/gradient.h
     generators/greyscale.cpp
@@ -156,44 +143,26 @@ set(PROCEDURAL_TEXTURE_MAKER_SOURCES
     generators/invert.h
     generators/lens.cpp
     generators/lens.h
-    generators/lines.cpp
-    generators/lines.h
     generators/merge.cpp
     generators/merge.h
     generators/mirror.cpp
     generators/mirror.h
     generators/modifylevels.cpp
     generators/modifylevels.h
-    generators/noise.cpp
-    generators/noise.h
     generators/normalmap.cpp
     generators/normalmap.h
-    generators/perlinnoise.cpp
-    generators/perlinnoise.h
-    generators/pixelate.cpp
-    generators/pixelate.h
     generators/pointillism.cpp
     generators/pointillism.h
     generators/setchannels.cpp
     generators/setchannels.h
-    generators/shadow.cpp
-    generators/shadow.h
-    generators/sineplasma.cpp
-    generators/sineplasma.h
     generators/sinetransform.cpp
     generators/sinetransform.h
-    generators/square.cpp
-    generators/square.h
     generators/stackblur.cpp
     generators/stackblur.h
     generators/star.cpp
     generators/star.h
     generators/text.cpp
     generators/text.h
-    generators/transform.cpp
-    generators/transform.h
-    generators/whirl.cpp
-    generators/whirl.h
 
     texgen.qrc
     generators.qrc
@@ -353,6 +322,22 @@ else()
         COMMAND ${CMAKE_COMMAND} -E echo "clang-tidy was not found. Install clang-tidy and rerun CMake."
         COMMAND ${CMAKE_COMMAND} -E false
         COMMENT "Running clang-tidy"
+        VERBATIM
+    )
+endif()
+
+if(NPM_EXECUTABLE)
+    add_custom_target(eslint
+        COMMAND ${NPM_EXECUTABLE} run lint:js
+        WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+        COMMENT "Running ESLint"
+        VERBATIM
+    )
+else()
+    add_custom_target(eslint
+        COMMAND ${CMAKE_COMMAND} -E echo "npm was not found. Install Node.js and rerun CMake."
+        COMMAND ${CMAKE_COMMAND} -E false
+        COMMENT "Running ESLint"
         VERBATIM
     )
 endif()

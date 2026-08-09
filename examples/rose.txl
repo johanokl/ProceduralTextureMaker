@@ -19,10 +19,10 @@
          <pos y="-855.645" x="1260.38"/>
          <generator name="Bricks"/>
          <Settings>
-            <setting id="brickheight" type="int" value="45"/>
-            <setting id="brickwidth" type="int" value="115"/>
+            <setting id="brickheight" type="double" value="15"/>
+            <setting id="brickwidth" type="double" value="38.33"/>
             <setting id="color" type="QColor" value="#000000"/>
-            <setting id="linewidth" type="int" value="12"/>
+            <setting id="linewidth" type="double" value="4"/>
             <setting id="offsetx" type="int" value="0"/>
             <setting id="offsety" type="int" value="0"/>
          </Settings>
@@ -68,11 +68,14 @@
          <pos y="-2110.73" x="1892.55"/>
          <generator name="Circle"/>
          <Settings>
+            <setting id="antialiasing" type="bool" value="true"/>
             <setting id="color" type="QColor" value="#000000"/>
+            <setting id="horizontalscale" type="double" value="100"/>
             <setting id="innerradius" type="double" value="0"/>
             <setting id="offsetleft" type="double" value="0"/>
             <setting id="offsettop" type="double" value="-11.96"/>
             <setting id="outerradius" type="double" value="62.31"/>
+            <setting id="rotation" type="double" value="0"/>
          </Settings>
          <Sources/>
       </Node>
@@ -94,11 +97,14 @@
          <pos y="-1546.51" x="5645.49"/>
          <generator name="Circle"/>
          <Settings>
+            <setting id="antialiasing" type="bool" value="true"/>
             <setting id="color" type="QColor" value="#009c00"/>
+            <setting id="horizontalscale" type="double" value="100"/>
             <setting id="innerradius" type="double" value="0"/>
             <setting id="offsetleft" type="double" value="0"/>
             <setting id="offsettop" type="double" value="0"/>
             <setting id="outerradius" type="double" value="80.4"/>
+            <setting id="rotation" type="double" value="0"/>
          </Settings>
          <Sources/>
       </Node>
@@ -106,9 +112,9 @@
          <pos y="-809.807" x="3273.11"/>
          <generator name="Blending"/>
          <Settings>
-            <setting id="alpha" type="double" value="128"/>
+            <setting id="alpha" type="double" value="100"/>
             <setting id="mode" type="QString" value="Normal"/>
-            <setting id="order" type="QString" value="Slot 2 on top of Slot 1"/>
+            <setting id="order" type="QString" value="Blend on top of Base"/>
          </Settings>
          <Sources>
             <source slot="0" source="30"/>
@@ -138,9 +144,9 @@
          <pos y="-930.607" x="5098.36"/>
          <generator name="Blending"/>
          <Settings>
-            <setting id="alpha" type="double" value="128"/>
+            <setting id="alpha" type="double" value="100"/>
             <setting id="mode" type="QString" value="Normal"/>
-            <setting id="order" type="QString" value="Slot 2 on top of Slot 1"/>
+            <setting id="order" type="QString" value="Blend on top of Base"/>
          </Settings>
          <Sources>
             <source slot="0" source="23"/>
@@ -172,7 +178,7 @@
          <Settings>
             <setting id="alpha" type="double" value="100"/>
             <setting id="mode" type="QString" value="Normal"/>
-            <setting id="order" type="QString" value="Slot 1 on top of Slot 2"/>
+            <setting id="order" type="QString" value="Base on top of Blend"/>
          </Settings>
          <Sources>
             <source slot="0" source="29"/>
@@ -257,7 +263,7 @@
          <Settings>
             <setting id="alpha" type="double" value="100"/>
             <setting id="mode" type="QString" value="Normal"/>
-            <setting id="order" type="QString" value="Slot 2 on top of Slot 1"/>
+            <setting id="order" type="QString" value="Blend on top of Base"/>
          </Settings>
          <Sources>
             <source slot="0" source="31"/>

@@ -265,6 +265,16 @@ QTextEdit:focus {
    border-color: %9;
 }
 
+#nodeSettingsInspector QLineEdit:disabled,
+#nodeSettingsInspector QComboBox:disabled,
+#nodeSettingsInspector QSpinBox:disabled,
+#nodeSettingsInspector QDoubleSpinBox:disabled,
+#nodeSettingsInspector QPlainTextEdit:disabled {
+   background: palette(base);
+   border-color: palette(mid);
+   color: palette(text);
+}
+
 QPushButton {
    background: %3;
    border: 1px solid %7;
@@ -398,6 +408,10 @@ QLabel#previewImage {
    font-weight: 500;
 }
 
+#nodeSettingsInspector QLabel[inspectorLabel="true"]:disabled {
+   color: palette(window-text);
+}
+
 #nodeSettingsInspector QLabel#generatorBadge {
    background: %10;
    border: 1px solid %9;
@@ -428,6 +442,16 @@ QLabel#previewImage {
    min-height: 28px;
 }
 
+#nodeSettingsInspector QCheckBox:disabled,
+#nodeSettingsInspector QPushButton:disabled {
+   color: palette(button-text);
+}
+
+#nodeSettingsInspector QPushButton:disabled {
+   background: palette(button);
+   border-color: palette(mid);
+}
+
 #nodeSettingsInspector QSlider[inspectorSlider="true"] {
    min-height: 18px;
 }
@@ -441,6 +465,16 @@ QLabel#previewImage {
    height: 16px;
    border-radius: 8px;
    margin: -6px 0;
+}
+
+#nodeSettingsInspector QSlider[inspectorSlider="true"]:disabled::groove:horizontal,
+#nodeSettingsInspector QSlider[inspectorSlider="true"]:disabled::sub-page:horizontal {
+   background: palette(mid);
+}
+
+#nodeSettingsInspector QSlider[inspectorSlider="true"]:disabled::handle:horizontal {
+   background: palette(button);
+   border-color: palette(mid);
 }
 
 %14

@@ -439,6 +439,11 @@ void NodeSettingsWidget::generatorUpdated() {
       if (!currSetting.enabler.isEmpty()) {
          auto* enablerWidget = dynamic_cast<QCheckBox*>(settingElements[currSetting.enabler]);
          if (enablerWidget) {
+            if (settingLabels[settingsId]) {
+               settingLabels[settingsId]->setEnabled(enablerWidget->isChecked());
+               QObject::connect(enablerWidget, &QCheckBox::toggled, settingLabels[settingsId],
+                                &QWidget::setEnabled);
+            }
             if (settingElements[settingsId]) {
                settingElements[settingsId]->setEnabled(enablerWidget->isChecked());
                QObject::connect(enablerWidget, &QCheckBox::toggled, settingElements[settingsId],
@@ -504,6 +509,10 @@ void NodeSettingsWidget::setGroupAlignment(const QString& group, bool aligned) {
             }
             currwidget->setEnabled(!aligned);
             currwidget->blockSignals(aligned);
+            QLabel* currlabel = settingLabels.value(settingsId);
+            if (currlabel) {
+               currlabel->setEnabled(!aligned);
+            }
          }
          QWidget* currslider = settingSliders[settingsId];
          QWidget* firstslider = settingSliders[firstsetting];

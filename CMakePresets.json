@@ -63,11 +63,20 @@
       ]
     },
     {
+      "name": "eslint",
+      "displayName": "Run ESLint",
+      "configurePreset": "debug",
+      "targets": [
+        "eslint"
+      ]
+    },
+    {
       "name": "review-all-code",
       "displayName": "Review all code",
       "configurePreset": "debug",
       "targets": [
         "clang-tidy",
+        "eslint",
         "clang-format-check"
       ]
     },
