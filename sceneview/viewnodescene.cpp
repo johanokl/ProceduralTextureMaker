@@ -36,6 +36,11 @@ ViewNodeScene::ViewNodeScene(MainWindow& mainWindow)
    if (headerSize != 0 && (headerSize < 8 || headerSize > 48)) {
       headerSize = 24;
    }
+   QObject::connect(&project, &TextureProject::thumbnailRenderStatusChanged, this, [this](int id) {
+      if (auto* item = getItem(id)) {
+         item->renderStatusUpdated();
+      }
+   });
    QObject::connect(&project, &TextureProject::nodeAdded, this, &ViewNodeScene::addNode);
    QObject::connect(&project, &TextureProject::nodeRemoved, this, &ViewNodeScene::nodeRemoved);
    QObject::connect(&project, &TextureProject::nodesConnected, this,

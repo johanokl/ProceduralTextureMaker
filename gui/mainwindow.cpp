@@ -148,6 +148,17 @@ MainWindow::MainWindow(TexGenApplication* parent) {
 
    setWindowTitle("ProceduralTextureMaker");
    statusBar()->hide();
+   connect(project.get(), &TextureProject::renderFailed, this,
+           [this](int id, QSize, const QString& message) {
+              statusBar()->show();
+              statusBar()->showMessage(QString("Node %1: %2").arg(id).arg(message));
+           });
+   connect(project.get(), &TextureProject::thumbnailRenderStatusChanged, this, [this](int id) {
+      if (project->thumbnailRenderStatus(id).state == TextureRenderState::Rendering) {
+         statusBar()->clearMessage();
+         statusBar()->hide();
+      }
+   });
    setAttribute(Qt::WA_DeleteOnClose);
 
    if (QSettings().value("showhelpstartup", true).toBool()) {

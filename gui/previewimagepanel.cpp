@@ -10,6 +10,7 @@
 #include "gui/cubewidget.h"
 #include "gui/previewimagepanel.h"
 #include "gui/texturebackground.h"
+#include "gui/renderstatusoverlay.h"
 #include <QComboBox>
 #include <QEvent>
 #include <QGroupBox>
@@ -27,20 +28,19 @@
 #include <utility>
 
 namespace {
-void paintRenderingGrid(QPainter& painter, const QRect& rect) {
-   QBrush updateBrush(QColor(230, 126, 34, 180));
-   updateBrush.setStyle(Qt::DiagCrossPattern);
-   painter.fillRect(rect, updateBrush);
-}
-
+/// @brief Paints a thumbnail state above the preview's retained image.
 class RenderingOverlay final : public QWidget {
 public:
    using QWidget::QWidget;
 
+   /// @brief State drawn by the overlay, updated by ImageLabel.
+   TextureRenderState state = TextureRenderState::Ready;
+
 protected:
+   /// @brief Draws the same status markings used by graph nodes and the 3D preview.
    void paintEvent(QPaintEvent*) override {
       QPainter painter(this);
-      paintRenderingGrid(painter, rect());
+      paintRenderStatusOverlay(painter, rect(), state);
    }
 };
 
@@ -201,7 +201,7 @@ void ImageLabel::resizeEvent(QResizeEvent* event) {
 
 void ImageLabel::setPixmap(const QPixmap& pixmap) {
    sourcePixmap = pixmap;
-   setRendering(false);
+   setRenderStatus({});
    updateGeometry();
    if (parentWidget() != nullptr) {
       parentWidget()->updateGeometry();
@@ -217,11 +217,21 @@ void ImageLabel::setSmoothFiltering(const bool enabled) {
    resizeImage();
 }
 
-void ImageLabel::setRendering(const bool rendering) {
-   renderingOverlay->setVisible(rendering);
-   if (rendering) {
-      renderingOverlay->raise();
+void ImageLabel::setRenderStatus(const TextureRenderStatus& status) {
+   if (sourcePixmap.isNull() && status.state != TextureRenderState::Ready) {
+      sourcePixmap = QPixmap(256, 256);
+      sourcePixmap.fill(Qt::transparent);
+      updateGeometry();
+      resizeImage();
    }
+   renderStatus = status;
+   setToolTip(status.message);
+   setAccessibleDescription(status.message);
+   auto* overlay = static_cast<RenderingOverlay*>(renderingOverlay);
+   overlay->state = status.state;
+   overlay->setVisible(status.state != TextureRenderState::Ready);
+   overlay->update();
+   overlay->raise();
 }
 
 QSize ImageLabel::sizeHint() const {
@@ -241,13 +251,13 @@ int ImageLabel::heightForWidth(const int width) const {
    return qRound(static_cast<double>(width) * pixmapSize.height() / pixmapSize.width());
 }
 
-QPixmap ImageLabel::pixmapWithRenderingOverlay() const {
+QPixmap ImageLabel::pixmapWithStatusOverlay() const {
    QPixmap pixmap = sourcePixmap;
    if (pixmap.isNull()) {
       return {};
    }
    QPainter painter(&pixmap);
-   paintRenderingGrid(painter, pixmap.rect());
+   paintRenderStatusOverlay(painter, pixmap.rect(), renderStatus.state);
    return pixmap;
 }
 
@@ -364,6 +374,8 @@ PreviewImagePanel::PreviewImagePanel(TextureProject& project) : project(project)
                     &PreviewImagePanel::imageAvailable);
    QObject::connect(&project, &TextureProject::imageUpdated, this,
                     &PreviewImagePanel::imageUpdated);
+   QObject::connect(&project, &TextureProject::thumbnailRenderStatusChanged, this,
+                    &PreviewImagePanel::imageUpdated);
    QObject::connect(&project, &TextureProject::nodeRemoved, this, &PreviewImagePanel::nodeRemoved);
    if (project.getSettingsManager() != nullptr) {
       QObject::connect(project.getSettingsManager(), &SettingsManager::settingsUpdated, this,
@@ -373,25 +385,15 @@ PreviewImagePanel::PreviewImagePanel(TextureProject& project) : project(project)
 }
 
 void PreviewImagePanel::imageUpdated(int id) {
-   if (this->isHidden()) {
+   if (isHidden()) {
       return;
    }
    if (id == selectedNodeId) {
-      selectedImageLabel->setRendering(true);
-      selectedImageLabel->show();
-      const QPixmap staleTexture = selectedImageLabel->pixmapWithRenderingOverlay();
-      if (showThreeDButton->isChecked() && !staleTexture.isNull()) {
-         cubeWidget->setTexture(staleTexture);
-         cubeWidget->show();
-      } else {
-         cubeWidget->hide();
-      }
+      loadSelectedNodeImage();
    }
    if (id == lockedNodeId) {
-      lockedImageLabel->setRendering(true);
-      lockedImageLabel->show();
+      loadLockedNodeImage();
    }
-   updatePreviewLayout();
 }
 
 QPixmap PreviewImagePanel::nodePixmap(int id) {
@@ -426,24 +428,30 @@ QPixmap PreviewImagePanel::pixmapWithNodeBackground(const QPixmap& pixmap) const
 }
 
 bool PreviewImagePanel::loadSelectedNodeImage() {
-   const QPixmap newImage = nodePixmap(selectedNodeId);
-   if (newImage.isNull()) {
+   if (project.getNode(selectedNodeId).isNull()) {
       return false;
    }
-   selectedImageLabel->setPixmap(pixmapWithNodeBackground(newImage));
+   const QPixmap newImage = nodePixmap(selectedNodeId);
+   if (!newImage.isNull()) {
+      selectedImageLabel->setPixmap(pixmapWithNodeBackground(newImage));
+   }
+   selectedImageLabel->setRenderStatus(project.thumbnailRenderStatus(selectedNodeId));
    selectedImageLabel->show();
-   cubeWidget->setTexture(pixmapWithNodeBackground(newImage));
+   cubeWidget->setTexture(selectedImageLabel->pixmapWithStatusOverlay());
    cubeWidget->setVisible(showThreeDButton->isChecked());
    updatePreviewLayout();
    return true;
 }
 
 bool PreviewImagePanel::loadLockedNodeImage() {
-   const QPixmap newImage = nodePixmap(lockedNodeId);
-   if (newImage.isNull()) {
+   if (project.getNode(lockedNodeId).isNull()) {
       return false;
    }
-   lockedImageLabel->setPixmap(pixmapWithNodeBackground(newImage));
+   const QPixmap newImage = nodePixmap(lockedNodeId);
+   if (!newImage.isNull()) {
+      lockedImageLabel->setPixmap(pixmapWithNodeBackground(newImage));
+   }
+   lockedImageLabel->setRenderStatus(project.thumbnailRenderStatus(lockedNodeId));
    lockedImageLabel->show();
    updatePreviewLayout();
    return true;
@@ -482,6 +490,7 @@ void PreviewImagePanel::setActiveNode(int id) {
       return;
    }
    selectedNodeId = id;
+   selectedImageLabel->setPixmap({});
    if (this->isHidden()) {
       return;
    }
@@ -558,6 +567,7 @@ void PreviewImagePanel::setNodeLocked(const bool locked) {
       return;
    }
    lockedNodeId = selectedNodeId;
+   lockedImageLabel->setPixmap({});
    lockNodeButton->setText(QStringLiteral("Unlock node"));
    lockedNodePreview->show();
    lockedImageLabel->hide();

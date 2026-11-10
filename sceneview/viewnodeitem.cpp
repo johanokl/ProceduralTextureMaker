@@ -9,6 +9,7 @@
 #include "gui/clipboardoperations.h"
 #include "gui/mainwindow.h"
 #include "gui/texturebackground.h"
+#include "gui/renderstatusoverlay.h"
 #include "base/editmanager.h"
 #include "sceneview/viewnodeitem.h"
 #include "sceneview/viewnodeline.h"
@@ -20,7 +21,6 @@
 
 ViewNodeItem::ViewNodeItem(ViewNodeScene& scene, const TextureNodePtr& newNode)
     : id(newNode->getId()), scene(scene), texNode(newNode) {
-   imageValid = false;
    setFlag(QGraphicsItem::ItemIsSelectable);
 
    mousePressed = false;
@@ -119,12 +119,17 @@ void ViewNodeItem::positionUpdated() {
 
 void ViewNodeItem::settingsUpdated() {
    titleString = texNode->getName().append(" (%1)").arg(texNode->getGeneratorName());
-   setToolTip(titleString);
+   setToolTip(renderStatus.message.isEmpty() ? titleString
+                                             : titleString + "\n" + renderStatus.message);
    updateConnectionLines();
 }
 
-void ViewNodeItem::imageUpdated() {
-   imageValid = false;
+void ViewNodeItem::imageUpdated() { renderStatusUpdated(); }
+
+void ViewNodeItem::renderStatusUpdated() {
+   renderStatus = scene.getTextureProject().thumbnailRenderStatus(id);
+   setToolTip(renderStatus.message.isEmpty() ? titleString
+                                             : titleString + "\n" + renderStatus.message);
    update();
 }
 
@@ -186,7 +191,7 @@ void ViewNodeItem::imageAvailable(QSize size) {
              settingsManager->getNodeBackgroundBrushColor(),
              Qt::BrushStyle(settingsManager->getNodeBackgroundBrush()));
       }
-      imageValid = true;
+      renderStatusUpdated();
       update();
    }
 }
@@ -371,12 +376,7 @@ void ViewNodeItem::paint(QPainter* painter, const QStyleOptionGraphicsItem*, QWi
    painter->drawPixmap(imageRect, pixmap,
                        QRectF(0, 0, thumbnailSize.width(), thumbnailSize.height()));
 
-   if (!imageValid) {
-      QBrush updateBrush(QColor(230, 126, 34, 180));
-      updateBrush.setStyle(Qt::DiagCrossPattern);
-      painter->setBrush(updateBrush);
-      painter->drawRect(imageRect);
-   }
+   paintRenderStatusOverlay(*painter, imageRect, renderStatus.state);
    painter->restore();
 
    painter->setBrush(Qt::NoBrush);

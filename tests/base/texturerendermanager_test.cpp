@@ -4,6 +4,7 @@
 #include "base/texturerendermanager.h"
 #include "support/testgenerators.h"
 #include <QSignalSpy>
+#include <QElapsedTimer>
 #include <QTest>
 #include <QThread>
 #include <algorithm>
@@ -79,6 +80,8 @@ class TextureRenderManagerTest : public QObject {
    Q_OBJECT
 
 private slots:
+   /// @brief Verifies a queued failure cannot overwrite the state of a newer successful render.
+   void ignoresQueuedFailureFromOldRender();
    /// @brief Verifies cancellation affects one manager and a new render replaces stuck work.
    void cancelsOnlyItsOwnJavaScriptAndReplacesStuckRender();
    /// @brief Verifies native nodes can finish after Stop and their images are reused on Restart.
@@ -100,6 +103,28 @@ private slots:
    /// @brief Verifies timing samples are thread-safe and capped at ten recent calls.
    void recordsRollingTimingAcrossThreads();
 };
+
+void TextureRenderManagerTest::ignoresQueuedFailureFromOldRender() {
+   TextureProject project;
+   const TextureGeneratorPtr generator(new JsTexGen(QStringLiteral(
+       "const generator={apiVersion:1,name:'QueuedFailure',type:'generator',inputs:[],"
+       "settings:[{id:'fail',type:'boolean',default:true}],"
+       "generate(size,settings,output){if(settings.fail)throw Error('obsolete failure');"
+       "output.data.fill(255);}};")));
+   QSignalSpy failures(&project, &TextureProject::renderFailed);
+   const auto node = project.newNode(1, generator);
+   // Let the worker queue its failure without delivering events on the project thread.
+   QElapsedTimer timer;
+   timer.start();
+   while (project.canStopRendering() && timer.elapsed() < 2000) {
+      QThread::msleep(1);
+   }
+   QVERIFY(!project.canStopRendering());
+   node->setSettings({{QStringLiteral("fail"), false}});
+   QTRY_VERIFY(!node->cachedImage(project.getThumbnailSize()).isNull());
+   QCOMPARE(project.thumbnailRenderStatus(1).state, TextureRenderState::Ready);
+   QCOMPARE(failures.count(), 0);
+}
 
 void TextureRenderManagerTest::cancelsOnlyItsOwnJavaScriptAndReplacesStuckRender() {
    using namespace std::chrono_literals;
@@ -151,6 +176,8 @@ void TextureRenderManagerTest::stopsNativeNodesAndRestartsUsingCompletedImages()
    QSignalSpy available(&project, &TextureProject::imageAvailable);
    QTRY_COMPARE(available.count(), 1);
    QCOMPARE(receiverRaw->callCount(), 0);
+   QCOMPARE(project.thumbnailRenderStatus(1).state, TextureRenderState::Ready);
+   QCOMPARE(project.thumbnailRenderStatus(2).state, TextureRenderState::Stopped);
    QVERIFY(project.isRenderingStopped());
    // Edits while stopped must not resume rendering.
    project.notifyImageUpdated(second->getId());

@@ -64,6 +64,8 @@ class UiSmokeTest : public QObject {
    Q_OBJECT
 
 private slots:
+   /// @brief Verifies failures, blocked inputs, stopped work, and recovery in graph and previews.
+   void displaysRenderFailuresAndStoppedWork();
    /// @brief Verifies the theme draws disabled menu text differently from enabled text.
    void distinguishesDisabledMenuItems();
    /// @brief Verifies Stop and Restart are menu-only actions with matching enabled states.
@@ -99,6 +101,85 @@ private:
    /// @brief Owns the isolated settings directory for the duration of the test.
    std::unique_ptr<QTemporaryDir> settingsDirectory;
 };
+
+void UiSmokeTest::displaysRenderFailuresAndStoppedWork() {
+   auto* application = qobject_cast<TexGenApplication*>(QCoreApplication::instance());
+   MainWindow window(application);
+   auto* project = window.getTextureProject();
+   const TextureGeneratorPtr generator(new JsTexGen(QStringLiteral(
+       "const generator={apiVersion:1,name:'RenderStatus',type:'generator',inputs:[],"
+       "settings:[{id:'mode',type:'integer',default:0,min:0,max:2}],"
+       "generate(size,settings,output){if(settings.mode===1)throw Error('test failure');"
+       "while(settings.mode===2){}output.data.fill(255);}};")));
+   const TextureGeneratorPtr filter(new JsTexGen(QStringLiteral(
+       "const generator={apiVersion:1,name:'StatusInput',type:'filter',inputs:['Source'],"
+       "generate(size,settings,output,inputs){output.data.set(inputs.Source.data);}};")));
+   project->addGenerator(generator);
+   project->addGenerator(filter);
+   const auto root = project->newNode(1, generator);
+   const auto child = project->newNode(2, filter);
+   QVERIFY(child->setSourceSlot(QStringLiteral("Source"), 1));
+   QTRY_VERIFY(!child->cachedImage(project->getThumbnailSize()).isNull());
+
+   auto* view = window.findChild<QGraphicsView*>();
+   QVERIFY(view != nullptr);
+   auto* scene = dynamic_cast<ViewNodeScene*>(view->scene());
+   QVERIFY(scene != nullptr);
+   auto* panel = window.findChild<PreviewImagePanel*>();
+   auto* selected = panel->findChild<ImageLabel*>(QStringLiteral("selectedNodeImage"));
+   auto* locked = panel->findChild<ImageLabel*>(QStringLiteral("lockedNodeImage"));
+   window.show();
+   panel->show();
+   panel->setActiveNode(1);
+   auto* lock = panel->findChild<QPushButton*>(QStringLiteral("lockNodeButton"));
+   lock->click();
+   QCOMPARE(selected->renderState(), TextureRenderState::Ready);
+
+   const auto independent = project->newNode(3, generator);
+   independent->setSettings({{QStringLiteral("mode"), 2}});
+   root->setSettings({{QStringLiteral("mode"), 1}});
+   QTRY_COMPARE(project->thumbnailRenderStatus(1).state, TextureRenderState::Failed);
+   QCOMPARE(scene->getItem(1)->renderState(), TextureRenderState::Failed);
+   QCOMPARE(scene->getItem(2)->renderState(), TextureRenderState::Blocked);
+   QCOMPARE(scene->getItem(3)->renderState(), TextureRenderState::Cancelled);
+   QVERIFY(scene->getItem(2)->toolTip().contains(QStringLiteral("test failure")));
+   QCOMPARE(selected->renderState(), TextureRenderState::Failed);
+   QCOMPARE(locked->renderState(), TextureRenderState::Failed);
+   QVERIFY(selected->toolTip().contains(QStringLiteral("test failure")));
+   const auto* image = selected->findChild<QLabel*>(QStringLiteral("previewImage"));
+   QVERIFY(!image->pixmap().isNull());
+   QCOMPARE(image->pixmap().toImage().pixelColor(0, 0), QColor(Qt::white));
+   const auto failedOverlay = selected->pixmapWithStatusOverlay().toImage();
+   const QColor failureTint = failedOverlay.pixelColor(0, 0);
+   QVERIFY(failureTint.red() > failureTint.green());
+   panel->hide();
+   panel->show();
+   QCOMPARE(selected->renderState(), TextureRenderState::Failed);
+   panel->setActiveNode(2);
+   QCOMPARE(selected->renderState(), TextureRenderState::Blocked);
+
+   project->removeNode(3);
+   root->setSettings({{QStringLiteral("mode"), 2}});
+   QTRY_VERIFY(project->canStopRendering());
+   project->stopRendering();
+   QCOMPARE(scene->getItem(1)->renderState(), TextureRenderState::Stopped);
+   QCOMPARE(scene->getItem(2)->renderState(), TextureRenderState::Stopped);
+   QCOMPARE(selected->renderState(), TextureRenderState::Stopped);
+   QCOMPARE(locked->renderState(), TextureRenderState::Stopped);
+   const auto stoppedOverlay = locked->pixmapWithStatusOverlay().toImage();
+   QVERIFY(stoppedOverlay != failedOverlay);
+   locked->setRenderStatus({TextureRenderState::Rendering, {}});
+   QVERIFY(locked->pixmapWithStatusOverlay().toImage() == stoppedOverlay);
+   locked->setRenderStatus(project->thumbnailRenderStatus(1));
+
+   root->setSettings({{QStringLiteral("mode"), 0}});
+   project->restartRendering();
+   QTRY_COMPARE(project->thumbnailRenderStatus(2).state, TextureRenderState::Ready);
+   QCOMPARE(selected->renderState(), TextureRenderState::Ready);
+   QCOMPARE(locked->renderState(), TextureRenderState::Ready);
+   QVERIFY(locked->toolTip().isEmpty());
+   QVERIFY(!scene->getItem(1)->toolTip().contains(QStringLiteral("test failure")));
+}
 
 void UiSmokeTest::distinguishesDisabledMenuItems() {
    auto* application = qobject_cast<QApplication*>(QCoreApplication::instance());
@@ -843,7 +924,8 @@ void UiSmokeTest::arrangesPreviewPanelViews() {
    selectedImage->show();
    lockedImage->setPixmap(previewPixmap);
    lockedImage->show();
-   panel.imageUpdated(1);
+   selectedImage->setRenderStatus({TextureRenderState::Rendering, {}});
+   lockedImage->setRenderStatus({TextureRenderState::Rendering, {}});
    QVERIFY(!selectedRenderingOverlay->isHidden());
    QVERIFY(!lockedRenderingOverlay->isHidden());
    selectedImage->setPixmap(previewPixmap);
@@ -865,9 +947,10 @@ void UiSmokeTest::arrangesPreviewPanelViews() {
    selectedImage->show();
    cube->setTexture(previewPixmap);
    cube->show();
-   panel.imageUpdated(2);
+   selectedImage->setRenderStatus({TextureRenderState::Rendering, {}});
+   cube->setTexture(selectedImage->pixmapWithStatusOverlay());
    QVERIFY(!cube->isHidden());
-   QVERIFY(selectedImage->pixmapWithRenderingOverlay().toImage() != previewPixmap.toImage());
+   QVERIFY(selectedImage->pixmapWithStatusOverlay().toImage() != previewPixmap.toImage());
 
    lockedPreview->show();
    lockedImage->setPixmap(previewPixmap);

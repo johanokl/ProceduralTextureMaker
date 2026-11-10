@@ -7,6 +7,7 @@
 #ifndef PREVIEWIMAGEPANEL_H
 #define PREVIEWIMAGEPANEL_H
 
+#include "base/texturerenderstatus.h"
 #include <QPixmap>
 #include <QWidget>
 class TextureProject;
@@ -47,7 +48,7 @@ public slots:
    /// @param size Available image size.
    void imageAvailable(int id, QSize size);
 
-   /// @brief Clears a preview whose cached image is no longer valid.
+   /// @brief Refreshes a preview image and its render status without discarding the last image.
    /// @param id Updated node identifier.
    void imageUpdated(int id);
 
@@ -59,12 +60,12 @@ public slots:
    void nodeRemoved(int id);
 
 private:
-   /// @brief Loads the selected node into the 2D and 3D previews when cached.
-   /// @return True when a cached image was displayed.
+   /// @brief Refreshes the selected image, keeping its last good image while unavailable.
+   /// @return True when the selected node still exists.
    bool loadSelectedNodeImage();
 
-   /// @brief Loads the locked node into its 2D preview when cached.
-   /// @return True when a cached image was displayed.
+   /// @brief Refreshes the locked image and its render status.
+   /// @return True when the locked node still exists.
    bool loadLockedNodeImage();
 
    /// @brief Returns a tiled cached thumbnail for a node.
@@ -141,9 +142,9 @@ public slots:
    /// @brief Enables smooth linear scaling or crisp nearest-neighbor scaling.
    void setSmoothFiltering(bool enabled);
 
-   /// @brief Shows or hides the stale-image grid over the current pixmap.
-   /// @param rendering Whether a replacement image is being rendered.
-   void setRendering(bool rendering);
+   /// @brief Displays the current render state without replacing the last image.
+   /// @param status State and tooltip supplied by the project.
+   void setRenderStatus(const TextureRenderStatus& status);
 
 public:
    /// @brief Returns a compact preferred size that preserves the current image aspect ratio.
@@ -154,9 +155,11 @@ public:
    /// @return Aspect-ratio-preserving image height.
    int heightForWidth(int width) const override;
 
-   /// @brief Returns the current pixmap with the stale-image grid composited over it.
-   /// @return Grid-marked pixmap, or a null pixmap when no image is displayed.
-   QPixmap pixmapWithRenderingOverlay() const;
+   /// @brief Returns the current image with its render status overlay for the 3D preview.
+   QPixmap pixmapWithStatusOverlay() const;
+
+   /// @brief Returns the render state currently displayed by this preview.
+   TextureRenderState renderState() const { return renderStatus.state; }
 
    /// @brief Checks whether smooth linear scaling is enabled.
    bool hasSmoothFiltering() const { return smoothFiltering; }
@@ -175,10 +178,12 @@ private:
    QLabel* label{nullptr};
    /// @brief Unscaled source pixmap retained across widget resizes.
    QPixmap sourcePixmap;
-   /// @brief Transparent grid displayed over a stale pixmap during rendering.
+   /// @brief Transparent status overlay displayed above the retained image.
    QWidget* renderingOverlay{nullptr};
    /// @brief Whether scaled images use linear rather than nearest-neighbor filtering.
    bool smoothFiltering{true};
+   /// @brief Render state and diagnostic displayed by the overlay and tooltip.
+   TextureRenderStatus renderStatus;
 };
 
 #endif  // PREVIEWIMAGEPANEL_H

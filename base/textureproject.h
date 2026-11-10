@@ -10,6 +10,7 @@
 #include "base/texturegenerator.h"
 #include "texturenode.h"
 #include "texturerendermanager.h"
+#include "texturerenderstatus.h"
 #include <QDomDocument>
 #include <QList>
 #include <QMap>
@@ -183,6 +184,10 @@ public slots:
    /// @brief Returns whether stopped rendering has images left to generate.
    bool canRestartRendering() const;
 
+   /// @brief Returns the current thumbnail state, including failures and stopped work.
+   /// @param id Node whose status is requested.
+   TextureRenderStatus thumbnailRenderStatus(int id) const;
+
    /// @brief Finds an active node that has taken at least 60 seconds.
    /// @return The node to ask about, or no value if no node is overdue.
    std::optional<TextureSlowRender> slowRender() const { return renderManager->slowNode(); }
@@ -198,6 +203,10 @@ public slots:
 signals:
    /// @brief Reports changes to the work available for Stop and Restart.
    void renderingStateChanged();
+
+   /// @brief Updates graph and preview overlays after a node's render state changes.
+   /// @param id Node whose status can be read with thumbnailRenderStatus().
+   void thumbnailRenderStatusChanged(int id);
 
    /// @brief Emitted after a node is added to the project.
    void nodeAdded(TextureNodePtr);
@@ -264,6 +273,9 @@ private:
    /// @param failure The failed node, image dimensions, and error message.
    void publishRenderFailure(TextureRenderFailure failure);
 
+   /// @brief Stores a thumbnail status and notifies views only when it changes.
+   void setThumbnailRenderStatus(int id, TextureRenderState state, const QString& message = {});
+
    /// @brief Marks the current project state as successfully persisted.
    void markSaved();
 
@@ -293,6 +305,8 @@ private:
    bool automaticThumbnailRendering;
    /// @brief Whether the user stopped rendering until an explicit restart.
    bool renderingStopped = false;
+   /// @brief Current thumbnail states, owned and updated by the project thread.
+   QMap<int, TextureRenderStatus> thumbnailStatuses;
 };
 
 #endif  // TEXTUREPROJECT_H

@@ -233,8 +233,28 @@ TextureGraphSnapshot TextureProject::createTextureGraphSnapshot(QSize renderSize
 }
 
 void TextureProject::scheduleThumbnailRender() {
-   if (automaticThumbnailRendering && !renderingStopped && renderManager) {
-      renderManager->render(createTextureGraphSnapshot(thumbnailSize));
+   if (!renderManager || !automaticThumbnailRendering) {
+      return;
+   }
+   auto snapshot = createTextureGraphSnapshot(thumbnailSize);
+   for (const auto& node : snapshot.nodes) {
+      auto state = TextureRenderState::Rendering;
+      if (!node.cachedImage.isNull()) {
+         state = TextureRenderState::Ready;
+      } else if (renderingStopped) {
+         state = TextureRenderState::Stopped;
+      }
+      setThumbnailRenderStatus(
+          node.nodeId, state,
+          state == TextureRenderState::Stopped
+              ? QStringLiteral("Rendering stopped. Use View > Restart rendering to continue.")
+              : QString());
+   }
+   if (!renderingStopped) {
+      renderManager->render(std::move(snapshot));
+   } else {
+      // Edits while stopped invalidate queued results from the previous graph.
+      renderManager->cancel();
    }
    emit renderingStateChanged();
 }
@@ -242,6 +262,14 @@ void TextureProject::scheduleThumbnailRender() {
 void TextureProject::stopRendering() {
    renderingStopped = true;
    renderManager->stop();
+   const auto statuses = thumbnailStatuses;
+   for (auto status = statuses.cbegin(); status != statuses.cend(); ++status) {
+      if (status->state == TextureRenderState::Rendering) {
+         setThumbnailRenderStatus(
+             status.key(), TextureRenderState::Stopped,
+             QStringLiteral("Rendering stopped. Use View > Restart rendering to continue."));
+      }
+   }
    emit renderingStateChanged();
 }
 
@@ -264,6 +292,21 @@ bool TextureProject::canRestartRendering() const {
    });
 }
 
+TextureRenderStatus TextureProject::thumbnailRenderStatus(int id) const {
+   return thumbnailStatuses.value(id);
+}
+
+void TextureProject::setThumbnailRenderStatus(int id, TextureRenderState state,
+                                              const QString& message) {
+   const auto previous = thumbnailStatuses.constFind(id);
+   if (previous != thumbnailStatuses.cend() && previous->state == state &&
+       previous->message == message) {
+      return;
+   }
+   thumbnailStatuses.insert(id, {state, message});
+   emit thumbnailRenderStatusChanged(id);
+}
+
 void TextureProject::markSaved() { modified = false; }
 
 void TextureProject::publishRenderResult(TextureRenderResult result) {
@@ -280,6 +323,39 @@ void TextureProject::publishRenderResult(TextureRenderResult result) {
 void TextureProject::publishRenderFailure(TextureRenderFailure failure) {
    if (failure.sequence != 0 && !renderManager->isCurrent(failure.sequence)) {
       return;
+   }
+   QSet<int> affected;
+   QList<int> pending{failure.nodeId};
+   while (!pending.isEmpty()) {
+      const int id = pending.takeLast();
+      if (affected.contains(id)) {
+         continue;
+      }
+      affected.insert(id);
+      const auto node = getNode(id);
+      if (!node.isNull()) {
+         auto receivers = node->getReceivers();
+         while (receivers.hasNext()) {
+            pending.append(receivers.next());
+         }
+      }
+   }
+   const auto statuses = thumbnailStatuses;
+   for (auto status = statuses.cbegin(); status != statuses.cend(); ++status) {
+      if (status->state != TextureRenderState::Rendering) {
+         continue;
+      }
+      if (status.key() == failure.nodeId || failure.nodeId == 0) {
+         setThumbnailRenderStatus(status.key(), TextureRenderState::Failed, failure.message);
+      } else if (affected.contains(status.key())) {
+         setThumbnailRenderStatus(
+             status.key(), TextureRenderState::Blocked,
+             QStringLiteral("Input node %1 failed: %2").arg(failure.nodeId).arg(failure.message));
+      } else {
+         setThumbnailRenderStatus(
+             status.key(), TextureRenderState::Cancelled,
+             QStringLiteral("Rendering cancelled after node %1 failed.").arg(failure.nodeId));
+      }
    }
    qWarning().noquote() << QStringLiteral("Texture render failed for node %1 at %2x%3: %4")
                                .arg(failure.nodeId)
@@ -513,6 +589,7 @@ void TextureProject::removeNode(int id) {
    }
    // Removing an unconnected node emits no disconnection or image update signals.
    modified = true;
+   thumbnailStatuses.remove(id);
    emit nodeRemoved(id);
    scheduleThumbnailRender();
 }
@@ -523,7 +600,12 @@ void TextureProject::notifyImageUpdated(int id) {
    emit imageUpdated(id);
 }
 
-void TextureProject::notifyImageAvailable(int id, QSize size) { emit imageAvailable(id, size); }
+void TextureProject::notifyImageAvailable(int id, QSize size) {
+   if (size == thumbnailSize) {
+      setThumbnailRenderStatus(id, TextureRenderState::Ready);
+   }
+   emit imageAvailable(id, size);
+}
 
 void TextureProject::notifyNodesConnected(int sourceId, int receiverId, QString slot) {
    modified = true;

@@ -8,6 +8,7 @@
 #define VIEWNODEITEM_H
 
 #include "base/texturenode.h"
+#include "base/texturerenderstatus.h"
 #include <QGraphicsItem>
 class ViewNodeScene;
 class TextureNode;
@@ -98,6 +99,12 @@ public slots:
    /// @brief Marks the current thumbnail as stale.
    void imageUpdated();
 
+   /// @brief Refreshes the overlay and tooltip from the project's thumbnail status.
+   void renderStatusUpdated();
+
+   /// @brief Returns the render state currently displayed by this node.
+   TextureRenderState renderState() const { return renderStatus.state; }
+
    /// @brief Displays a newly rendered thumbnail when its size matches.
    /// @param size Available image size.
    void imageAvailable(QSize size);
@@ -175,8 +182,8 @@ private:
    QSet<ViewNodeLine*> startLines;
    /// @brief Non-owning references to scene-owned incoming lines by input slot.
    QMap<QString, ViewNodeLine*> endLines;
-   /// @brief Whether the displayed thumbnail matches the current node state.
-   bool imageValid;
+   /// @brief Render state and diagnostic displayed over the retained thumbnail.
+   TextureRenderStatus renderStatus;
    /// @brief Whether the node rejects the pending connection.
    bool isUnconnectable;
    /// @brief Whether the node accepts the pending connection.
