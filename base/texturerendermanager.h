@@ -13,12 +13,15 @@
 #include <QSize>
 #include <QString>
 #include <condition_variable>
+#include <chrono>
+#include <optional>
+#include "base/executioncontroller.h"
 #include <cstddef>
 #include <cstdint>
 #include <deque>
 #include <functional>
 #include <map>
-#include <memory>
+#include <QSharedPointer>
 #include <mutex>
 #include <thread>
 #include <vector>
@@ -57,6 +60,8 @@ struct TextureRenderResult {
    QSize size;
    /// @brief Rendered image.
    TextureImagePtr image;
+   /// @brief Render sequence checked again when a queued result reaches the GUI.
+   std::uint64_t sequence = 0;
 };
 
 /// @brief Details of a texture render error.
@@ -67,6 +72,18 @@ struct TextureRenderFailure {
    QSize size;
    /// @brief Message describing the error.
    QString message;
+   /// @brief Render sequence used to reject errors from older renders.
+   std::uint64_t sequence = 0;
+};
+
+/// @brief Identifies the active node shown in a slow-render prompt.
+struct TextureSlowRender {
+   /// @brief Sequence of the graph render that started this node.
+   std::uint64_t sequence = 0;
+   /// @brief ID of the node being rendered.
+   int nodeId = 0;
+   /// @brief Generator name displayed in the prompt.
+   QString generatorName;
 };
 
 /// @brief Keeps the newest graph render and runs unblocked nodes on an owned worker pool.
@@ -106,8 +123,33 @@ public:
    /// @param snapshot The fixed graph state to render.
    void render(TextureGraphSnapshot snapshot);
 
-   /// @brief Cancels queued work and asks active work to stop between nodes.
+   /// @brief Cancels queued work, interrupts JavaScript, and discards results still in progress.
    void cancel();
+
+   /// @brief Stops scheduling nodes and interrupts this render's JavaScript only.
+   /// @details A native node already running may finish and publish its image.
+   void stop();
+
+   /// @brief Returns whether the current render has unfinished images and is not stopped.
+   bool hasPendingWork() const;
+
+   /// @brief Checks whether a queued callback still belongs to the latest render.
+   /// @param sequence Render sequence captured by the callback.
+   bool isCurrent(std::uint64_t sequence) const { return !isObsolete(sequence); }
+
+   /// @brief Finds an active node that has exceeded the waiting interval.
+   /// @param interval Time to wait before showing or repeating a prompt.
+   /// @return An overdue node, or no value when no prompt is needed.
+   std::optional<TextureSlowRender> slowNode(
+       std::chrono::milliseconds interval = std::chrono::seconds(60)) const;
+
+   /// @brief Checks that a timeout prompt still refers to an active node.
+   /// @param node Render sequence and node to check.
+   bool isRunning(const TextureSlowRender& node) const;
+
+   /// @brief Restarts the waiting interval for an active node.
+   /// @param node Node from the prompt; ignored if its render has been replaced or finished.
+   void continueRendering(const TextureSlowRender& node);
 
 private:
    /// @brief Tracks one node and the source nodes that still need to finish.
@@ -134,12 +176,17 @@ private:
       std::size_t unfinishedNodes = 0;
       /// @brief Whether rendering stopped because one node failed.
       bool failed = false;
+      /// @brief Cancellation is constructed before workers can see this render.
+      QSharedPointer<ExecutionController> controller =
+          QSharedPointer<ExecutionController>::create();
+      /// @brief Active node start times, also used for repeated slow-render prompts.
+      std::map<int, std::chrono::steady_clock::time_point> activeNodes;
    };
 
    /// @brief Contains a node task that a worker can run.
    struct TextureNodeRenderTask {
       /// @brief Shared graph render state for this task.
-      std::shared_ptr<TextureGraphRenderState> renderState;
+      QSharedPointer<TextureGraphRenderState> renderState;
       /// @brief ID of the node to render.
       int nodeId = 0;
    };
@@ -147,7 +194,7 @@ private:
    /// @brief Builds dependency state for a graph render.
    /// @param snapshot The graph snapshot to prepare for rendering.
    /// @return Shared state used by active node render tasks.
-   static std::shared_ptr<TextureGraphRenderState> createGraphRenderState(
+   static QSharedPointer<TextureGraphRenderState> createGraphRenderState(
        TextureGraphSnapshot snapshot);
 
    /// @brief Waits for runnable tasks and catches exceptions before they leave the worker thread.
@@ -184,7 +231,7 @@ private:
    /// @brief Node tasks whose source dependencies have finished.
    std::deque<TextureNodeRenderTask> runnableTasks;
    /// @brief Newest graph render, or null when no render is active.
-   std::shared_ptr<TextureGraphRenderState> currentRender;
+   QSharedPointer<TextureGraphRenderState> currentRender;
    /// @brief Sequence number used to reject older renders.
    std::uint64_t latestRenderSequence = 0;
    /// @brief Whether the render manager is shutting down.

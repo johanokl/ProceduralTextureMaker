@@ -14,6 +14,8 @@
 #include <QSharedPointer>
 #include <QStringList>
 
+class ExecutionController;
+
 /// @brief Language-independent texture-generator contract used by the graph and renderer.
 class TextureGenerator {
 public:
@@ -52,18 +54,22 @@ public:
    /// pixels.
    /// @param sourceimages Source images keyed by the names returned from getSourceSlots().
    /// @param settings Current values for the settings returned from getSettings().
+   /// @param controller Render cancellation; native generators may finish the current node.
    virtual void generate(QSize size, TexturePixel* destimage,
                          const QMap<QString, TextureImagePtr>& sourceimages,
-                         const TextureNodeSettings& settings) const = 0;
+                         const TextureNodeSettings& settings,
+                         const QSharedPointer<ExecutionController>& controller = {}) const = 0;
 
    /// @brief Calls generate() and records its duration in the rolling timing window.
    /// @param size Width and height of the destination and source images.
    /// @param destimage Writable destination pixel buffer.
    /// @param sourceimages Source images keyed by input-slot name.
    /// @param settings Current generator settings.
+   /// @param controller Optional cancellation state checked before generation starts.
    void generateWithTiming(QSize size, TexturePixel* destimage,
                            const QMap<QString, TextureImagePtr>& sourceimages,
-                           const TextureNodeSettings& settings) const;
+                           const TextureNodeSettings& settings,
+                           const QSharedPointer<ExecutionController>& controller = {}) const;
 
    /// @brief Returns timing data for up to the last ten completed generation calls.
    /// @return A thread-safe snapshot; runCount is zero before the first completed call.

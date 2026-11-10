@@ -16,7 +16,8 @@ public:
    ~NormalMapTextureGenerator() override = default;
    void generate(QSize size, TexturePixel* destimage,
                  const QMap<QString, TextureImagePtr>& sourceimages,
-                 const TextureNodeSettings& settings) const override;
+                 const TextureNodeSettings& settings,
+                 const QSharedPointer<ExecutionController>& = {}) const override;
    QStringList getSourceSlots() const override { return {QStringLiteral("Height map")}; }
    QString getName() const override { return QString("Normal-map"); }
    const TextureGeneratorSettings& getSettings() const override { return configurables; }

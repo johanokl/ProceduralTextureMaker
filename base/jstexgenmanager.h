@@ -7,6 +7,7 @@
 #define JSTEXGENMANAGER_H
 
 #include "base/jstexgen.h"
+#include "base/executioncontroller.h"
 #include <QMap>
 #include <QObject>
 #include <QSet>
@@ -57,7 +58,8 @@ public slots:
 signals:
    /// @brief Requests that the worker scan a directory.
    /// @param path Directory to scan recursively.
-   void scanDirectory(QString path);
+   /// @param controller Cancellation state created before the scan is queued.
+   void scanDirectory(QString path, QSharedPointer<ExecutionController> controller);
 
    /// @brief Reports diagnostics produced by the most recently completed scan.
    /// @param diagnostics Validation, file access, and collision messages.
@@ -69,8 +71,8 @@ signals:
 
 private slots:
    /// @brief Receives ownership of a validated generator from the discovery worker.
-   /// @param generator Heap-allocated generator to stage for the current scan.
-   void generatorFound(JsTexGen* generator);
+   /// @param generator Shared ownership keeps queued scan results safe during shutdown.
+   void generatorFound(TextureGeneratorPtr generator);
 
    /// @brief Records a source file rejected by the discovery worker.
    /// @param path Canonical path of the rejected definition.
@@ -105,8 +107,6 @@ private:
 
    /// @brief Normalized root directory used for custom generator discovery.
    QString directoryPath;
-   /// @brief Non-owning pointer to the worker object living on fileFinderThread.
-   QObject* fileFinder{nullptr};
    /// @brief Worker thread used for filesystem traversal and script validation.
    QThread* fileFinderThread{nullptr};
    /// @brief Non-owning project whose generator registry is maintained.
@@ -123,10 +123,13 @@ private:
    bool enabled{false};
    /// @brief Whether the worker is currently scanning a directory.
    bool scanInProgress{false};
+   /// @brief Cancellation belongs to this scan, including before its worker slot begins.
+   QSharedPointer<ExecutionController> scanController;
    /// @brief Whether another scan should begin after the current scan stops.
    bool rescanRequested{false};
 };
 
-Q_DECLARE_METATYPE(JsTexGen*)
+Q_DECLARE_METATYPE(TextureGeneratorPtr)
+Q_DECLARE_METATYPE(QSharedPointer<ExecutionController>)
 
 #endif  // JSTEXGENMANAGER_H

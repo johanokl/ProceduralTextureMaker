@@ -3,6 +3,7 @@
 #include "base/jstexgen.h"
 #include "base/textureproject.h"
 #include "gui/addnodepanel.h"
+#include "gui/applicationtheme.h"
 #include "gui/cubewidget.h"
 #include "gui/generatorinfowidget.h"
 #include "gui/iteminfopanel.h"
@@ -24,6 +25,13 @@
 #include <QComboBox>
 #include <QMimeData>
 #include <QPushButton>
+#include <QMenu>
+#include <QMenuBar>
+#include <QScopeGuard>
+#include <QStyle>
+#include <QStyleFactory>
+#include <QToolBar>
+#include <QAction>
 #include <QScrollArea>
 #include <QScrollBar>
 #include <QSettings>
@@ -56,6 +64,10 @@ class UiSmokeTest : public QObject {
    Q_OBJECT
 
 private slots:
+   /// @brief Verifies the theme draws disabled menu text differently from enabled text.
+   void distinguishesDisabledMenuItems();
+   /// @brief Verifies Stop and Restart are menu-only actions with matching enabled states.
+   void stopsAndRestartsRenderingFromMenu();
    /// @brief Isolates application settings and initializes the test environment.
    void initTestCase();
    /// @brief Verifies transparent texture backgrounds are composited consistently.
@@ -87,6 +99,101 @@ private:
    /// @brief Owns the isolated settings directory for the duration of the test.
    std::unique_ptr<QTemporaryDir> settingsDirectory;
 };
+
+void UiSmokeTest::distinguishesDisabledMenuItems() {
+   auto* application = qobject_cast<QApplication*>(QCoreApplication::instance());
+   const QString originalStyle = application->style()->objectName();
+   const QString originalSheet = application->styleSheet();
+   const QPalette originalPalette = application->palette();
+   const QFont originalFont = application->font();
+   const auto restoreTheme = qScopeGuard([=] {
+      application->setStyleSheet(originalSheet);
+      application->setStyle(QStyleFactory::create(originalStyle));
+      application->setPalette(originalPalette);
+      application->setFont(originalFont);
+   });
+   ApplicationTheme::apply(*application);
+   QMenu menu;
+   auto* enabled = menu.addAction(QStringLiteral("Rendering"));
+   auto* disabled = menu.addAction(QStringLiteral("Rendering"));
+   disabled->setEnabled(false);
+   menu.show();
+   menu.setActiveAction(nullptr);
+   QCoreApplication::processEvents();
+   const QImage enabledImage = menu.grab(menu.actionGeometry(enabled)).toImage();
+   const QImage disabledImage = menu.grab(menu.actionGeometry(disabled)).toImage();
+   QVERIFY(!enabledImage.isNull());
+   QCOMPARE(enabledImage.size(), disabledImage.size());
+   QVERIFY(enabledImage != disabledImage);
+}
+
+void UiSmokeTest::stopsAndRestartsRenderingFromMenu() {
+   auto* application = qobject_cast<TexGenApplication*>(QCoreApplication::instance());
+   MainWindow window(application);
+   QMenu* viewMenu = nullptr;
+   for (auto* action : window.menuBar()->actions()) {
+      QVERIFY(action->text() != QStringLiteral("&Render"));
+      if (action->text() == QStringLiteral("&View")) {
+         viewMenu = action->menu();
+      }
+   }
+   QVERIFY(viewMenu != nullptr);
+   QAction* stop = nullptr;
+   QAction* restart = nullptr;
+   for (auto* action : viewMenu->actions()) {
+      if (action->text() == QStringLiteral("Stop rendering")) {
+         stop = action;
+      } else if (action->text() == QStringLiteral("Restart rendering")) {
+         restart = action;
+      }
+   }
+   QVERIFY(stop != nullptr);
+   QVERIFY(restart != nullptr);
+
+   for (auto* toolbar : window.findChildren<QToolBar*>()) {
+      QVERIFY(!toolbar->actions().contains(stop));
+      QVERIFY(!toolbar->actions().contains(restart));
+   }
+   QVERIFY(stop->isVisible());
+   QVERIFY(restart->isVisible());
+   QVERIFY(!stop->isEnabled());
+   QVERIFY(!restart->isEnabled());
+   auto* project = window.getTextureProject();
+   stop->trigger();
+   QVERIFY(!project->isRenderingStopped());
+
+   const TextureGeneratorPtr generator(new JsTexGen(QStringLiteral(
+       "const generator={apiVersion:1,name:'MenuState',type:'generator',inputs:[],"
+       "settings:[{id:'stuck',type:'boolean',default:true}],"
+       "generate(size,settings,output){while(settings.stuck){}output.data.fill(255);}};")));
+   project->addGenerator(generator);
+   const auto node = project->newNode(1, generator);
+   QTRY_VERIFY(stop->isEnabled());
+   QVERIFY(!restart->isEnabled());
+   stop->trigger();
+   QVERIFY(project->isRenderingStopped());
+   QVERIFY(!stop->isEnabled());
+   QVERIFY(restart->isEnabled());
+
+   restart->trigger();
+   QVERIFY(!project->isRenderingStopped());
+   QTRY_VERIFY(stop->isEnabled());
+   QVERIFY(!restart->isEnabled());
+   stop->trigger();
+   node->setSettings({{QStringLiteral("stuck"), false}});
+   restart->trigger();
+   QTRY_VERIFY(!node->cachedImage(project->getThumbnailSize()).isNull());
+   QVERIFY(!stop->isEnabled());
+   QVERIFY(!restart->isEnabled());
+
+   node->setSettings({{QStringLiteral("stuck"), true}});
+   QTRY_VERIFY(stop->isEnabled());
+   stop->trigger();
+   QVERIFY(restart->isEnabled());
+   project->removeNode(node->getId());
+   QVERIFY(!stop->isEnabled());
+   QVERIFY(!restart->isEnabled());
+}
 
 void UiSmokeTest::initTestCase() {
    QStandardPaths::setTestModeEnabled(true);

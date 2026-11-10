@@ -16,7 +16,8 @@ public:
 
    void generate(QSize size, TexturePixel* destination,
                  const QMap<QString, TextureImagePtr>& sources,
-                 const TextureNodeSettings& nodeSettings) const override {
+                 const TextureNodeSettings& nodeSettings,
+                 const QSharedPointer<ExecutionController>&) const override {
       Q_UNUSED(sources);
       Q_UNUSED(nodeSettings);
       std::fill_n(destination, static_cast<qsizetype>(size.width()) * size.height(),

@@ -9,6 +9,7 @@
 
 #include "base/texturegenerator.h"
 #include "texturenode.h"
+#include "texturerendermanager.h"
 #include <QDomDocument>
 #include <QList>
 #include <QMap>
@@ -167,7 +168,37 @@ public slots:
    /// @brief Applies updated image sizes from the attached settings manager.
    void settingsUpdated();
 
+   /// @brief Stops automatic rendering until explicitly restarted; completed images stay cached.
+   void stopRendering();
+
+   /// @brief Renders the current graph, reusing images that are still valid.
+   void restartRendering();
+
+   /// @brief Returns whether the user has stopped automatic rendering.
+   bool isRenderingStopped() const { return renderingStopped; }
+
+   /// @brief Returns whether there is active or queued rendering to stop.
+   bool canStopRendering() const;
+
+   /// @brief Returns whether stopped rendering has images left to generate.
+   bool canRestartRendering() const;
+
+   /// @brief Finds an active node that has taken at least 60 seconds.
+   /// @return The node to ask about, or no value if no node is overdue.
+   std::optional<TextureSlowRender> slowRender() const { return renderManager->slowNode(); }
+
+   /// @brief Checks whether the node in a slow-render prompt is still rendering.
+   /// @param node Render sequence and node to check.
+   bool isRendering(const TextureSlowRender& node) const { return renderManager->isRunning(node); }
+
+   /// @brief Gives a slow node another 60 seconds before asking again.
+   /// @param node Node from the prompt; ignored if its render has been replaced or finished.
+   void continueRendering(const TextureSlowRender& node) { renderManager->continueRendering(node); }
+
 signals:
+   /// @brief Reports changes to the work available for Stop and Restart.
+   void renderingStateChanged();
+
    /// @brief Emitted after a node is added to the project.
    void nodeAdded(TextureNodePtr);
 
@@ -260,6 +291,8 @@ private:
    bool modified;
    /// @brief Whether graph changes automatically schedule thumbnail rendering.
    bool automaticThumbnailRendering;
+   /// @brief Whether the user stopped rendering until an explicit restart.
+   bool renderingStopped = false;
 };
 
 #endif  // TEXTUREPROJECT_H

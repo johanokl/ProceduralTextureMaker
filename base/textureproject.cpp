@@ -28,6 +28,7 @@
 #include <Qt>
 #include <QtLogging>
 #include <QtCore/qtmetamacros.h>
+#include <algorithm>
 #include <cstddef>
 #include <memory>
 #include <mutex>
@@ -232,30 +233,61 @@ TextureGraphSnapshot TextureProject::createTextureGraphSnapshot(QSize renderSize
 }
 
 void TextureProject::scheduleThumbnailRender() {
-   if (automaticThumbnailRendering && renderManager) {
+   if (automaticThumbnailRendering && !renderingStopped && renderManager) {
       renderManager->render(createTextureGraphSnapshot(thumbnailSize));
    }
+   emit renderingStateChanged();
+}
+
+void TextureProject::stopRendering() {
+   renderingStopped = true;
+   renderManager->stop();
+   emit renderingStateChanged();
+}
+
+void TextureProject::restartRendering() {
+   renderingStopped = false;
+   scheduleThumbnailRender();
+}
+
+bool TextureProject::canStopRendering() const {
+   return !renderingStopped && renderManager && renderManager->hasPendingWork();
+}
+
+bool TextureProject::canRestartRendering() const {
+   if (!renderingStopped) {
+      return false;
+   }
+   const auto nodesCopy = nodesSnapshot();
+   return std::any_of(nodesCopy.cbegin(), nodesCopy.cend(), [this](const TextureNodePtr& node) {
+      return node->cachedImage(thumbnailSize).isNull();
+   });
 }
 
 void TextureProject::markSaved() { modified = false; }
 
 void TextureProject::publishRenderResult(TextureRenderResult result) {
-   if (result.size != thumbnailSize) {
+   if (result.size != thumbnailSize || !renderManager->isCurrent(result.sequence)) {
       return;
    }
    const TextureNodePtr node = getNode(result.nodeId);
    if (!node.isNull()) {
       node->publishRenderedImage(result.size, result.revision, result.image);
    }
+   emit renderingStateChanged();
 }
 
 void TextureProject::publishRenderFailure(TextureRenderFailure failure) {
+   if (failure.sequence != 0 && !renderManager->isCurrent(failure.sequence)) {
+      return;
+   }
    qWarning().noquote() << QStringLiteral("Texture render failed for node %1 at %2x%3: %4")
                                .arg(failure.nodeId)
                                .arg(failure.size.width())
                                .arg(failure.size.height())
                                .arg(failure.message);
    emit renderFailed(failure.nodeId, failure.size, failure.message);
+   emit renderingStateChanged();
 }
 
 TextureNodePtr TextureProject::getNode(int id) const {

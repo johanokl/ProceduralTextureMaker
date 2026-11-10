@@ -29,7 +29,8 @@ public:
    ~SetChannelsTextureGenerator() override = default;
    void generate(QSize size, TexturePixel* destimage,
                  const QMap<QString, TextureImagePtr>& sourceimages,
-                 const TextureNodeSettings& settings) const override;
+                 const TextureNodeSettings& settings,
+                 const QSharedPointer<ExecutionController>& = {}) const override;
    QStringList getSourceSlots() const override {
       return {QStringLiteral("First"), QStringLiteral("Second")};
    }

@@ -4,7 +4,9 @@
 // Johan Lindqvist (johan.lindqvist@gmail.com)
 
 #include "base/texturegenerator.h"
+#include "base/executioncontroller.h"
 #include <QElapsedTimer>
+#include <stdexcept>
 #include <QMutexLocker>
 #include <QRegularExpression>
 #include <QSet>
@@ -33,13 +35,17 @@ QString validateTextureGeneratorSettings(const TextureGeneratorSettings& setting
    return QString();
 }
 
-void TextureGenerator::generateWithTiming(const QSize size, TexturePixel* destimage,
-                                          const QMap<QString, TextureImagePtr>& sourceimages,
-                                          const TextureNodeSettings& settings) const {
+void TextureGenerator::generateWithTiming(
+    const QSize size, TexturePixel* destimage, const QMap<QString, TextureImagePtr>& sourceimages,
+    const TextureNodeSettings& settings,
+    const QSharedPointer<ExecutionController>& controller) const {
    QElapsedTimer timer;
    timer.start();
    try {
-      generate(size, destimage, sourceimages, settings);
+      if (controller && controller->isCancelled()) {
+         throw std::runtime_error("Rendering cancelled");
+      }
+      generate(size, destimage, sourceimages, settings, controller);
    } catch (...) {
       recordGenerationTime(timer.nsecsElapsed());
       throw;

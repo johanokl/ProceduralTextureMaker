@@ -10,6 +10,7 @@
 #include "gui/previewimagepanel.h"
 #include "gui/settingspanel.h"
 #include "base/editmanager.h"
+#include "base/textureproject.h"
 #include "mainwindow.h"
 #include "texgenapplication.h"
 #include <QAction>
@@ -164,12 +165,29 @@ MenuActions::MenuActions(MainWindow* parent) : QObject(nullptr), parentwindow(pa
    fileMenu = parent->menuBar()->addMenu("&File");
    editMenu = parent->menuBar()->addMenu("&Edit");
    viewMenu = parent->menuBar()->addMenu("&View");
+   auto* stopRendering = new QAction("Stop rendering", parent);
+   stopRendering->setToolTip("Stop rendering previews");
+   auto* restartRendering = new QAction("Restart rendering", parent);
+   restartRendering->setToolTip("Continue rendering unfinished nodes");
+   auto* project = parent->getTextureProject();
+   const auto updateRenderActions = [project, stopRendering, restartRendering] {
+      stopRendering->setEnabled(project->canStopRendering());
+      restartRendering->setEnabled(project->canRestartRendering());
+   };
+   updateRenderActions();
+   connect(stopRendering, &QAction::triggered, project, &TextureProject::stopRendering);
+   connect(restartRendering, &QAction::triggered, project, &TextureProject::restartRendering);
+   connect(project, &TextureProject::renderingStateChanged, this, updateRenderActions);
+   connect(viewMenu, &QMenu::aboutToShow, this, updateRenderActions);
    helpMenu = parent->menuBar()->addMenu("&Help");
 
    viewMenu->addAction(showAllNodesAct);
    viewMenu->addAction(resetZoomAct);
    viewMenu->addAction(zoomInAct);
    viewMenu->addAction(zoomOutAct);
+   viewMenu->addSeparator();
+   viewMenu->addAction(stopRendering);
+   viewMenu->addAction(restartRendering);
    viewMenu->addSeparator();
    viewMenu->addAction(displayAddNodePanelAct);
    viewMenu->addAction(displayToolbarsAct);

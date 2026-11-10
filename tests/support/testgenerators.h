@@ -21,8 +21,8 @@ public:
    /// @param sources Images connected to the generator's source slots.
    /// @param settings Node settings containing the optional grayscale value.
    void generate(QSize size, TexturePixel* destination,
-                 const QMap<QString, TextureImagePtr>& sources,
-                 const TextureNodeSettings& settings) const override;
+                 const QMap<QString, TextureImagePtr>& sources, const TextureNodeSettings& settings,
+                 const QSharedPointer<ExecutionController>& = {}) const override;
 
    /// @brief Returns the test generator's setting schema.
    const TextureGeneratorSettings& getSettings() const override { return schema; }
@@ -79,8 +79,8 @@ private:
 class NamedInputGenerator final : public TextureGenerator {
 public:
    void generate(QSize size, TexturePixel* destination,
-                 const QMap<QString, TextureImagePtr>& sources,
-                 const TextureNodeSettings& settings) const override;
+                 const QMap<QString, TextureImagePtr>& sources, const TextureNodeSettings& settings,
+                 const QSharedPointer<ExecutionController>& = {}) const override;
    const TextureGeneratorSettings& getSettings() const override { return schema; }
    Type getType() const override { return Type::Filter; }
    QStringList getSourceSlots() const override {

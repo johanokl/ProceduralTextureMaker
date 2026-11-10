@@ -7,7 +7,8 @@
 #include "greyscale.h"
 void GreyscaleTextureGenerator::generate(QSize size, TexturePixel* destimage,
                                          const QMap<QString, TextureImagePtr>& sourceimages,
-                                         const TextureNodeSettings& settings) const {
+                                         const TextureNodeSettings& settings,
+                                         const QSharedPointer<ExecutionController>&) const {
    Q_UNUSED(settings);
 
    if (!destimage || !size.isValid()) {

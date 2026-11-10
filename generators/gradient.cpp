@@ -109,7 +109,8 @@ GradientTextureGenerator::GradientTextureGenerator() {
 }
 void GradientTextureGenerator::generate(QSize size, TexturePixel* destimage,
                                         const QMap<QString, TextureImagePtr>& sourceimages,
-                                        const TextureNodeSettings& settings) const {
+                                        const TextureNodeSettings& settings,
+                                        const QSharedPointer<ExecutionController>&) const {
    if (!destimage || !size.isValid()) {
       return;
    }

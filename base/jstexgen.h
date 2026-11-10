@@ -10,7 +10,7 @@
 #include <QByteArray>
 #include <QString>
 #include <atomic>
-#include <memory>
+#include <chrono>
 
 /// @brief Adapts a validated JavaScript texture-generator definition to TextureGenerator.
 class JsTexGen final : public TextureGenerator {
@@ -19,8 +19,12 @@ public:
    /// @param jsContent Complete JavaScript source.
    /// @param sourceIdentity Canonical filesystem path, resource URL, or diagnostic label.
    /// @param origin Whether the trusted loader treats the definition as built-in or custom.
+   /// @param validationController Scan cancellation state, or null to create a new controller.
+   /// @param validationTimeout Time limit for validation, or zero for no limit.
    explicit JsTexGen(QString jsContent, QString sourceIdentity = QStringLiteral("<memory>"),
-                     Origin origin = Origin::Custom);
+                     Origin origin = Origin::Custom,
+                     QSharedPointer<ExecutionController> validationController = {},
+                     std::chrono::milliseconds validationTimeout = std::chrono::seconds(5));
 
    /// @brief Releases the validated definition and its runtime-cache lifetime token.
    ~JsTexGen() override;
@@ -30,9 +34,11 @@ public:
    /// @param destimage Writable destination pixel buffer.
    /// @param sourceimages Source images keyed by the script's declared input slots.
    /// @param settings Current generator setting values.
+   /// @param controller Optional render cancellation state for interrupting JavaScript.
    void generate(QSize size, TexturePixel* destimage,
                  const QMap<QString, TextureImagePtr>& sourceimages,
-                 const TextureNodeSettings& settings) const override;
+                 const TextureNodeSettings& settings,
+                 const QSharedPointer<ExecutionController>& controller = {}) const override;
 
    /// @brief Gets the ordered input slots declared by the script.
    /// @return Stable input slot names.
@@ -82,25 +88,26 @@ public:
    /// @return The complete JavaScript source supplied to the constructor.
    QString source() const { return scriptContent; }
 
-   /// @brief Interrupts JavaScript currently executing on any render worker.
-   static void interruptActiveEngines();
-
    /// @brief Returns the number of descriptor runtime evaluations, for diagnostics and tests.
    /// @return The process-wide count of descriptor programs evaluated by render workers.
    static quint64 runtimeEvaluationCount() noexcept;
 
 private:
    /// @brief Evaluates the definition in an isolated engine and records validated metadata.
-   void validate();
+   /// @param controller Cancellation state for this validation.
+   /// @param timeout Time limit for evaluation and metadata parsing.
+   void validate(ExecutionController& controller, std::chrono::milliseconds timeout);
 
    /// @brief Executes a descriptor-API generator using reusable per-thread JavaScript state.
    /// @param size Width and height of all image buffers.
    /// @param destimage Writable destination pixel buffer.
    /// @param sourceimages Source images keyed by declared input slot.
    /// @param settings Current generator setting values.
+   /// @param controller Cancellation state for all JavaScript calls in this generation.
    void generateDescriptor(QSize size, TexturePixel* destimage,
                            const QMap<QString, TextureImagePtr>& sourceimages,
-                           const TextureNodeSettings& settings) const;
+                           const TextureNodeSettings& settings,
+                           ExecutionController& controller) const;
 
    /// @brief Validated setting definitions in descriptor order.
    TextureGeneratorSettings configurables;
@@ -119,7 +126,7 @@ private:
    /// @brief SHA-256 digest of scriptContent.
    QByteArray revision;
    /// @brief Token whose expiration invalidates per-worker runtime cache entries.
-   std::shared_ptr<void> lifetimeToken;
+   QSharedPointer<int> lifetimeToken;
    /// @brief Process-unique identifier used as part of the runtime cache key.
    quint64 stableId = 0;
    /// @brief Validated add-node category.

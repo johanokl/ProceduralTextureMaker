@@ -4,7 +4,7 @@
 // Johan Lindqvist (johan.lindqvist@gmail.com)
 
 #include "texturerendermanager.h"
-#include "base/jstexgen.h"
+#include "base/executioncontroller.h"
 #include "global.h"
 #include "textureimage.h"
 #include <QMap>
@@ -14,7 +14,6 @@
 #include <cstddef>
 #include <cstdint>
 #include <exception>
-#include <memory>
 #include <mutex>
 #include <set>
 #include <thread>
@@ -59,14 +58,14 @@ TextureRenderManager::TextureRenderManager(ResultHandler resultHandler,
 }
 
 TextureRenderManager::~TextureRenderManager() {
+   cancel();
    {
       std::lock_guard lock(mutex);
       stopping = true;
       ++latestRenderSequence;
       runnableTasks.clear();
-      currentRender.reset();
+      currentRender.clear();
    }
-   JsTexGen::interruptActiveEngines();
    taskAvailable.notify_all();
    for (std::thread& worker : workers) {
       if (worker.joinable()) {
@@ -77,7 +76,7 @@ TextureRenderManager::~TextureRenderManager() {
 
 void TextureRenderManager::render(TextureGraphSnapshot snapshot) {
    const QSize renderSize = snapshot.size;
-   std::shared_ptr<TextureGraphRenderState> renderState;
+   QSharedPointer<TextureGraphRenderState> renderState;
    try {
       renderState = createGraphRenderState(std::move(snapshot));
    } catch (const std::exception& error) {
@@ -93,11 +92,13 @@ void TextureRenderManager::render(TextureGraphSnapshot snapshot) {
       return;
    }
 
+   QSharedPointer<TextureGraphRenderState> previous;
    {
       std::lock_guard lock(mutex);
       if (stopping) {
          return;
       }
+      previous = std::move(currentRender);
       ++latestRenderSequence;
       renderState->sequence = latestRenderSequence;
       runnableTasks.clear();
@@ -108,23 +109,29 @@ void TextureRenderManager::render(TextureGraphSnapshot snapshot) {
          }
       }
    }
+   if (previous) {
+      previous->controller->cancel();
+   }
    taskAvailable.notify_all();
 }
 
 void TextureRenderManager::cancel() {
+   QSharedPointer<TextureGraphRenderState> previous;
    {
       std::lock_guard lock(mutex);
       ++latestRenderSequence;
       runnableTasks.clear();
-      currentRender.reset();
+      previous = std::move(currentRender);
    }
-   JsTexGen::interruptActiveEngines();
+   if (previous) {
+      previous->controller->cancel();
+   }
    taskAvailable.notify_all();
 }
 
-std::shared_ptr<TextureRenderManager::TextureGraphRenderState>
+QSharedPointer<TextureRenderManager::TextureGraphRenderState>
 TextureRenderManager::createGraphRenderState(TextureGraphSnapshot snapshot) {
-   auto renderState = std::make_shared<TextureGraphRenderState>();
+   auto renderState = QSharedPointer<TextureGraphRenderState>::create();
    renderState->size = snapshot.size;
 
    for (TextureNodeSnapshot& nodeSnapshot : snapshot.nodes) {
@@ -178,7 +185,7 @@ void TextureRenderManager::runWorker() {
 }
 
 void TextureRenderManager::renderNode(const TextureNodeRenderTask& task) {
-   if (isObsolete(task.renderState->sequence)) {
+   if (isObsolete(task.renderState->sequence) || task.renderState->controller->isCancelled()) {
       return;
    }
 
@@ -214,9 +221,17 @@ void TextureRenderManager::renderNode(const TextureNodeRenderTask& task) {
       }
    }
 
+   {
+      std::lock_guard lock(mutex);
+      if (task.renderState->sequence != latestRenderSequence || task.renderState->failed ||
+          task.renderState->controller->isCancelled()) {
+         return;
+      }
+      task.renderState->activeNodes[task.nodeId] = std::chrono::steady_clock::now();
+   }
    TextureImagePtr image = TextureImage::create(task.renderState->size);
    snapshot.generator->generateWithTiming(task.renderState->size, image->data(), sourceImages,
-                                          settings);
+                                          settings, task.renderState->controller);
    completeNode(task, image, true);
 }
 
@@ -230,12 +245,13 @@ void TextureRenderManager::completeNode(const TextureNodeRenderTask& task,
          return;
       }
 
+      task.renderState->activeNodes.erase(task.nodeId);
       task.renderState->renderedImages.insert(task.nodeId, image);
       const TextureNodeRenderState& completedNode = task.renderState->nodes.at(task.nodeId);
       for (const int receiverId : completedNode.receivers) {
          TextureNodeRenderState& receiver = task.renderState->nodes.at(receiverId);
          --receiver.remainingDependencies;
-         if (receiver.remainingDependencies == 0) {
+         if (receiver.remainingDependencies == 0 && !task.renderState->controller->isCancelled()) {
             runnableTasks.push_back(TextureNodeRenderTask{task.renderState, receiverId});
             runnableTasksAdded = true;
          }
@@ -245,7 +261,7 @@ void TextureRenderManager::completeNode(const TextureNodeRenderTask& task,
          --task.renderState->unfinishedNodes;
       }
       if (task.renderState->unfinishedNodes == 0 && currentRender == task.renderState) {
-         currentRender.reset();
+         currentRender.clear();
       }
    }
 
@@ -254,8 +270,8 @@ void TextureRenderManager::completeNode(const TextureNodeRenderTask& task,
    }
    if (publish && resultHandler && !isObsolete(task.renderState->sequence)) {
       const TextureNodeSnapshot& snapshot = task.renderState->nodes.at(task.nodeId).snapshot;
-      resultHandler(
-          TextureRenderResult{snapshot.nodeId, snapshot.revision, task.renderState->size, image});
+      resultHandler(TextureRenderResult{snapshot.nodeId, snapshot.revision, task.renderState->size,
+                                        image, task.renderState->sequence});
    }
 }
 
@@ -267,20 +283,80 @@ void TextureRenderManager::failRender(const TextureNodeRenderTask& task, QString
           task.renderState->failed) {
          return;
       }
+      task.renderState->activeNodes.erase(task.nodeId);
+      if (task.renderState->controller->isCancelled()) {
+         return;
+      }
       task.renderState->failed = true;
       runnableTasks.clear();
       if (currentRender == task.renderState) {
-         currentRender.reset();
+         currentRender.clear();
       }
       reportFailure = true;
    }
 
+   task.renderState->controller->cancel();
    if (reportFailure && failureHandler) {
-      failureHandler(TextureRenderFailure{task.nodeId, task.renderState->size, std::move(message)});
+      failureHandler(TextureRenderFailure{task.nodeId, task.renderState->size, std::move(message),
+                                          task.renderState->sequence});
    }
 }
 
 bool TextureRenderManager::isObsolete(const std::uint64_t sequence) const {
    std::lock_guard lock(mutex);
    return stopping || sequence != latestRenderSequence;
+}
+
+void TextureRenderManager::stop() {
+   QSharedPointer<TextureGraphRenderState> state;
+   {
+      std::lock_guard lock(mutex);
+      runnableTasks.clear();
+      state = currentRender;
+   }
+   if (state) {
+      state->controller->cancel();
+   }
+}
+
+std::optional<TextureSlowRender> TextureRenderManager::slowNode(
+    std::chrono::milliseconds interval) const {
+   std::lock_guard lock(mutex);
+   if (!currentRender || currentRender->controller->isCancelled()) {
+      return {};
+   }
+   for (const auto& [nodeId, started] : currentRender->activeNodes) {
+      if (std::chrono::steady_clock::now() - started >= interval) {
+         return TextureSlowRender{currentRender->sequence, nodeId,
+                                  currentRender->nodes.at(nodeId).snapshot.generator->getName()};
+      }
+   }
+   return {};
+}
+
+bool TextureRenderManager::isRunning(const TextureSlowRender& node) const {
+   std::lock_guard lock(mutex);
+   return currentRender && currentRender->sequence == node.sequence &&
+          !currentRender->controller->isCancelled() &&
+          currentRender->activeNodes.count(node.nodeId) != 0;
+}
+
+void TextureRenderManager::continueRendering(const TextureSlowRender& node) {
+   std::lock_guard lock(mutex);
+   if (currentRender && currentRender->sequence == node.sequence &&
+       currentRender->activeNodes.count(node.nodeId) != 0) {
+      currentRender->activeNodes[node.nodeId] = std::chrono::steady_clock::now();
+   }
+}
+
+bool TextureRenderManager::hasPendingWork() const {
+   std::lock_guard lock(mutex);
+   if (!currentRender || currentRender->failed || currentRender->controller->isCancelled()) {
+      return false;
+   }
+   return std::any_of(currentRender->nodes.begin(), currentRender->nodes.end(),
+                      [this](const auto& node) {
+                         return node.second.snapshot.cachedImage.isNull() &&
+                                !currentRender->renderedImages.contains(node.first);
+                      });
 }

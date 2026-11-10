@@ -1,10 +1,13 @@
 #include "base/texturenode.h"
 #include "base/textureproject.h"
 #include "base/jstexgen.h"
+#include "base/executioncontroller.h"
+#include <QJSEngine>
 #include "base/jstexgenmanager.h"
 #include "base/settingsmanager.h"
 #include "generators/builtinregistry.h"
 #include <QFile>
+#include <QElapsedTimer>
 #include <QSignalSpy>
 #include <QTemporaryDir>
 #include <QTest>
@@ -92,6 +95,12 @@ class JavaScriptGeneratorsTest : public QObject {
    Q_OBJECT
 
 private slots:
+   /// @brief Verifies validation time limits and cancellation on either side of registration.
+   void boundsValidationAndCancelsBeforeRegistration();
+
+   /// @brief Verifies scan shutdown before work starts and while validation is stuck.
+   void cancelsScannerDuringValidationAndBeforeStart();
+
    /// @brief Verifies RGBA rendering, script errors, and rejection of the removed globals API.
    void rendersAndReportsErrors();
 
@@ -116,6 +125,57 @@ private slots:
    /// @brief Verifies corrected metadata, alpha handling, centring, and edge behaviour.
    void rendersCorrectedBundledGenerators();
 };
+
+void JavaScriptGeneratorsTest::boundsValidationAndCancelsBeforeRegistration() {
+   using namespace std::chrono_literals;
+   JsTexGen stuck(QStringLiteral("while (true) {}"), QStringLiteral("stuck.js"),
+                  TextureGenerator::Origin::Custom, {}, 30ms);
+   QVERIFY(!stuck.isValid());
+   QVERIFY(stuck.validationError().contains("stuck.js"));
+   QVERIFY(stuck.validationError().contains("timed out"));
+
+   // Accessors run during descriptor parsing must also be covered by the deadline.
+   JsTexGen getter(QStringLiteral("const generator={get apiVersion(){while(true){}}};"),
+                   QStringLiteral("getter.js"), TextureGenerator::Origin::Custom, {}, 30ms);
+   QVERIFY(!getter.isValid());
+   QVERIFY(getter.validationError().contains("timed out"));
+
+   auto cancelled = QSharedPointer<ExecutionController>::create();
+   cancelled->cancel();
+   JsTexGen rejected(QStringLiteral("while(true){}"), QStringLiteral("cancelled.js"),
+                     TextureGenerator::Origin::Custom, cancelled);
+   QVERIFY(rejected.validationError().contains("validation cancelled"));
+
+   QJSEngine engine;
+   ExecutionController owner;
+   {
+      ExecutionController::Registration registration(owner, engine);
+      owner.cancel();
+      QVERIFY(engine.isInterrupted());
+   }
+   QVERIFY_EXCEPTION_THROWN(ExecutionController::Registration(owner, engine), std::runtime_error);
+   ExecutionController next;
+   ExecutionController::Registration registration(next, engine);
+   QVERIFY(!engine.isInterrupted());
+}
+
+void JavaScriptGeneratorsTest::cancelsScannerDuringValidationAndBeforeStart() {
+   QTemporaryDir directory;
+   QVERIFY(writeTextFile(directory.filePath("stuck.js"), "while(true){}"));
+   TextureProject project(false);
+   for (bool startWorker : {false, true}) {
+      auto manager = std::make_unique<JsTexGenManager>(&project);
+      manager->setDirectory(directory.path());
+      manager->setEnabled(true);
+      if (startWorker) {
+         QTest::qWait(100);
+      }
+      QElapsedTimer timer;
+      timer.start();
+      manager.reset();
+      QVERIFY(timer.elapsed() < 2000);
+   }
+}
 
 void JavaScriptGeneratorsTest::rendersAndReportsErrors() {
    QCOMPARE(renderColor(solidScript()), QColor(0x11, 0x22, 0x33, 0x44));
@@ -371,21 +431,23 @@ void JavaScriptGeneratorsTest::cachesConcurrentRuntimesAndInterrupts() {
        "const generator={apiVersion:1,name:'Infinite',type:'generator',inputs:[],settings:[],"
        "generate(){while(true){}}};");
    JsTexGen infinite(infiniteScript, QStringLiteral("infinite.js"));
+   auto controller = QSharedPointer<ExecutionController>::create();
    std::atomic_bool finished{false};
    std::atomic_bool interrupted{false};
    std::thread renderThread([&]() {
       try {
          TexturePixel pixel{};
-         infinite.generate(QSize(1, 1), &pixel, {}, TextureNodeSettings());
+         infinite.generate(QSize(1, 1), &pixel, {}, TextureNodeSettings(), controller);
       } catch (const std::runtime_error& error) {
          interrupted = QString::fromUtf8(error.what())
-                           .contains(QStringLiteral("interrupted"), Qt::CaseInsensitive);
+                           .contains(QStringLiteral("interrupted"), Qt::CaseInsensitive) ||
+                       QString::fromUtf8(error.what()).contains(QStringLiteral("cancelled"));
       }
       finished = true;
    });
    for (int attempt = 0; attempt < 100 && !finished.load(); ++attempt) {
       QTest::qWait(10);
-      JsTexGen::interruptActiveEngines();
+      controller->cancel();
    }
    renderThread.join();
    QVERIFY(finished.load());

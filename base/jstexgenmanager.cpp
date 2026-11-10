@@ -10,10 +10,8 @@
 #include <QDirIterator>
 #include <QFile>
 #include <QFileInfo>
-#include <QMetaObject>
 #include <QThread>
 #include <algorithm>
-#include <atomic>
 #include <memory>
 #include <utility>
 
@@ -42,12 +40,14 @@ QString canonicalPath(const QString& path) {
 
 /// @brief Finds JavaScript source files below a directory in stable path order.
 /// @param directory Root directory to search recursively.
+/// @param controller Optional scan cancellation state checked between directory entries.
 /// @return Unique canonical paths sorted lexicographically.
-QStringList scriptPaths(const QString& directory) {
+QStringList scriptPaths(const QString& directory,
+                        const QSharedPointer<ExecutionController>& controller = {}) {
    QStringList paths;
    QDirIterator iterator(directory, QStringList{QStringLiteral("*.js")}, QDir::Files,
                          QDirIterator::Subdirectories);
-   while (iterator.hasNext()) {
+   while ((!controller || !controller->isCancelled()) && iterator.hasNext()) {
       paths.append(canonicalPath(iterator.next()));
    }
    paths.removeDuplicates();
@@ -59,16 +59,22 @@ QStringList scriptPaths(const QString& directory) {
 /// @param path Filesystem path or Qt resource URL to read.
 /// @param origin Trusted origin assigned to the generator.
 /// @param diagnostic Destination for a file access or validation failure.
+/// @param controller Optional scan cancellation state, including during validation.
 /// @return The validated generator, or null on failure.
-std::unique_ptr<JsTexGen> readGenerator(const QString& path, const TextureGenerator::Origin origin,
-                                        QString& diagnostic) {
+std::unique_ptr<JsTexGen> readGenerator(
+    const QString& path, const TextureGenerator::Origin origin, QString& diagnostic,
+    const QSharedPointer<ExecutionController>& controller = {}) {
    QFile file(path);
    if (!file.open(QIODevice::ReadOnly | QIODevice::Text)) {
       diagnostic =
           QStringLiteral("%1: could not read JavaScript source: %2").arg(path, file.errorString());
       return {};
    }
-   auto generator = std::make_unique<JsTexGen>(QString::fromUtf8(file.readAll()), path, origin);
+   const QString source = QString::fromUtf8(file.readAll());
+   if (controller && controller->isCancelled()) {
+      return {};
+   }
+   auto generator = std::make_unique<JsTexGen>(source, path, origin, controller);
    if (!generator->isValid()) {
       diagnostic = generator->validationError();
       return {};
@@ -81,37 +87,38 @@ class GeneratorFileFinder final : public QObject {
    Q_OBJECT
 
 public slots:
-   /// @brief Requests cancellation of the current directory scan.
-   void abort() { aborted.store(true, std::memory_order_relaxed); }
-
    /// @brief Scans a directory recursively and emits each validated or rejected definition.
    /// @param directory Root directory to search for `.js` files.
-   void scanDirectory(const QString& directory) {
-      aborted.store(false, std::memory_order_relaxed);
+   /// @param controller Cancellation state created before this scan was queued.
+   void scanDirectory(const QString& directory, QSharedPointer<ExecutionController> controller) {
       QStringList encountered;
-      const QStringList paths = scriptPaths(directory);
+      const QStringList paths = scriptPaths(directory, controller);
       for (const QString& path : paths) {
-         if (aborted.load(std::memory_order_relaxed)) {
+         if (controller->isCancelled()) {
             emit scanFinished(encountered, true);
             return;
          }
          encountered.append(path);
          QString diagnostic;
          std::unique_ptr<JsTexGen> generator =
-             readGenerator(path, TextureGenerator::Origin::Custom, diagnostic);
+             readGenerator(path, TextureGenerator::Origin::Custom, diagnostic, controller);
+         if (controller->isCancelled()) {
+            emit scanFinished(encountered, true);
+            return;
+         }
          if (!generator) {
             emit generatorRejected(path, diagnostic);
             continue;
          }
-         emit generatorFound(generator.release());
+         emit generatorFound(TextureGeneratorPtr(generator.release()));
       }
-      emit scanFinished(encountered, false);
+      emit scanFinished(encountered, controller->isCancelled());
    }
 
 signals:
    /// @brief Transfers a validated generator to the manager thread.
-   /// @param generator Heap-allocated generator whose ownership passes to the receiver.
-   void generatorFound(JsTexGen* generator);
+   /// @param generator Shared generator transferred safely through the queued signal.
+   void generatorFound(TextureGeneratorPtr generator);
 
    /// @brief Reports a definition that could not be read or validated.
    /// @param path Canonical path of the rejected source.
@@ -122,10 +129,6 @@ signals:
    /// @param encounteredPaths Canonical paths observed before completion or cancellation.
    /// @param cancelled Whether an abort request stopped the scan.
    void scanFinished(QStringList encounteredPaths, bool cancelled);
-
-private:
-   /// @brief Cross-thread cancellation flag checked between source files.
-   std::atomic_bool aborted{false};
 };
 
 }  // namespace
@@ -182,9 +185,9 @@ QString loadJavaScriptGenerators(TextureProject& project, const QString& directo
 }
 
 JsTexGenManager::JsTexGenManager(TextureProject* project) : project(project) {
-   qRegisterMetaType<JsTexGen*>("JsTexGen*");
+   qRegisterMetaType<TextureGeneratorPtr>();
+   qRegisterMetaType<QSharedPointer<ExecutionController>>();
    auto* finder = new GeneratorFileFinder;
-   fileFinder = finder;
    fileFinderThread = new QThread(this);
    finder->moveToThread(fileFinderThread);
    QObject::connect(this, &JsTexGenManager::scanDirectory, finder,
@@ -206,11 +209,14 @@ JsTexGenManager::JsTexGenManager(TextureProject* project) : project(project) {
 }
 
 JsTexGenManager::~JsTexGenManager() {
-   if (fileFinder != nullptr) {
-      QMetaObject::invokeMethod(fileFinder, "abort", Qt::DirectConnection);
+   if (scanController) {
+      scanController->cancel();
    }
    fileFinderThread->quit();
-   fileFinderThread->wait();
+   // JavaScript interruption normally completes promptly; never silently wait forever.
+   if (!fileFinderThread->wait(10000)) {
+      qFatal("Generator discovery did not stop within 10 seconds");
+   }
 }
 
 void JsTexGenManager::setDirectory(const QString& path, const bool forceScan) {
@@ -232,8 +238,8 @@ void JsTexGenManager::setEnabled(const bool enabled) {
    if (enabled) {
       reload();
    } else {
-      if (scanInProgress && fileFinder != nullptr) {
-         QMetaObject::invokeMethod(fileFinder, "abort", Qt::DirectConnection);
+      if (scanController) {
+         scanController->cancel();
       }
       removeCustomGenerators();
    }
@@ -261,7 +267,7 @@ void JsTexGenManager::reload() {
    }
    if (scanInProgress) {
       rescanRequested = true;
-      QMetaObject::invokeMethod(fileFinder, "abort", Qt::DirectConnection);
+      scanController->cancel();
       return;
    }
    startScan();
@@ -277,12 +283,12 @@ void JsTexGenManager::startScan() {
       return;
    }
    scanInProgress = true;
-   emit scanDirectory(directoryPath);
+   scanController = QSharedPointer<ExecutionController>::create();
+   emit scanDirectory(directoryPath, scanController);
 }
 
-void JsTexGenManager::generatorFound(JsTexGen* generator) {
-   TextureGeneratorPtr owned(generator);
-   pendingGenerators.insert(generator->getSourceIdentity(), owned);
+void JsTexGenManager::generatorFound(TextureGeneratorPtr generator) {
+   pendingGenerators.insert(generator->getSourceIdentity(), generator);
 }
 
 void JsTexGenManager::generatorRejected(QString path, QString diagnostic) {
@@ -292,7 +298,7 @@ void JsTexGenManager::generatorRejected(QString path, QString diagnostic) {
 
 void JsTexGenManager::scanFinished(QStringList encounteredPaths, const bool cancelled) {
    scanInProgress = false;
-   if (!cancelled) {
+   if (!cancelled && enabled && scanController && !scanController->isCancelled()) {
       commitScan(QSet<QString>(encounteredPaths.cbegin(), encounteredPaths.cend()));
       emit diagnosticsAvailable(pendingDiagnostics);
       emit reloadFinished(pendingDiagnostics);

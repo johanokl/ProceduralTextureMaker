@@ -1,4 +1,5 @@
 #include "base/texturenode.h"
+#include "base/jstexgen.h"
 #include "base/textureproject.h"
 #include "base/texturerendermanager.h"
 #include "support/testgenerators.h"
@@ -78,6 +79,12 @@ class TextureRenderManagerTest : public QObject {
    Q_OBJECT
 
 private slots:
+   /// @brief Verifies cancellation affects one manager and a new render replaces stuck work.
+   void cancelsOnlyItsOwnJavaScriptAndReplacesStuckRender();
+   /// @brief Verifies native nodes can finish after Stop and their images are reused on Restart.
+   void stopsNativeNodesAndRestartsUsingCompletedImages();
+   /// @brief Verifies slow-node tracking and rejection of prompts for stopped renders.
+   void tracksSlowNodesAndIgnoresObsoletePrompts();
    /// @brief Verifies independent graph branches execute concurrently.
    void rendersIndependentBranchesConcurrently();
    /// @brief Verifies cached nodes feed dependents without duplicate publication.
@@ -93,6 +100,93 @@ private slots:
    /// @brief Verifies timing samples are thread-safe and capped at ten recent calls.
    void recordsRollingTimingAcrossThreads();
 };
+
+void TextureRenderManagerTest::cancelsOnlyItsOwnJavaScriptAndReplacesStuckRender() {
+   using namespace std::chrono_literals;
+   const TextureGeneratorPtr infinite(new JsTexGen(
+       QStringLiteral("const generator={apiVersion:1,name:'Infinite',type:'generator',inputs:[],"
+                      "generate(){while(true){}}};")));
+   CallbackState firstState;
+   CallbackState secondState;
+   auto first = makeManager(firstState, 1);
+   auto second = makeManager(secondState, 1);
+   first->render({QSize(1, 1), {snapshot(1, infinite, 0)}});
+   second->render({QSize(1, 1), {snapshot(1, infinite, 0)}});
+   QTRY_VERIFY(first->slowNode(0ms).has_value());
+   QTRY_VERIFY(second->slowNode(0ms).has_value());
+   const auto secondNode = second->slowNode(0ms);
+   first->cancel();
+   first.reset();
+   if (secondNode) {
+      QVERIFY(second->isRunning(*secondNode));
+   } else {
+      QFAIL("Expected the second render to remain active");
+   }
+   TextureGeneratorPtr fast(new RecordingGenerator(QStringLiteral("Fast"), 0, 7));
+   second->render({QSize(1, 1), {snapshot(2, fast, 7)}});
+   QVERIFY(secondState.waitFor(1));
+   second.reset();
+   QVERIFY(firstState.failures.empty());
+   QVERIFY(secondState.failures.empty());
+   QCOMPARE(secondState.results.size(), std::size_t(1));
+   QCOMPARE(secondState.results.front().nodeId, 2);
+}
+
+void TextureRenderManagerTest::stopsNativeNodesAndRestartsUsingCompletedImages() {
+   TextureProject project;
+   auto* sourceRaw = new RecordingGenerator(QStringLiteral("Source"), 0, 17);
+   auto* receiverRaw = new RecordingGenerator(QStringLiteral("Receiver"), 1, 18);
+   TextureGeneratorPtr source(sourceRaw);
+   TextureGeneratorPtr receiver(receiverRaw);
+   project.stopRendering();
+   auto first = project.newNode(1, source);
+   auto second = project.newNode(2, receiver);
+   second->setSourceSlot(QStringLiteral("Image"), first->getId());
+   sourceRaw->block();
+   project.restartRendering();
+   const bool started = sourceRaw->waitUntilStarted();
+   project.stopRendering();
+   sourceRaw->release();
+   QVERIFY(started);
+   QSignalSpy available(&project, &TextureProject::imageAvailable);
+   QTRY_COMPARE(available.count(), 1);
+   QCOMPARE(receiverRaw->callCount(), 0);
+   QVERIFY(project.isRenderingStopped());
+   // Edits while stopped must not resume rendering.
+   project.notifyImageUpdated(second->getId());
+   QCOMPARE(receiverRaw->callCount(), 0);
+   project.restartRendering();
+   QTRY_COMPARE(available.count(), 2);
+   QCOMPARE(sourceRaw->callCount(), 1);
+   QCOMPARE(receiverRaw->callCount(), 1);
+}
+
+void TextureRenderManagerTest::tracksSlowNodesAndIgnoresObsoletePrompts() {
+   using namespace std::chrono_literals;
+   CallbackState state;
+   auto* generatorRaw = new RecordingGenerator(QStringLiteral("Slow"), 0, 1);
+   TextureGeneratorPtr generator(generatorRaw);
+   generatorRaw->block();
+   auto manager = makeManager(state, 1);
+   manager->render({QSize(1, 1), {snapshot(1, generator, 1)}});
+   const bool started = generatorRaw->waitUntilStarted();
+   auto slow = manager->slowNode(0ms);
+   if (slow) {
+      manager->continueRendering(*slow);
+   }
+   const bool deferred = !manager->slowNode().has_value();
+   manager->stop();
+   const bool stopped = slow && !manager->isRunning(*slow);
+   generatorRaw->release();
+   manager.reset();
+   QVERIFY(started);
+   QVERIFY(slow.has_value());
+   if (slow) {
+      QCOMPARE(slow->generatorName, QStringLiteral("Slow"));
+   }
+   QVERIFY(deferred);
+   QVERIFY(stopped);
+}
 
 void TextureRenderManagerTest::rendersIndependentBranchesConcurrently() {
    CallbackState state;

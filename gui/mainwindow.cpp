@@ -33,6 +33,8 @@
 #include <QFileInfo>
 #include <QMessageBox>
 #include <QPushButton>
+#include <QPointer>
+#include <QTimer>
 #include <QSettings>
 #include <QSplitter>
 #include <QStatusBar>
@@ -102,6 +104,47 @@ MainWindow::MainWindow(TexGenApplication* parent) {
    menuactions->setPreviewImagePanel(previewimagewidget);
    menuactions->setSettingsPanel(settingspanel);
    menuactions->setItemInfoPanel(iteminfopanel);
+
+   auto* renderTimer = new QTimer(this);
+   connect(renderTimer, &QTimer::timeout, this,
+           [this, dialog = QPointer<QMessageBox>(), waiting = TextureSlowRender{}]() mutable {
+              if (dialog) {
+                 if (!project->isRendering(waiting)) {
+                    dialog->close();
+                 }
+                 return;
+              }
+              const auto slow = project->slowRender();
+              if (!slow) {
+                 return;
+              }
+              waiting = *slow;
+              dialog = new QMessageBox(
+                  QMessageBox::Warning, "Slow node render",
+                  QString("Node %1 (%2) has been rendering for more than 60 seconds. "
+                          "Cancel rendering or continue waiting?")
+                      .arg(waiting.nodeId)
+                      .arg(waiting.generatorName),
+                  QMessageBox::Cancel, this);
+              auto* continueButton = dialog->addButton("Continue", QMessageBox::AcceptRole);
+              dialog->setDefaultButton(QMessageBox::Cancel);
+              dialog->setAttribute(Qt::WA_DeleteOnClose);
+              connect(dialog.data(), &QMessageBox::finished, this,
+                      [this, prompt = dialog.data(), continueButton, node = waiting](int) {
+                         // The graph may have changed or finished while the non-blocking dialog was
+                         // open.
+                         if (!project->isRendering(node)) {
+                            return;
+                         }
+                         if (prompt->clickedButton() == continueButton) {
+                            project->continueRendering(node);
+                         } else {
+                            project->stopRendering();
+                         }
+                      });
+              dialog->open();
+           });
+   renderTimer->start(1000);
 
    setWindowTitle("ProceduralTextureMaker");
    statusBar()->hide();

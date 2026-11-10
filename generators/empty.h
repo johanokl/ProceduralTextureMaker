@@ -16,7 +16,8 @@ public:
    ~EmptyGenerator() override = default;
    void generate(QSize size, TexturePixel* destimage,
                  const QMap<QString, TextureImagePtr>& sourceimages,
-                 const TextureNodeSettings& settings) const override;
+                 const TextureNodeSettings& settings,
+                 const QSharedPointer<ExecutionController>& = {}) const override;
    QStringList getSourceSlots() const override { return {}; }
    QString getName() const override { return QString("Empty"); }
    const TextureGeneratorSettings& getSettings() const override { return _settings; }

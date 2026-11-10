@@ -16,7 +16,8 @@ public:
    ~MirrorTextureGenerator() override = default;
    void generate(QSize size, TexturePixel* destimage,
                  const QMap<QString, TextureImagePtr>& sourceimages,
-                 const TextureNodeSettings& settings) const override;
+                 const TextureNodeSettings& settings,
+                 const QSharedPointer<ExecutionController>& = {}) const override;
    QStringList getSourceSlots() const override { return {QStringLiteral("Image")}; }
    QString getName() const override { return QString("Mirror"); }
    const TextureGeneratorSettings& getSettings() const override { return configurables; }

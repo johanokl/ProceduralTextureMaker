@@ -58,6 +58,7 @@ QString styleSheet(bool dark, bool nativeMacStyle) {
    const QString controlPressed = dark ? "#1f8db8" : "#dceff8";
    const QString text = dark ? "#e8eaed" : "#20242a";
    const QString muted = dark ? "#aab1bd" : "#5c6470";
+   const QString disabledText = dark ? "#767d89" : "#969ca5";
    const QString border = dark ? "#3b414c" : "#c8cdd4";
    const QString borderStrong = dark ? "#596170" : "#a9b0ba";
    const QString accent = dark ? "#4fc3f7" : "#1687b8";
@@ -164,8 +165,14 @@ QMenu::item {
    padding: 6px 26px 6px 12px;
 }
 
-QMenu::item:selected {
+QMenu::item:selected:enabled {
    background: %4;
+}
+
+QMenuBar::item:disabled,
+QMenu::item:disabled {
+   color: %15;
+   background: transparent;
 }
 
 QMenu::separator {
@@ -480,7 +487,8 @@ QLabel#previewImage {
 %14
 )")
        .arg(window, panel, control, controlHover, text, muted, border, borderStrong, accent,
-            accentMuted, inspectorPanel, widgetFontSize, inspectorLabelFontSize, platformRules);
+            accentMuted, inspectorPanel, widgetFontSize, inspectorLabelFontSize, platformRules,
+            disabledText);
 }
 
 }  // namespace

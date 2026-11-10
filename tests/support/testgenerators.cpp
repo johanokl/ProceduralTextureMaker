@@ -20,7 +20,8 @@ RecordingGenerator::RecordingGenerator(QString name, const int sourceSlots, cons
 
 void RecordingGenerator::generate(const QSize size, TexturePixel* destination,
                                   const QMap<QString, TextureImagePtr>& sources,
-                                  const TextureNodeSettings& settings) const {
+                                  const TextureNodeSettings& settings,
+                                  const QSharedPointer<ExecutionController>&) const {
    Q_UNUSED(sources);
    ++calls;
    started.release();
@@ -44,7 +45,8 @@ bool RecordingGenerator::waitUntilStarted(const int timeoutMilliseconds) const {
 
 void NamedInputGenerator::generate(const QSize size, TexturePixel* destination,
                                    const QMap<QString, TextureImagePtr>& sources,
-                                   const TextureNodeSettings& settings) const {
+                                   const TextureNodeSettings& settings,
+                                   const QSharedPointer<ExecutionController>&) const {
    Q_UNUSED(settings);
    const TextureImagePtr source = sources.value(QStringLiteral("Zulu"));
    const qsizetype count = static_cast<qsizetype>(size.width()) * size.height();

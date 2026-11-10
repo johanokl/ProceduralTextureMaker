@@ -84,6 +84,8 @@ set(PROCEDURAL_TEXTURE_MAKER_SOURCES
     base/editmanager.h
     base/texturegenerator.cpp
     base/texturegenerator.h
+    base/executioncontroller.cpp
+    base/executioncontroller.h
     base/jstexgen.cpp
     base/jstexgen.h
     base/jstexgenmanager.cpp

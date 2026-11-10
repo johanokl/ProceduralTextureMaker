@@ -4,19 +4,20 @@
 // Johan Lindqvist (johan.lindqvist@gmail.com)
 
 #include "base/jstexgen.h"
+#include "base/executioncontroller.h"
 #include <QColor>
 #include <QCryptographicHash>
 #include <QJSEngine>
 #include <QMetaType>
 #include <QSet>
+#include <QWeakPointer>
 #include <QtGlobal>
 #include <algorithm>
 #include <cmath>
 #include <cstring>
 #include <limits>
 #include <map>
-#include <mutex>
-#include <set>
+#include <memory>
 #include <stdexcept>
 #include <utility>
 
@@ -442,7 +443,7 @@ struct RuntimeKey {
 /// @brief Holds evaluated descriptor-API values owned by one worker's QJSEngine.
 struct RuntimeEntry {
    /// @brief Weak token used to remove entries after their JsTexGen is destroyed.
-   std::weak_ptr<void> lifetime;
+   QWeakPointer<int> lifetime;
    /// @brief Evaluated and frozen JavaScript generator descriptor.
    QJSValue descriptor;
    /// @brief Cached callable extracted from descriptor.
@@ -471,7 +472,7 @@ struct WorkerRuntime {
    /// @brief Removes cached descriptors whose owning JsTexGen no longer exists.
    void prune() {
       for (auto iterator = entries.begin(); iterator != entries.end();) {
-         if (iterator->second.lifetime.expired()) {
+         if (iterator->second.lifetime.isNull()) {
             iterator = entries.erase(iterator);
          } else {
             ++iterator;
@@ -493,34 +494,6 @@ struct WorkerRuntime {
 
 /// @brief JavaScript runtime lazily allocated for each render worker thread.
 thread_local std::unique_ptr<WorkerRuntime> workerRuntime;
-/// @brief Protects activeEngines during cross-thread interruption requests.
-std::mutex activeEnginesMutex;
-/// @brief Engines currently executing user JavaScript.
-std::set<QJSEngine*> activeEngines;
-
-/// @brief Registers a QJSEngine as interruptible for the duration of one operation.
-class ActiveEngine final {
-public:
-   /// @brief Clears stale interruption state and registers an executing engine.
-   /// @param engine Engine about to execute user JavaScript.
-   explicit ActiveEngine(QJSEngine& engine) : engine(engine) {
-      engine.setInterrupted(false);
-      std::lock_guard lock(activeEnginesMutex);
-      activeEngines.insert(&engine);
-   }
-
-   /// @brief Unregisters the engine and clears its interruption state.
-   ~ActiveEngine() {
-      std::lock_guard lock(activeEnginesMutex);
-      activeEngines.erase(&engine);
-      engine.setInterrupted(false);
-   }
-
-private:
-   /// @brief Engine registered for the lifetime of this guard.
-   QJSEngine& engine;
-};
-
 /// @brief Freezes a JavaScript bridge value when `Object.freeze` succeeds.
 /// @param freeze Callable equivalent of `Object.freeze`.
 /// @param value Value to freeze.
@@ -588,7 +561,7 @@ QJSValue imageView(WorkerRuntime& runtime, const QByteArray& bytes, const QSize 
 /// @param evaluated Set to @c true when this call evaluates the source.
 /// @return The cached or newly evaluated runtime entry.
 RuntimeEntry& runtimeEntry(WorkerRuntime& runtime, const quint64 stableId,
-                           const QByteArray& revision, const std::shared_ptr<void>& lifetime,
+                           const QByteArray& revision, const QSharedPointer<int>& lifetime,
                            const QString& source, const QString& sourceIdentity, bool& evaluated) {
    const RuntimeKey key{stableId, revision};
    auto existing = runtime.entries.find(key);
@@ -596,7 +569,6 @@ RuntimeEntry& runtimeEntry(WorkerRuntime& runtime, const quint64 stableId,
       return existing->second;
    }
    evaluated = true;
-   ActiveEngine active(runtime.engine);
    QJSValue descriptor = runtime.engine.evaluate(descriptorProgram(source), sourceIdentity, 1);
    if (runtime.engine.isInterrupted()) {
       throw std::runtime_error(
@@ -616,66 +588,97 @@ RuntimeEntry& runtimeEntry(WorkerRuntime& runtime, const quint64 stableId,
               .toStdString());
    }
    auto inserted = runtime.entries.emplace(
-       key, RuntimeEntry{std::weak_ptr<void>(lifetime), descriptor, generate});
+       key, RuntimeEntry{QWeakPointer<int>(lifetime), descriptor, generate});
    return inserted.first->second;
 }
 
 }  // namespace
 
-JsTexGen::JsTexGen(QString jsContent, QString sourceIdentity, const Origin origin)
+JsTexGen::JsTexGen(QString jsContent, QString sourceIdentity, const Origin origin,
+                   QSharedPointer<ExecutionController> validationController,
+                   std::chrono::milliseconds validationTimeout)
     : scriptContent(std::move(jsContent)),
       sourceIdentity(std::move(sourceIdentity)),
       revision(QCryptographicHash::hash(scriptContent.toUtf8(), QCryptographicHash::Sha256)),
-      lifetimeToken(std::make_shared<int>(0)),
+      lifetimeToken(QSharedPointer<int>::create(0)),
       stableId(nextStableId.fetch_add(1, std::memory_order_relaxed)),
       origin(origin) {
-   validate();
+   if (!validationController) {
+      validationController = QSharedPointer<ExecutionController>::create();
+   }
+   validate(*validationController, validationTimeout);
 }
 
 JsTexGen::~JsTexGen() = default;
 
-void JsTexGen::validate() {
+void JsTexGen::validate(ExecutionController& controller, std::chrono::milliseconds timeout) {
    QJSEngine engine;
-   QJSValue descriptor = engine.evaluate(descriptorProgram(scriptContent), sourceIdentity, 1);
-   if (descriptor.isError()) {
-      diagnostic = jsError(descriptor, sourceIdentity, -descriptorWrapperLineOffset);
-      return;
+   try {
+      ExecutionController::Registration registration(controller, engine, timeout);
+      QJSValue descriptor = engine.evaluate(descriptorProgram(scriptContent), sourceIdentity, 1);
+      if (controller.isCancelled() || registration.timedOut()) {
+         diagnostic = QStringLiteral("%1: %2").arg(
+             sourceIdentity, controller.isCancelled() ? QStringLiteral("validation cancelled")
+                                                      : QStringLiteral("validation timed out"));
+         return;
+      }
+      if (descriptor.isError()) {
+         diagnostic = jsError(descriptor, sourceIdentity, -descriptorWrapperLineOffset);
+         return;
+      }
+      if (descriptor.isUndefined()) {
+         diagnostic =
+             QStringLiteral(
+                 "%1: generator descriptor is required; the old globals API is unsupported")
+                 .arg(sourceIdentity);
+         return;
+      }
+      const bool parsed = parseDescriptor(descriptor, configurables, name, description, inputSlots,
+                                          type, diagnostic);
+      if (controller.isCancelled() || registration.timedOut()) {
+         diagnostic = QStringLiteral("%1: %2").arg(
+             sourceIdentity, controller.isCancelled() ? QStringLiteral("validation cancelled")
+                                                      : QStringLiteral("validation timed out"));
+         return;
+      }
+      if (!parsed) {
+         diagnostic = QStringLiteral("%1: %2").arg(sourceIdentity, diagnostic);
+         return;
+      }
+      valid = true;
+   } catch (const std::exception& error) {
+      diagnostic = QStringLiteral("%1: %2").arg(
+          sourceIdentity, controller.isCancelled() ? QStringLiteral("validation cancelled")
+                                                   : QString::fromUtf8(error.what()));
    }
-   if (descriptor.isUndefined()) {
-      diagnostic =
-          QStringLiteral("%1: generator descriptor is required; the old globals API is unsupported")
-              .arg(sourceIdentity);
-      return;
-   }
-   if (!parseDescriptor(descriptor, configurables, name, description, inputSlots, type,
-                        diagnostic)) {
-      diagnostic = QStringLiteral("%1: %2").arg(sourceIdentity, diagnostic);
-      return;
-   }
-   valid = true;
 }
 
 void JsTexGen::generate(const QSize size, TexturePixel* destimage,
                         const QMap<QString, TextureImagePtr>& sourceimages,
-                        const TextureNodeSettings& settings) const {
+                        const TextureNodeSettings& settings,
+                        const QSharedPointer<ExecutionController>& controller) const {
    if (!valid) {
       throw std::runtime_error(diagnostic.toStdString());
    }
    if (destimage == nullptr) {
       throw std::invalid_argument("JavaScript destination image is null");
    }
-   generateDescriptor(size, destimage, sourceimages, settings);
+   ExecutionController localController;
+   generateDescriptor(size, destimage, sourceimages, settings,
+                      controller ? *controller : localController);
 }
 
 void JsTexGen::generateDescriptor(const QSize size, TexturePixel* destimage,
                                   const QMap<QString, TextureImagePtr>& sourceimages,
-                                  const TextureNodeSettings& settings) const {
+                                  const TextureNodeSettings& settings,
+                                  ExecutionController& controller) const {
    static_assert(sizeof(TexturePixel) == 4, "The JavaScript RGBA8 ABI requires four-byte pixels");
    const std::size_t byteCount = checkedByteCount(size);
    if (!workerRuntime) {
       workerRuntime = std::make_unique<WorkerRuntime>();
    }
    WorkerRuntime& runtime = *workerRuntime;
+   ExecutionController::Registration registration(controller, runtime.engine);
    if (++runtime.callsSincePrune >= 32) {
       runtime.prune();
       runtime.callsSincePrune = 0;
@@ -725,7 +728,6 @@ void JsTexGen::generateDescriptor(const QSize size, TexturePixel* destimage,
    }
    inputs = frozen(runtime.freeze, inputs);
 
-   ActiveEngine active(runtime.engine);
    const QJSValue result = entry.generate.callWithInstance(
        entry.descriptor, QJSValueList{sizeObject, settingsObject, output, inputs});
    if (runtime.engine.isInterrupted()) {
@@ -748,13 +750,6 @@ void JsTexGen::generateDescriptor(const QSize size, TexturePixel* destimage,
                                    .toStdString());
    }
    std::memcpy(destimage, rendered.constData(), byteCount);
-}
-
-void JsTexGen::interruptActiveEngines() {
-   std::lock_guard lock(activeEnginesMutex);
-   for (QJSEngine* engine : activeEngines) {
-      engine->setInterrupted(true);
-   }
 }
 
 quint64 JsTexGen::runtimeEvaluationCount() noexcept {
