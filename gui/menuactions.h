@@ -54,6 +54,9 @@ public:
    /// @param infopanel Panel controlled by the corresponding view action.
    void setItemInfoPanel(ItemInfoPanel* infopanel);
 
+   /// @brief Enables image export when no other export is running in this window.
+   void setImageExportEnabled(bool enabled);
+
 public slots:
    /// @brief Toggles the add-node panel.
    void toggleAddNodePanel();

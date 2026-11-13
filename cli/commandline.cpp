@@ -15,12 +15,53 @@
 #include <QCommandLineParser>
 #include <QCoreApplication>
 #include <QFile>
+#include <QEventLoop>
 #include <QFileInfo>
 #include <QRegularExpression>
 #include <QTextStream>
 #include <optional>
+#include <limits>
+#include <csignal>
+#include <QTimer>
+#include <QScopeGuard>
+#ifdef Q_OS_WIN
+#include <qt_windows.h>
+#include <atomic>
+#endif
 
 namespace {
+
+#ifdef Q_OS_WIN
+/// @brief Cancellation shared with the Windows console handler thread.
+std::atomic<bool> exportInterrupted{false};
+
+/// @brief Handles Ctrl+C and Ctrl+Break without calling Qt from the console handler.
+BOOL WINAPI interruptExport(DWORD event) {
+   if (event != CTRL_C_EVENT && event != CTRL_BREAK_EVENT) {
+      return FALSE;
+   }
+   exportInterrupted.store(true);
+   return TRUE;
+}
+#else
+/// @brief Records Ctrl+C without calling Qt from a signal handler.
+volatile std::sig_atomic_t exportInterrupted = 0;
+
+/// @brief Requests cancellation when the console receives Ctrl+C.
+void interruptExport(int) { exportInterrupted = 1; }
+#endif
+
+/// @brief Draws export progress on stderr, leaving stdout available for results.
+/// @param completed Completed nodes, plus the PNG write when finished.
+/// @param total Total nodes plus the PNG write.
+void showExportProgress(int completed, int total) {
+   constexpr int width = 30;
+   const int filled = completed * width / total;
+   QTextStream(stderr) << '\r' << '[' << QString(filled, QLatin1Char('#'))
+                       << QString(width - filled, QLatin1Char('.')) << "] "
+                       << completed * 100 / total << "% " << completed << '/' << total
+                       << " steps (Ctrl+C to cancel)" << Qt::flush;
+}
 
 enum class ExitCode : int {
    Success = 0,
@@ -85,6 +126,10 @@ void configureParser(QCommandLineParser& parser) {
                      QStringLiteral("Output size as WIDTHxHEIGHT (default 800x800)."),
                      QStringLiteral("size"),
                      QStringLiteral("800x800")});
+   parser.addOption(
+       {QStringLiteral("timeout"),
+        QStringLiteral("Cancel an export after this many seconds (no limit by default)."),
+        QStringLiteral("seconds")});
    parser.addOption({QStringLiteral("js-dir"),
                      QStringLiteral("Load JavaScript generators recursively from this directory."),
                      QStringLiteral("path")});
@@ -220,13 +265,77 @@ int exportNode(const QCommandLineParser& parser, TextureProject& project, const 
       return reportError(ExitCode::Output, QStringLiteral("Only PNG output is supported"));
    }
 
-   const TextureExportResult result = TextureExporter::exportPng(
-       project, nodeId, size, outputPath, parser.isSet(QStringLiteral("force")));
+   int timeoutSeconds = 0;
+   if (parser.isSet(QStringLiteral("timeout"))) {
+      bool valid = false;
+      timeoutSeconds = parser.value(QStringLiteral("timeout")).toInt(&valid);
+      constexpr int maximumSeconds = std::numeric_limits<int>::max() / 1000;
+      if (!valid || timeoutSeconds < 1 || timeoutSeconds > maximumSeconds) {
+         return reportError(
+             ExitCode::Usage,
+             QStringLiteral("Invalid --timeout; use 1 to %1 seconds").arg(maximumSeconds));
+      }
+   }
+
+   TextureExporter exporter;
+   TextureExportResult result;
+   QEventLoop loop;
+   QObject::connect(&exporter, &TextureExporter::finished, &loop, [&](TextureExportResult outcome) {
+      result = std::move(outcome);
+      loop.quit();
+   });
+   int totalSteps = 1;
+   QObject::connect(&exporter, &TextureExporter::progress, &loop, [&](int completed, int total) {
+      totalSteps = total + 1;
+      showExportProgress(completed, totalSteps);
+   });
+   exportInterrupted = 0;
+#ifdef Q_OS_WIN
+   // A console process can inherit an ignored Ctrl+C setting from its parent.
+   SetConsoleCtrlHandler(nullptr, FALSE);
+   SetConsoleCtrlHandler(interruptExport, TRUE);
+   const auto restoreHandler = qScopeGuard([] { SetConsoleCtrlHandler(interruptExport, FALSE); });
+#else
+   const auto previousHandler = std::signal(SIGINT, interruptExport);
+   const auto restoreHandler = qScopeGuard([previousHandler] {
+      if (previousHandler != SIG_ERR) {
+         std::signal(SIGINT, previousHandler);
+      }
+   });
+#endif
+   bool timedOut = false;
+   QTimer timeout;
+   timeout.setSingleShot(true);
+   QObject::connect(&timeout, &QTimer::timeout, &loop, [&] {
+      timedOut = true;
+      exporter.cancel();
+   });
+   QTimer cancellation;
+   QObject::connect(&cancellation, &QTimer::timeout, &loop, [&] {
+      if (exportInterrupted) {
+         timeout.stop();
+         exporter.cancel();
+         cancellation.stop();
+      }
+   });
+   cancellation.start(50);
+   if (timeoutSeconds != 0) {
+      timeout.start(timeoutSeconds * 1000);
+   }
+   exporter.start(project, nodeId, size, outputPath, parser.isSet(QStringLiteral("force")));
+   loop.exec();
+   if (result) {
+      showExportProgress(totalSteps, totalSteps);
+   }
+   QTextStream(stderr) << '\n' << Qt::flush;
    if (!result) {
       const ExitCode code = result.error == TextureExportError::InvalidNode ? ExitCode::Node
-                            : result.error == TextureExportError::Render    ? ExitCode::Render
-                                                                            : ExitCode::Output;
-      return reportError(code, result.message);
+                            : (result.error == TextureExportError::Render ||
+                               result.error == TextureExportError::Cancelled)
+                                ? ExitCode::Render
+                                : ExitCode::Output;
+      return reportError(code,
+                         timedOut ? QStringLiteral("Image export timed out") : result.message);
    }
 
    QTextStream(stdout) << QStringLiteral("Exported node %1 at %2x%3 to %4")

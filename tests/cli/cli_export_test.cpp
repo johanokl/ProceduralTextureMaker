@@ -1,4 +1,5 @@
 #include <QImage>
+#include <QFile>
 #include <QProcess>
 #include <QProcessEnvironment>
 #include <QTemporaryDir>
@@ -53,6 +54,9 @@ class CliExportTest : public QObject {
    Q_OBJECT
 
 private slots:
+   /// @brief Checks an explicit timeout cancels stuck JavaScript and preserves the destination.
+   void timesOutOnlyWhenRequested();
+
    /// @brief Verifies that help succeeds without starting the graphical interface.
    void showsHelp();
 
@@ -71,6 +75,37 @@ private slots:
    /// @brief Verifies stable exit codes for usage and output failures.
    void returnsStableUsageAndOutputErrors();
 };
+
+void CliExportTest::timesOutOnlyWhenRequested() {
+   QTemporaryDir directory;
+   QVERIFY(directory.isValid());
+   QFile script(directory.filePath(QStringLiteral("stuck.js")));
+   QVERIFY(script.open(QIODevice::WriteOnly));
+   script.write(
+       "const generator={apiVersion:1,name:'SolidJS',type:'generator',inputs:[],"
+       "generate(){while(true){}}};");
+   script.close();
+   const QString output = directory.filePath(QStringLiteral("image.png"));
+   QFile existing(output);
+   QVERIFY(existing.open(QIODevice::WriteOnly));
+   existing.write("old image");
+   existing.close();
+   const QString input =
+       QStringLiteral(PTM_SOURCE_DIR "/tests/fixtures/projects/javascript-solid.txl");
+   const auto result =
+       runExporter({QStringLiteral("--js-dir"), directory.path(), QStringLiteral("--timeout"),
+                    QStringLiteral("1"), QStringLiteral("--force"), input, output},
+                   directory.path());
+   QCOMPARE(result.exitCode, 6);
+   QVERIFY(result.standardError.contains("timed out"));
+   QVERIFY(existing.open(QIODevice::ReadOnly));
+   QCOMPARE(existing.readAll(), QByteArray("old image"));
+   QCOMPARE(runExporter({QStringLiteral("--js-dir"), directory.path(), QStringLiteral("--timeout"),
+                         QStringLiteral("0"), input, output},
+                        directory.path())
+                .exitCode,
+            2);
+}
 
 void CliExportTest::showsHelp() {
    QTemporaryDir directory;
@@ -95,7 +130,8 @@ void CliExportTest::exportsTrackedExampleByUniqueSink() {
    const ProcessResult result = runExporter(
        {QStringLiteral("--size"), QStringLiteral("32x24"), input, output}, directory.path());
    QCOMPARE(result.exitCode, 0);
-   QVERIFY2(result.standardError.isEmpty(), result.standardError.constData());
+   QVERIFY(result.standardError.contains("100%"));
+   QVERIFY(!result.standardError.contains("Error:"));
    QVERIFY(result.standardOutput.contains("node 13"));
    const QImage image(output);
    QVERIFY(!image.isNull());
@@ -136,6 +172,9 @@ void CliExportTest::loadsJavaScriptGeneratorsExplicitly() {
                     QStringLiteral("3x2"), input, output},
                    directory.path());
    QCOMPARE(result.exitCode, 0);
+   QVERIFY(result.standardError.contains("[..............................] 0%"));
+   QVERIFY(result.standardError.contains("[##############################] 100%"));
+   QVERIFY(result.standardError.contains("Ctrl+C to cancel"));
    const QImage image(output);
    QVERIFY(!image.isNull());
    QCOMPARE(image.size(), QSize(3, 2));

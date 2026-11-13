@@ -10,9 +10,32 @@
 #include "texgenapplication.h"
 #include <QApplication>
 #include <QSurfaceFormat>
+#ifdef Q_OS_WIN
+#include <qt_windows.h>
+#include <cstdio>
+#include <io.h>
+#endif
 
+/// @brief Starts the GUI or runs command-line operations.
 int main(int argc, char** argv) {
    const bool commandLineMode = useCommandLineMode(argc, argv);
+#ifdef Q_OS_WIN
+   if (commandLineMode) {
+      // Keep redirected output, but connect missing streams to the calling terminal.
+      const bool missingOutput =
+          _fileno(stdout) < 0 || GetFileType(GetStdHandle(STD_OUTPUT_HANDLE)) == FILE_TYPE_UNKNOWN;
+      const bool missingError =
+          _fileno(stderr) < 0 || GetFileType(GetStdHandle(STD_ERROR_HANDLE)) == FILE_TYPE_UNKNOWN;
+      if (AttachConsole(ATTACH_PARENT_PROCESS)) {
+         if (missingOutput) {
+            std::freopen("CONOUT$", "w", stdout);
+         }
+         if (missingError) {
+            std::freopen("CONOUT$", "w", stderr);
+         }
+      }
+   }
+#endif
    if (!commandLineMode) {
       QSurfaceFormat format;
       format.setRenderableType(QSurfaceFormat::OpenGL);

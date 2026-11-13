@@ -200,6 +200,13 @@ public slots:
    /// @param node Node from the prompt; ignored if its render has been replaced or finished.
    void continueRendering(const TextureSlowRender& node) { renderManager->continueRendering(node); }
 
+   /// @brief Copies a graph for background rendering without retaining live nodes.
+   /// @param renderSize Image dimensions to render.
+   /// @param targetNodeId Node and its inputs to copy, or zero for all nodes.
+   /// @param useCachedImages Whether to include existing images for this size.
+   TextureGraphSnapshot createTextureGraphSnapshot(QSize renderSize, int targetNodeId = 0,
+                                                   bool useCachedImages = true) const;
+
 signals:
    /// @brief Reports changes to the work available for Stop and Restart.
    void renderingStateChanged();
@@ -256,11 +263,6 @@ private:
    /// @brief Returns a thread-safe snapshot of all nodes in the project.
    /// @return A copy whose shared pointers keep the snapshot nodes alive.
    QMap<int, TextureNodePtr> nodesSnapshot() const;
-
-   /// @brief Copies the render state needed for all project nodes.
-   /// @param renderSize The width and height of the images to render.
-   /// @return A graph snapshot that does not retain live nodes or the project.
-   TextureGraphSnapshot createTextureGraphSnapshot(QSize renderSize) const;
 
    /// @brief Starts a thumbnail render using the latest graph state.
    void scheduleThumbnailRender();

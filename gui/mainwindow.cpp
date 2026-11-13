@@ -33,6 +33,7 @@
 #include <QFileInfo>
 #include <QMessageBox>
 #include <QPushButton>
+#include <QProgressDialog>
 #include <QPointer>
 #include <QTimer>
 #include <QSettings>
@@ -171,10 +172,14 @@ void MainWindow::closeEvent(QCloseEvent* event) {
       event->ignore();
       return;
    }
+   if (imageExporter) {
+      imageExporter->cancel();
+   }
    event->accept();
 }
 
 MainWindow::~MainWindow() {
+   imageExporter.reset();
    // MenuActions listens to application-wide window updates. Destroy it while this MainWindow and
    // its menus are still valid, before QObject emits MainWindow::destroyed.
    menuactions.reset();
@@ -280,6 +285,9 @@ void MainWindow::cutNode() { cutNodeToClipboard(*project, *editManager, scene->g
 void MainWindow::pasteNode() { pasteNodesFromClipboard(*editManager); }
 
 void MainWindow::saveImage(int id) {
+   if (imageExporter) {
+      return;
+   }
    if (id == 0) {
       id = scene->getSelectedNode();
    }
@@ -310,11 +318,41 @@ void MainWindow::saveImage(int id) {
             return;
       }
    }
-   const TextureExportResult exportResult =
-       TextureExporter::exportPng(*project, id, project->getPreviewSize(), fileName, true);
-   if (!exportResult) {
-      QMessageBox::warning(this, "Error", exportResult.message);
+   exportImage(id, fileName);
+}
+
+void MainWindow::exportImage(int id, const QString& fileName) {
+   if (imageExporter) {
+      return;
    }
+   imageExporter = std::make_unique<TextureExporter>();
+   auto* progress = new QProgressDialog("Rendering image...", "Cancel", 0, 0, this);
+   progress->setWindowTitle("Export image");
+   progress->setWindowModality(Qt::NonModal);
+   progress->setAutoClose(false);
+   progress->setAutoReset(false);
+   progress->show();
+   menuactions->setImageExportEnabled(false);
+   connect(progress, &QProgressDialog::canceled, imageExporter.get(), &TextureExporter::cancel);
+   connect(imageExporter.get(), &TextureExporter::progress, progress,
+           [progress](int completed, int total) {
+              progress->setRange(0, total + 1);
+              progress->setValue(completed);
+              if (completed == total) {
+                 progress->setLabelText("Writing PNG...");
+              }
+           });
+   connect(imageExporter.get(), &TextureExporter::finished, this,
+           [this, progress](TextureExportResult result) {
+              progress->close();
+              progress->deleteLater();
+              imageExporter.reset();
+              menuactions->setImageExportEnabled(true);
+              if (!result && result.error != TextureExportError::Cancelled) {
+                 QMessageBox::warning(this, "Export failed", result.message);
+              }
+           });
+   imageExporter->start(*project, id, project->getPreviewSize(), fileName, true);
 }
 
 std::unique_ptr<ViewNodeScene> MainWindow::createScene(ViewNodeScene* source) {

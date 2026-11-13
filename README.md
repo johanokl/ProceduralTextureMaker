@@ -149,13 +149,35 @@ Select an intermediate node by its persisted ID, or inspect available IDs first:
 
 ```sh
 ProceduralTextureMaker --no-gui --list-nodes examples/rose.txl
-ProceduralTextureMaker --no-gui --node 10 --size 512x512 examples/rose.txl intermediate.png
+ProceduralTextureMaker --no-gui --node 10 --size 512x512 examples/rose.txl exported.png
 ```
+
+Exports have no time limit by default; use `--timeout SECONDS` to set one explicitly.
 
 The exporter refuses to replace an existing image unless `--force` is supplied. Projects using
 external JavaScript generators can load them explicitly with `--js-dir /path/to/generators`.
-`--help`, `--help-all`, and `--version` also use the non-window startup path without requiring
-`--no-gui`.
+
+### CLI mode on Windows
+
+Starting the executable in CLI mode on Windows returns to the prompt immediately.
+
+In Command Prompt, use `start /wait` to stay in the foreground, see progress, and cancel with
+Ctrl+C:
+
+```cmd
+start /wait "" ProceduralTextureMaker.exe ^
+    --no-gui --node 10 --size 512x512 ^
+    examples/rose.txl exported.png
+```
+
+In PowerShell, use `Start-Process`, `-Wait`, and `-NoNewWindow` to keep the export in the current
+terminal, see progress, and cancel with Ctrl+C:
+
+```powershell
+Start-Process -FilePath .\ProceduralTextureMaker.exe `
+    -NoNewWindow -Wait `
+    -ArgumentList '--no-gui --node 10 --size 512x512 examples/rose.txl exported.png'
+```
 
 ## JavaScript generators
 

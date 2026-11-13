@@ -49,6 +49,13 @@ add_ptm_test(texturerendermanager_test
 )
 set_tests_properties(texturerendermanager_test PROPERTIES LABELS "base;render")
 
+add_ptm_test(textureexporter_test
+    base/textureexporter_test.cpp
+    support/testgenerators.cpp
+    support/testgenerators.h
+)
+set_tests_properties(textureexporter_test PROPERTIES LABELS "base;render")
+
 add_ptm_test(settingsmanager_test
     base/settingsmanager_test.cpp
 )

@@ -221,13 +221,31 @@ QMap<int, TextureNodePtr> TextureProject::nodesSnapshot() const {
    return nodes;
 }
 
-TextureGraphSnapshot TextureProject::createTextureGraphSnapshot(QSize renderSize) const {
+TextureGraphSnapshot TextureProject::createTextureGraphSnapshot(QSize renderSize, int targetNodeId,
+                                                                bool useCachedImages) const {
    const QMap<int, TextureNodePtr> nodesCopy = nodesSnapshot();
    TextureGraphSnapshot snapshot;
    snapshot.size = renderSize;
-   snapshot.nodes.reserve(static_cast<std::size_t>(nodesCopy.size()));
-   for (const TextureNodePtr& node : nodesCopy) {
-      snapshot.nodes.push_back(node->createTextureNodeSnapshot(renderSize));
+   QList<int> pending = targetNodeId == 0 ? nodesCopy.keys() : QList<int>{targetNodeId};
+   QSet<int> visited;
+   while (!pending.isEmpty()) {
+      const int id = pending.takeLast();
+      if (visited.contains(id) || !nodesCopy.contains(id)) {
+         continue;
+      }
+      visited.insert(id);
+      auto node = nodesCopy.value(id)->createTextureNodeSnapshot(renderSize);
+      if (targetNodeId != 0) {
+         for (const int source : node.sources) {
+            if (source != 0) {
+               pending.append(source);
+            }
+         }
+      }
+      if (!useCachedImages) {
+         node.cachedImage.clear();
+      }
+      snapshot.nodes.push_back(std::move(node));
    }
    return snapshot;
 }

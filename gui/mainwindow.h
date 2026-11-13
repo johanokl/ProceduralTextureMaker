@@ -13,6 +13,7 @@
 #include <memory>
 class TexGenApplication;
 class TextureProject;
+class TextureExporter;
 class ViewNodeScene;
 class ViewNodeView;
 class ItemInfoPanel;
@@ -94,6 +95,11 @@ public slots:
    /// @param id Node identifier, or 0 to use the selected node.
    void saveImage(int id = 0);
 
+   /// @brief Exports a node in the background and shows cancellable progress.
+   /// @param id Node to export.
+   /// @param fileName Destination PNG path, with overwriting already confirmed.
+   void exportImage(int id, const QString& fileName);
+
    /// @brief Recreates the scene view while preserving its graph.
    void reloadSceneView();
 
@@ -160,6 +166,8 @@ private:
    TexGenApplication* parentapp{nullptr};
    /// @brief Texture project displayed by the window.
    std::unique_ptr<TextureProject> project;
+   /// @brief Active image export, independent of thumbnail rendering.
+   std::unique_ptr<TextureExporter> imageExporter;
    /// @brief Manager and undo history for user-initiated project edits.
    std::unique_ptr<EditManager> editManager;
    /// @brief Path last used to save the current project.

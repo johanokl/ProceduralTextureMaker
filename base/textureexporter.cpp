@@ -5,11 +5,15 @@
 
 #include "textureexporter.h"
 #include "textureimage.h"
-#include "texturenode.h"
+#include "texturerendermanager.h"
 #include "textureproject.h"
 #include <QFileInfo>
 #include <QImageWriter>
 #include <QSaveFile>
+#include <QThread>
+#include <condition_variable>
+#include <chrono>
+#include <mutex>
 #include <exception>
 #include <utility>
 
@@ -35,6 +39,19 @@ bool validExportSize(const QSize size) {
 }
 
 }  // namespace
+
+TextureExporter::TextureExporter(QObject* parent) : QObject(parent) {
+   qRegisterMetaType<TextureExportResult>();
+}
+
+TextureExporter::~TextureExporter() {
+   cancel();
+   if (worker) {
+      worker->wait();
+   }
+}
+
+void TextureExporter::cancel() { cancelled.store(true); }
 
 QImage TextureExporter::toQImage(const TextureImage& image, QString* error) {
    const QSize size = image.getSize();
@@ -62,41 +79,111 @@ QImage TextureExporter::toQImage(const TextureImage& image, QString* error) {
    return result;
 }
 
-TextureExportResult TextureExporter::exportPng(TextureProject& project, const int nodeId,
-                                               const QSize size, const QString& path,
-                                               const bool overwrite) {
-   const TextureNodePtr node = project.getNode(nodeId);
-   if (node.isNull()) {
-      return failure(TextureExportError::InvalidNode,
-                     QStringLiteral("The project has no node with id %1").arg(nodeId));
+void TextureExporter::start(TextureProject& project, const int nodeId, const QSize size,
+                            const QString& path, const bool overwrite) {
+   if (worker) {
+      return;
    }
-   if (!validExportSize(size)) {
-      return failure(
-          TextureExportError::InvalidSize,
-          QStringLiteral("The export size must be positive and contain at most %1 pixels")
-              .arg(MaximumPixelCount));
+   TextureExportResult validation;
+   if (project.getNode(nodeId).isNull()) {
+      validation = failure(TextureExportError::InvalidNode,
+                           QStringLiteral("The project has no node with id %1").arg(nodeId));
+   } else if (!validExportSize(size)) {
+      validation =
+          failure(TextureExportError::InvalidSize,
+                  QStringLiteral("The export size must be positive and contain at most %1 pixels")
+                      .arg(MaximumPixelCount));
+   } else if (QFileInfo::exists(path) && !overwrite) {
+      validation = failure(TextureExportError::OutputExists,
+                           QStringLiteral("The destination '%1' already exists").arg(path));
    }
-   if (QFileInfo::exists(path) && !overwrite) {
-      return failure(TextureExportError::OutputExists,
-                     QStringLiteral("The destination '%1' already exists").arg(path));
+   if (!validation) {
+      QMetaObject::invokeMethod(
+          this, [this, validation] { emit finished(validation); }, Qt::QueuedConnection);
+      return;
    }
 
-   QImage outputImage;
-   try {
-      const TextureImagePtr rendered = node->renderImage(size);
-      if (rendered.isNull()) {
-         return failure(TextureExportError::Render,
-                        QStringLiteral("The texture generator returned no image"));
+   auto snapshot = project.createTextureGraphSnapshot(size, nodeId, false);
+   emit progress(0, static_cast<int>(snapshot.nodes.size()));
+   worker.reset(QThread::create([this, snapshot = std::move(snapshot), nodeId, path]() mutable {
+      TextureExportResult result;
+      try {
+         result = exportPng(std::move(snapshot), nodeId, path);
+      } catch (const std::exception& error) {
+         result = failure(TextureExportError::Render, QString::fromUtf8(error.what()));
+      } catch (...) {
+         result = failure(TextureExportError::Render, QStringLiteral("Unknown image export error"));
       }
-      QString conversionError;
-      outputImage = toQImage(*rendered, &conversionError);
-      if (outputImage.isNull()) {
-         return failure(TextureExportError::Render, conversionError);
+      QMetaObject::invokeMethod(
+          this, [this, result] { emit finished(result); }, Qt::QueuedConnection);
+   }));
+   worker->start();
+}
+
+TextureExportResult TextureExporter::exportPng(TextureGraphSnapshot snapshot, const int nodeId,
+                                               const QString& path) {
+   const int total = static_cast<int>(snapshot.nodes.size());
+   TextureImagePtr rendered;
+   TextureExportResult result;
+   std::mutex mutex;
+   std::condition_variable changed;
+   bool done = false;
+   int completed = 0;
+   {
+      // One render worker keeps memory use predictable for large exports.
+      TextureRenderManager manager(
+          [&](TextureRenderResult image) {
+             std::lock_guard lock(mutex);
+             if (done) {
+                return;
+             }
+             ++completed;
+             emit progress(completed, total);
+             if (image.nodeId == nodeId) {
+                rendered = std::move(image.image);
+                done = true;
+                changed.notify_one();
+             }
+          },
+          [&](TextureRenderFailure error) {
+             std::lock_guard lock(mutex);
+             if (done) {
+                return;
+             }
+             result = failure(TextureExportError::Render, error.message);
+             done = true;
+             changed.notify_one();
+          },
+          1);
+      manager.render(std::move(snapshot));
+      std::unique_lock lock(mutex);
+      while (!done) {
+         if (cancelled.load()) {
+            result =
+                failure(TextureExportError::Cancelled, QStringLiteral("Image export cancelled"));
+            break;
+         }
+         changed.wait_for(lock, std::chrono::milliseconds(50));
       }
-   } catch (const std::exception& error) {
-      return failure(TextureExportError::Render, QString::fromUtf8(error.what()));
-   } catch (...) {
-      return failure(TextureExportError::Render, QStringLiteral("Unknown texture rendering error"));
+      done = true;
+      lock.unlock();
+      // Joining here leaves the GUI free while an active native node finishes.
+      manager.cancel();
+   }
+   if (!result) {
+      return result;
+   }
+   if (cancelled.load()) {
+      return failure(TextureExportError::Cancelled, QStringLiteral("Image export cancelled"));
+   }
+   if (rendered.isNull()) {
+      return failure(TextureExportError::Render,
+                     QStringLiteral("The texture generator returned no image"));
+   }
+   QString conversionError;
+   const QImage outputImage = toQImage(*rendered, &conversionError);
+   if (outputImage.isNull()) {
+      return failure(TextureExportError::Render, conversionError);
    }
 
    QSaveFile output(path);
@@ -111,6 +198,10 @@ TextureExportResult TextureExporter::exportPng(TextureProject& project, const in
       return failure(
           TextureExportError::Encode,
           QStringLiteral("Could not encode PNG '%1': %2").arg(path, writer.errorString()));
+   }
+   if (cancelled.load()) {
+      output.cancelWriting();
+      return failure(TextureExportError::Cancelled, QStringLiteral("Image export cancelled"));
    }
    if (!output.commit()) {
       return failure(TextureExportError::OutputCommit,

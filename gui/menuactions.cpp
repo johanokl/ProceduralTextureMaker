@@ -408,3 +408,5 @@ void MenuActions::windowsChanged() {
       windowlistActions.push_back(newAction);
    }
 }
+
+void MenuActions::setImageExportEnabled(bool enabled) { saveImageAct->setEnabled(enabled); }

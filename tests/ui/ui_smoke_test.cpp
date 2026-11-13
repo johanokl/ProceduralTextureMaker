@@ -25,6 +25,9 @@
 #include <QComboBox>
 #include <QMimeData>
 #include <QPushButton>
+#include <QProgressDialog>
+#include <QTimer>
+#include <QFile>
 #include <QMenu>
 #include <QMenuBar>
 #include <QScopeGuard>
@@ -64,6 +67,8 @@ class UiSmokeTest : public QObject {
    Q_OBJECT
 
 private slots:
+   /// @brief Checks that stuck exports can be cancelled while the window remains responsive.
+   void cancelsImageExportAndClosesSafely();
    /// @brief Verifies failures, blocked inputs, stopped work, and recovery in graph and previews.
    void displaysRenderFailuresAndStoppedWork();
    /// @brief Verifies the theme draws disabled menu text differently from enabled text.
@@ -101,6 +106,47 @@ private:
    /// @brief Owns the isolated settings directory for the duration of the test.
    std::unique_ptr<QTemporaryDir> settingsDirectory;
 };
+
+void UiSmokeTest::cancelsImageExportAndClosesSafely() {
+   auto* application = qobject_cast<TexGenApplication*>(QCoreApplication::instance());
+   auto window = std::make_unique<MainWindow>(application);
+   auto* project = window->getTextureProject();
+   project->stopRendering();
+   const TextureGeneratorPtr generator(new JsTexGen(QStringLiteral(
+       "const generator={apiVersion:1,name:'Stuck export',type:'generator',inputs:[],"
+       "generate(){while(true){}}};")));
+   project->newNode(1, generator);
+   QAction* save = nullptr;
+   for (auto* action : window->findChildren<QAction*>()) {
+      if (action->text() == QStringLiteral("Save selected image")) {
+         save = action;
+      }
+   }
+   QVERIFY(save != nullptr);
+   QTemporaryDir directory;
+   const QString path = directory.filePath(QStringLiteral("image.png"));
+   int ticks = 0;
+   QTimer heartbeat;
+   connect(&heartbeat, &QTimer::timeout, this, [&] { ++ticks; });
+   heartbeat.start(10);
+   window->exportImage(1, path);
+   QVERIFY(!save->isEnabled());
+   auto* progress = window->findChild<QProgressDialog*>();
+   QVERIFY(progress != nullptr);
+   auto* cancel = progress->findChild<QPushButton*>();
+   QVERIFY(cancel != nullptr);
+   QTRY_VERIFY(ticks >= 3);
+   cancel->click();
+   QTRY_VERIFY(save->isEnabled());
+   QVERIFY(!QFile::exists(path));
+   QVERIFY(project->isRenderingStopped());
+
+   window->exportImage(1, path);
+   QTRY_VERIFY(ticks >= 6);
+   window.reset();
+   QCoreApplication::processEvents();
+   QVERIFY(!QFile::exists(path));
+}
 
 void UiSmokeTest::displaysRenderFailuresAndStoppedWork() {
    auto* application = qobject_cast<TexGenApplication*>(QCoreApplication::instance());

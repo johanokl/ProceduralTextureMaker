@@ -203,15 +203,15 @@ SettingsPanel::SettingsPanel(MainWindow* parent, SettingsManager* settingsmanage
 
    QLabel* exportImageWidthLabel = new QLabel("Image width (px):");
    exportImageWidthSpinbox = new QSpinBox(this);
-   exportImageWidthSpinbox->setMinimum(50);
-   exportImageWidthSpinbox->setMaximum(2000);
+   exportImageWidthSpinbox->setMinimum(20);
+   exportImageWidthSpinbox->setMaximum(5000);
    exportLayout->addWidget(exportImageWidthLabel, 0, 0);
    exportLayout->addWidget(exportImageWidthSpinbox, 0, 1);
 
    QLabel* exportImageHeightLabel = new QLabel("Image height (px):");
    exportImageHeightSpinbox = new QSpinBox(this);
-   exportImageHeightSpinbox->setMinimum(50);
-   exportImageHeightSpinbox->setMaximum(2000);
+   exportImageHeightSpinbox->setMinimum(20);
+   exportImageHeightSpinbox->setMaximum(5000);
    exportLayout->addWidget(exportImageHeightLabel, 1, 0);
    exportLayout->addWidget(exportImageHeightSpinbox, 1, 1);
 

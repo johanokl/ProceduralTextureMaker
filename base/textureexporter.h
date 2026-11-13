@@ -7,9 +7,14 @@
 #define TEXTUREEXPORTER_H
 
 #include <QImage>
+#include <QObject>
+#include <atomic>
+#include <memory>
 #include <QSize>
 #include <QString>
 
+class QThread;
+struct TextureGraphSnapshot;
 class TextureImage;
 class TextureProject;
 
@@ -30,7 +35,9 @@ enum class TextureExportError {
    /// @brief The rendered image could not be encoded as PNG.
    Encode,
    /// @brief The temporary output could not be committed atomically.
-   OutputCommit
+   OutputCommit,
+   /// @brief The user cancelled the export.
+   Cancelled
 };
 
 /// @brief Reports the outcome of an image export operation.
@@ -47,9 +54,21 @@ struct TextureExportResult {
    explicit operator bool() const noexcept { return succeeded(); }
 };
 
-/// @brief Provides shared texture conversion and headless image-export operations.
-class TextureExporter final {
+Q_DECLARE_METATYPE(TextureExportResult)
+
+/// @brief Renders a graph snapshot and writes a PNG in the background.
+/// @details Each instance runs one export. Cancellation interrupts JavaScript;
+/// an active native generator finishes before the worker exits.
+class TextureExporter final : public QObject {
+   Q_OBJECT
+
 public:
+   /// @brief Creates an idle export job.
+   explicit TextureExporter(QObject* parent = nullptr);
+
+   /// @brief Cancels the export and waits for its worker to finish.
+   ~TextureExporter() override;
+
    /// @brief Maximum number of pixels accepted by an export operation.
    static constexpr qsizetype MaximumPixelCount = 64 * 1024 * 1024;
 
@@ -59,16 +78,32 @@ public:
    /// @return Converted image, or a null image when conversion fails.
    [[nodiscard]] static QImage toQImage(const TextureImage& image, QString* error = nullptr);
 
-   /// @brief Renders a project node and writes it atomically as a PNG file.
-   /// @param project Project containing the node to render.
-   /// @param nodeId Identifier of the node to render.
-   /// @param size Output image dimensions in pixels.
-   /// @param path Destination path for the PNG file.
-   /// @param overwrite Whether an existing destination may be replaced.
-   /// @return The operation result, including an error message on failure.
-   [[nodiscard]] static TextureExportResult exportPng(TextureProject& project, int nodeId,
-                                                      QSize size, const QString& path,
-                                                      bool overwrite);
+   /// @brief Copies the selected graph and starts its export. Call once on the project thread.
+   /// @param project Project containing the selected node.
+   /// @param nodeId Node to export together with its inputs.
+   /// @param size Output image dimensions.
+   /// @param path Destination PNG path.
+   /// @param overwrite Whether an existing file may be replaced.
+   void start(TextureProject& project, int nodeId, QSize size, const QString& path, bool overwrite);
+
+   /// @brief Requests cancellation without waiting on the caller's thread.
+   void cancel();
+
+signals:
+   /// @brief Reports the number of rendered nodes and the total needed for export.
+   void progress(int completed, int total);
+
+   /// @brief Reports success, cancellation, or failure after the worker has finished.
+   void finished(TextureExportResult result);
+
+private:
+   /// @brief Renders the snapshot and writes the result on the export worker.
+   TextureExportResult exportPng(TextureGraphSnapshot snapshot, int nodeId, const QString& path);
+
+   /// @brief Worker that owns rendering and file writing.
+   std::unique_ptr<QThread> worker;
+   /// @brief Cancellation request shared with the worker.
+   std::atomic<bool> cancelled{false};
 };
 
 #endif  // TEXTUREEXPORTER_H
