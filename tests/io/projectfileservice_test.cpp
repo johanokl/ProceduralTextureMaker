@@ -195,20 +195,21 @@ void ProjectFileServiceTest::rejectsMalformedDocumentsTransactionally_data() {
        << "<TextureSet><Nodes><Node id='1' name='a'><generator name='Missing'/></Node>"
           "</Nodes></TextureSet>";
    QTest::newRow("missing-source")
-       << "<TextureSet><Nodes><Node id='1' name='a'><generator name='Blending'/>"
+       << "<TextureSet><Nodes><Node id='1' name='a'><generator name='Blend'/>"
           "<Sources><source slot='0' source='2'/></Sources></Node></Nodes></TextureSet>";
    QTest::newRow("cycle")
-       << "<TextureSet><Nodes><Node id='1' name='a'><generator name='Blending'/>"
+       << "<TextureSet><Nodes><Node id='1' name='a'><generator name='Blend'/>"
           "<Sources><source slot='0' source='2'/></Sources></Node>"
-          "<Node id='2' name='b'><generator name='Blending'/>"
+          "<Node id='2' name='b'><generator name='Blend'/>"
           "<Sources><source slot='0' source='1'/></Sources></Node></Nodes></TextureSet>";
    QTest::newRow("unknown-named-slot")
-       << "<TextureSet><Nodes><Node id='1' name='a'><generator name='Blending'/>"
+       << "<TextureSet><Nodes><Node id='1' name='a'><generator name='Blend'/>"
           "<Sources><source slot='Missing' source='2'/></Sources></Node>"
           "<Node id='2' name='b'><generator name='Fill'/></Node></Nodes></TextureSet>";
    QTest::newRow("mixed-duplicate-slot")
-       << "<TextureSet><Nodes><Node id='1' name='a'><generator name='Blending'/>"
-          "<Sources><source slot='0' source='2'/><source slot='Base' source='3'/></Sources></Node>"
+       << "<TextureSet><Nodes><Node id='1' name='a'><generator name='Blend'/>"
+          "<Sources><source slot='0' source='2'/><source slot='Background' "
+          "source='3'/></Sources></Node>"
           "<Node id='2' name='b'><generator name='Fill'/></Node>"
           "<Node id='3' name='c'><generator name='Fill'/></Node></Nodes></TextureSet>";
 }

@@ -149,16 +149,10 @@
       </Node>
       <Node id="10" name="Masked planet">
          <pos x="676.347" y="16.3574"/>
-         <generator name="Set channels"/>
-         <Settings>
-            <setting id="channelAlpha" type="QString" value="Second's alpha"/>
-            <setting id="channelBlue" type="QString" value="First's blue"/>
-            <setting id="channelGreen" type="QString" value="First's green"/>
-            <setting id="channelRed" type="QString" value="First's red"/>
-         </Settings>
+         <generator name="Replace alpha"/>
          <Sources>
-            <source slot="0" source="8"/>
-            <source slot="1" source="9"/>
+            <source slot="Image" source="8"/>
+            <source slot="Alpha" source="9"/>
          </Sources>
       </Node>
       <Node id="11" name="Planet glow">
@@ -234,28 +228,26 @@
       </Node>
       <Node id="15" name="Ringed planet">
          <pos x="2051.14" y="454.536"/>
-         <generator name="Blending"/>
+         <generator name="Blend"/>
          <Settings>
             <setting id="alpha" type="double" value="100"/>
             <setting id="mode" type="QString" value="Normal"/>
-            <setting id="order" type="QString" value="Blend on top of Base"/>
          </Settings>
          <Sources>
-            <source slot="0" source="14"/>
-            <source slot="1" source="12"/>
+            <source slot="Background" source="14"/>
+            <source slot="Foreground" source="12"/>
          </Sources>
       </Node>
       <Node id="16" name="Space and planet">
          <pos x="2867.34" y="-336.064"/>
-         <generator name="Blending"/>
+         <generator name="Blend"/>
          <Settings>
             <setting id="alpha" type="double" value="100"/>
             <setting id="mode" type="QString" value="Normal"/>
-            <setting id="order" type="QString" value="Blend on top of Base"/>
          </Settings>
          <Sources>
-            <source slot="0" source="44"/>
-            <source slot="1" source="15"/>
+            <source slot="Background" source="44"/>
+            <source slot="Foreground" source="15"/>
          </Sources>
       </Node>
       <Node id="17" name="Rocket nose">
@@ -452,15 +444,14 @@
       </Node>
       <Node id="28" name="Rocket assembly">
          <pos x="2444.91" y="1247.4"/>
-         <generator name="Blending"/>
+         <generator name="Blend"/>
          <Settings>
             <setting id="alpha" type="double" value="100"/>
             <setting id="mode" type="QString" value="Normal"/>
-            <setting id="order" type="QString" value="Blend on top of Base"/>
          </Settings>
          <Sources>
-            <source slot="0" source="27"/>
-            <source slot="1" source="24"/>
+            <source slot="Background" source="27"/>
+            <source slot="Foreground" source="24"/>
          </Sources>
       </Node>
       <Node id="29" name="Launch rocket">
@@ -484,15 +475,14 @@
       </Node>
       <Node id="30" name="Final">
          <pos x="3081.84" y="370.656"/>
-         <generator name="Blending"/>
+         <generator name="Blend"/>
          <Settings>
             <setting id="alpha" type="double" value="100"/>
             <setting id="mode" type="QString" value="Normal"/>
-            <setting id="order" type="QString" value="Blend on top of Base"/>
          </Settings>
          <Sources>
-            <source slot="0" source="16"/>
-            <source slot="1" source="29"/>
+            <source slot="Background" source="16"/>
+            <source slot="Foreground" source="29"/>
          </Sources>
       </Node>
       <Node id="31" name="Lower body">

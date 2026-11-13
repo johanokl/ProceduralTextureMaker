@@ -1,9 +1,9 @@
 /*
  * This file is intended to be easy to customise.
  *
- * The metadata describes the generator and the controls shown in the application.
- * This generator has no settings: it combines the alpha channel of one image with
- * the colour channels of another.
+ * Image supplies the colours and alpha to keep. Mask selects the visible parts:
+ * opaque mask pixels keep Image, transparent pixels remove it, and partial
+ * transparency creates smooth edges. Cutout keeps the opposite parts.
  *
  * The output.data array stores pixels as red, green, blue, and alpha bytes. The byte
  * position of pixel (x, y) is y * output.stride + x * 4.
@@ -11,15 +11,15 @@
 const generator = {
   apiVersion: 1,
   name: "Mask",
-  description: "Replaces the image's alpha channel with the mask image's alpha channel.",
+  description: "Keeps parts of Image using the Mask's alpha channel.",
   type: "combiner",
   inputs: ["Image", "Mask"],
   settings: [],
 
   // This function runs whenever the application renders the node.
   generate(size, settings, output, inputs) {
-    // Step 1: read the two optional inputs. The Image provides red, green, and
-    // blue. The Mask provides only the replacement alpha channel.
+    // Step 1: read the two optional inputs. Image provides the colours and alpha.
+    // Mask controls how much of that alpha is kept.
     const destination = output.data;
     const image = inputs.Image?.data;
     const mask = inputs.Mask?.data;
@@ -36,12 +36,13 @@ const generator = {
     destination.set(image);
     if (!mask) return;
 
-    // Step 3: replace every fourth byte. Offsets 0, 1, and 2 are the colour
-    // channels; offset 3 is alpha. The RGB bytes copied above remain unchanged.
+    // Step 3: multiply image alpha by the fraction kept by the mask, then round
+    // to the nearest byte. This preserves existing transparency and leaves RGB
+    // unchanged, including the colours of fully transparent pixels.
     const pixelCount = size.width * size.height;
     for (let pixel = 0; pixel < pixelCount; ++pixel) {
-      const offset = pixel * 4;
-      destination[offset + 3] = mask[offset + 3];
+      const alphaOffset = pixel * 4 + 3;
+      destination[alphaOffset] = Math.round(image[alphaOffset] * mask[alphaOffset] / 255);
     }
   },
 };

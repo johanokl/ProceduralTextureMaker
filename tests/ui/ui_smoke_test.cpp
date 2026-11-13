@@ -545,8 +545,18 @@ void UiSmokeTest::showsLabelsForHighlightedOrSelectedNodes() {
 void UiSmokeTest::restoresPersistedComboBoxSelection() {
    auto* application = qobject_cast<TexGenApplication*>(QCoreApplication::instance());
    QVERIFY(application != nullptr);
+   QTemporaryDir directory;
+   QVERIFY(directory.isValid());
+   QFile file(directory.filePath(QStringLiteral("channels.txl")));
+   QVERIFY(file.open(QIODevice::WriteOnly));
+   const QByteArray xml(
+       "<TextureSet><Nodes><Node id='20' name='Channels'><generator name='Set channels'/>"
+       "<Settings><setting id='channelAlpha' type='QString' value=\"Second's alpha\"/>"
+       "</Settings></Node></Nodes></TextureSet>");
+   QCOMPARE(file.write(xml), xml.size());
+   file.close();
    MainWindow window(application);
-   window.openFile(QStringLiteral(PTM_SOURCE_DIR "/examples/rose.txl"));
+   window.openFile(file.fileName());
 
    auto* infoPanel = window.findChild<ItemInfoPanel*>();
    QVERIFY(infoPanel != nullptr);

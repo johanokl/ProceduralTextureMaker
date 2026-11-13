@@ -81,16 +81,10 @@
       </Node>
       <Node id="20" name="Node 20">
          <pos y="-1908.16" x="2319.44"/>
-         <generator name="Set channels"/>
-         <Settings>
-            <setting id="channelAlpha" type="QString" value="Second's alpha"/>
-            <setting id="channelBlue" type="QString" value="First's blue"/>
-            <setting id="channelGreen" type="QString" value="First's green"/>
-            <setting id="channelRed" type="QString" value="First's red"/>
-         </Settings>
+         <generator name="Replace alpha"/>
          <Sources>
-            <source slot="0" source="12"/>
-            <source slot="1" source="19"/>
+            <source slot="Image" source="12"/>
+            <source slot="Alpha" source="19"/>
          </Sources>
       </Node>
       <Node id="21" name="Node 21">
@@ -110,15 +104,14 @@
       </Node>
       <Node id="22" name="Node 22">
          <pos y="-809.807" x="3273.11"/>
-         <generator name="Blending"/>
+         <generator name="Blend"/>
          <Settings>
             <setting id="alpha" type="double" value="100"/>
             <setting id="mode" type="QString" value="Normal"/>
-            <setting id="order" type="QString" value="Blend on top of Base"/>
          </Settings>
          <Sources>
-            <source slot="0" source="30"/>
-            <source slot="1" source="33"/>
+            <source slot="Background" source="30"/>
+            <source slot="Foreground" source="33"/>
          </Sources>
       </Node>
       <Node id="23" name="Node 23">
@@ -142,15 +135,14 @@
       </Node>
       <Node id="24" name="Node 24">
          <pos y="-930.607" x="5098.36"/>
-         <generator name="Blending"/>
+         <generator name="Blend"/>
          <Settings>
             <setting id="alpha" type="double" value="100"/>
             <setting id="mode" type="QString" value="Normal"/>
-            <setting id="order" type="QString" value="Blend on top of Base"/>
          </Settings>
          <Sources>
-            <source slot="0" source="23"/>
-            <source slot="1" source="26"/>
+            <source slot="Background" source="23"/>
+            <source slot="Foreground" source="26"/>
          </Sources>
       </Node>
       <Node id="26" name="Node 23">
@@ -174,15 +166,14 @@
       </Node>
       <Node id="27" name="Node 27">
          <pos y="-798.982" x="3958.45"/>
-         <generator name="Blending"/>
+         <generator name="Blend"/>
          <Settings>
             <setting id="alpha" type="double" value="100"/>
             <setting id="mode" type="QString" value="Normal"/>
-            <setting id="order" type="QString" value="Base on top of Blend"/>
          </Settings>
          <Sources>
-            <source slot="0" source="29"/>
-            <source slot="1" source="28"/>
+            <source slot="Foreground" source="29"/>
+            <source slot="Background" source="28"/>
          </Sources>
       </Node>
       <Node id="28" name="Node 28">
@@ -259,15 +250,14 @@
       </Node>
       <Node id="32" name="Final">
          <pos y="-252.352" x="2916.06"/>
-         <generator name="Blending"/>
+         <generator name="Blend"/>
          <Settings>
             <setting id="alpha" type="double" value="100"/>
             <setting id="mode" type="QString" value="Normal"/>
-            <setting id="order" type="QString" value="Blend on top of Base"/>
          </Settings>
          <Sources>
-            <source slot="0" source="31"/>
-            <source slot="1" source="22"/>
+            <source slot="Background" source="31"/>
+            <source slot="Foreground" source="22"/>
          </Sources>
       </Node>
       <Node id="33" name="Node 33">

@@ -77,7 +77,11 @@ TextureImagePtr renderGenerator(const TextureGeneratorPtr& generator, const QSiz
                                 const TextureNodeSettings& overrides = {}) {
    TextureNodeSettings settings;
    for (const TextureGeneratorSetting& setting : generator->getSettings()) {
-      settings.insert(setting.id, setting.defaultvalue);
+      QVariant value = setting.defaultvalue;
+      if (value.typeId() == QMetaType::QStringList) {
+         value = value.toStringList().value(setting.defaultindex);
+      }
+      settings.insert(setting.id, value);
    }
    for (auto iterator = overrides.cbegin(); iterator != overrides.cend(); ++iterator) {
       settings.insert(iterator.key(), iterator.value());
@@ -121,6 +125,18 @@ private slots:
 
    /// @brief Verifies explicit reload, compatible node migration, and broken-edit fallback.
    void reloadsDefinitionsAtomically();
+
+   /// @brief Checks channel routing, fixed values, and disconnected inputs.
+   void rendersSetChannels();
+
+   /// @brief Checks alpha replacement, resetting opacity, and missing Image.
+   void rendersReplaceAlpha();
+
+   /// @brief Checks complementary alpha masks, unchanged colours, and missing inputs.
+   void rendersMaskAndCutout();
+
+   /// @brief Checks Blend modes, foreground opacity, and missing layers.
+   void rendersBlend();
 
    /// @brief Verifies corrected metadata, alpha handling, centring, and edge behaviour.
    void rendersCorrectedBundledGenerators();
@@ -529,6 +545,180 @@ const generator = {
    QCOMPARE(project.getGenerator(QStringLiteral("Reloaded")), secondGenerator);
 }
 
+void JavaScriptGeneratorsTest::rendersSetChannels() {
+   TextureProject project(false);
+   registerBuiltInGenerators(project);
+   const auto generator = project.getGenerator(QStringLiteral("Set channels"));
+   QVERIFY(!generator.isNull());
+   const QSize size(2, 1);
+   const auto first = TextureImage::create(size);
+   const auto second = TextureImage::create(size);
+   first->data()[0] = TexturePixel(10, 20, 30, 40);
+   first->data()[1] = TexturePixel(11, 21, 31, 41);
+   second->data()[0] = TexturePixel(50, 60, 70, 80);
+   second->data()[1] = TexturePixel(51, 61, 71, 81);
+   const QMap<QString, TextureImagePtr> sources{{QStringLiteral("First"), first},
+                                                {QStringLiteral("Second"), second}};
+   const auto defaults = renderGenerator(generator, size, sources);
+   for (int pixel = 0; pixel < size.width(); ++pixel) {
+      QCOMPARE(defaults->data()[pixel].toRGBA(), first->data()[pixel].toRGBA());
+   }
+   const QStringList choices = generator->getSettings().at(0).defaultvalue.toStringList();
+   const QList<quint8> expectedValues{0, 255, 10, 20, 30, 40, 50, 60, 70, 80};
+   QCOMPARE(choices.size(), expectedValues.size());
+   for (int choice = 0; choice < choices.size(); ++choice) {
+      TextureNodeSettings settings;
+      for (const auto& setting : generator->getSettings()) {
+         settings.insert(setting.id, choices[choice]);
+      }
+      const auto output = renderGenerator(generator, size, sources, settings);
+      const auto missing = renderGenerator(generator, size, {}, settings);
+      for (int pixel = 0; pixel < size.width(); ++pixel) {
+         const auto value = static_cast<quint8>(expectedValues[choice] + (choice < 2 ? 0 : pixel));
+         QCOMPARE(output->data()[pixel].toRGBA(),
+                  TexturePixel(value, value, value, value).toRGBA());
+         const quint8 missingValue = choice == 1 ? 255 : 0;
+         QCOMPARE(missing->data()[pixel].toRGBA(),
+                  TexturePixel(missingValue, missingValue, missingValue, missingValue).toRGBA());
+      }
+   }
+   const auto mixed =
+       renderGenerator(generator, size, sources,
+                       {{QStringLiteral("channelRed"), QStringLiteral("Second's alpha")},
+                        {QStringLiteral("channelGreen"), QStringLiteral("First's blue")},
+                        {QStringLiteral("channelBlue"), QStringLiteral("Fill")},
+                        {QStringLiteral("channelAlpha"), QStringLiteral("None")}});
+   QCOMPARE(mixed->data()[0].toRGBA(), TexturePixel(80, 30, 255, 0).toRGBA());
+   const auto firstOnly = renderGenerator(generator, size, {{QStringLiteral("First"), first}});
+   const auto secondOnly = renderGenerator(generator, size, {{QStringLiteral("Second"), second}});
+   for (int pixel = 0; pixel < size.width(); ++pixel) {
+      QCOMPARE(firstOnly->data()[pixel].toRGBA(), first->data()[pixel].toRGBA());
+      QCOMPARE(secondOnly->data()[pixel].toRGBA(), TexturePixel(0, 0, 0, 0).toRGBA());
+   }
+}
+
+void JavaScriptGeneratorsTest::rendersReplaceAlpha() {
+   TextureProject project(false);
+   registerBuiltInGenerators(project);
+   const auto generator = project.getGenerator(QStringLiteral("Replace alpha"));
+   QVERIFY(!generator.isNull());
+   QVERIFY(generator->getSettings().isEmpty());
+   const QSize size(4, 1);
+   const auto image = TextureImage::create(size);
+   const auto alpha = TextureImage::create(size);
+   const QList<quint8> imageAlpha{0, 255, 100, 20};
+   const QList<quint8> replacement{200, 0, 128, 255};
+   for (int pixel = 0; pixel < size.width(); ++pixel) {
+      image->data()[pixel] = TexturePixel(10 + pixel, 20 + pixel, 30 + pixel, imageAlpha[pixel]);
+      alpha->data()[pixel] = TexturePixel(200, 150, 100, replacement[pixel]);
+   }
+   const auto output = renderGenerator(
+       generator, size, {{QStringLiteral("Image"), image}, {QStringLiteral("Alpha"), alpha}});
+   const auto opaque = renderGenerator(generator, size, {{QStringLiteral("Image"), image}});
+   const auto noImage = renderGenerator(generator, size, {{QStringLiteral("Alpha"), alpha}});
+   const auto empty = renderGenerator(generator, size);
+   for (int pixel = 0; pixel < size.width(); ++pixel) {
+      TexturePixel expected = image->data()[pixel];
+      expected.a = replacement[pixel];
+      QCOMPARE(output->data()[pixel].toRGBA(), expected.toRGBA());
+      expected.a = 255;
+      QCOMPARE(opaque->data()[pixel].toRGBA(), expected.toRGBA());
+      QCOMPARE(noImage->data()[pixel].toRGBA(), TexturePixel(0, 0, 0, 0).toRGBA());
+      QCOMPARE(empty->data()[pixel].toRGBA(), TexturePixel(0, 0, 0, 0).toRGBA());
+   }
+}
+
+void JavaScriptGeneratorsTest::rendersMaskAndCutout() {
+   TextureProject project(false);
+   registerBuiltInGenerators(project);
+   const auto cutout = project.getGenerator(QStringLiteral("Cutout"));
+   QVERIFY(!cutout.isNull());
+   const auto maskGenerator = project.getGenerator(QStringLiteral("Mask"));
+   QVERIFY(!maskGenerator.isNull());
+   const QList<quint8> imageAlpha{255, 255, 255, 128, 128, 128, 0, 1, 1, 200};
+   const QList<quint8> maskAlpha{0, 128, 255, 0, 128, 255, 128, 128, 127, 50};
+   const QList<quint8> expectedCutoutAlpha{255, 127, 0, 128, 64, 0, 0, 0, 1, 161};
+   const QList<quint8> expectedMaskAlpha{0, 128, 255, 0, 64, 128, 0, 1, 0, 39};
+   const QSize size(10, 1);
+   const auto image = TextureImage::create(size);
+   const auto mask = TextureImage::create(size);
+   for (int pixel = 0; pixel < size.width(); ++pixel) {
+      image->data()[pixel] = TexturePixel(10 + pixel, 20 + pixel, 30 + pixel, imageAlpha[pixel]);
+      mask->data()[pixel] = TexturePixel(100 + pixel, 110 + pixel, 120 + pixel, maskAlpha[pixel]);
+   }
+   const QMap<QString, TextureImagePtr> sources{{QStringLiteral("Image"), image},
+                                                {QStringLiteral("Mask"), mask}};
+   for (const auto& generator : {maskGenerator, cutout}) {
+      QVERIFY(generator->getSettings().isEmpty());
+      const auto output = renderGenerator(generator, size, sources);
+      const auto onlyImage = renderGenerator(generator, size, {{QStringLiteral("Image"), image}});
+      const auto onlyMask = renderGenerator(generator, size, {{QStringLiteral("Mask"), mask}});
+      const auto empty = renderGenerator(generator, size);
+      const auto& expectedAlpha =
+          generator == maskGenerator ? expectedMaskAlpha : expectedCutoutAlpha;
+      for (int pixel = 0; pixel < size.width(); ++pixel) {
+         TexturePixel expected = image->data()[pixel];
+         expected.a = expectedAlpha[pixel];
+         QCOMPARE(output->data()[pixel].toRGBA(), expected.toRGBA());
+         QCOMPARE(onlyImage->data()[pixel].toRGBA(), image->data()[pixel].toRGBA());
+         QCOMPARE(onlyMask->data()[pixel].toRGBA(), TexturePixel(0, 0, 0, 0).toRGBA());
+         QCOMPARE(empty->data()[pixel].toRGBA(), TexturePixel(0, 0, 0, 0).toRGBA());
+      }
+   }
+}
+
+void JavaScriptGeneratorsTest::rendersBlend() {
+   TextureProject project(false);
+   registerBuiltInGenerators(project);
+   const auto blend = project.getGenerator(QStringLiteral("Blend"));
+   QVERIFY(!blend.isNull());
+   QCOMPARE(blend->getSettings().size(), 2);
+   QCOMPARE(blend->getSettings().at(0).id, QStringLiteral("mode"));
+   QCOMPARE(blend->getSettings().at(1).id, QStringLiteral("alpha"));
+   const QSize size(1, 1);
+   const auto background = sourceImage(QColor(10, 20, 30, 80));
+   const auto foreground = sourceImage(QColor(200, 100, 50, 128));
+   const auto transparentBackground = sourceImage(QColor(10, 20, 30, 0));
+   const QMap<QString, TextureImagePtr> foregroundOnly{{QStringLiteral("Foreground"), foreground}};
+   const QMap<QString, TextureImagePtr> backgroundOnly{{QStringLiteral("Background"), background}};
+   const QMap<QString, TextureImagePtr> both{{QStringLiteral("Background"), background},
+                                             {QStringLiteral("Foreground"), foreground}};
+   const QMap<QString, TextureImagePtr> transparentBelow{
+       {QStringLiteral("Background"), transparentBackground},
+       {QStringLiteral("Foreground"), foreground}};
+   for (const QString& mode : blend->getSettings().at(0).defaultvalue.toStringList()) {
+      const TextureNodeSettings halfOpacity{{QStringLiteral("mode"), mode},
+                                            {QStringLiteral("alpha"), 50.0}};
+      const TextureNodeSettings invisible{{QStringLiteral("mode"), mode},
+                                          {QStringLiteral("alpha"), 0.0}};
+      QCOMPARE(renderGenerator(blend, size, foregroundOnly, halfOpacity)->data()[0].toRGBA(),
+               TexturePixel(200, 100, 50, 64).toRGBA());
+      QCOMPARE(renderGenerator(blend, size, transparentBelow, halfOpacity)->data()[0].toRGBA(),
+               TexturePixel(200, 100, 50, 64).toRGBA());
+      QCOMPARE(renderGenerator(blend, size, backgroundOnly, halfOpacity)->data()[0].toRGBA(),
+               background->data()[0].toRGBA());
+      QCOMPARE(renderGenerator(blend, size, both, invisible)->data()[0].toRGBA(),
+               background->data()[0].toRGBA());
+      QCOMPARE(renderGenerator(blend, size, foregroundOnly, invisible)->data()[0].toRGBA(),
+               TexturePixel(0, 0, 0, 0).toRGBA());
+      QCOMPARE(renderGenerator(blend, size, {}, halfOpacity)->data()[0].toRGBA(),
+               TexturePixel(0, 0, 0, 0).toRGBA());
+   }
+   const QMap<QString, TextureImagePtr> opaqueLayers{
+       {QStringLiteral("Background"), sourceImage(QColor(64, 128, 192))},
+       {QStringLiteral("Foreground"), sourceImage(QColor(128, 128, 64))}};
+   QCOMPARE(renderGenerator(blend, size, opaqueLayers,
+                            {{QStringLiteral("mode"), QStringLiteral("Multiply")}})
+                ->data()[0]
+                .toRGBA(),
+            TexturePixel(32, 64, 48, 255).toRGBA());
+   QCOMPARE(renderGenerator(blend, size, opaqueLayers,
+                            {{QStringLiteral("mode"), QStringLiteral("Screen")}})
+                ->data()[0]
+                .toRGBA(),
+            TexturePixel(159, 191, 207, 255).toRGBA());
+}
+
 void JavaScriptGeneratorsTest::rendersCorrectedBundledGenerators() {
    TextureProject project(false);
    registerBuiltInGenerators(project);
@@ -552,10 +742,10 @@ void JavaScriptGeneratorsTest::rendersCorrectedBundledGenerators() {
    upperLayer->data()[1] = TexturePixel(200, 210, 220, 0);
    upperLayer->data()[2] = TexturePixel(255, 0, 0, 128);
    upperLayer->data()[3] = TexturePixel(200, 210, 220, 0);
-   const TextureGeneratorPtr blending = project.getGenerator(QStringLiteral("Blending"));
+   const TextureGeneratorPtr blending = project.getGenerator(QStringLiteral("Blend"));
    const QMap<QString, TextureImagePtr> layers = {
-       {QStringLiteral("Base"), lowerLayer},
-       {QStringLiteral("Blend"), upperLayer},
+       {QStringLiteral("Background"), lowerLayer},
+       {QStringLiteral("Foreground"), upperLayer},
    };
    const TextureImagePtr normallyBlended = renderGenerator(blending, QSize(4, 1), layers);
    QCOMPARE(normallyBlended->data()[0].toRGBA(), upperLayer->data()[0].toRGBA());
@@ -563,10 +753,9 @@ void JavaScriptGeneratorsTest::rendersCorrectedBundledGenerators() {
    QCOMPARE(normallyBlended->data()[2].toRGBA(), TexturePixel(170, 0, 84, 191).toRGBA());
    QCOMPARE(normallyBlended->data()[3].toRGBA(), TexturePixel(0, 0, 0, 0).toRGBA());
 
-   TextureNodeSettings reversedLayerSettings;
-   reversedLayerSettings.insert(QStringLiteral("order"), QStringLiteral("Base on top of Blend"));
-   const TextureImagePtr reversedLayers =
-       renderGenerator(blending, QSize(4, 1), layers, reversedLayerSettings);
+   const TextureImagePtr reversedLayers = renderGenerator(
+       blending, QSize(4, 1),
+       {{QStringLiteral("Background"), upperLayer}, {QStringLiteral("Foreground"), lowerLayer}});
    QCOMPARE(reversedLayers->data()[0].toRGBA(), lowerLayer->data()[0].toRGBA());
 
    const TextureGeneratorPtr lines = project.getGenerator(QStringLiteral("Lines"));

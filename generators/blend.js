@@ -3,20 +3,20 @@
  *
  * The metadata describes the generator and the controls shown in the application.
  * Each setting's "id" is also its name in the settings object used by generate().
- * Keep existing IDs and the generator name stable once they are used in saved projects.
  *
  * The output.data array stores pixels as red, green, blue, and alpha bytes. The byte
  * position of pixel (x, y) is y * output.stride + x * 4.
  *
- * Think of the two inputs as sheets of paper. Base is underneath and Blend is placed
- * on top by default. The layer order setting can swap them.
+ * Think of the inputs as sheets of paper. Foreground is placed over Background.
+ * Swap the input connections to reverse their order. Blend modes change how their
+ * colours mix; foreground opacity controls how much of the top image is visible.
  */
 const generator = {
   apiVersion: 1,
-  name: "Blending",
-  description: "Combines two input images using a selectable blend mode and opacity.",
+  name: "Blend",
+  description: "Places Foreground over Background using the selected blend mode and opacity.",
   type: "combiner",
-  inputs: ["Base", "Blend"],
+  inputs: ["Background", "Foreground"],
 
   // Each entry creates a control in the node settings panel.
   settings: [
@@ -24,7 +24,7 @@ const generator = {
       id: "mode",
       type: "choice",
       name: "Blend mode",
-      description: "Controls how the Blend image's colours are combined with the Base image.",
+      description: "Controls how Foreground colours are combined with Background colours.",
       values: [
         "Normal",
         "Darken",
@@ -42,18 +42,10 @@ const generator = {
       default: "Normal",
     },
     {
-      id: "order",
-      type: "choice",
-      name: "Layer order",
-      description: "Selects which input image is composited on top.",
-      values: ["Blend on top of Base", "Base on top of Blend"],
-      default: "Blend on top of Base",
-    },
-    {
       id: "alpha",
       type: "real",
-      name: "Opacity (%)",
-      description: "Controls the opacity of the image placed on top.",
+      name: "Foreground opacity (%)",
+      description: "Controls the opacity of Foreground before it is combined with Background.",
       default: 100,
       min: 0,
       max: 100,
@@ -62,35 +54,33 @@ const generator = {
 
   // This function runs whenever the application renders the node.
   generate(size, settings, output, inputs) {
-    // Step 1: read the two inputs. With no inputs there is nothing to draw, so
-    // every output byte is set to zero (transparent black).
+    // Step 1: read the fixed layers and convert foreground opacity to a fraction.
+    // For example, 25% becomes 0.25. Clamp hand-edited values to the valid range.
     const outputPixels = output.data;
-    const baseImage = inputs.Base;
-    const blendImage = inputs.Blend;
-    if (!baseImage && !blendImage) {
-      outputPixels.fill(0);
+    const lowerImage = inputs.Background;
+    const upperImage = inputs.Foreground;
+    const upperOpacity = Math.max(0, Math.min(1, settings.alpha / 100));
+
+    // Step 2: a missing or invisible Foreground leaves Background unchanged.
+    // With neither image, return transparent black.
+    if (!upperImage || upperOpacity === 0) {
+      if (lowerImage) outputPixels.set(lowerImage.data);
+      else outputPixels.fill(0);
       return;
     }
 
-    // With only one input there is nothing to combine. Copy that image unchanged.
-    if (!baseImage) {
-      outputPixels.set(blendImage.data);
-      return;
-    }
-    if (!blendImage) {
-      outputPixels.set(baseImage.data);
+    // Without Background, keep Foreground's colours and apply its opacity to
+    // alpha. Blend modes need two visible layers, so they have no effect here.
+    if (!lowerImage) {
+      outputPixels.set(upperImage.data);
+      for (let offset = 3; offset < outputPixels.length; offset += 4) {
+        outputPixels[offset] = Math.trunc(upperImage.data[offset] * upperOpacity);
+      }
       return;
     }
 
-    // Step 2: decide which image is underneath and which one is on top. The rest
-    // of the function can now use the simpler names "lower" and "upper".
-    let lowerImage = baseImage;
-    let upperImage = blendImage;
-    if (settings.order === "Base on top of Blend") {
-      lowerImage = blendImage;
-      upperImage = baseImage;
-    }
-
+    // Step 3: read the pixel buffers. Background is always the lower layer and
+    // Foreground is always the upper layer in the calculations below.
     const lowerPixels = lowerImage.data;
     const upperPixels = upperImage.data;
     const lowerStride = lowerImage.stride;
@@ -99,10 +89,6 @@ const generator = {
     const width = size.width;
     const height = size.height;
     const blendMode = settings.mode;
-
-    // Step 3: convert the upper layer's opacity from a percentage to a decimal.
-    // For example, 25% becomes 0.25. Clamp hand-edited values to the valid range.
-    const upperOpacity = Math.max(0, Math.min(1, settings.alpha / 100));
 
     // Step 4: handle the usual case quickly and plainly. In Normal mode at 100%,
     // the upper image can be copied in one operation. Most opaque pixels are then

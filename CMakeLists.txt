@@ -131,8 +131,6 @@ set(PROCEDURAL_TEXTURE_MAKER_SOURCES
     generators/builtinregistry.h
     generators/boxblur.cpp
     generators/boxblur.h
-    generators/cutout.cpp
-    generators/cutout.h
     generators/displacementmap.cpp
     generators/displacementmap.h
     generators/empty.cpp
@@ -157,8 +155,6 @@ set(PROCEDURAL_TEXTURE_MAKER_SOURCES
     generators/normalmap.h
     generators/pointillism.cpp
     generators/pointillism.h
-    generators/setchannels.cpp
-    generators/setchannels.h
     generators/sinetransform.cpp
     generators/sinetransform.h
     generators/stackblur.cpp

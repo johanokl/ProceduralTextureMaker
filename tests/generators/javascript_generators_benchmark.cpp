@@ -110,9 +110,9 @@ int main(int argc, char** argv) {
             QStringLiteral("const a=inputs.First.data,b=inputs.Second.data,d=output.data;void size;"
                            "for(let i=0;i<d.length;++i)d[i]=(a[i]+b[i])>>1;}};"),
         {QStringLiteral("First"), QStringLiteral("Second")}},
-       {QStringLiteral("blending-normal-opaque"),
-        bundledGeneratorScript(QStringLiteral("blending")),
-        {QStringLiteral("Base"), QStringLiteral("Blend")}}};
+       {QStringLiteral("blend-normal-opaque"),
+        bundledGeneratorScript(QStringLiteral("blend")),
+        {QStringLiteral("Background"), QStringLiteral("Foreground")}}};
    const QList<int> sizes{256, 512, 1024, 2048};
    for (const BenchmarkCase& benchmark : cases) {
       for (const int size : sizes) {

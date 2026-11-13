@@ -1,9 +1,10 @@
 <RCC>
     <qresource prefix="/generators">
-        <file alias="blending.js">generators/blending.js</file>
+        <file alias="blend.js">generators/blend.js</file>
         <file alias="bricks.js">generators/bricks.js</file>
         <file alias="checkboard.js">generators/checkboard.js</file>
         <file alias="circle.js">generators/circle.js</file>
+        <file alias="cutout.js">generators/cutout.js</file>
         <file alias="fill.js">generators/fill.js</file>
         <file alias="fire.js">generators/fire.js</file>
         <file alias="glow.js">generators/glow.js</file>
@@ -12,6 +13,8 @@
         <file alias="noise.js">generators/noise.js</file>
         <file alias="perlinnoise.js">generators/perlinnoise.js</file>
         <file alias="pixelate.js">generators/pixelate.js</file>
+        <file alias="replacealpha.js">generators/replacealpha.js</file>
+        <file alias="setchannels.js">generators/setchannels.js</file>
         <file alias="shadow.js">generators/shadow.js</file>
         <file alias="sineplasma.js">generators/sineplasma.js</file>
         <file alias="square.js">generators/square.js</file>

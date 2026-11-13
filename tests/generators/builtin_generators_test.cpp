@@ -71,10 +71,11 @@ void BuiltinGeneratorsTest::rendersEveryGenerator() {
    QCOMPARE(project.getGenerator(QStringLiteral("Shadow"))->getSourceSlots(),
             QStringList({QStringLiteral("Foreground")}));
    const QMap<QString, QString> migratedGenerators = {
-       {QStringLiteral("Blending"), QStringLiteral("blending.js")},
+       {QStringLiteral("Blend"), QStringLiteral("blend.js")},
        {QStringLiteral("Bricks"), QStringLiteral("bricks.js")},
        {QStringLiteral("Checkboard"), QStringLiteral("checkboard.js")},
        {QStringLiteral("Circle"), QStringLiteral("circle.js")},
+       {QStringLiteral("Cutout"), QStringLiteral("cutout.js")},
        {QStringLiteral("Fill"), QStringLiteral("fill.js")},
        {QStringLiteral("Fire"), QStringLiteral("fire.js")},
        {QStringLiteral("Glow"), QStringLiteral("glow.js")},
@@ -83,6 +84,8 @@ void BuiltinGeneratorsTest::rendersEveryGenerator() {
        {QStringLiteral("Noise"), QStringLiteral("noise.js")},
        {QStringLiteral("Perlin noise"), QStringLiteral("perlinnoise.js")},
        {QStringLiteral("Pixelate"), QStringLiteral("pixelate.js")},
+       {QStringLiteral("Replace alpha"), QStringLiteral("replacealpha.js")},
+       {QStringLiteral("Set channels"), QStringLiteral("setchannels.js")},
        {QStringLiteral("Shadow"), QStringLiteral("shadow.js")},
        {QStringLiteral("Sine plasma"), QStringLiteral("sineplasma.js")},
        {QStringLiteral("Square"), QStringLiteral("square.js")},
@@ -99,12 +102,14 @@ void BuiltinGeneratorsTest::rendersEveryGenerator() {
    }
    QCOMPARE(project.getGenerator(QStringLiteral("Normal-map"))->getSourceSlots(),
             QStringList({QStringLiteral("Height map")}));
-   QCOMPARE(project.getGenerator(QStringLiteral("Blending"))->getSourceSlots(),
-            QStringList({QStringLiteral("Base"), QStringLiteral("Blend")}));
+   QCOMPARE(project.getGenerator(QStringLiteral("Blend"))->getSourceSlots(),
+            QStringList({QStringLiteral("Background"), QStringLiteral("Foreground")}));
    QCOMPARE(project.getGenerator(QStringLiteral("Cutout"))->getSourceSlots(),
             QStringList({QStringLiteral("Image"), QStringLiteral("Mask")}));
    QCOMPARE(project.getGenerator(QStringLiteral("Displacement"))->getSourceSlots(),
             QStringList({QStringLiteral("Source image"), QStringLiteral("Map")}));
+   QCOMPARE(project.getGenerator(QStringLiteral("Replace alpha"))->getSourceSlots(),
+            QStringList({QStringLiteral("Image"), QStringLiteral("Alpha")}));
    QCOMPARE(project.getGenerator(QStringLiteral("Set channels"))->getSourceSlots(),
             QStringList({QStringLiteral("First"), QStringLiteral("Second")}));
    QCOMPARE(project.getGenerator(QStringLiteral("Merge"))->getSourceSlots().size(), 10);
