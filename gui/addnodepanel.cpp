@@ -154,9 +154,8 @@ AddNodePanel::AddNodePanel(TextureProject& project) {
    contentsLayout->addWidget(customCombinersWidget);
    updateCustomGroupVisibility();
 
-   QWidget* spacerWidget = new QWidget;
+   QWidget* spacerWidget = new QWidget(contents);
    spacerWidget->setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::Expanding);
-   spacerWidget->setVisible(true);
    contentsLayout->addWidget(spacerWidget);
    QObject::connect(&project, &TextureProject::generatorAdded, this, &AddNodePanel::addGenerator);
    QObject::connect(&project, &TextureProject::generatorRemoved, this,

@@ -67,7 +67,6 @@ MainWindow::MainWindow(TexGenApplication* parent) {
    settingspanel->hide();
 
    view = new ViewNodeView();
-   view->show();
    scene = createScene();
 
    registerBuiltInGenerators(*project);
@@ -81,9 +80,6 @@ MainWindow::MainWindow(TexGenApplication* parent) {
                           qWarning().noquote() << diagnostic;
                        }
                     });
-
-   auto* centerLayout = new QVBoxLayout;
-   centerLayout->addWidget(view);
 
    auto* widget = new QSplitter(this);
    widget->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
@@ -161,6 +157,7 @@ MainWindow::MainWindow(TexGenApplication* parent) {
       }
    });
    setAttribute(Qt::WA_DeleteOnClose);
+   restoreGeometry(QSettings().value("mainWindowGeometry").toByteArray());
 
    if (QSettings().value("showhelpstartup", true).toBool()) {
       showHelp();
@@ -175,6 +172,7 @@ void MainWindow::closeEvent(QCloseEvent* event) {
    if (imageExporter) {
       imageExporter->cancel();
    }
+   QSettings().setValue("mainWindowGeometry", saveGeometry());
    event->accept();
 }
 

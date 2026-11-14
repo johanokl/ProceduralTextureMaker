@@ -287,9 +287,8 @@ SettingsPanel::SettingsPanel(MainWindow* parent, SettingsManager* settingsmanage
    QObject::connect(displayReceiverNamesCheckbox, &QCheckBox::toggled, this,
                     &SettingsPanel::applySettings);
 
-   QWidget* spacerWidget = new QWidget;
+   QWidget* spacerWidget = new QWidget(contents);
    spacerWidget->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
-   spacerWidget->setVisible(true);
    contentsLayout->addWidget(spacerWidget);
    contentsLayout->setSizeConstraint(QLayout::SetMinimumSize);
    settingsUpdated();

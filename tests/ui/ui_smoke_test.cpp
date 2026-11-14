@@ -18,6 +18,7 @@
 #include "sceneview/viewnodeview.h"
 #include "texgenapplication.h"
 #include <QGraphicsSceneDragDropEvent>
+#include <QEvent>
 #include <QGraphicsView>
 #include <QFormLayout>
 #include <QGridLayout>
@@ -65,11 +66,32 @@ public:
    using ViewNodeView::wheelEvent;
 };
 
+/// @brief Records widgets shown as standalone windows, including brief startup flashes.
+class StartupWindowObserver : public QObject {
+public:
+   /// @brief Class names captured when top-level widgets are shown.
+   QStringList shownWindows;
+
+protected:
+   /// @brief Records show events without changing normal event handling.
+   bool eventFilter(QObject* watched, QEvent* event) override {
+      if (event->type() == QEvent::Show) {
+         const auto* widget = qobject_cast<QWidget*>(watched);
+         if (widget != nullptr && widget->isWindow()) {
+            shownWindows.append(QString::fromLatin1(widget->metaObject()->className()));
+         }
+      }
+      return false;
+   }
+};
+
 /// @brief Performs a minimal offscreen smoke test of the graphical application.
 class UiSmokeTest : public QObject {
    Q_OBJECT
 
 private slots:
+   /// @brief Verifies child widgets are embedded before any startup window is shown.
+   void showsOnlyMainWindowAtStartup();
    /// @brief Supplies filters with matching channel checkboxes.
    void editsChannelFiltersWithCheckboxes_data();
    /// @brief Checks boolean channel controls with RGB checked and alpha unchecked.
@@ -113,6 +135,21 @@ private:
    /// @brief Owns the isolated settings directory for the duration of the test.
    std::unique_ptr<QTemporaryDir> settingsDirectory;
 };
+
+void UiSmokeTest::showsOnlyMainWindowAtStartup() {
+   auto* application = qobject_cast<TexGenApplication*>(QCoreApplication::instance());
+   StartupWindowObserver observer;
+   application->installEventFilter(&observer);
+   const auto removeFilter = qScopeGuard([&] { application->removeEventFilter(&observer); });
+   MainWindow window(application);
+   QVERIFY2(observer.shownWindows.isEmpty(), qPrintable(observer.shownWindows.join(", ")));
+   window.show();
+   QCoreApplication::processEvents();
+   QCOMPARE(observer.shownWindows, QStringList({QStringLiteral("MainWindow")}));
+   auto* view = window.findChild<QGraphicsView*>();
+   QVERIFY(view != nullptr);
+   QVERIFY(view->isVisible());
+}
 
 void UiSmokeTest::editsChannelFiltersWithCheckboxes_data() {
    QTest::addColumn<QString>("generatorName");

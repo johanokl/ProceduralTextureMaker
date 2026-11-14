@@ -36,6 +36,7 @@ class MainWindow : public QMainWindow {
 
 public:
    /// @brief Creates the main window and its project, scene, panels, and actions.
+   /// @details Restores the last saved window geometry.
    /// @param parent Application that owns and manages the window.
    explicit MainWindow(TexGenApplication* parent = nullptr);
 
@@ -79,6 +80,7 @@ public slots:
    void showHelp();
 
    /// @brief Accepts or rejects a close request according to pending project changes.
+   /// @details Saves window geometry when the close request is accepted.
    /// @param event Window close event.
    void closeEvent(QCloseEvent* event) override;
 

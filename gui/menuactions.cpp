@@ -259,9 +259,8 @@ MenuActions::MenuActions(MainWindow* parent) : QObject(nullptr), parentwindow(pa
    editToolBar->addAction(resetZoomAct);
    editToolBar->addAction(showAllNodesAct);
 
-   QWidget* spacerWidget = new QWidget();
+   QWidget* spacerWidget = new QWidget(toggleAddNodeToolBar);
    spacerWidget->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
-   spacerWidget->setVisible(true);
    toggleAddNodeToolBar->addWidget(spacerWidget);
    toggleAddNodeToolBar->addAction(toggleAddNodePanelAct);
    toggleAddNodeToolBar->addAction(togglePreviewImagePanelAct);
