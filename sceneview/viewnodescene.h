@@ -26,6 +26,7 @@ class QPainter;
 class ViewNodeScene : public QGraphicsScene {
    Q_OBJECT
    friend class ViewNodeItem;
+   friend class ViewNodeLine;
 
 public:
    /// @brief Creates a graph scene for a main window's texture project.
@@ -196,6 +197,9 @@ signals:
    void sceneBackgroundSelected();
 
 private:
+   /// @brief Orders selected nodes, raised lines and neighbours, then ordinary items.
+   void updateStackingOrder();
+
    /// @brief Removes and deletes the active generator drop indicator.
    void clearDropItem();
 

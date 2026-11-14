@@ -18,6 +18,7 @@
 #include "sceneview/viewnodeview.h"
 #include "texgenapplication.h"
 #include <QGraphicsSceneDragDropEvent>
+#include <QGraphicsSceneHoverEvent>
 #include <QEvent>
 #include <QHelpEvent>
 #include <QGraphicsRectItem>
@@ -26,6 +27,7 @@
 #include <QGridLayout>
 #include <QGroupBox>
 #include <QLabel>
+#include <QPainter>
 #include <QLineEdit>
 #include <QMessageBox>
 #include <QComboBox>
@@ -94,6 +96,12 @@ class UiSmokeTest : public QObject {
    Q_OBJECT
 
 private slots:
+   /// @brief Checks only selected lines give endpoint nodes the blue selection outline.
+   void highlightsSelectedLineEndpoints();
+   /// @brief Checks selected nodes and their immediate neighbours form separate layers.
+   void stacksSelectedNodesAndNeighbours();
+   /// @brief Checks connection stacking depends on selection rather than hover.
+   void stacksConnectionsOnlyForSelection();
    /// @brief Checks empty and duplicate IDs produce distinct warning messages.
    void explainsInvalidNodeIds();
    /// @brief Checks tooltip pointer tracking and rapid node re-entry.
@@ -674,6 +682,221 @@ void UiSmokeTest::removesConnectedNodeItems() {
    }
 }
 
+void UiSmokeTest::highlightsSelectedLineEndpoints() {
+   auto* application = qobject_cast<TexGenApplication*>(QCoreApplication::instance());
+   MainWindow window(application);
+   auto* project = window.getTextureProject();
+   project->stopRendering();
+   const auto input = project->newNode(1, project->getGenerator("Fill"));
+   const auto output = project->newNode(2, project->getGenerator("Invert"));
+   project->newNode(3, project->getGenerator("Fill"));
+   QVERIFY(output->setSourceSlot("Image", input->getId()));
+   auto* view = window.findChild<QGraphicsView*>();
+   QVERIFY(view != nullptr);
+   auto* scene = dynamic_cast<ViewNodeScene*>(view->scene());
+   QVERIFY(scene != nullptr);
+   auto* source = scene->getItem(1);
+   auto* receiver = scene->getItem(2);
+   auto* other = scene->getItem(3);
+   ViewNodeLine* connection = nullptr;
+   for (auto* item : scene->items()) {
+      if ((connection = dynamic_cast<ViewNodeLine*>(item))) {
+         break;
+      }
+   }
+   QVERIFY(connection != nullptr);
+   const auto paintedNode = [](ViewNodeItem* node) {
+      const QRectF bounds = node->boundingRect();
+      QImage image(bounds.size().toSize(), QImage::Format_ARGB32_Premultiplied);
+      image.fill(Qt::transparent);
+      QPainter painter(&image);
+      painter.translate(-bounds.topLeft());
+      node->paint(&painter, nullptr, nullptr);
+      painter.end();
+      return image;
+   };
+   const auto normalSource = paintedNode(source);
+   const auto normalReceiver = paintedNode(receiver);
+   const auto normalOther = paintedNode(other);
+   source->setSelected(true);
+   const auto selectedSource = paintedNode(source);
+   source->setSelected(false);
+   receiver->setSelected(true);
+   const auto selectedReceiver = paintedNode(receiver);
+   receiver->setSelected(false);
+   QVERIFY(selectedSource != normalSource);
+   QVERIFY(selectedReceiver != normalReceiver);
+   QGraphicsSceneHoverEvent enter(QEvent::GraphicsSceneHoverEnter);
+   scene->sendEvent(connection, &enter);
+   QCOMPARE(paintedNode(source), normalSource);
+   QCOMPARE(paintedNode(receiver), normalReceiver);
+   connection->setSelected(true);
+   QVERIFY(!source->isSelected());
+   QVERIFY(!receiver->isSelected());
+   QCOMPARE(paintedNode(source), selectedSource);
+   QCOMPARE(paintedNode(receiver), selectedReceiver);
+   QCOMPARE(paintedNode(other), normalOther);
+   QGraphicsSceneHoverEvent leave(QEvent::GraphicsSceneHoverLeave);
+   scene->sendEvent(connection, &leave);
+   QCOMPARE(paintedNode(source), selectedSource);
+   connection->setSelected(false);
+   QCOMPARE(paintedNode(source), normalSource);
+   QCOMPARE(paintedNode(receiver), normalReceiver);
+   source->setSelected(true);
+   connection->setSelected(true);
+   connection->setSelected(false);
+   QCOMPARE(paintedNode(source), selectedSource);
+   QCOMPARE(paintedNode(receiver), normalReceiver);
+}
+
+void UiSmokeTest::stacksSelectedNodesAndNeighbours() {
+   auto* application = qobject_cast<TexGenApplication*>(QCoreApplication::instance());
+   MainWindow window(application);
+   auto* project = window.getTextureProject();
+   const auto input = project->newNode(1, project->getGenerator("Fill"));
+   const auto selected = project->newNode(2, project->getGenerator("Invert"));
+   const auto neighbour = project->newNode(3, project->getGenerator("Invert"));
+   const auto distant = project->newNode(4, project->getGenerator("Invert"));
+   const auto unrelated = project->newNode(5, project->getGenerator("Fill"));
+   QVERIFY(selected->setSourceSlot("Image", input->getId()));
+   QVERIFY(neighbour->setSourceSlot("Image", selected->getId()));
+   QVERIFY(distant->setSourceSlot("Image", neighbour->getId()));
+   auto* view = window.findChild<QGraphicsView*>();
+   QVERIFY(view != nullptr);
+   auto* scene = dynamic_cast<ViewNodeScene*>(view->scene());
+   QVERIFY(scene != nullptr);
+   const auto normalOrder = scene->items();
+   auto* selectedItem = scene->getItem(2);
+   auto* neighbourItem = scene->getItem(3);
+   auto* unrelatedItem = scene->getItem(5);
+   selectedItem->setSelected(true);
+   QCOMPARE(selectedItem->zValue(), 2.0);
+   QCOMPARE(scene->getItem(1)->zValue(), 1.0);
+   QCOMPARE(neighbourItem->zValue(), 1.0);
+   QCOMPARE(scene->getItem(4)->zValue(), 0.0);
+   QCOMPARE(unrelatedItem->zValue(), 0.0);
+   for (auto* item : scene->items()) {
+      if (auto* line = dynamic_cast<ViewNodeLine*>(item)) {
+         const bool connectedToSelection = line->getStartItemId() == 2 || line->getEndItemId() == 2;
+         QCOMPARE(line->zValue(), connectedToSelection ? 1.0 : -1.0);
+      }
+   }
+   // Resetting layers preserves the original order among items in each layer.
+   scene->clearSelection();
+   QCOMPARE(scene->items(), normalOrder);
+   ViewNodeLine* selectedLine = nullptr;
+   for (auto* item : scene->items()) {
+      if (auto* line = dynamic_cast<ViewNodeLine*>(item); line && line->getEndItemId() == 4) {
+         selectedLine = line;
+         break;
+      }
+   }
+   QVERIFY(selectedLine != nullptr);
+   selectedLine->setSelected(true);
+   QCOMPARE(selectedLine->zValue(), 1.0);
+   QCOMPARE(neighbourItem->zValue(), 1.0);
+   QCOMPARE(scene->getItem(4)->zValue(), 1.0);
+   QCOMPARE(selectedItem->zValue(), 0.0);
+   QCOMPARE(scene->getItem(1)->zValue(), 0.0);
+   QCOMPARE(unrelatedItem->zValue(), 0.0);
+   for (auto* item : scene->items()) {
+      if (auto* line = dynamic_cast<ViewNodeLine*>(item); line && line != selectedLine) {
+         QCOMPARE(line->zValue(), -1.0);
+      }
+   }
+   selectedItem->setSelected(true);
+   QCOMPARE(selectedItem->zValue(), 2.0);
+   QCOMPARE(selectedLine->zValue(), 1.0);
+   selectedItem->setSelected(false);
+   QCOMPARE(scene->getItem(1)->zValue(), 0.0);
+   QCOMPARE(neighbourItem->zValue(), 1.0);
+   scene->clearSelection();
+   QCOMPARE(scene->items(), normalOrder);
+   selectedItem->setSelected(true);
+   // Changing connections must also refresh neighbours while the selection stays the same.
+   QVERIFY(neighbour->setSourceSlot("Image", 0));
+   QCOMPARE(neighbourItem->zValue(), 0.0);
+   QVERIFY(neighbour->setSourceSlot("Image", 2));
+   QCOMPARE(neighbourItem->zValue(), 1.0);
+   scene->clearSelection();
+   neighbourItem->setSelected(true);
+   selectedItem->setSelected(true);
+   selectedItem->setSelected(false);
+   QCOMPARE(selectedItem->zValue(), 1.0);
+   QCOMPARE(scene->getItem(1)->zValue(), 0.0);
+   QCOMPARE(scene->getItem(4)->zValue(), 1.0);
+   QCOMPARE(neighbourItem->zValue(), 2.0);
+   scene->clearSelection();
+   selectedItem->setSelected(true);
+   project->removeNode(selected->getId());
+   QCOMPARE(scene->getItem(1)->zValue(), 0.0);
+   QCOMPARE(neighbourItem->zValue(), 0.0);
+}
+
+void UiSmokeTest::stacksConnectionsOnlyForSelection() {
+   auto* application = qobject_cast<TexGenApplication*>(QCoreApplication::instance());
+   MainWindow window(application);
+   window.openFile(QStringLiteral(PTM_SOURCE_DIR "/examples/wall.ptmg"));
+   auto* view = window.findChild<QGraphicsView*>();
+   QVERIFY(view != nullptr);
+   auto* scene = dynamic_cast<ViewNodeScene*>(view->scene());
+   QVERIFY(scene != nullptr);
+   ViewNodeLine* connection = nullptr;
+   for (auto* item : scene->items()) {
+      if ((connection = dynamic_cast<ViewNodeLine*>(item))) {
+         break;
+      }
+   }
+   QVERIFY(connection != nullptr);
+   auto* source = scene->getItem(connection->getStartItemId());
+   auto* receiver = scene->getItem(connection->getEndItemId());
+   QVERIFY(source != nullptr);
+   QVERIFY(receiver != nullptr);
+   window.getTextureProject()->getSettingsManager()->setDisplaySourceNames(true);
+   QVERIFY(connection->zValue() < source->zValue());
+
+   QGraphicsSceneHoverEvent enterNode(QEvent::GraphicsSceneHoverEnter);
+   scene->sendEvent(source, &enterNode);
+   QVERIFY(connection->endpointLabelsVisible());
+   QVERIFY(connection->zValue() < source->zValue());
+   source->setSelected(true);
+   QVERIFY(source->zValue() > connection->zValue());
+   QCOMPARE(receiver->zValue(), connection->zValue());
+   source->setSelected(false);
+   QVERIFY(connection->endpointLabelsVisible());
+   QVERIFY(connection->zValue() < source->zValue());
+
+   receiver->setSelected(true);
+   source->setSelected(true);
+   source->setSelected(false);
+   QCOMPARE(connection->zValue(), source->zValue());
+   scene->clearSelection();
+   QVERIFY(connection->zValue() < source->zValue());
+
+   connection->setSelected(true);
+   QCOMPARE(connection->zValue(), source->zValue());
+   source->setSelected(true);
+   source->setSelected(false);
+   QCOMPARE(connection->zValue(), source->zValue());
+   scene->clearSelection();
+   QVERIFY(connection->endpointLabelsVisible());
+   QVERIFY(connection->zValue() < source->zValue());
+
+   QGraphicsSceneHoverEvent leaveNode(QEvent::GraphicsSceneHoverLeave);
+   scene->sendEvent(source, &leaveNode);
+   QVERIFY(!connection->endpointLabelsVisible());
+   QGraphicsSceneHoverEvent enterLine(QEvent::GraphicsSceneHoverEnter);
+   scene->sendEvent(connection, &enterLine);
+   QVERIFY(connection->zValue() < source->zValue());
+   connection->setSelected(true);
+   QCOMPARE(connection->zValue(), source->zValue());
+   QGraphicsSceneHoverEvent leaveLine(QEvent::GraphicsSceneHoverLeave);
+   scene->sendEvent(connection, &leaveLine);
+   QCOMPARE(connection->zValue(), source->zValue());
+   scene->clearSelection();
+   QVERIFY(connection->zValue() < source->zValue());
+}
+
 void UiSmokeTest::showsLabelsForHighlightedOrSelectedNodes() {
    auto* application = qobject_cast<TexGenApplication*>(QCoreApplication::instance());
    QVERIFY(application != nullptr);
@@ -704,7 +927,7 @@ void UiSmokeTest::showsLabelsForHighlightedOrSelectedNodes() {
    QVERIFY(!connection->endpointLabelsVisible());
    QVERIFY(!connection->sourceNameLabelVisible());
    QVERIFY(!connection->receiverNameLabelVisible());
-   QVERIFY(connection->zValue() > sourceItem->zValue());
+   QVERIFY(connection->zValue() < sourceItem->zValue());
 
    SettingsManager* settingsManager = window.getTextureProject()->getSettingsManager();
    QVERIFY(settingsManager != nullptr);

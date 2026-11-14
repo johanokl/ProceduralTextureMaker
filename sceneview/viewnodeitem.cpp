@@ -18,6 +18,7 @@
 #include <QGraphicsSceneMouseEvent>
 #include <QMenu>
 #include <QPainter>
+#include <algorithm>
 
 ViewNodeItem::ViewNodeItem(ViewNodeScene& scene, const TextureNodePtr& newNode)
     : id(newNode->getId()), scene(scene), texNode(newNode) {
@@ -255,6 +256,7 @@ QVariant ViewNodeItem::itemChange(GraphicsItemChange change, const QVariant& val
       scene.setSelectedNode(-1);
    } else if (change == ItemSelectedHasChanged) {
       updateConnectionLines();
+      scene.updateStackingOrder();
    }
    return QGraphicsItem::itemChange(change, value);
 }
@@ -295,6 +297,11 @@ void ViewNodeItem::hoverMoveEvent(QGraphicsSceneHoverEvent*) {
 }
 
 void ViewNodeItem::paint(QPainter* painter, const QStyleOptionGraphicsItem*, QWidget*) {
+   // Connected nodes share a selected line's outline without becoming selected themselves.
+   const auto selectedLine = [](const ViewNodeLine* line) { return line->isSelected(); };
+   const bool selectionHighlighted =
+       isSelected() || std::any_of(startLines.cbegin(), startLines.cend(), selectedLine) ||
+       std::any_of(endLines.cbegin(), endLines.cend(), selectedLine);
    const QRectF cardRect(0, -headerSize, thumbnailSize.width() + borderWidth * 2,
                          thumbnailSize.height() + borderWidth * 2 + headerSize);
    const qreal imageTop = 0;
@@ -312,8 +319,8 @@ void ViewNodeItem::paint(QPainter* painter, const QStyleOptionGraphicsItem*, QWi
    painter->setBrush(QColor(0, 0, 0, 32));
    painter->drawRoundedRect(cardRect.translated(2, 3), 6, 6);
 
-   QPen borderPen(isSelected() ? QColor("#4fc3f7") : QColor("#4d5563"));
-   borderPen.setWidth(isSelected() ? 2 : 1);
+   QPen borderPen(selectionHighlighted ? QColor("#4fc3f7") : QColor("#4d5563"));
+   borderPen.setWidth(selectionHighlighted ? 2 : 1);
    painter->setPen(Qt::NoPen);
    painter->setBrush(QColor("#eef0f3"));
    painter->drawRoundedRect(cardRect, 6, 6);
@@ -383,7 +390,7 @@ void ViewNodeItem::paint(QPainter* painter, const QStyleOptionGraphicsItem*, QWi
    painter->setPen(borderPen);
    painter->drawRoundedRect(cardRect, 6, 6);
 
-   if (isConnectable || isUnconnectable || isSelected()) {
+   if (isConnectable || isUnconnectable || selectionHighlighted) {
       painter->setBrush(Qt::NoBrush);
       QPen selectedPen;
       if (isConnectable || isUnconnectable) {

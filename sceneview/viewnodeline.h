@@ -109,6 +109,12 @@ public:
    QPainterPath shape() const override;
 
 protected:
+   /// @brief Refreshes stacking after this connection is selected or deselected.
+   /// @param change Item property being changed.
+   /// @param value New property value.
+   /// @return Value accepted by the base graphics item.
+   QVariant itemChange(GraphicsItemChange change, const QVariant& value) override;
+
    /// @brief Draws the connection using its current state.
    /// @param painter Painter used to draw the item.
    /// @param option Item style options.

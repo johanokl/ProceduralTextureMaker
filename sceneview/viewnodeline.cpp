@@ -76,12 +76,18 @@ void ViewNodeLine::setHighlighted(bool highlighted) {
    }
    prepareGeometryChange();
    this->highlighted = highlighted;
-   setZValue(highlighted ? 1 : -1);
    if (highlighted) {
       setColor(QColor("#1687b8"));
    } else {
       setColor(QColor("#24313d"));
    }
+}
+
+QVariant ViewNodeLine::itemChange(GraphicsItemChange change, const QVariant& value) {
+   if (change == ItemSelectedHasChanged) {
+      nodescene.updateStackingOrder();
+   }
+   return QGraphicsLineItem::itemChange(change, value);
 }
 
 void ViewNodeLine::setLabelSettings(int fontSize, bool showSourceNames, bool showReceiverNames) {

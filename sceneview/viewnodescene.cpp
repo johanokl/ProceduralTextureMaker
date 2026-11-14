@@ -20,6 +20,7 @@
 #include <QPainter>
 #include <QMimeData>
 #include <QSettings>
+#include <QSet>
 
 ViewNodeScene::ViewNodeScene(MainWindow& mainWindow)
     : mainWindow(mainWindow), project(*mainWindow.getTextureProject()) {
@@ -133,6 +134,25 @@ void ViewNodeScene::setHeaderSize(int headerSize) {
 
 void ViewNodeScene::clearProject() { project.clear(); }
 
+void ViewNodeScene::updateStackingOrder() {
+   QSet<int> neighbours;
+   for (auto* line : nodeConnections) {
+      const auto* source = getItem(line->getStartItemId());
+      const auto* receiver = getItem(line->getEndItemId());
+      const bool raised = line->isSelected() || (source && source->isSelected()) ||
+                          (receiver && receiver->isSelected());
+      if (raised) {
+         neighbours.insert(line->getStartItemId());
+         neighbours.insert(line->getEndItemId());
+      }
+      line->setZValue(raised ? 1 : -1);
+   }
+   for (auto* node : nodeItems) {
+      node->setZValue(node->isSelected() ? 2 : neighbours.contains(node->getId()) ? 1 : 0);
+      node->update();
+   }
+}
+
 void ViewNodeScene::nodesConnected(int sourceid, int receiverid, QString slot) {
    ViewNodeItem* sourceNode = nodeItems.value(sourceid);
    ViewNodeItem* receiverNode = nodeItems.value(receiverid);
@@ -152,6 +172,7 @@ void ViewNodeScene::nodesConnected(int sourceid, int receiverid, QString slot) {
    newLine->update();
    addItem(newLine);
    nodeConnections.insert(key, newLine);
+   updateStackingOrder();
 }
 
 void ViewNodeScene::nodesDisconnected(int sourceid, int receiverid, QString slot) {
@@ -173,6 +194,7 @@ void ViewNodeScene::nodesDisconnected(int sourceid, int receiverid, QString slot
       receiverNode->removeConnectionLine(line);
    }
    delete line;
+   updateStackingOrder();
 }
 
 void ViewNodeScene::addNode(const TextureNodePtr& newNode) {
