@@ -11,6 +11,8 @@
 #include <QMetaObject>
 #include <QObject>
 #include <QVariantAnimation>
+#include <QTimer>
+class QLabel;
 
 /// @brief Displays and navigates a scene containing texture nodes and connections.
 /// Supports zooming and scrolling with mouse gestures, actions, and scrollbars.
@@ -44,6 +46,11 @@ public slots:
    void zoomOut();
 
 protected:
+   /// @brief Shows graph tooltips and hides them immediately when their item is left.
+   /// @param event Event delivered to the graph viewport.
+   /// @return True when the tooltip event was handled.
+   bool viewportEvent(QEvent* event) override;
+
    /// @brief Updates the scrollable scene area after the viewport is resized.
    /// @param event Resize event.
    void resizeEvent(QResizeEvent* event) override;
@@ -53,6 +60,10 @@ protected:
    void wheelEvent(QWheelEvent* event) override;
 
 private:
+   /// @brief Updates tooltip text and position, or waits for the hover delay.
+   /// @param show Whether the delay has elapsed and the tooltip can be shown.
+   void updateGraphTooltip(bool show);
+
    /// @brief Applies one frame of the active zoom animation.
    /// @param value Animation value relative to the initial zoom level.
    void applyAnimatedZoom(double value);
@@ -78,6 +89,15 @@ private:
    /// @brief Starts a zoom around the current view center.
    /// @param factor Zoom factor.
    void zoomCentered(double factor);
+
+   /// @brief Mouse-transparent tooltip owned by this graph view.
+   QLabel* graphTooltip;
+   /// @brief Limits how long a graph tooltip remains visible.
+   QTimer tooltipTimer;
+   /// @brief Waits until the pointer rests before showing a tooltip.
+   QTimer tooltipDelay;
+   /// @brief Latest pointer position in viewport coordinates.
+   QPoint tooltipPosition;
 
    /// @brief Connection used to observe changes in the displayed scene.
    QMetaObject::Connection sceneChangedConnection;

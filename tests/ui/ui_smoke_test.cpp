@@ -19,6 +19,8 @@
 #include "texgenapplication.h"
 #include <QGraphicsSceneDragDropEvent>
 #include <QEvent>
+#include <QHelpEvent>
+#include <QGraphicsRectItem>
 #include <QGraphicsView>
 #include <QFormLayout>
 #include <QGridLayout>
@@ -90,6 +92,8 @@ class UiSmokeTest : public QObject {
    Q_OBJECT
 
 private slots:
+   /// @brief Checks tooltip pointer tracking and rapid node re-entry.
+   void keepsGraphTooltipVisibleAfterReentry();
    /// @brief Verifies child widgets are embedded before any startup window is shown.
    void showsOnlyMainWindowAtStartup();
    /// @brief Supplies filters with matching channel checkboxes.
@@ -135,6 +139,49 @@ private:
    /// @brief Owns the isolated settings directory for the duration of the test.
    std::unique_ptr<QTemporaryDir> settingsDirectory;
 };
+
+void UiSmokeTest::keepsGraphTooltipVisibleAfterReentry() {
+   QGraphicsScene scene;
+   scene.setSceneRect(0, 0, 300, 300);
+   auto* node = scene.addRect(40, 40, 100, 100);
+   node->setToolTip("Test node (Fill)");
+   ViewNodeView view;
+   view.resize(320, 320);
+   view.setNodeScene(&scene);
+   view.show();
+   QCoreApplication::processEvents();
+   auto* tooltip = view.findChild<QLabel*>(QStringLiteral("graphTooltip"));
+   QVERIFY(tooltip != nullptr);
+   QVERIFY(tooltip->windowFlags().testFlag(Qt::WindowTransparentForInput));
+   const QPoint inside = view.mapFromScene(80, 80);
+   const QPoint outside = view.mapFromScene(220, 220);
+   QMouseEvent first(QEvent::MouseMove, inside, view.viewport()->mapToGlobal(inside), Qt::NoButton,
+                     Qt::NoButton, Qt::NoModifier);
+   QCoreApplication::sendEvent(view.viewport(), &first);
+   QHelpEvent nativeRequest(QEvent::ToolTip, inside, view.viewport()->mapToGlobal(inside));
+   QCoreApplication::sendEvent(view.viewport(), &nativeRequest);
+   QTRY_VERIFY(tooltip->isVisible());
+   QCOMPARE(tooltip->text(), node->toolTip());
+   const QPoint firstPosition = tooltip->pos();
+   const QPoint movedInside = inside + QPoint(10, 10);
+   QMouseEvent follow(QEvent::MouseMove, movedInside, view.viewport()->mapToGlobal(movedInside),
+                      Qt::NoButton, Qt::NoButton, Qt::NoModifier);
+   QCoreApplication::sendEvent(view.viewport(), &follow);
+   QCOMPARE(tooltip->pos(), firstPosition + QPoint(10, 10));
+   QMouseEvent leaveNode(QEvent::MouseMove, outside, view.viewport()->mapToGlobal(outside),
+                         Qt::NoButton, Qt::NoButton, Qt::NoModifier);
+   QCoreApplication::sendEvent(view.viewport(), &leaveNode);
+   QVERIFY(!tooltip->isVisible());
+   QMouseEvent reentry(QEvent::MouseMove, inside, view.viewport()->mapToGlobal(inside),
+                       Qt::NoButton, Qt::NoButton, Qt::NoModifier);
+   QCoreApplication::sendEvent(view.viewport(), &reentry);
+   QVERIFY(!tooltip->isVisible());
+   QTRY_VERIFY(tooltip->isVisible());
+   QTest::qWait(350);
+   QVERIFY(tooltip->isVisible());
+   view.setNodeScene(nullptr);
+   QVERIFY(!tooltip->isVisible());
+}
 
 void UiSmokeTest::showsOnlyMainWindowAtStartup() {
    auto* application = qobject_cast<TexGenApplication*>(QCoreApplication::instance());
@@ -635,6 +682,10 @@ void UiSmokeTest::showsLabelsForHighlightedOrSelectedNodes() {
             QStringLiteral("%1 (%2)").arg(connection->getSlot(), source->getName()));
 
    source->setName(QStringLiteral("Renamed source"));
+   receiver->setName(QStringLiteral("Renamed receiver"));
+   QCOMPARE(connection->toolTip(),
+            QStringLiteral("Renamed source (%1) → Renamed receiver (%2)")
+                .arg(source->getGeneratorName(), receiver->getGeneratorName()));
    QCOMPARE(connection->getReceiverLabelText(),
             QStringLiteral("%1 (Renamed source)").arg(connection->getSlot()));
    connection->setHighlighted(false);

@@ -5,8 +5,13 @@
 // Johan Lindqvist (johan.lindqvist@gmail.com)
 
 #include "viewnodeview.h"
+#include "viewnodeitem.h"
 #include <QEasingCurve>
 #include <QGraphicsScene>
+#include <QGraphicsItem>
+#include <QLabel>
+#include <QScreen>
+#include <QToolTip>
 #include <QMouseEvent>
 #include <QPainter>
 #include <QScrollBar>
@@ -16,6 +21,28 @@
 #include <QtMath>
 
 ViewNodeView::ViewNodeView() : scrollZoomFactor(1.0), zoomStepFactor(1.45) {
+   graphTooltip = new QLabel(this, Qt::ToolTip | Qt::WindowTransparentForInput);
+   graphTooltip->setObjectName("graphTooltip");
+   graphTooltip->setTextFormat(Qt::PlainText);
+   graphTooltip->setWordWrap(false);
+   graphTooltip->setFont(QToolTip::font());
+   graphTooltip->setPalette(QToolTip::palette());
+   graphTooltip->setBackgroundRole(QPalette::ToolTipBase);
+   graphTooltip->setForegroundRole(QPalette::ToolTipText);
+   graphTooltip->setAutoFillBackground(true);
+   graphTooltip->setMargin(4);
+   tooltipDelay.setSingleShot(true);
+   tooltipDelay.setInterval(300);
+   connect(&tooltipDelay, &QTimer::timeout, this, [this] { updateGraphTooltip(true); });
+   tooltipTimer.setSingleShot(true);
+   connect(&tooltipTimer, &QTimer::timeout, graphTooltip, &QWidget::hide);
+   connect(qApp, &QGuiApplication::applicationStateChanged, graphTooltip,
+           [this](Qt::ApplicationState state) {
+              if (state != Qt::ApplicationActive) {
+                 graphTooltip->hide();
+                 tooltipDelay.stop();
+              }
+           });
    setMouseTracking(true);
    setRenderHints(QPainter::Antialiasing | QPainter::SmoothPixmapTransform |
                   QPainter::TextAntialiasing);
@@ -34,6 +61,66 @@ ViewNodeView::ViewNodeView() : scrollZoomFactor(1.0), zoomStepFactor(1.45) {
    scale(defaultZoomFactor, defaultZoomFactor);
 }
 
+bool ViewNodeView::viewportEvent(QEvent* event) {
+   if (event->type() == QEvent::ToolTip) {
+      // Use our hover delay even when Qt requests an immediate tooltip after another one.
+      event->accept();
+      return true;
+   }
+   if (event->type() == QEvent::MouseMove &&
+       static_cast<QMouseEvent*>(event)->buttons() == Qt::NoButton) {
+      tooltipPosition = static_cast<QMouseEvent*>(event)->position().toPoint();
+      updateGraphTooltip(false);
+   } else if (event->type() == QEvent::Leave || event->type() == QEvent::Hide ||
+              event->type() == QEvent::FocusOut || event->type() == QEvent::MouseButtonPress ||
+              event->type() == QEvent::MouseMove || event->type() == QEvent::Wheel) {
+      graphTooltip->hide();
+      tooltipDelay.stop();
+   }
+   return QGraphicsView::viewportEvent(event);
+}
+
+void ViewNodeView::updateGraphTooltip(bool show) {
+   QString text;
+   for (QGraphicsItem* item : items(tooltipPosition)) {
+      if (!item->toolTip().isEmpty()) {
+         if (text.isEmpty()) {
+            text = item->toolTip();
+         }
+         // A connection's wide hit area can overlap its node at the endpoint.
+         if (dynamic_cast<ViewNodeItem*>(item) != nullptr) {
+            text = item->toolTip();
+            break;
+         }
+      }
+   }
+   if (text.isEmpty() || text != graphTooltip->text()) {
+      graphTooltip->hide();
+   }
+   if (text.isEmpty()) {
+      tooltipDelay.stop();
+      return;
+   }
+   if (!graphTooltip->isVisible() && !show) {
+      tooltipDelay.start();
+      return;
+   }
+   const bool wasVisible = graphTooltip->isVisible();
+   const QRect screen = viewport()->screen()->availableGeometry();
+   graphTooltip->setMaximumWidth(screen.width());
+   graphTooltip->setText(text);
+   graphTooltip->adjustSize();
+   QPoint location = viewport()->mapToGlobal(tooltipPosition) + QPoint(2, 20);
+   location.setX(qMax(screen.left(), qMin(location.x(), screen.right() - graphTooltip->width())));
+   location.setY(qMax(screen.top(), qMin(location.y(), screen.bottom() - graphTooltip->height())));
+   graphTooltip->move(location);
+   if (!wasVisible) {
+      QToolTip::hideText();
+      graphTooltip->show();
+      tooltipTimer.start(10000 + 40 * qMax(0, text.size() - 100));
+   }
+}
+
 void ViewNodeView::setZoomStepFactor(double factor) {
    if (factor <= 1.0 || factor > 3.0) {
       factor = 1.45;
@@ -43,6 +130,8 @@ void ViewNodeView::setZoomStepFactor(double factor) {
 }
 
 void ViewNodeView::setNodeScene(QGraphicsScene* scene) {
+   graphTooltip->hide();
+   tooltipDelay.stop();
    if (sceneChangedConnection) {
       QObject::disconnect(sceneChangedConnection);
       sceneChangedConnection = QMetaObject::Connection();

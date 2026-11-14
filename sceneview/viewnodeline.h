@@ -135,7 +135,7 @@ private:
    /// @param slot Receiver input slot name.
    ViewNodeLine(ViewNodeScene& scene, int sourceItem, int receiverItem, QString slot);
 
-   /// @brief Updates endpoint label text and rectangles from the live node model.
+   /// @brief Updates endpoint labels, their rectangles, and the connection tooltip.
    void updateLabelGeometry();
 
    /// @brief Finds where a connection intersects a node outline.

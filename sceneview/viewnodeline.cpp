@@ -294,8 +294,15 @@ void ViewNodeLine::updateLabelGeometry() {
    ViewNodeItem* sourceItem = nodescene.getItem(sourceItemId);
    ViewNodeItem* receiverItem = nodescene.getItem(receiverItemId);
    if (!sourceItem || !receiverItem || slot.isEmpty()) {
+      setToolTip(QString());
       return;
    }
+
+   setToolTip(QStringLiteral("%1 (%2) → %3 (%4)")
+                  .arg(sourceItem->getTextureNode()->getName(),
+                       sourceItem->getTextureNode()->getGeneratorName(),
+                       receiverItem->getTextureNode()->getName(),
+                       receiverItem->getTextureNode()->getGeneratorName()));
 
    sourceLabelText = QStringLiteral("Output (%1)").arg(receiverItem->getTextureNode()->getName());
    receiverLabelText = QStringLiteral("%1 (%2)").arg(slot, sourceItem->getTextureNode()->getName());
