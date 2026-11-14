@@ -1,0 +1,966 @@
+[
+  {
+    "id": "1",
+    "name": "Deep space",
+    "position": {
+      "x": -896.951,
+      "y": -1134.26
+    },
+    "generator": "Gradient",
+    "settings": {
+      "endcolor": "#02000dff",
+      "endposx": 18,
+      "endposy": 15,
+      "gradient": "Radial Gradient",
+      "middlecolor": "#10052fff",
+      "middleposition": 45,
+      "radius": 95,
+      "spread": "Pad Spread",
+      "startcolor": "#32116bff",
+      "startposx": -20,
+      "startposy": -25
+    },
+    "slots": {
+    }
+  },
+  {
+    "id": "2",
+    "name": "Blue diamond",
+    "position": {
+      "x": -558.803,
+      "y": -763.044
+    },
+    "generator": "Square",
+    "settings": {
+      "antialiasing": true,
+      "color": "#7ee8ffff",
+      "cutoutheight": 0,
+      "cutoutwidth": 0,
+      "height": 4.2,
+      "offsetleft": -38,
+      "offsettop": -34,
+      "rotation": 45,
+      "width": 0.6
+    },
+    "slots": {
+      "Canvas": "1"
+    }
+  },
+  {
+    "id": "3",
+    "name": "White star",
+    "position": {
+      "x": 37.0843,
+      "y": -614.273
+    },
+    "generator": "Square",
+    "settings": {
+      "antialiasing": true,
+      "color": "#ffffffff",
+      "cutoutheight": 0,
+      "cutoutwidth": 0,
+      "height": 2.6,
+      "offsetleft": -12,
+      "offsettop": -22,
+      "rotation": 45,
+      "width": 0.4
+    },
+    "slots": {
+      "Canvas": "37"
+    }
+  },
+  {
+    "id": "4",
+    "name": "Pink star",
+    "position": {
+      "x": 540.898,
+      "y": -539.168
+    },
+    "generator": "Square",
+    "settings": {
+      "antialiasing": true,
+      "color": "#ff8cddff",
+      "cutoutheight": 0,
+      "cutoutwidth": 0,
+      "height": 3.2,
+      "offsetleft": 8,
+      "offsettop": -40,
+      "rotation": 45,
+      "width": 0.5
+    },
+    "slots": {
+      "Canvas": "38"
+    }
+  },
+  {
+    "id": "5",
+    "name": "Gold star",
+    "position": {
+      "x": 1097.17,
+      "y": -431.432
+    },
+    "generator": "Square",
+    "settings": {
+      "antialiasing": true,
+      "color": "#ffe18aff",
+      "cutoutheight": 0,
+      "cutoutwidth": 0,
+      "height": 3.8,
+      "offsetleft": 36,
+      "offsettop": -12,
+      "rotation": 45,
+      "width": 0.6
+    },
+    "slots": {
+      "Canvas": "39"
+    }
+  },
+  {
+    "id": "6",
+    "name": "Planet base",
+    "position": {
+      "x": -911.845,
+      "y": -247.038
+    },
+    "generator": "Fill",
+    "settings": {
+      "color": "#07163dff"
+    },
+    "slots": {
+    }
+  },
+  {
+    "id": "7",
+    "name": "Planet bands",
+    "position": {
+      "x": -355.219,
+      "y": -27.7659
+    },
+    "generator": "Sine plasma",
+    "settings": {
+      "color": "#ff3ca6ff",
+      "xfrequency": 3,
+      "xoffset": -18,
+      "yfrequency": 30,
+      "yoffset": 12
+    },
+    "slots": {
+      "Background": "6"
+    }
+  },
+  {
+    "id": "8",
+    "name": "Tilt planet bands",
+    "position": {
+      "x": 140.261,
+      "y": -102.037
+    },
+    "generator": "Transform",
+    "settings": {
+      "backgroundcolor": "#00000000",
+      "firstXtiles": 1,
+      "firstYtiles": 1,
+      "offsetleft": 0,
+      "offsettop": 0,
+      "rotation": -16,
+      "secondXtiles": 1,
+      "secondYtiles": 1,
+      "xscale": 100,
+      "yscale": 100
+    },
+    "slots": {
+      "Image": "7"
+    }
+  },
+  {
+    "id": "9",
+    "name": "Planet mask",
+    "position": {
+      "x": 203.985,
+      "y": 318.303
+    },
+    "generator": "Circle",
+    "settings": {
+      "antialiasing": true,
+      "color": "#ffffffff",
+      "horizontalscale": 100,
+      "innerradius": 0,
+      "offsetleft": 0,
+      "offsettop": 0,
+      "outerradius": 82,
+      "rotation": 0
+    },
+    "slots": {
+    }
+  },
+  {
+    "id": "10",
+    "name": "Masked planet",
+    "position": {
+      "x": 676.347,
+      "y": 16.3574
+    },
+    "generator": "Replace alpha",
+    "settings": {
+    },
+    "slots": {
+      "Alpha": "9",
+      "Image": "8"
+    }
+  },
+  {
+    "id": "11",
+    "name": "Planet glow",
+    "position": {
+      "x": 1172.61,
+      "y": 33.1398
+    },
+    "generator": "Glow",
+    "settings": {
+      "color": "#4de8ffff",
+      "cutoutx": 95,
+      "cutouty": 95,
+      "firstblurlevel": 5,
+      "includesource": true,
+      "mode": "Enlarge",
+      "ontop": false,
+      "secondblurlevel": 3,
+      "size": 5
+    },
+    "slots": {
+      "Image": "10"
+    }
+  },
+  {
+    "id": "12",
+    "name": "Place planet",
+    "position": {
+      "x": 1601.59,
+      "y": 134.984
+    },
+    "generator": "Transform",
+    "settings": {
+      "backgroundcolor": "#00000000",
+      "firstXtiles": 1,
+      "firstYtiles": 1,
+      "offsetleft": 31,
+      "offsettop": -28,
+      "rotation": 0,
+      "secondXtiles": 1,
+      "secondYtiles": 1,
+      "xscale": 38,
+      "yscale": 38
+    },
+    "slots": {
+      "Image": "11"
+    }
+  },
+  {
+    "id": "13",
+    "name": "Planet ring",
+    "position": {
+      "x": 639.98,
+      "y": 496.979
+    },
+    "generator": "Circle",
+    "settings": {
+      "antialiasing": true,
+      "color": "#ffd45cff",
+      "horizontalscale": 100,
+      "innerradius": 72,
+      "offsetleft": 0,
+      "offsettop": 0,
+      "outerradius": 84,
+      "rotation": 0
+    },
+    "slots": {
+    }
+  },
+  {
+    "id": "14",
+    "name": "Shape and place ring",
+    "position": {
+      "x": 1329.11,
+      "y": 515.163
+    },
+    "generator": "Transform",
+    "settings": {
+      "backgroundcolor": "#00000000",
+      "firstXtiles": 1,
+      "firstYtiles": 1,
+      "offsetleft": 31,
+      "offsettop": -28,
+      "rotation": -16,
+      "secondXtiles": 1,
+      "secondYtiles": 1,
+      "xscale": 58,
+      "yscale": 15
+    },
+    "slots": {
+      "Image": "13"
+    }
+  },
+  {
+    "id": "15",
+    "name": "Ringed planet",
+    "position": {
+      "x": 2051.14,
+      "y": 454.536
+    },
+    "generator": "Blend",
+    "settings": {
+      "alpha": 100,
+      "mode": "Normal"
+    },
+    "slots": {
+      "Background": "14",
+      "Foreground": "12"
+    }
+  },
+  {
+    "id": "16",
+    "name": "Space and planet",
+    "position": {
+      "x": 2867.34,
+      "y": -336.064
+    },
+    "generator": "Blend",
+    "settings": {
+      "alpha": 100,
+      "mode": "Normal"
+    },
+    "slots": {
+      "Background": "44",
+      "Foreground": "15"
+    }
+  },
+  {
+    "id": "17",
+    "name": "Rocket nose",
+    "position": {
+      "x": -345.242,
+      "y": 383.772
+    },
+    "generator": "Square",
+    "settings": {
+      "antialiasing": true,
+      "color": "#ff3c73ff",
+      "cutoutheight": 0,
+      "cutoutwidth": 0,
+      "height": 16,
+      "offsetleft": 0,
+      "offsettop": -24,
+      "rotation": 45,
+      "width": 16
+    },
+    "slots": {
+    }
+  },
+  {
+    "id": "18",
+    "name": "Rocket body",
+    "position": {
+      "x": -371.664,
+      "y": 837.452
+    },
+    "generator": "Square",
+    "settings": {
+      "antialiasing": true,
+      "color": "#dff5ffff",
+      "cutoutheight": 0,
+      "cutoutwidth": 0,
+      "height": 44,
+      "offsetleft": 0,
+      "offsettop": 0,
+      "rotation": 0,
+      "width": 20
+    },
+    "slots": {
+      "Canvas": "17"
+    }
+  },
+  {
+    "id": "19",
+    "name": "Left fin",
+    "position": {
+      "x": 83.5099,
+      "y": 745.062
+    },
+    "generator": "Square",
+    "settings": {
+      "antialiasing": true,
+      "color": "#ff3c73ff",
+      "cutoutheight": 0,
+      "cutoutwidth": 0,
+      "height": 25,
+      "offsetleft": -11,
+      "offsettop": 16,
+      "rotation": 25,
+      "width": 11
+    },
+    "slots": {
+      "Canvas": "18"
+    }
+  },
+  {
+    "id": "20",
+    "name": "Right fin",
+    "position": {
+      "x": -95.8646,
+      "y": 1502.83
+    },
+    "generator": "Square",
+    "settings": {
+      "antialiasing": true,
+      "color": "#ff3c73ff",
+      "cutoutheight": 0,
+      "cutoutwidth": 0,
+      "height": 25,
+      "offsetleft": 11,
+      "offsettop": 16,
+      "rotation": 155,
+      "width": 11
+    },
+    "slots": {
+      "Canvas": "19"
+    }
+  },
+  {
+    "id": "21",
+    "name": "Rocket stripe",
+    "position": {
+      "x": 851.604,
+      "y": 941.382
+    },
+    "generator": "Square",
+    "settings": {
+      "antialiasing": true,
+      "color": "#ffb52eff",
+      "cutoutheight": 0,
+      "cutoutwidth": 0,
+      "height": 6,
+      "offsetleft": 0,
+      "offsettop": 9,
+      "rotation": 0,
+      "width": 21
+    },
+    "slots": {
+      "Canvas": "36"
+    }
+  },
+  {
+    "id": "22",
+    "name": "Window frame",
+    "position": {
+      "x": 1319.09,
+      "y": 934.745
+    },
+    "generator": "Circle",
+    "settings": {
+      "antialiasing": true,
+      "color": "#15214dff",
+      "horizontalscale": 100,
+      "innerradius": 0,
+      "offsetleft": 0,
+      "offsettop": -8,
+      "outerradius": 17,
+      "rotation": 0
+    },
+    "slots": {
+      "Canvas": "21"
+    }
+  },
+  {
+    "id": "23",
+    "name": "Window glass",
+    "position": {
+      "x": 1669.62,
+      "y": 927.301
+    },
+    "generator": "Circle",
+    "settings": {
+      "antialiasing": true,
+      "color": "#48e9ffff",
+      "horizontalscale": 100,
+      "innerradius": 0,
+      "offsetleft": 0,
+      "offsettop": -8,
+      "outerradius": 11,
+      "rotation": 0
+    },
+    "slots": {
+      "Canvas": "22"
+    }
+  },
+  {
+    "id": "24",
+    "name": "Rocket glow",
+    "position": {
+      "x": 2118.19,
+      "y": 863.749
+    },
+    "generator": "Glow",
+    "settings": {
+      "color": "#35dfffff",
+      "cutoutx": 95,
+      "cutouty": 95,
+      "firstblurlevel": 4,
+      "includesource": true,
+      "mode": "Multiply",
+      "ontop": false,
+      "secondblurlevel": 3,
+      "size": 3
+    },
+    "slots": {
+      "Image": "23"
+    }
+  },
+  {
+    "id": "25",
+    "name": "Engine fire",
+    "position": {
+      "x": 565.716,
+      "y": 1647.16
+    },
+    "generator": "Fire",
+    "settings": {
+      "embercolor": "#960500ff",
+      "falloff": 3,
+      "flamecolor": "#ff5500ff",
+      "hotcolor": "#fff5beff",
+      "iterations": 190,
+      "randomize": 37,
+      "sinewave": false,
+      "waveamplitude": 6,
+      "wavefrequency": 2,
+      "wavephase": 0
+    },
+    "slots": {
+    }
+  },
+  {
+    "id": "26",
+    "name": "Wavering flame",
+    "position": {
+      "x": 1230.03,
+      "y": 1776.03
+    },
+    "generator": "Sine transform",
+    "settings": {
+      "amplitudeone": 2,
+      "amplitudetwo": 1,
+      "angle": 90,
+      "frequencyone": 12,
+      "frequencytwo": 7,
+      "offsetone": 0,
+      "offsettwo": 40
+    },
+    "slots": {
+      "Image": "25"
+    }
+  },
+  {
+    "id": "27",
+    "name": "Shape flame",
+    "position": {
+      "x": 1816.39,
+      "y": 1413.39
+    },
+    "generator": "Transform",
+    "settings": {
+      "backgroundcolor": "#00000000",
+      "firstXtiles": 1,
+      "firstYtiles": 1,
+      "offsetleft": 0,
+      "offsettop": 34,
+      "rotation": 0,
+      "secondXtiles": 1,
+      "secondYtiles": 1,
+      "xscale": 18,
+      "yscale": 34
+    },
+    "slots": {
+      "Image": "26"
+    }
+  },
+  {
+    "id": "28",
+    "name": "Rocket assembly",
+    "position": {
+      "x": 2444.91,
+      "y": 1247.4
+    },
+    "generator": "Blend",
+    "settings": {
+      "alpha": 100,
+      "mode": "Normal"
+    },
+    "slots": {
+      "Background": "27",
+      "Foreground": "24"
+    }
+  },
+  {
+    "id": "29",
+    "name": "Launch rocket",
+    "position": {
+      "x": 2854.51,
+      "y": 1064.49
+    },
+    "generator": "Transform",
+    "settings": {
+      "backgroundcolor": "#00000000",
+      "firstXtiles": 1,
+      "firstYtiles": 1,
+      "offsetleft": -18,
+      "offsettop": 8,
+      "rotation": 12,
+      "secondXtiles": 1,
+      "secondYtiles": 1,
+      "xscale": 70,
+      "yscale": 70
+    },
+    "slots": {
+      "Image": "28"
+    }
+  },
+  {
+    "id": "30",
+    "name": "Final",
+    "position": {
+      "x": 3081.84,
+      "y": 370.656
+    },
+    "generator": "Blend",
+    "settings": {
+      "alpha": 100,
+      "mode": "Normal"
+    },
+    "slots": {
+      "Background": "16",
+      "Foreground": "29"
+    }
+  },
+  {
+    "id": "31",
+    "name": "Lower body",
+    "position": {
+      "x": 394.267,
+      "y": 1171.66
+    },
+    "generator": "Square",
+    "settings": {
+      "antialiasing": true,
+      "color": "#dff5ffff",
+      "cutoutheight": 0,
+      "cutoutwidth": 0,
+      "height": 14,
+      "offsetleft": 0,
+      "offsettop": 22,
+      "rotation": 0,
+      "width": 20
+    },
+    "slots": {
+      "Canvas": "20"
+    }
+  },
+  {
+    "id": "32",
+    "name": "Cyan star",
+    "position": {
+      "x": 1188.65,
+      "y": -895.246
+    },
+    "generator": "Square",
+    "settings": {
+      "antialiasing": true,
+      "color": "#55f0ffff",
+      "cutoutheight": 0,
+      "cutoutwidth": 0,
+      "height": 2.4,
+      "offsetleft": -42,
+      "offsettop": 4,
+      "rotation": 45,
+      "width": 0.4
+    },
+    "slots": {
+      "Canvas": "40"
+    }
+  },
+  {
+    "id": "33",
+    "name": "Small gold star",
+    "position": {
+      "x": 1662.13,
+      "y": -874.332
+    },
+    "generator": "Square",
+    "settings": {
+      "antialiasing": true,
+      "color": "#ffd66bff",
+      "cutoutheight": 0,
+      "cutoutwidth": 0,
+      "height": 2,
+      "offsetleft": -18,
+      "offsettop": 30,
+      "rotation": 45,
+      "width": 0.35
+    },
+    "slots": {
+      "Canvas": "41"
+    }
+  },
+  {
+    "id": "34",
+    "name": "Small white star",
+    "position": {
+      "x": 2120.97,
+      "y": -965.17
+    },
+    "generator": "Square",
+    "settings": {
+      "antialiasing": true,
+      "color": "#ffffffff",
+      "cutoutheight": 0,
+      "cutoutwidth": 0,
+      "height": 2.2,
+      "offsetleft": 15,
+      "offsettop": 26,
+      "rotation": 45,
+      "width": 0.35
+    },
+    "slots": {
+      "Canvas": "42"
+    }
+  },
+  {
+    "id": "35",
+    "name": "Lower pink star",
+    "position": {
+      "x": 2690.06,
+      "y": -922.77
+    },
+    "generator": "Square",
+    "settings": {
+      "antialiasing": true,
+      "color": "#ff93dfff",
+      "cutoutheight": 0,
+      "cutoutwidth": 0,
+      "height": 3,
+      "offsetleft": 40,
+      "offsettop": 38,
+      "rotation": 45,
+      "width": 0.45
+    },
+    "slots": {
+      "Canvas": "43"
+    }
+  },
+  {
+    "id": "36",
+    "name": "Engine nozzle",
+    "position": {
+      "x": 1266.7,
+      "y": 1382.69
+    },
+    "generator": "Square",
+    "settings": {
+      "antialiasing": true,
+      "color": "#15214dff",
+      "cutoutheight": 0,
+      "cutoutwidth": 0,
+      "height": 7,
+      "offsetleft": 0,
+      "offsettop": 29,
+      "rotation": 0,
+      "width": 12
+    },
+    "slots": {
+      "Canvas": "31"
+    }
+  },
+  {
+    "id": "37",
+    "name": "Blue star cross",
+    "position": {
+      "x": -163.308,
+      "y": -1078.15
+    },
+    "generator": "Square",
+    "settings": {
+      "antialiasing": true,
+      "color": "#7ee8ffff",
+      "cutoutheight": 0,
+      "cutoutwidth": 0,
+      "height": 4.2,
+      "offsetleft": -38,
+      "offsettop": -34,
+      "rotation": 135,
+      "width": 0.6
+    },
+    "slots": {
+      "Canvas": "2"
+    }
+  },
+  {
+    "id": "38",
+    "name": "White star cross",
+    "position": {
+      "x": 322.183,
+      "y": -1109.72
+    },
+    "generator": "Square",
+    "settings": {
+      "antialiasing": true,
+      "color": "#ffffffff",
+      "cutoutheight": 0,
+      "cutoutwidth": 0,
+      "height": 2.6,
+      "offsetleft": -12,
+      "offsettop": -22,
+      "rotation": 135,
+      "width": 0.4
+    },
+    "slots": {
+      "Canvas": "3"
+    }
+  },
+  {
+    "id": "39",
+    "name": "Pink star cross",
+    "position": {
+      "x": 771.944,
+      "y": -925.095
+    },
+    "generator": "Square",
+    "settings": {
+      "antialiasing": true,
+      "color": "#ff8cddff",
+      "cutoutheight": 0,
+      "cutoutwidth": 0,
+      "height": 3.2,
+      "offsetleft": 8,
+      "offsettop": -40,
+      "rotation": 135,
+      "width": 0.5
+    },
+    "slots": {
+      "Canvas": "4"
+    }
+  },
+  {
+    "id": "40",
+    "name": "Gold star cross",
+    "position": {
+      "x": 1889.89,
+      "y": -394.009
+    },
+    "generator": "Square",
+    "settings": {
+      "antialiasing": true,
+      "color": "#ffe18aff",
+      "cutoutheight": 0,
+      "cutoutwidth": 0,
+      "height": 3.8,
+      "offsetleft": 36,
+      "offsettop": -12,
+      "rotation": 135,
+      "width": 0.6
+    },
+    "slots": {
+      "Canvas": "5"
+    }
+  },
+  {
+    "id": "41",
+    "name": "Cyan star cross",
+    "position": {
+      "x": 1087.34,
+      "y": -1425.18
+    },
+    "generator": "Square",
+    "settings": {
+      "antialiasing": true,
+      "color": "#55f0ffff",
+      "cutoutheight": 0,
+      "cutoutwidth": 0,
+      "height": 2.4,
+      "offsetleft": -42,
+      "offsettop": 4,
+      "rotation": 135,
+      "width": 0.4
+    },
+    "slots": {
+      "Canvas": "32"
+    }
+  },
+  {
+    "id": "42",
+    "name": "Small gold star cross",
+    "position": {
+      "x": 1721.89,
+      "y": -1438.12
+    },
+    "generator": "Square",
+    "settings": {
+      "antialiasing": true,
+      "color": "#ffd66bff",
+      "cutoutheight": 0,
+      "cutoutwidth": 0,
+      "height": 2,
+      "offsetleft": -18,
+      "offsettop": 30,
+      "rotation": 135,
+      "width": 0.35
+    },
+    "slots": {
+      "Canvas": "33"
+    }
+  },
+  {
+    "id": "43",
+    "name": "Small white star cross",
+    "position": {
+      "x": 2493.16,
+      "y": -1469.6
+    },
+    "generator": "Square",
+    "settings": {
+      "antialiasing": true,
+      "color": "#ffffffff",
+      "cutoutheight": 0,
+      "cutoutwidth": 0,
+      "height": 2.2,
+      "offsetleft": 15,
+      "offsettop": 26,
+      "rotation": 135,
+      "width": 0.35
+    },
+    "slots": {
+      "Canvas": "34"
+    }
+  },
+  {
+    "id": "44",
+    "name": "Lower pink star cross",
+    "position": {
+      "x": 3248.62,
+      "y": -982.414
+    },
+    "generator": "Square",
+    "settings": {
+      "antialiasing": true,
+      "color": "#ff93dfff",
+      "cutoutheight": 0,
+      "cutoutwidth": 0,
+      "height": 3,
+      "offsetleft": 40,
+      "offsettop": 38,
+      "rotation": 135,
+      "width": 0.45
+    },
+    "slots": {
+      "Canvas": "35"
+    }
+  }
+]

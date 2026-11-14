@@ -9,9 +9,9 @@
 
 #include "base/texturegenerator.h"
 #include "texturenode.h"
+#include <QJsonDocument>
 #include "texturerendermanager.h"
 #include "texturerenderstatus.h"
-#include <QDomDocument>
 #include <QList>
 #include <QMap>
 #include <QObject>
@@ -43,14 +43,12 @@ public:
    /// @brief Stops render workers and releases all project nodes.
    ~TextureProject() override;
 
-   /// @brief Serializes the project graph and settings to XML.
-   /// @param includegenerators Whether the document should include generator metadata.
-   /// @return An XML document containing the project graph.
-   QDomDocument saveAsXML(bool includegenerators = false);
+   /// @brief Serializes the graph as a JSON array of nodes.
+   QJsonDocument saveAsJSON() const;
 
-   /// @brief Loads nodes, settings, and connections from an XML document.
-   /// @param xmlfile The XML document to load.
-   void loadFromXML(const QDomDocument& xmlfile);
+   /// @brief Loads a validated JSON graph, resolving string IDs to live connections.
+   /// @param document Array of nodes to add to the graph.
+   void loadFromJSON(const QJsonDocument& document);
 
    /// @brief Gets the project's public display name.
    /// @return The project name.
@@ -64,6 +62,9 @@ public:
    /// @param id The node ID.
    /// @return A shared node pointer, or null if the ID is not present.
    TextureNodePtr getNode(int id) const;
+
+   /// @brief Finds a node by the editable ID used in files and CLI commands.
+   TextureNodePtr getNode(const QString& identifier) const;
 
    /// @brief Checks the graph for direct or indirect cycles.
    /// @return @c true if at least one cycle is found.
@@ -156,15 +157,15 @@ public slots:
    /// @param size The rendered image dimensions.
    void notifyImageAvailable(int id, QSize size);
 
-   /// @brief Serializes one node into the application's clipboard XML format.
+   /// @brief Serializes one node into the application's clipboard JSON format.
    /// @param id The node ID to serialize.
-   /// @return The XML payload, or an empty string when the node does not exist.
+   /// @return The JSON payload, or an empty string when the node does not exist.
    QString serializeNode(int id);
 
-   /// @brief Pastes texture nodes from an application clipboard XML payload.
-   /// @param xml The XML payload to parse.
+   /// @brief Pastes texture nodes from an application clipboard JSON payload.
+   /// @param json The JSON payload to parse.
    /// @return The number of nodes added to the project.
-   int pasteNodes(const QString& xml);
+   int pasteNodes(const QString& json);
 
    /// @brief Applies updated image sizes from the attached settings manager.
    void settingsUpdated();

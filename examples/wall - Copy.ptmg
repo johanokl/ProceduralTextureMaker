@@ -1,0 +1,214 @@
+[
+  {
+    "id": "1",
+    "name": "Node 1",
+    "position": {
+      "x": -736.946,
+      "y": -76.9614
+    },
+    "generator": "Perlin noise",
+    "settings": {
+      "brightness": 0.0,
+      "color": "#ffffffff",
+      "contrast": 100.0,
+      "invert": false,
+      "lacunarity": 2.0,
+      "maximum": 100.0,
+      "minimum": 0.0,
+      "numoctaves": 12,
+      "offsetx": 0.0,
+      "offsety": 0.0,
+      "persistence": 0.7999999999999999,
+      "randomizer": 500,
+      "seamless": false,
+      "zoom": 40.36
+    },
+    "slots": {}
+  },
+  {
+    "id": "2",
+    "name": "Node 2",
+    "position": {
+      "x": 558.279,
+      "y": -416.099
+    },
+    "generator": "Bricks",
+    "settings": {
+      "brickheight": 12.67,
+      "brickwidth": 33.67,
+      "color": "#3f3f3fff",
+      "linewidth": 3.33,
+      "offsetx": 0,
+      "offsety": 11
+    },
+    "slots": {}
+  },
+  {
+    "id": "3",
+    "name": "Node 3",
+    "position": {
+      "x": 56.9663,
+      "y": 150.739
+    },
+    "generator": "Fill",
+    "settings": {
+      "color": "#ff1b277d"
+    },
+    "slots": {}
+  },
+  {
+    "id": "4",
+    "name": "Node 4",
+    "position": {
+      "x": -582.722,
+      "y": 488.387
+    },
+    "generator": "Blend",
+    "settings": {
+      "alpha": 100.0,
+      "mode": "Normal"
+    },
+    "slots": {
+      "Background": "1",
+      "Foreground": "3"
+    }
+  },
+  {
+    "id": "5",
+    "name": "Node 5",
+    "position": {
+      "x": 1108.88,
+      "y": 31.1681
+    },
+    "generator": "Sine transform",
+    "settings": {
+      "amplitudeone": 0.10000000000000003,
+      "amplitudetwo": 0.30000000000000004,
+      "angle": 0.0,
+      "frequencyone": 40.0,
+      "frequencytwo": 20.0,
+      "offsetone": 0.0,
+      "offsettwo": 150.97
+    },
+    "slots": {
+      "Image": "2"
+    }
+  },
+  {
+    "id": "6",
+    "name": "Node 6",
+    "position": {
+      "x": 0.925557,
+      "y": 788.295
+    },
+    "generator": "Blend",
+    "settings": {
+      "alpha": 100.0,
+      "mode": "Normal"
+    },
+    "slots": {
+      "Background": "4",
+      "Foreground": "8"
+    }
+  },
+  {
+    "id": "7",
+    "name": "Node 7",
+    "position": {
+      "x": 1265.49,
+      "y": 815.076
+    },
+    "generator": "Perlin noise",
+    "settings": {
+      "brightness": 0.0,
+      "color": "#d8d6e7ff",
+      "contrast": 100.0,
+      "invert": false,
+      "lacunarity": 2.0,
+      "maximum": 100.0,
+      "minimum": 0.0,
+      "numoctaves": 10,
+      "offsetx": 0.0,
+      "offsety": 0.0,
+      "persistence": 0.7999999999999999,
+      "randomizer": 500,
+      "seamless": false,
+      "zoom": 10.0
+    },
+    "slots": {}
+  },
+  {
+    "id": "8",
+    "name": "Node 8",
+    "position": {
+      "x": 625.483,
+      "y": 609.741
+    },
+    "generator": "Replace alpha",
+    "settings": {},
+    "slots": {
+      "Image": "7",
+      "Alpha": "5"
+    }
+  },
+  {
+    "id": "9",
+    "name": "Node 9",
+    "position": {
+      "x": -765.701,
+      "y": 1273.34
+    },
+    "generator": "Text",
+    "settings": {
+      "antialiasing": true,
+      "color": "#ff0000ff",
+      "fontname": "AnyStyle",
+      "fontsize": 33.97,
+      "offsetleft": 0.0,
+      "offsettop": 0.0,
+      "rotation": 0.0,
+      "text": "Text"
+    },
+    "slots": {}
+  },
+  {
+    "id": "10",
+    "name": "Node 10",
+    "position": {
+      "x": -139.531,
+      "y": 1440.73
+    },
+    "generator": "Glow",
+    "settings": {
+      "color": "#ffff00ff",
+      "cutoutx": 95.0,
+      "cutouty": 95.0,
+      "firstblurlevel": 3.0,
+      "includesource": true,
+      "mode": "Multiply",
+      "ontop": false,
+      "secondblurlevel": 3.0,
+      "size": 4.0
+    },
+    "slots": {
+      "Image": "9"
+    }
+  },
+  {
+    "id": "13",
+    "name": "Node 13",
+    "position": {
+      "x": 504.719,
+      "y": 1550.21
+    },
+    "generator": "Blend",
+    "settings": {
+      "alpha": 100.0,
+      "mode": "Normal"
+    },
+    "slots": {
+      "Background": "6",
+      "Foreground": "10"
+    }
+  }
+]

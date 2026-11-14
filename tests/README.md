@@ -17,7 +17,7 @@ clipboard, or home-directory files.
 The persistence test records SHA-256 digests of raw `TexturePixel` RGBA bytes. PNG file bytes are
 not hashed because encoder output can change without changing decoded pixels.
 
-`minimal-fill.txl` is the portable exact fixture. The tracked example hashes characterize the
+`minimal-fill.ptmg` is the portable exact fixture. The tracked example hashes characterize the
 canonical Windows UCRT64/Qt 6 build; platform-sensitive font rasterization, antialiasing, and
 floating-point behavior mean a new platform must receive a separately reviewed baseline.
 

@@ -633,18 +633,18 @@ void JavaScriptGeneratorsTest::rendersInvert() {
    const QList<TexturePixel> expectedDefault{TexturePixel(255, 127, 0, 64),
                                              TexturePixel(245, 235, 225, 0),
                                              TexturePixel(0, 255, 254, 255)};
-   const TextureNodeSettings blueAndAlpha{{QStringLiteral("channelRed"), false},
-                                          {QStringLiteral("channelGreen"), false},
-                                          {QStringLiteral("channelBlue"), true},
-                                          {QStringLiteral("channelAlpha"), true}};
+   const TextureNodeSettings blueAndAlpha{{QStringLiteral("invertRed"), false},
+                                          {QStringLiteral("invertGreen"), false},
+                                          {QStringLiteral("invertBlue"), true},
+                                          {QStringLiteral("invertAlpha"), true}};
    const auto selected = renderGenerator(generator, size, sources, blueAndAlpha);
    const QList<TexturePixel> expectedSelected{
        TexturePixel(0, 128, 0, 191), TexturePixel(10, 20, 225, 255), TexturePixel(255, 0, 254, 0)};
    const auto unchanged = renderGenerator(generator, size, sources,
-                                          {{QStringLiteral("channelRed"), false},
-                                           {QStringLiteral("channelGreen"), false},
-                                           {QStringLiteral("channelBlue"), false},
-                                           {QStringLiteral("channelAlpha"), false}});
+                                          {{QStringLiteral("invertRed"), false},
+                                           {QStringLiteral("invertGreen"), false},
+                                           {QStringLiteral("invertBlue"), false},
+                                           {QStringLiteral("invertAlpha"), false}});
    const auto missing = renderGenerator(generator, size, {}, blueAndAlpha);
    for (int pixel = 0; pixel < size.width(); ++pixel) {
       QCOMPARE(defaults->data()[pixel].toRGBA(), expectedDefault[pixel].toRGBA());

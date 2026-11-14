@@ -35,7 +35,6 @@ find_package(Qt6 REQUIRED COMPONENTS
     OpenGLWidgets
     Qml
     Widgets
-    Xml
 )
 if(BUILD_TESTING)
     find_package(Qt6 REQUIRED COMPONENTS Test)
@@ -205,7 +204,6 @@ target_link_libraries(ptm_engine PUBLIC
     Qt6::Core
     Qt6::Gui
     Qt6::Qml
-    Qt6::Xml
 )
 
 add_library(ptm_gui STATIC

@@ -23,7 +23,7 @@
       <dict>
          <key>CFBundleTypeExtensions</key>
          <array>
-            <string>txl</string>
+            <string>ptmg</string>
          </array>
          <key>CFBundleTypeRole</key>
          <string>Editor</string>

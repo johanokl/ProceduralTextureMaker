@@ -26,6 +26,8 @@
 #include <QGridLayout>
 #include <QGroupBox>
 #include <QLabel>
+#include <QLineEdit>
+#include <QMessageBox>
 #include <QComboBox>
 #include <QDoubleSpinBox>
 #include <QCheckBox>
@@ -92,6 +94,8 @@ class UiSmokeTest : public QObject {
    Q_OBJECT
 
 private slots:
+   /// @brief Checks empty and duplicate IDs produce distinct warning messages.
+   void explainsInvalidNodeIds();
    /// @brief Checks tooltip pointer tracking and rapid node re-entry.
    void keepsGraphTooltipVisibleAfterReentry();
    /// @brief Verifies child widgets are embedded before any startup window is shown.
@@ -139,6 +143,34 @@ private:
    /// @brief Owns the isolated settings directory for the duration of the test.
    std::unique_ptr<QTemporaryDir> settingsDirectory;
 };
+
+void UiSmokeTest::explainsInvalidNodeIds() {
+   auto* application = qobject_cast<TexGenApplication*>(QCoreApplication::instance());
+   MainWindow window(application);
+   auto* project = window.getTextureProject();
+   const auto node = project->newNode(1, project->getGenerator("Fill"));
+   const auto other = project->newNode(2, project->getGenerator("Fill"));
+   QVERIFY(other->setIdentifier("taken"));
+   auto* panel = window.findChild<ItemInfoPanel*>();
+   panel->setActiveNode(node->getId());
+   auto* editor = panel->findChild<QLineEdit*>("nodeIdentifier");
+   QVERIFY(editor != nullptr);
+   for (const QString& value : {QString("   "), QString(" taken ")}) {
+      QString message;
+      QTimer::singleShot(0, &window, [&message] {
+         if (auto* dialog = qobject_cast<QMessageBox*>(QApplication::activeModalWidget())) {
+            message = dialog->text();
+            dialog->accept();
+         }
+      });
+      editor->setText(value);
+      QVERIFY(QMetaObject::invokeMethod(editor, "editingFinished"));
+      QCOMPARE(message, value.trimmed().isEmpty()
+                            ? QString("The node ID cannot be empty.")
+                            : QString("Another node already uses the ID \"taken\"."));
+      QCOMPARE(editor->text(), node->getIdentifier());
+   }
+}
 
 void UiSmokeTest::keepsGraphTooltipVisibleAfterReentry() {
    QGraphicsScene scene;
@@ -200,12 +232,14 @@ void UiSmokeTest::showsOnlyMainWindowAtStartup() {
 
 void UiSmokeTest::editsChannelFiltersWithCheckboxes_data() {
    QTest::addColumn<QString>("generatorName");
-   QTest::newRow("invert") << QStringLiteral("Invert");
-   QTest::newRow("adjust") << QStringLiteral("Adjust");
+   QTest::addColumn<QString>("settingPrefix");
+   QTest::newRow("invert") << QStringLiteral("Invert") << QStringLiteral("invert");
+   QTest::newRow("adjust") << QStringLiteral("Adjust") << QStringLiteral("channel");
 }
 
 void UiSmokeTest::editsChannelFiltersWithCheckboxes() {
    QFETCH(QString, generatorName);
+   QFETCH(QString, settingPrefix);
    auto* application = qobject_cast<TexGenApplication*>(QCoreApplication::instance());
    MainWindow window(application);
    auto* project = window.getTextureProject();
@@ -216,6 +250,16 @@ void UiSmokeTest::editsChannelFiltersWithCheckboxes() {
    auto* inspector =
        infoPanel->findChild<NodeSettingsWidget*>(QStringLiteral("nodeSettingsInspector"));
    QVERIFY(inspector != nullptr);
+   auto* idEditor = inspector->findChild<QLineEdit*>(QStringLiteral("nodeIdentifier"));
+   QVERIFY(idEditor != nullptr);
+   QCOMPARE(idEditor->text(), node->getIdentifier());
+   idEditor->setText(" filter ");
+   QVERIFY(QMetaObject::invokeMethod(idEditor, "editingFinished"));
+   QCOMPARE(project->getNode("filter"), node);
+   QCOMPARE(idEditor->text(), QString("filter"));
+   window.getEditManager().stack().undo();
+   QCOMPARE(idEditor->text(), node->getIdentifier());
+   QVERIFY(!project->getNode("filter"));
    const auto comboBoxes = inspector->findChildren<QComboBox*>();
    QCOMPARE(comboBoxes.size(), generatorName == QStringLiteral("Invert") ? 0 : 1);
    if (!comboBoxes.isEmpty()) {
@@ -242,11 +286,11 @@ void UiSmokeTest::editsChannelFiltersWithCheckboxes() {
    checkboxes[0]->setChecked(false);
    checkboxes[3]->setChecked(true);
    const auto settings = node->getSettings();
-   QCOMPARE(settings.value(QStringLiteral("channelRed")).typeId(), QMetaType::Bool);
-   QCOMPARE(settings.value(QStringLiteral("channelRed")).toBool(), false);
-   QCOMPARE(settings.value(QStringLiteral("channelGreen")).toBool(), true);
-   QCOMPARE(settings.value(QStringLiteral("channelBlue")).toBool(), true);
-   QCOMPARE(settings.value(QStringLiteral("channelAlpha")).toBool(), true);
+   QCOMPARE(settings.value(settingPrefix + QStringLiteral("Red")).typeId(), QMetaType::Bool);
+   QCOMPARE(settings.value(settingPrefix + QStringLiteral("Red")).toBool(), false);
+   QCOMPARE(settings.value(settingPrefix + QStringLiteral("Green")).toBool(), true);
+   QCOMPARE(settings.value(settingPrefix + QStringLiteral("Blue")).toBool(), true);
+   QCOMPARE(settings.value(settingPrefix + QStringLiteral("Alpha")).toBool(), true);
    if (generatorName == QStringLiteral("Adjust")) {
       QCOMPARE(settings.value(QStringLiteral("mode")).toString(), QStringLiteral("Subtract"));
       QCOMPARE(settings.value(QStringLiteral("level")).toDouble(), 30.0);
@@ -520,7 +564,7 @@ void UiSmokeTest::loadsProjectIntoSceneBackedWindow() {
    auto* application = qobject_cast<TexGenApplication*>(QCoreApplication::instance());
    QVERIFY(application != nullptr);
    MainWindow window(application);
-   window.openFile(QStringLiteral(PTM_SOURCE_DIR "/examples/wall.txl"));
+   window.openFile(QStringLiteral(PTM_SOURCE_DIR "/examples/wall.ptmg"));
    QCOMPARE(window.getTextureProject()->getNumNodes(), 11);
    QCOMPARE(window.getTextureProject()->getSinkNodeIds(), QList<int>({13}));
    for (int i = 0; i < 5; ++i) {
@@ -536,17 +580,17 @@ void UiSmokeTest::opensProjectWithoutDiscardingChanges() {
 
    MainWindow* reusableWindow = application->addWindow();
    MainWindow* reusedWindow = application->openProject(
-       reusableWindow, QStringLiteral(PTM_SOURCE_DIR "/examples/wall.txl"));
+       reusableWindow, QStringLiteral(PTM_SOURCE_DIR "/examples/wall.ptmg"));
    QCOMPARE(reusedWindow, reusableWindow);
    QCOMPARE(application->mainwindows.size(), initialWindowCount + 1);
    QCOMPARE(reusableWindow->getTextureProject()->getNumNodes(), 11);
    delete reusableWindow;
 
    MainWindow* savedWindow = application->addWindow();
-   savedWindow->openFile(QStringLiteral(PTM_SOURCE_DIR "/examples/wall.txl"));
+   savedWindow->openFile(QStringLiteral(PTM_SOURCE_DIR "/examples/wall.ptmg"));
    QVERIFY(!savedWindow->getTextureProject()->isModified());
    MainWindow* savedProjectWindow =
-       application->openProject(savedWindow, QStringLiteral(PTM_SOURCE_DIR "/examples/wall.txl"));
+       application->openProject(savedWindow, QStringLiteral(PTM_SOURCE_DIR "/examples/wall.ptmg"));
    QVERIFY(savedProjectWindow != savedWindow);
    QCOMPARE(application->mainwindows.size(), initialWindowCount + 2);
    QCOMPARE(savedWindow->getTextureProject()->getNumNodes(), 11);
@@ -561,7 +605,7 @@ void UiSmokeTest::opensProjectWithoutDiscardingChanges() {
    QVERIFY(existingWindow->getTextureProject()->isModified());
 
    MainWindow* openedWindow = application->openProject(
-       existingWindow, QStringLiteral(PTM_SOURCE_DIR "/examples/wall.txl"));
+       existingWindow, QStringLiteral(PTM_SOURCE_DIR "/examples/wall.ptmg"));
    QVERIFY(openedWindow != nullptr);
    QVERIFY(openedWindow != existingWindow);
    QCOMPARE(application->mainwindows.size(), initialWindowCount + 2);
@@ -578,7 +622,7 @@ void UiSmokeTest::managesTemporarySceneItems() {
    auto* application = qobject_cast<TexGenApplication*>(QCoreApplication::instance());
    QVERIFY(application != nullptr);
    MainWindow window(application);
-   window.openFile(QStringLiteral(PTM_SOURCE_DIR "/examples/wall.txl"));
+   window.openFile(QStringLiteral(PTM_SOURCE_DIR "/examples/wall.ptmg"));
    TestViewNodeScene scene(window);
    scene.addNode(window.getTextureProject()->getNode(13));
    const qsizetype persistentItems = scene.items().size();
@@ -613,7 +657,7 @@ void UiSmokeTest::removesConnectedNodeItems() {
    auto* application = qobject_cast<TexGenApplication*>(QCoreApplication::instance());
    QVERIFY(application != nullptr);
    MainWindow window(application);
-   window.openFile(QStringLiteral(PTM_SOURCE_DIR "/examples/wall.txl"));
+   window.openFile(QStringLiteral(PTM_SOURCE_DIR "/examples/wall.ptmg"));
    auto* view = window.findChild<QGraphicsView*>();
    QVERIFY(view != nullptr);
    auto* scene = dynamic_cast<ViewNodeScene*>(view->scene());
@@ -634,7 +678,7 @@ void UiSmokeTest::showsLabelsForHighlightedOrSelectedNodes() {
    auto* application = qobject_cast<TexGenApplication*>(QCoreApplication::instance());
    QVERIFY(application != nullptr);
    MainWindow window(application);
-   window.openFile(QStringLiteral(PTM_SOURCE_DIR "/examples/wall.txl"));
+   window.openFile(QStringLiteral(PTM_SOURCE_DIR "/examples/wall.ptmg"));
    auto* view = window.findChild<QGraphicsView*>();
    QVERIFY(view != nullptr);
    auto* scene = dynamic_cast<ViewNodeScene*>(view->scene());
@@ -697,13 +741,20 @@ void UiSmokeTest::restoresPersistedComboBoxSelection() {
    QVERIFY(application != nullptr);
    QTemporaryDir directory;
    QVERIFY(directory.isValid());
-   QFile file(directory.filePath(QStringLiteral("channels.txl")));
+   QFile file(directory.filePath(QStringLiteral("channels.ptmg")));
    QVERIFY(file.open(QIODevice::WriteOnly));
-   const QByteArray xml(
-       "<TextureSet><Nodes><Node id='20' name='Channels'><generator name='Set channels'/>"
-       "<Settings><setting id='channelAlpha' type='QString' value=\"Second's alpha\"/>"
-       "</Settings></Node></Nodes></TextureSet>");
-   QCOMPARE(file.write(xml), xml.size());
+   const QByteArray json(
+       R"([
+  {
+    "id": "20",
+    "name": "Channels",
+    "generator": "Set channels",
+    "settings": {
+      "channelAlpha": "Second's alpha"
+    }
+  }
+])");
+   QCOMPARE(file.write(json), json.size());
    file.close();
    MainWindow window(application);
    window.openFile(file.fileName());
@@ -943,7 +994,7 @@ void UiSmokeTest::keepsGeneratorAndGraphSelectionsExclusive() {
    auto* application = qobject_cast<TexGenApplication*>(QCoreApplication::instance());
    QVERIFY(application != nullptr);
    MainWindow window(application);
-   window.openFile(QStringLiteral(PTM_SOURCE_DIR "/examples/wall.txl"));
+   window.openFile(QStringLiteral(PTM_SOURCE_DIR "/examples/wall.ptmg"));
 
    auto* addNodePanel = window.findChild<AddNodePanel*>();
    auto* infoPanel = window.findChild<ItemInfoPanel*>();

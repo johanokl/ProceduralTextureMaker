@@ -1,0 +1,28 @@
+[
+  {
+    "id": "1",
+    "name": "First output",
+    "position": {
+      "x": 0.0,
+      "y": 0.0
+    },
+    "generator": "Fill",
+    "settings": {
+      "color": "#ff0000ff"
+    },
+    "slots": {}
+  },
+  {
+    "id": "2",
+    "name": "Second output",
+    "position": {
+      "x": 10.0,
+      "y": 10.0
+    },
+    "generator": "Fill",
+    "settings": {
+      "color": "#0000ffff"
+    },
+    "slots": {}
+  }
+]

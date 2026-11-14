@@ -45,6 +45,9 @@ public:
    /// @brief Changes a node's display name.
    void renameNode(int nodeId, const QString& newName);
 
+   /// @brief Trims and changes the file ID, rejecting empty or duplicate IDs.
+   bool changeNodeIdentifier(int nodeId, const QString& value);
+
    /// @brief Connects or disconnects a receiver slot.
    bool setConnection(int receiverId, const QString& slot, int sourceId);
 
@@ -63,8 +66,8 @@ public:
    /// @brief Removes every node as one undoable command.
    bool clearProject();
 
-   /// @brief Pastes clipboard XML as one undoable operation.
-   int pasteNodes(const QString& xml);
+   /// @brief Pastes clipboard JSON as one undoable operation.
+   int pasteNodes(const QString& json);
 
 private:
    /// @brief Synchronizes the legacy project modified flag with the stack clean state.

@@ -5,6 +5,8 @@
 // Johan Lindqvist (johan.lindqvist@gmail.com)
 
 #include "textureproject.h"
+#include "projectfileservice.h"
+#include <QJsonArray>
 #include "generators/empty.h"
 #include "base/texturegenerator.h"
 #include "global.h"
@@ -12,10 +14,6 @@
 #include "texturerendermanager.h"
 #include "settingsmanager.h"
 #include <QDebug>
-#include <QDomDocument>
-#include <QDomElement>
-#include <QDomNode>
-#include <QDomNodeList>
 #include <QMap>
 #include <QMapIterator>
 #include <QMetaObject>
@@ -103,71 +101,31 @@ void TextureProject::setName(const QString& newname) {
    emit nameUpdated(name);
 }
 
-void TextureProject::loadFromXML(const QDomDocument& xmlfile) {
-   QDomNode rootNode = xmlfile.namedItem("TextureSet");
-   QDomNodeList generators = rootNode.namedItem("Generators").childNodes();
-   for (int i = 0; i < generators.count(); i++) {
-      QDomNode currGenerator = generators.at(i);
-      if (!getGenerator(currGenerator.toElement().attribute("name"))) {
-         qWarning().noquote() << QStringLiteral("Could not find texture generator with name %1.")
-                                     .arg(currGenerator.toElement().attribute("name"));
-      }
+void TextureProject::loadFromJSON(const QJsonDocument& document) {
+   const auto objects = document.array();
+   QMap<QString, int> ids;
+   for (const auto& value : objects) {
+      const auto object = value.toObject();
+      const QString identifier = object.value("id").toString();
+      bool numeric = false;
+      const int preferred = identifier.toInt(&numeric);
+      const auto node = newNode(numeric && preferred > 0 && !getNode(preferred) ? preferred : 0);
+      node->setIdentifier(identifier);
+      ids.insert(identifier, node->getId());
    }
-   QMap<int, int> idMappings;
-   QDomNodeList nodes = rootNode.namedItem("Nodes").childNodes();
-   for (int i = 0; i < nodes.count(); i++) {
-      QDomNode currNode = nodes.at(i);
-      int nodeId = currNode.toElement().attribute("id").toInt();
-      idMappings[nodeId] = nodeId;
-      if (getNode(nodeId) != nullptr) {
-         idMappings[nodeId] = getNewId();
-      }
-   }
-   QMapIterator<int, int> nodeiterator(idMappings);
-   while (nodeiterator.hasNext()) {
-      newNode(nodeiterator.next().value());
-   }
-   for (int i = 0; i < nodes.count(); i++) {
-      QDomNode currNode = nodes.at(i);
-      int nodeId = currNode.toElement().attribute("id").toInt();
-      getNode(idMappings[nodeId])->loadFromXML(currNode, idMappings);
+   for (const auto& value : objects) {
+      const auto object = value.toObject();
+      getNode(ids.value(object.value("id").toString()))->loadFromJSON(object, ids);
    }
    modified = false;
 }
 
-QDomDocument TextureProject::saveAsXML(bool includegenerators) {
-   const QMap<int, TextureNodePtr> nodesCopy = nodesSnapshot();
-   QDomDocument xmldoc("TextureSet");
-   QDomElement rootNode = xmldoc.createElement("TextureSet");
-   xmldoc.appendChild(rootNode);
-
-   if (includegenerators) {
-      QDomElement xmlGenerators = xmldoc.createElement("Generators");
-      rootNode.appendChild(xmlGenerators);
-      QMapIterator<QString, TextureGeneratorPtr> generatoriterator(generators);
-      while (generatoriterator.hasNext()) {
-         TextureGeneratorPtr generator = generatoriterator.next().value();
-         QDomElement generatorNode = xmldoc.createElement("generator");
-         generatorNode.setAttribute("name", generator->getName());
-         xmlGenerators.appendChild(generatorNode);
-         for (const TextureGeneratorSetting& value : generator->getSettings()) {
-            QDomElement settingnode = xmldoc.createElement("generatorsetting");
-            settingnode.setAttribute("id", value.id);
-            settingnode.setAttribute("type", value.defaultvalue.typeName());
-            settingnode.setAttribute("default", value.defaultvalue.toString());
-            settingnode.setAttribute("name", value.name);
-            settingnode.setAttribute("description", value.description);
-            generatorNode.appendChild(settingnode);
-         }
-      }
+QJsonDocument TextureProject::saveAsJSON() const {
+   QJsonArray result;
+   for (const auto& node : nodesSnapshot()) {
+      result.append(node->saveAsJSON());
    }
-   QDomElement xmlNodes = xmldoc.createElement("Nodes");
-   rootNode.appendChild(xmlNodes);
-   QMapIterator<int, TextureNodePtr> nodeiterator(nodesCopy);
-   while (nodeiterator.hasNext()) {
-      xmlNodes.appendChild(nodeiterator.next().value()->saveAsXML(xmldoc));
-   }
-   return xmldoc;
+   return QJsonDocument(result);
 }
 
 bool TextureProject::isModified() const { return modified; }
@@ -389,6 +347,15 @@ TextureNodePtr TextureProject::getNode(int id) const {
    return nodes.value(id);
 }
 
+TextureNodePtr TextureProject::getNode(const QString& identifier) const {
+   for (const auto& node : nodesSnapshot()) {
+      if (node->getIdentifier() == identifier) {
+         return node;
+      }
+   }
+   return {};
+}
+
 TextureNodePtr TextureProject::newNode(int id, TextureGeneratorPtr generator) {
    if (generator.isNull()) {
       generator = emptygenerator;
@@ -546,53 +513,36 @@ TextureGeneratorPtr TextureProject::getGenerator(const QString& name) const {
 }
 
 QString TextureProject::serializeNode(int id) {
-   TextureNodePtr copyNode = getNode(id);
-   if (copyNode.isNull()) {
-      return QString();
-   }
-   QDomDocument copyBuffer = QDomDocument("TextureSet");
-   QDomElement rootNode = copyBuffer.createElement("TextureSet");
-   copyBuffer.appendChild(rootNode);
-   QDomElement xmlNodes = copyBuffer.createElement("Nodes");
-   rootNode.appendChild(xmlNodes);
-   xmlNodes.appendChild(copyNode->saveAsXML(copyBuffer));
-   return copyBuffer.toString(2);
+   const auto node = getNode(id);
+   return node ? QString::fromUtf8(
+                     ProjectFileService::serializeNodes(QJsonArray{node->saveAsJSON()}))
+               : QString();
 }
 
-int TextureProject::pasteNodes(const QString& xml) {
-   QDomDocument copyBuffer;
-   copyBuffer.setContent(xml);
-   if (copyBuffer.isNull()) {
+int TextureProject::pasteNodes(const QString& json) {
+   const auto document = QJsonDocument::fromJson(json.toUtf8());
+   if (!document.isArray()) {
       return 0;
    }
-   QDomNode rootNode = copyBuffer.namedItem("TextureSet");
-   if (rootNode.isNull()) {
-      return 0;
-   }
-   QDomNode nodeRoot = rootNode.namedItem("Nodes");
-   if (nodeRoot.isNull()) {
-      return 0;
-   }
-   QDomNodeList nodes = nodeRoot.childNodes();
-   int pastedNodeCount = 0;
-   for (int i = 0; i < nodes.count(); i++) {
-      QDomNode currNode = nodes.at(i);
-      if (!currNode.isElement() || currNode.nodeName() != QStringLiteral("Node")) {
+   int count = 0;
+   for (const auto& value : document.array()) {
+      if (!value.isObject()) {
          continue;
       }
-      QDomElement generatornode = currNode.namedItem("generator").toElement();
-      TextureNodePtr node =
-          newNode(0, getGenerator(!generatornode.isNull() ? generatornode.attribute("name") : ""));
-      if (node.isNull()) {
+      auto object = value.toObject();
+      if (!getGenerators().contains(object.value("generator").toString())) {
          continue;
       }
-      node->loadFromXML(currNode);
-      const int nodeCount = getNumNodes();
-      node->setPos(
-          QPointF(node->getPos().x() + nodeCount * 15, node->getPos().y() + nodeCount * 15));
-      ++pastedNodeCount;
+      const auto node = newNode();
+      QMap<QString, int> ids;
+      for (const auto& existing : nodesSnapshot()) {
+         ids.insert(existing->getIdentifier(), existing->getId());
+      }
+      node->loadFromJSON(object, ids);
+      node->setPos(node->getPos() + QPointF(getNumNodes() * 15, getNumNodes() * 15));
+      ++count;
    }
-   return pastedNodeCount;
+   return count;
 }
 
 void TextureProject::removeNode(int id) {

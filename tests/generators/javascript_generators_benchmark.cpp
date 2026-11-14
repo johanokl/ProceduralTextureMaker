@@ -26,7 +26,7 @@ TextureImagePtr inputImage(const QSize size, const TexturePixel color) {
 void runCase(const BenchmarkCase& benchmark, const QSize size) {
    QElapsedTimer timer;
    timer.start();
-   JsTexGen generator(benchmark.script, QStringLiteral("<benchmark:%1>").arg(benchmark.name));
+   JsTexGen generator(benchmark.script, QStringLiteral("[").arg(benchmark.name));
    const qint64 validationNanoseconds = timer.nsecsElapsed();
    if (!generator.isValid()) {
       QTextStream(stderr) << generator.validationError() << Qt::endl;

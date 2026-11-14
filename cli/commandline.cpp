@@ -98,7 +98,7 @@ std::optional<QSize> parseSize(const QString& value) {
 }
 
 ExitCode projectLoadExitCode(const ProjectFileError error) {
-   if (error == ProjectFileError::InputOpen || error == ProjectFileError::XmlParse) {
+   if (error == ProjectFileError::InputOpen || error == ProjectFileError::JsonParse) {
       return ExitCode::Input;
    }
    return ExitCode::Project;
@@ -142,7 +142,8 @@ void configureParser(QCommandLineParser& parser) {
                      QStringLiteral("Replace an existing output file.")});
    parser.addOption(
        {QStringLiteral("list-nodes"), QStringLiteral("List project nodes without rendering.")});
-   parser.addPositionalArgument(QStringLiteral("input.txl"), QStringLiteral("Input project file."));
+   parser.addPositionalArgument(QStringLiteral("input.ptmg"),
+                                QStringLiteral("Input project file."));
    parser.addPositionalArgument(QStringLiteral("output.png"),
                                 QStringLiteral("Output PNG (not needed with --list-nodes)."),
                                 QStringLiteral("[output.png]"));
@@ -209,7 +210,8 @@ int listProjectNodes(const TextureProject& project) {
    QTextStream output(stdout);
    for (const int id : project.getNodeIds()) {
       const TextureNodePtr node = project.getNode(id);
-      output << id << '\t' << node->getName() << '\t' << node->getGeneratorName();
+      output << node->getIdentifier() << '\t' << node->getName() << '\t'
+             << node->getGeneratorName();
       if (sinkIds.contains(id)) {
          output << "\tsink";
       }
@@ -225,13 +227,13 @@ int listProjectNodes(const TextureProject& project) {
 /// @return Successful process exit code, or a node-selection error code.
 int selectNode(const QCommandLineParser& parser, const TextureProject& project, int& nodeId) {
    if (parser.isSet(QStringLiteral("node"))) {
-      bool nodeOk = false;
       const QString value = parser.value(QStringLiteral("node"));
-      nodeId = value.toInt(&nodeOk);
-      if (!nodeOk || nodeId <= 0 || project.getNode(nodeId).isNull()) {
+      const auto selected = project.getNode(value);
+      if (!selected) {
          return reportError(ExitCode::Node,
                             QStringLiteral("No project node matches --node '%1'").arg(value));
       }
+      nodeId = selected->getId();
       return exitCode(ExitCode::Success);
    }
 
@@ -244,7 +246,7 @@ int selectNode(const QCommandLineParser& parser, const TextureProject& project, 
    QStringList candidates;
    for (const int id : sinkIds) {
       const TextureNodePtr node = project.getNode(id);
-      candidates.append(QStringLiteral("%1 (%2)").arg(id).arg(node->getName()));
+      candidates.append(QStringLiteral("%1 (%2)").arg(node->getIdentifier(), node->getName()));
    }
    return reportError(ExitCode::Node,
                       QStringLiteral("The project has %1 sink nodes; use --node. Candidates: %2")
@@ -339,7 +341,7 @@ int exportNode(const QCommandLineParser& parser, TextureProject& project, const 
    }
 
    QTextStream(stdout) << QStringLiteral("Exported node %1 at %2x%3 to %4")
-                              .arg(nodeId)
+                              .arg(project.getNode(nodeId)->getIdentifier())
                               .arg(size.width())
                               .arg(size.height())
                               .arg(outputPath)

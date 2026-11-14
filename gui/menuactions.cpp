@@ -370,7 +370,7 @@ void MenuActions::toogleToolbars() {
 
 void MenuActions::openFile() {
    QString fileName = QFileDialog::getOpenFileName(parent(), tr("Open File"), lastOpenedDirectory,
-                                                   "Texture Set (*.txl)");
+                                                   "PTM graph (*.ptmg)");
    if (fileName.isNull()) {
       return;
    }

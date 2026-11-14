@@ -129,11 +129,11 @@ void TextureProjectTest::copiesAndTracksSavedState() {
    QCOMPARE(project.pasteNodes(project.serializeNode(1)), 1);
    QCOMPARE(project.getNumNodes(), 2);
    QCOMPARE(project.getNode(2)->getName(), QStringLiteral("Copied node"));
-   QCOMPARE(project.pasteNodes(QStringLiteral("not xml")), 0);
+   QCOMPARE(project.pasteNodes(QStringLiteral("not json")), 0);
 
    QTemporaryDir directory;
    QVERIFY(directory.isValid());
-   const QString path = directory.filePath(QStringLiteral("project.txl"));
+   const QString path = directory.filePath(QStringLiteral("project.ptmg"));
    QVERIFY(ProjectFileService::save(path, project, false));
    QVERIFY(!project.isModified());
    node->setName(QStringLiteral("Renamed"));
@@ -190,10 +190,8 @@ void TextureProjectTest::validatesAndSerializesSettingSchemas() {
    QCOMPARE(project.getGenerator(QStringLiteral("Ordered schema")), valid);
    QCOMPARE(node->getGenerator(), valid);
 
-   const QDomNodeList definitions = project.saveAsXML(true).elementsByTagName("generatorsetting");
-   QCOMPARE(definitions.size(), 2);
-   QCOMPARE(definitions.at(0).toElement().attribute(QStringLiteral("id")), QStringLiteral("zeta"));
-   QCOMPARE(definitions.at(1).toElement().attribute(QStringLiteral("id")), QStringLiteral("alpha"));
+   QCOMPARE(valid->getSettings().at(0).id, QStringLiteral("zeta"));
+   QCOMPARE(valid->getSettings().at(1).id, QStringLiteral("alpha"));
 }
 
 QTEST_APPLESS_MAIN(TextureProjectTest)

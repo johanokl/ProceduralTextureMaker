@@ -6,7 +6,10 @@
 #include "projectfileservice.h"
 #include "base/texturegenerator.h"
 #include "textureproject.h"
-#include <QDomElement>
+#include <QJsonArray>
+#include <QJsonObject>
+#include <QJsonParseError>
+#include <QColor>
 #include <QFile>
 #include <QFileInfo>
 #include <QMap>
@@ -25,37 +28,56 @@ ProjectFileResult failure(const ProjectFileError error, QString message) {
    return ProjectFileResult{error, std::move(message)};
 }
 
-/// @brief Reads a strictly positive integer attribute from an XML element.
-/// @param element Element containing the attribute.
-/// @param name Attribute name.
-/// @param value Destination for the parsed integer.
-/// @return True when the attribute contains a positive integer.
-bool positiveIntegerAttribute(const QDomElement& element, const QString& name, int& value) {
-   bool ok = false;
-   value = element.attribute(name).toInt(&ok);
-   return ok && value > 0;
-}
-
-/// @brief Removes empty legacy setting elements that current loaders cannot interpret.
-/// @param document Project document to normalize in place.
-void removeLegacyEmptySettings(QDomDocument& document) {
-   QDomElement nodes = document.documentElement().firstChildElement(QStringLiteral("Nodes"));
-   for (QDomElement node = nodes.firstChildElement(QStringLiteral("Node")); !node.isNull();
-        node = node.nextSiblingElement(QStringLiteral("Node"))) {
-      QDomElement settings = node.firstChildElement(QStringLiteral("Settings"));
-      for (QDomElement setting = settings.firstChildElement(QStringLiteral("setting"));
-           !setting.isNull();) {
-         const QDomElement next = setting.nextSiblingElement(QStringLiteral("setting"));
-         if (setting.attribute(QStringLiteral("type")).isEmpty() &&
-             setting.attribute(QStringLiteral("value")).isEmpty()) {
-            settings.removeChild(setting);
-         }
-         setting = next;
-      }
-   }
-}
-
 }  // namespace
+
+QColor ProjectFileService::parseColor(const QString& text) {
+   if (!text.startsWith('#') || (text.size() != 7 && text.size() != 9)) {
+      return {};
+   }
+   // QColor expects alpha first; project JSON puts alpha after the RGB channels.
+   return QColor(text.size() == 9 ? "#" + text.right(2) + text.mid(1, 6) : text);
+}
+
+QByteArray ProjectFileService::serializeNodes(const QJsonArray& nodes) {
+   if (nodes.isEmpty()) {
+      return "[]\n";
+   }
+   const QStringList fields{"id", "name", "position", "generator", "settings", "slots"};
+   QByteArray json = "[\n";
+   for (qsizetype index = 0; index < nodes.size(); ++index) {
+      json += "  {\n";
+      const auto node = nodes.at(index).toObject();
+      bool first = true;
+      for (const QString& field : fields) {
+         if (!node.contains(field)) {
+            continue;
+         }
+         if (!first) {
+            json += ",\n";
+         }
+         first = false;
+         // Let Qt escape and format each value, then remove the temporary object wrapper.
+         QByteArray member = QJsonDocument(QJsonObject{{field, node.value(field)}}).toJson();
+         member = member.mid(2, member.size() - 5);
+         const auto lines = member.split('\n');
+         for (qsizetype lineIndex = 0; lineIndex < lines.size(); ++lineIndex) {
+            if (lineIndex != 0) {
+               json += '\n';
+            }
+            const auto& line = lines.at(lineIndex);
+            qsizetype spaces = 0;
+            while (spaces < line.size() && line.at(spaces) == ' ') {
+               ++spaces;
+            }
+            // Qt uses four spaces; project files use two spaces per level.
+            json += QByteArray(2 + spaces / 2, ' ') + line.mid(spaces);
+         }
+      }
+      json += index + 1 < nodes.size() ? "\n  },\n" : "\n  }\n";
+   }
+   json += "]\n";
+   return json;
+}
 
 ProjectFileResult ProjectFileService::load(const QString& path, TextureProject& project) {
    QFile input(path);
@@ -64,193 +86,155 @@ ProjectFileResult ProjectFileService::load(const QString& path, TextureProject& 
                      QStringLiteral("Could not open '%1': %2").arg(path, input.errorString()));
    }
 
-   QDomDocument document;
-#if QT_VERSION >= QT_VERSION_CHECK(6, 8, 0)
-   const QDomDocument::ParseResult parseResult = document.setContent(&input);
-   if (!parseResult) {
-      return failure(ProjectFileError::XmlParse, QStringLiteral("XML parse error at %1:%2: %3")
-                                                     .arg(parseResult.errorLine)
-                                                     .arg(parseResult.errorColumn)
-                                                     .arg(parseResult.errorMessage));
+   QJsonParseError error;
+   const auto document = QJsonDocument::fromJson(input.readAll(), &error);
+   if (error.error != QJsonParseError::NoError) {
+      return failure(
+          ProjectFileError::JsonParse,
+          QString("JSON parse error at byte %1: %2").arg(error.offset).arg(error.errorString()));
    }
-#else
-   QString errorMessage;
-   int errorLine = 0;
-   int errorColumn = 0;
-   if (!document.setContent(&input, &errorMessage, &errorLine, &errorColumn)) {
-      return failure(ProjectFileError::XmlParse, QStringLiteral("XML parse error at %1:%2: %3")
-                                                     .arg(errorLine)
-                                                     .arg(errorColumn)
-                                                     .arg(errorMessage));
-   }
-#endif
    return loadDocument(document, project, path);
 }
 
-ProjectFileResult ProjectFileService::validate(const QDomDocument& document,
+ProjectFileResult ProjectFileService::validate(const QJsonDocument& document,
                                                const TextureProject& project, const QString& path) {
-   const QDomElement root = document.documentElement();
-   if (root.isNull() || root.tagName() != QStringLiteral("TextureSet")) {
-      return failure(ProjectFileError::Validation,
-                     QStringLiteral("The document root must be TextureSet"));
+   if (!document.isArray()) {
+      return failure(ProjectFileError::Validation, "The project must be an array of nodes");
    }
-   const QDomElement nodesElement = root.firstChildElement(QStringLiteral("Nodes"));
-   if (nodesElement.isNull()) {
-      return failure(ProjectFileError::Validation,
-                     QStringLiteral("The document does not contain a Nodes element"));
-   }
-
-   const QMap<QString, TextureGeneratorPtr> registeredGenerators = project.getGenerators();
-   QSet<QString> unavailableGenerators;
-   for (QDomElement node = nodesElement.firstChildElement(QStringLiteral("Node")); !node.isNull();
-        node = node.nextSiblingElement(QStringLiteral("Node"))) {
-      const QDomElement generatorElement = node.firstChildElement(QStringLiteral("generator"));
-      const QString generatorName = generatorElement.attribute(QStringLiteral("name"));
-      if (!generatorElement.isNull() && !generatorName.isEmpty() &&
-          !registeredGenerators.contains(generatorName)) {
-         unavailableGenerators.insert(generatorName);
+   QSet<QString> missing;
+   for (const auto& value : document.array()) {
+      const QString name = value.toObject().value("generator").toString();
+      if (!name.isEmpty() && !project.getGenerators().contains(name)) {
+         missing.insert(name);
       }
    }
-   if (!unavailableGenerators.isEmpty()) {
-      QStringList names = unavailableGenerators.values();
+   if (!missing.isEmpty()) {
+      QStringList names = missing.values();
       names.sort(Qt::CaseInsensitive);
-      for (QString& name : names) {
-         name = QStringLiteral("'%1'").arg(name);
+      for (auto& name : names) {
+         name = "'" + name + "'";
       }
-      if (names.size() == 1) {
-         return failure(
-             ProjectFileError::Validation,
-             QStringLiteral("The project file '%1' could not be loaded because it references a "
-                            "texture generator that is not available: %2.")
-                 .arg(path, names.constFirst()));
-      }
-      return failure(
-          ProjectFileError::Validation,
-          QStringLiteral("The project file '%1' could not be loaded because it references texture "
-                         "generators that are not available: %2.")
-              .arg(path, names.join(QStringLiteral(", "))));
+      return failure(ProjectFileError::Validation,
+                     names.size() == 1
+                         ? QString("The project file '%1' could not be loaded because it "
+                                   "references a texture generator that is not available: %2.")
+                               .arg(path, names.first())
+                         : QString("The project file '%1' could not be loaded because it "
+                                   "references texture generators that are not available: %2.")
+                               .arg(path, names.join(", ")));
    }
-
-   QMap<int, QMap<QString, int>> sourcesByNode;
-
-   for (QDomElement node = nodesElement.firstChildElement(); !node.isNull();
-        node = node.nextSiblingElement()) {
-      if (node.tagName() != QStringLiteral("Node")) {
-         continue;
-      }
-      int nodeId = 0;
-      if (!positiveIntegerAttribute(node, QStringLiteral("id"), nodeId)) {
+   QMap<QString, QSet<QString>> sources;
+   for (const auto& value : document.array()) {
+      const auto object = value.toObject();
+      const QString id = object.value("id").toString();
+      if (!value.isObject() || id.isEmpty() || id != id.trimmed() || sources.contains(id) ||
+          !object.value("name").isString()) {
          return failure(ProjectFileError::Validation,
-                        QStringLiteral("Every Node must have a positive integer id"));
+                        "Every node needs a unique nonempty string id and a string name");
       }
-      if (sourcesByNode.contains(nodeId)) {
+      const QString generatorName = object.value("generator").toString();
+      const auto generator = project.getGenerators().value(generatorName);
+      if (!generator) {
          return failure(ProjectFileError::Validation,
-                        QStringLiteral("Duplicate node id %1").arg(nodeId));
+                        QString("The project file '%1' references an unavailable generator: '%2'")
+                            .arg(path, generatorName));
       }
-      const QDomElement generatorElement = node.firstChildElement(QStringLiteral("generator"));
-      const QString generatorName = generatorElement.attribute(QStringLiteral("name"));
-      if (generatorElement.isNull() || generatorName.isEmpty()) {
+      if ((!object.value("slots").isUndefined() && !object.value("slots").isObject()) ||
+          (!object.value("settings").isUndefined() && !object.value("settings").isObject())) {
+         return failure(ProjectFileError::Validation, "Node settings and slots must be objects");
+      }
+      const auto position = object.value("position");
+      if (!position.isUndefined() &&
+          (!position.isObject() || !position.toObject().value("x").isDouble() ||
+           !position.toObject().value("y").isDouble())) {
          return failure(ProjectFileError::Validation,
-                        QStringLiteral("Node %1 does not specify a texture generator").arg(nodeId));
+                        "Node position must contain numeric x and y coordinates");
       }
-      const TextureGeneratorPtr generator = registeredGenerators.value(generatorName);
-
-      QMap<QString, int> sources;
-      const QDomElement sourcesElement = node.firstChildElement(QStringLiteral("Sources"));
-      for (QDomElement source = sourcesElement.firstChildElement(); !source.isNull();
-           source = source.nextSiblingElement()) {
-         if (source.tagName() != QStringLiteral("source")) {
+      QSet<QString> inputs;
+      const auto connections = object.value("slots").toObject();
+      for (auto source = connections.begin(); source != connections.end(); ++source) {
+         if (!generator->getSourceSlots().contains(source.key()) || !source.value().isString() ||
+             source.value().toString().isEmpty()) {
+            return failure(ProjectFileError::Validation,
+                           QString("Node '%1' has an invalid slot").arg(id));
+         }
+         inputs.insert(source.value().toString());
+      }
+      const auto settings = object.value("settings").toObject();
+      for (auto setting = settings.begin(); setting != settings.end(); ++setting) {
+         const auto* definition =
+             findTextureGeneratorSetting(generator->getSettings(), setting.key());
+         if (!definition) {
             continue;
          }
-         bool sourceOk = false;
-         const QString serializedSlot = source.attribute(QStringLiteral("slot"));
-         const QString slot = generator->resolveSourceSlot(serializedSlot);
-         const int sourceId = source.attribute(QStringLiteral("source")).toInt(&sourceOk);
-         if (slot.isNull() || !sourceOk || sourceId <= 0 || sourceId == nodeId ||
-             sources.contains(slot)) {
+         const int type = definition->defaultvalue.metaType().id();
+         const auto value = setting.value();
+         if (((type == QMetaType::Int || type == QMetaType::Double) && !value.isDouble()) ||
+             (type == QMetaType::Bool && !value.isBool()) ||
+             ((type == QMetaType::QString || type == QMetaType::QStringList ||
+               type == QMetaType::QColor) &&
+              !value.isString()) ||
+             (type == QMetaType::QColor && !parseColor(value.toString()).isValid()) ||
+             (type == QMetaType::QStringList &&
+              !definition->defaultvalue.toStringList().contains(value.toString()))) {
+            return failure(ProjectFileError::Validation,
+                           QString("Node '%1' has invalid setting '%2'").arg(id, setting.key()));
+         }
+      }
+      sources.insert(id, inputs);
+   }
+   QMap<QString, int> indegree;
+   QMap<QString, QStringList> receivers;
+   for (auto node = sources.begin(); node != sources.end(); ++node) {
+      indegree[node.key()] = node.value().size();
+      for (const auto& source : node.value()) {
+         if (!sources.contains(source)) {
             return failure(
                 ProjectFileError::Validation,
-                QStringLiteral("Node %1 has an invalid or duplicate source slot").arg(nodeId));
+                QString("Node '%1' references missing source '%2'").arg(node.key(), source));
          }
-         sources.insert(slot, sourceId);
-      }
-      sourcesByNode.insert(nodeId, sources);
-   }
-
-   QMap<int, int> indegree;
-   QMap<int, QList<int>> receivers;
-   for (auto node = sourcesByNode.cbegin(); node != sourcesByNode.cend(); ++node) {
-      indegree.insert(node.key(), 0);
-   }
-   for (auto node = sourcesByNode.cbegin(); node != sourcesByNode.cend(); ++node) {
-      QSet<int> uniqueSources;
-      for (const int sourceId : node.value()) {
-         if (!sourcesByNode.contains(sourceId)) {
-            return failure(ProjectFileError::Validation,
-                           QStringLiteral("Node %1 references missing source %2")
-                               .arg(node.key())
-                               .arg(sourceId));
-         }
-         uniqueSources.insert(sourceId);
-      }
-      indegree[node.key()] = uniqueSources.size();
-      for (const int sourceId : uniqueSources) {
-         receivers[sourceId].append(node.key());
+         receivers[source].append(node.key());
       }
    }
-
-   QList<int> ready;
-   for (auto degree = indegree.cbegin(); degree != indegree.cend(); ++degree) {
+   QStringList ready;
+   for (auto degree = indegree.begin(); degree != indegree.end(); ++degree) {
       if (degree.value() == 0) {
          ready.append(degree.key());
       }
    }
    int visited = 0;
    while (!ready.isEmpty()) {
-      const int sourceId = ready.takeFirst();
+      const auto source = ready.takeFirst();
       ++visited;
-      for (const int receiverId : receivers.value(sourceId)) {
-         const int remaining = --indegree[receiverId];
-         if (remaining == 0) {
-            ready.append(receiverId);
+      for (const auto& receiver : receivers.value(source)) {
+         if (--indegree[receiver] == 0) {
+            ready.append(receiver);
          }
       }
    }
-   if (visited != sourcesByNode.size()) {
-      return failure(ProjectFileError::Validation,
-                     QStringLiteral("The project graph contains a cycle"));
+   if (visited != sources.size()) {
+      return failure(ProjectFileError::Validation, "The project graph contains a cycle");
    }
    return {};
 }
 
-ProjectFileResult ProjectFileService::loadDocument(const QDomDocument& document,
+ProjectFileResult ProjectFileService::loadDocument(const QJsonDocument& document,
                                                    TextureProject& project, const QString& path) {
-   ProjectFileResult validation = validate(document, project, path);
+   auto validation = validate(document, project, path);
    if (!validation) {
       return validation;
    }
-
-   QDomDocument normalized = document.cloneNode(true).toDocument();
-   removeLegacyEmptySettings(normalized);
    try {
       TextureProject staged(false);
-      for (const TextureGeneratorPtr& generator : project.getGenerators()) {
+      for (const auto& generator : project.getGenerators()) {
          staged.addGenerator(generator);
       }
-      staged.loadFromXML(normalized);
-      if (staged.findLoops()) {
-         return failure(ProjectFileError::Construction,
-                        QStringLiteral("The staged project graph contains a cycle"));
-      }
-
+      staged.loadFromJSON(document);
       project.clear();
-      project.loadFromXML(normalized);
+      project.loadFromJSON(document);
       return {};
    } catch (const std::exception& error) {
       return failure(ProjectFileError::Construction, QString::fromUtf8(error.what()));
-   } catch (...) {
-      return failure(ProjectFileError::Construction,
-                     QStringLiteral("Unknown error while constructing the project"));
    }
 }
 
@@ -267,8 +251,13 @@ ProjectFileResult ProjectFileService::save(const QString& path, TextureProject& 
       return failure(ProjectFileError::OutputOpen,
                      QStringLiteral("Could not open '%1': %2").arg(path, output.errorString()));
    }
-   const QByteArray xml = project.saveAsXML().toString(3).toUtf8();
-   if (output.write(xml) != xml.size()) {
+   const auto document = project.saveAsJSON();
+   auto validation = validate(document, project, path);
+   if (!validation) {
+      return validation;
+   }
+   const QByteArray json = serializeNodes(document.array());
+   if (output.write(json) != json.size()) {
       output.cancelWriting();
       return failure(ProjectFileError::OutputWrite,
                      QStringLiteral("Could not write '%1': %2").arg(path, output.errorString()));

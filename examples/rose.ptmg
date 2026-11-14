@@ -1,0 +1,379 @@
+[
+  {
+    "id": "1",
+    "name": "Node 1",
+    "position": {
+      "x": 1262.01,
+      "y": -1445.7
+    },
+    "generator": "Sine plasma",
+    "settings": {
+      "color": "#ff0000ff",
+      "xfrequency": 41.71,
+      "xoffset": 10,
+      "yfrequency": 10,
+      "yoffset": 10
+    },
+    "slots": {
+      "Background": "9"
+    }
+  },
+  {
+    "id": "5",
+    "name": "Node 5",
+    "position": {
+      "x": 1260.38,
+      "y": -855.645
+    },
+    "generator": "Bricks",
+    "settings": {
+      "brickheight": 15,
+      "brickwidth": 38.33,
+      "color": "#000000ff",
+      "linewidth": 4,
+      "offsetx": 0,
+      "offsety": 0
+    },
+    "slots": {
+      "Background": "1"
+    }
+  },
+  {
+    "id": "9",
+    "name": "Node 9",
+    "position": {
+      "x": 1748.23,
+      "y": -1438.45
+    },
+    "generator": "Fill",
+    "settings": {
+      "color": "#000000ff"
+    },
+    "slots": {
+    }
+  },
+  {
+    "id": "10",
+    "name": "Node 10",
+    "position": {
+      "x": 1771.49,
+      "y": -836.258
+    },
+    "generator": "Lens",
+    "settings": {
+      "offsetleft": 0,
+      "offsettop": 0,
+      "size": 71.77,
+      "strength": 293.60000000000014
+    },
+    "slots": {
+      "Image": "5"
+    }
+  },
+  {
+    "id": "12",
+    "name": "Node 12",
+    "position": {
+      "x": 2234.78,
+      "y": -1417.1
+    },
+    "generator": "Whirl",
+    "settings": {
+      "offsetleft": 0,
+      "offsettop": -11.96,
+      "radius": 55.5,
+      "strength": 313.4
+    },
+    "slots": {
+      "Image": "10"
+    }
+  },
+  {
+    "id": "19",
+    "name": "Node 19",
+    "position": {
+      "x": 1892.55,
+      "y": -2110.73
+    },
+    "generator": "Circle",
+    "settings": {
+      "antialiasing": true,
+      "color": "#000000ff",
+      "horizontalscale": 100,
+      "innerradius": 0,
+      "offsetleft": 0,
+      "offsettop": -11.96,
+      "outerradius": 62.31,
+      "rotation": 0
+    },
+    "slots": {
+    }
+  },
+  {
+    "id": "20",
+    "name": "Node 20",
+    "position": {
+      "x": 2319.44,
+      "y": -1908.16
+    },
+    "generator": "Replace alpha",
+    "settings": {
+    },
+    "slots": {
+      "Alpha": "19",
+      "Image": "12"
+    }
+  },
+  {
+    "id": "21",
+    "name": "Node 21",
+    "position": {
+      "x": 5645.49,
+      "y": -1546.51
+    },
+    "generator": "Circle",
+    "settings": {
+      "antialiasing": true,
+      "color": "#009c00ff",
+      "horizontalscale": 100,
+      "innerradius": 0,
+      "offsetleft": 0,
+      "offsettop": 0,
+      "outerradius": 80.4,
+      "rotation": 0
+    },
+    "slots": {
+    }
+  },
+  {
+    "id": "22",
+    "name": "Node 22",
+    "position": {
+      "x": 3273.11,
+      "y": -809.807
+    },
+    "generator": "Blend",
+    "settings": {
+      "alpha": 100,
+      "mode": "Normal"
+    },
+    "slots": {
+      "Background": "30",
+      "Foreground": "33"
+    }
+  },
+  {
+    "id": "23",
+    "name": "Node 23",
+    "position": {
+      "x": 5643.66,
+      "y": -763.285
+    },
+    "generator": "Transform",
+    "settings": {
+      "backgroundcolor": "#00000000",
+      "firstXtiles": 1,
+      "firstYtiles": 1,
+      "offsetleft": 16.35,
+      "offsettop": 0,
+      "rotation": 31.7,
+      "secondXtiles": 1,
+      "secondYtiles": 1,
+      "xscale": 23.9,
+      "yscale": 66.67
+    },
+    "slots": {
+      "Image": "21"
+    }
+  },
+  {
+    "id": "24",
+    "name": "Node 24",
+    "position": {
+      "x": 5098.36,
+      "y": -930.607
+    },
+    "generator": "Blend",
+    "settings": {
+      "alpha": 100,
+      "mode": "Normal"
+    },
+    "slots": {
+      "Background": "23",
+      "Foreground": "26"
+    }
+  },
+  {
+    "id": "26",
+    "name": "Node 23",
+    "position": {
+      "x": 4987.24,
+      "y": -1569.45
+    },
+    "generator": "Transform",
+    "settings": {
+      "backgroundcolor": "#00000000",
+      "firstXtiles": 1,
+      "firstYtiles": 1,
+      "offsetleft": -11.32,
+      "offsettop": 0,
+      "rotation": 142.64,
+      "secondXtiles": 1,
+      "secondYtiles": 1,
+      "xscale": 23.9,
+      "yscale": 66.67
+    },
+    "slots": {
+      "Image": "21"
+    }
+  },
+  {
+    "id": "27",
+    "name": "Node 27",
+    "position": {
+      "x": 3958.45,
+      "y": -798.982
+    },
+    "generator": "Blend",
+    "settings": {
+      "alpha": 100,
+      "mode": "Normal"
+    },
+    "slots": {
+      "Background": "28",
+      "Foreground": "29"
+    }
+  },
+  {
+    "id": "28",
+    "name": "Node 28",
+    "position": {
+      "x": 4455.22,
+      "y": -1301.39
+    },
+    "generator": "Square",
+    "settings": {
+      "antialiasing": true,
+      "color": "#009c00ff",
+      "cutoutheight": 0,
+      "cutoutwidth": 0,
+      "height": 51.81,
+      "offsetleft": 2.59,
+      "offsettop": 4.66,
+      "rotation": 0,
+      "width": 9.33
+    },
+    "slots": {
+    }
+  },
+  {
+    "id": "29",
+    "name": "Node 29",
+    "position": {
+      "x": 4565.87,
+      "y": -597.505
+    },
+    "generator": "Transform",
+    "settings": {
+      "backgroundcolor": "#00000000",
+      "firstXtiles": 1,
+      "firstYtiles": 1,
+      "offsetleft": 0,
+      "offsettop": 18.87,
+      "rotation": 0,
+      "secondXtiles": 1,
+      "secondYtiles": 1,
+      "xscale": 80,
+      "yscale": 80
+    },
+    "slots": {
+      "Image": "24"
+    }
+  },
+  {
+    "id": "30",
+    "name": "Node 30",
+    "position": {
+      "x": 3571.37,
+      "y": -1393.3
+    },
+    "generator": "Transform",
+    "settings": {
+      "backgroundcolor": "#00000000",
+      "firstXtiles": 1,
+      "firstYtiles": 1,
+      "offsetleft": 0,
+      "offsettop": 26.42,
+      "rotation": 0,
+      "secondXtiles": 1,
+      "secondYtiles": 1,
+      "xscale": 60,
+      "yscale": 60
+    },
+    "slots": {
+      "Image": "27"
+    }
+  },
+  {
+    "id": "31",
+    "name": "Node 31",
+    "position": {
+      "x": 2408.9,
+      "y": -761.597
+    },
+    "generator": "Gradient",
+    "settings": {
+      "endcolor": "#793c00ff",
+      "endposx": 0,
+      "endposy": 34.13,
+      "gradient": "Linear Gradient",
+      "middlecolor": "#00aaffff",
+      "middleposition": 93.41,
+      "radius": 50,
+      "spread": "Pad Spread",
+      "startcolor": "#0055ff64",
+      "startposx": -10,
+      "startposy": -46.11
+    },
+    "slots": {
+    }
+  },
+  {
+    "id": "32",
+    "name": "Final",
+    "position": {
+      "x": 2916.06,
+      "y": -252.352
+    },
+    "generator": "Blend",
+    "settings": {
+      "alpha": 100,
+      "mode": "Normal"
+    },
+    "slots": {
+      "Background": "31",
+      "Foreground": "22"
+    }
+  },
+  {
+    "id": "33",
+    "name": "Node 33",
+    "position": {
+      "x": 2882.19,
+      "y": -1343.42
+    },
+    "generator": "Sine transform",
+    "settings": {
+      "amplitudeone": 10,
+      "amplitudetwo": 2,
+      "angle": 45,
+      "frequencyone": 0.2,
+      "frequencytwo": 8,
+      "offsetone": 0,
+      "offsettwo": 0
+    },
+    "slots": {
+      "Image": "20"
+    }
+  }
+]

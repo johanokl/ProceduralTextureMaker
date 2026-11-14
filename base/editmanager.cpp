@@ -22,6 +22,7 @@ struct NodeSnapshot {
    int id{0};
    TextureGeneratorPtr generator;
    QString name;
+   QString identifier;
    QPointF position;
    TextureNodeSettings settings;
    QMap<QString, int> sources;
@@ -37,6 +38,7 @@ NodeSnapshot captureNode(TextureProject& project, const int nodeId) {
    snapshot.id = nodeId;
    snapshot.generator = node->getGenerator();
    snapshot.name = node->getName();
+   snapshot.identifier = node->getIdentifier();
    snapshot.position = node->getPos();
    snapshot.settings = node->getSettings();
    snapshot.sources = node->getSources();
@@ -64,6 +66,7 @@ void restoreNodeState(TextureProject& project, const NodeSnapshot& snapshot) {
    }
    const TextureNodePtr node = project.newNode(snapshot.id, snapshot.generator);
    node->setName(snapshot.name);
+   node->setIdentifier(snapshot.identifier);
    node->setPos(snapshot.position);
    node->setSettings(snapshot.settings);
 }
@@ -168,12 +171,14 @@ private:
 
 class RenameNodeCommand final : public QUndoCommand {
 public:
-   RenameNodeCommand(TextureProject& project, const int nodeId, QString oldName, QString newName)
+   RenameNodeCommand(TextureProject& project, const int nodeId, QString oldName, QString newName,
+                     bool identifier = false)
        : project(project),
          nodeId(nodeId),
          oldName(std::move(oldName)),
-         newName(std::move(newName)) {
-      setText(QStringLiteral("Rename node"));
+         newName(std::move(newName)),
+         identifier(identifier) {
+      setText(identifier ? QStringLiteral("Change node ID") : QStringLiteral("Rename node"));
    }
    void undo() override { apply(oldName); }
    void redo() override { apply(newName); }
@@ -182,13 +187,18 @@ private:
    void apply(const QString& name) {
       const TextureNodePtr node = project.getNode(nodeId);
       if (!node.isNull()) {
-         node->setName(name);
+         if (identifier) {
+            node->setIdentifier(name);
+         } else {
+            node->setName(name);
+         }
       }
    }
    TextureProject& project;
    int nodeId;
    QString oldName;
    QString newName;
+   bool identifier;
 };
 
 class SetConnectionCommand final : public QUndoCommand {
@@ -375,6 +385,22 @@ void EditManager::renameNode(const int nodeId, const QString& newName) {
    }
 }
 
+bool EditManager::changeNodeIdentifier(int nodeId, const QString& value) {
+   const QString trimmed = value.trimmed();
+   const auto node = project.getNode(nodeId);
+   if (!node || trimmed.isEmpty()) {
+      return false;
+   }
+   const auto existing = project.getNode(trimmed);
+   if (existing && existing != node) {
+      return false;
+   }
+   if (node->getIdentifier() != trimmed) {
+      undoStack.push(new RenameNodeCommand(project, nodeId, node->getIdentifier(), trimmed, true));
+   }
+   return true;
+}
+
 bool EditManager::setConnection(const int receiverId, const QString& slot, const int sourceId) {
    const TextureNodePtr receiver = project.getNode(receiverId);
    if (receiver.isNull()) {
@@ -451,10 +477,10 @@ bool EditManager::clearProject() {
    return true;
 }
 
-int EditManager::pasteNodes(const QString& xml) {
+int EditManager::pasteNodes(const QString& json) {
    const QList<int> oldNodeIds = project.getNodeIds();
    const QSet<int> before(oldNodeIds.cbegin(), oldNodeIds.cend());
-   const int count = project.pasteNodes(xml);
+   const int count = project.pasteNodes(json);
    if (count == 0) {
       return 0;
    }

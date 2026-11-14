@@ -10,10 +10,8 @@
 #include "base/texturegenerator.h"
 #include "global.h"
 #include "textureimage.h"
-#include <QDomDocument>
-#include <QDomElement>
-#include <QDomNode>
 #include <QList>
+#include <QJsonObject>
 #include <QMap>
 #include <QObject>
 #include <QPointF>
@@ -46,9 +44,17 @@ public:
    /// @note Call before removing the node from its project.
    void release();
 
-   /// @brief Gets the node's stable project ID.
+   /// @brief Gets the stable numeric handle used by the running graph.
    /// @return The node ID.
    int getId() const { return id; }
+
+   /// @brief Returns the editable ID used in project files and CLI commands.
+   QString getIdentifier() const { return identifier; }
+
+   /// @brief Changes the ID if it is nonempty and unique within the project.
+   /// @param value Unique ID; surrounding spaces are trimmed.
+   /// @return True when the ID was accepted.
+   bool setIdentifier(const QString& value);
 
    /// @brief Gets the node's public display name.
    /// @return The node name.
@@ -184,15 +190,13 @@ private:
    /// @param id The stable project ID.
    TextureNode(TextureProject* project, const TextureGeneratorPtr& generator, int id);
 
-   /// @brief Loads node properties, settings, and connections from XML.
-   /// @param xmlnode The serialized node element.
-   /// @param idMapping A mapping from serialized IDs to IDs in the destination project.
-   void loadFromXML(const QDomNode& xmlnode, const QMap<int, int> idMapping = QMap<int, int>());
+   /// @brief Loads settings and connections using the supplied file ID mapping.
+   /// @param object Node properties and settings.
+   /// @param ids File IDs mapped to live graph handles.
+   void loadFromJSON(const QJsonObject& object, const QMap<QString, int>& ids);
 
-   /// @brief Serializes the node's properties, settings, and connections.
-   /// @param targetdoc The XML document that will own the returned element.
-   /// @return The serialized node element.
-   QDomElement saveAsXML(QDomDocument targetdoc);
+   /// @brief Serializes this node using the current IDs of its connected sources.
+   QJsonObject saveAsJSON() const;
 
    /// @brief Searches downstream receiver nodes for a cycle.
    /// @param visited The node IDs on the current traversal path.
@@ -234,8 +238,10 @@ private:
    /// @param size The dimensions to remove from the cache.
    void discardCachedImage(QSize size);
 
-   /// @brief Stable ID assigned by the project.
+   /// @brief Stable internal handle, independent of the editable file ID.
    int id;
+   /// @brief Unique ID used outside the running graph.
+   QString identifier;
    /// @brief Name shown to the user.
    QString name;
    /// @brief Position in graph scene coordinates.

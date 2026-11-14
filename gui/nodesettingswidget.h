@@ -102,6 +102,8 @@ private:
    QVBoxLayout* settingsLayout{nullptr};
    /// @brief Label displaying the active generator name.
    QLabel* generatorNameLabel{nullptr};
+   /// @brief Editor for the unique ID used in files and CLI commands.
+   QLineEdit* nodeIdLineEdit{nullptr};
    /// @brief Editor for the node's display name.
    QLineEdit* nodeNameLineEdit{nullptr};
    /// @brief Group box containing source-slot controls.

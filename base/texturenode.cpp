@@ -5,18 +5,15 @@
 // Johan Lindqvist (johan.lindqvist@gmail.com)
 
 #include "texturenode.h"
+#include "projectfileservice.h"
 #include "base/texturegenerator.h"
 #include "global.h"
 #include "texturerendermanager.h"
 #include "textureimage.h"
 #include "textureproject.h"
 #include <QColor>
-#include <QDomDocument>
-#include <QDomElement>
-#include <QDomNode>
-#include <QDomNodeList>
 #include <QList>
-#include <QLocale>
+#include <QUuid>
 #include <QMap>
 #include <QMapIterator>
 #include <QMetaType>
@@ -43,6 +40,7 @@ bool operator<(const QSize& lhs, const QSize& rhs) {
 }
 
 TextureNode::TextureNode(TextureProject* project, const TextureGeneratorPtr& gen, int id) {
+   identifier = "node-" + QUuid::createUuid().toString(QUuid::WithoutBraces);
    qRegisterMetaType<TextureNodePtr>("TextureNodePtr");
    name = QString("Node %1").arg(id);
    this->project = project;
@@ -79,101 +77,80 @@ void TextureNode::release() {
    deleted = true;
 }
 
-void TextureNode::loadFromXML(const QDomNode& xmlnode, QMap<int, int> idMappings) {
-   name = xmlnode.toElement().attribute("name");
-   QDomElement pos = xmlnode.namedItem("pos").toElement();
-   if (!pos.isNull()) {
-      setPos(QPointF(pos.attribute("x").toDouble(), pos.attribute("y").toDouble()));
-   }
-   QDomElement generatornode = xmlnode.namedItem("generator").toElement();
-   if (!generatornode.isNull()) {
-      setGenerator(generatornode.attribute("name"));
-   }
-   QDomNodeList sources = xmlnode.namedItem("Sources").childNodes();
-   for (int i = 0; i < sources.count(); i++) {
-      const TextureGeneratorPtr generator = getGenerator();
-      const QString slotId =
-          generator->resolveSourceSlot(sources.at(i).toElement().attribute("slot"));
-      int sourceId = sources.at(i).toElement().attribute("source").toInt();
-      if (idMappings.contains(sourceId)) {
-         sourceId = idMappings[sourceId];
+void TextureNode::loadFromJSON(const QJsonObject& object, const QMap<QString, int>& ids) {
+   setName(object.value("name").toString());
+   const auto position = object.value("position").toObject();
+   setPos(QPointF(position.value("x").toDouble(), position.value("y").toDouble()));
+   setGenerator(object.value("generator").toString());
+   auto loaded = getSettings();
+   const auto values = object.value("settings").toObject();
+   for (auto value = values.begin(); value != values.end(); ++value) {
+      const auto* definition =
+          findTextureGeneratorSetting(getGenerator()->getSettings(), value.key());
+      if (!definition) {
+         continue;
       }
-      if (!slotId.isNull()) {
-         setSourceSlot(slotId, sourceId);
+      QVariant setting = value.value().toVariant();
+      if (definition->defaultvalue.metaType().id() == QMetaType::QColor) {
+         setting = ProjectFileService::parseColor(value.value().toString());
+      } else if (definition->defaultvalue.metaType().id() != QMetaType::QStringList) {
+         setting.convert(definition->defaultvalue.metaType());
+      }
+      loaded.insert(value.key(), setting);
+   }
+   setSettings(loaded);
+   const auto connections = object.value("slots").toObject();
+   for (auto source = connections.begin(); source != connections.end(); ++source) {
+      const QString slot = source.key();
+      const int sourceId = ids.value(source.value().toString());
+      if (!slot.isNull() && sourceId) {
+         setSourceSlot(slot, sourceId);
       }
    }
-   TextureNodeSettings loadedSettings = getSettings();
-   QDomNodeList settingsNodes = xmlnode.namedItem("Settings").childNodes();
-   for (int i = 0; i < settingsNodes.count(); i++) {
-      QDomElement currNode = settingsNodes.at(i).toElement();
-      QString settingId = currNode.attribute("id");
-      QString settingType = currNode.attribute("type");
-      QString settingValue = currNode.attribute("value");
-      QVariant settingVariant;
-      if (settingType == "int") {
-         settingVariant = QVariant(settingValue.toInt());
-      } else if (settingType == "double") {
-         settingVariant = QVariant(settingValue.toDouble());
-      } else if (settingType == "bool") {
-         settingVariant = QVariant((bool)(settingValue == "true" ? true : false));
-      } else if (settingType == "QColor") {
-         settingVariant = QVariant(QColor(settingValue));
-      } else if (settingType == "QString") {
-         settingVariant = QVariant(QString(settingValue));
-      }
-      loadedSettings.insert(settingId, settingVariant);
-   }
-   setSettings(loadedSettings);
 }
 
-QDomElement TextureNode::saveAsXML(QDomDocument targetdoc) {
-   const TextureNodeSettings settingsCopy = getSettings();
-   const QMap<QString, int> sourcesCopy = getSources();
-   const TextureGeneratorPtr generator = getGenerator();
-   QDomElement retXmlNode = targetdoc.createElement("Node");
-   retXmlNode.setAttribute("id", id);
-   retXmlNode.setAttribute("name", name);
-
-   QLocale localeXML(QLocale::C);
-
-   QDomElement posnode = targetdoc.createElement("pos");
-   posnode.setAttribute("x", localeXML.toString(pos.x()));
-   posnode.setAttribute("y", localeXML.toString(pos.y()));
-   retXmlNode.appendChild(posnode);
-
-   QDomElement generatornode = targetdoc.createElement("generator");
-   generatornode.setAttribute("name", generator->getName());
-   retXmlNode.appendChild(generatornode);
-
-   if (!settingsCopy.empty()) {
-      QDomElement settingsnode = targetdoc.createElement("Settings");
-      retXmlNode.appendChild(settingsnode);
-      QMapIterator<QString, QVariant> settingsiterator(settingsCopy);
-      while (settingsiterator.hasNext()) {
-         settingsiterator.next();
-         QDomElement settingnode = targetdoc.createElement("setting");
-         QString key = settingsiterator.key();
-         QVariant value = settingsiterator.value();
-         settingnode.setAttribute("id", key);
-         settingnode.setAttribute("type", value.typeName());
-         settingnode.setAttribute("value", value.toString());
-         settingsnode.appendChild(settingnode);
+QJsonObject TextureNode::saveAsJSON() const {
+   QJsonObject values;
+   const auto settings = getSettings();
+   for (auto setting = settings.begin(); setting != settings.end(); ++setting) {
+      QJsonValue value = QJsonValue::fromVariant(setting.value());
+      if (setting.value().metaType().id() == QMetaType::QColor) {
+         const QColor color = setting.value().value<QColor>();
+         value =
+             color.name(QColor::HexRgb) + QString("%1").arg(color.alpha(), 2, 16, QLatin1Char('0'));
+      }
+      values.insert(setting.key(), value);
+   }
+   QJsonObject connections;
+   const auto sources = getSources();
+   for (auto source = sources.begin(); source != sources.end(); ++source) {
+      const auto node = project->getNode(source.value());
+      if (node) {
+         connections.insert(source.key(), node->getIdentifier());
       }
    }
-   if (!sourcesCopy.empty()) {
-      QDomElement sourcesnode = targetdoc.createElement("Sources");
-      retXmlNode.appendChild(sourcesnode);
-      for (const QString& slot : generator->getSourceSlots()) {
-         const int sourceId = sourcesCopy.value(slot);
-         if (sourceId > 0) {
-            QDomElement sourcenode = targetdoc.createElement("source");
-            sourcenode.setAttribute("slot", slot);
-            sourcenode.setAttribute("source", sourceId);
-            sourcesnode.appendChild(sourcenode);
-         }
-      }
+   return {{"id", identifier},
+           {"name", name},
+           {"position", QJsonObject{{"x", pos.x()}, {"y", pos.y()}}},
+           {"generator", getGeneratorName()},
+           {"settings", values},
+           {"slots", connections}};
+}
+
+bool TextureNode::setIdentifier(const QString& value) {
+   const QString trimmed = value.trimmed();
+   if (trimmed.isEmpty()) {
+      return false;
    }
-   return retXmlNode;
+   const auto existing = project->getNode(trimmed);
+   if (existing && existing.data() != this) {
+      return false;
+   }
+   if (identifier != trimmed) {
+      identifier = trimmed;
+      emit nameUpdated(id);
+   }
+   return true;
 }
 
 void TextureNode::setName(const QString& newname) {

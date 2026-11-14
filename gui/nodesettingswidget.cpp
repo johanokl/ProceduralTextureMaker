@@ -20,6 +20,7 @@
 #include <QHBoxLayout>
 #include <QLabel>
 #include <QLineEdit>
+#include <QMessageBox>
 #include <QMetaType>
 #include <QPushButton>
 #include <QPlainTextEdit>
@@ -53,6 +54,24 @@ NodeSettingsWidget::NodeSettingsWidget(ItemInfoPanel& widgetmanager, int id)
    nodeInfoWidget->setLayout(nodeInfoLayout);
    nodeNameLineEdit = new QLineEdit;
    nodeInfoLayout->addRow("Name:", nodeNameLineEdit);
+
+   nodeIdLineEdit = new QLineEdit;
+   nodeIdLineEdit->setObjectName("nodeIdentifier");
+   nodeIdLineEdit->setToolTip("Unique node ID used in project files and CLI commands.");
+   nodeInfoLayout->addRow("ID:", nodeIdLineEdit);
+   connect(nodeIdLineEdit, &QLineEdit::editingFinished, this, [this] {
+      const QString value = nodeIdLineEdit->text().trimmed();
+      nodeIdLineEdit->setText(value);
+      auto* edits = this->widgetmanager.getEditManager();
+      if (edits && !edits->changeNodeIdentifier(this->id, value)) {
+         nodeIdLineEdit->setText(texNode->getIdentifier());
+         QMessageBox::warning(this, "Invalid node ID",
+                              value.isEmpty()
+                                  ? QString("The node ID cannot be empty.")
+                                  : QString("Another node already uses the ID \"%1\".").arg(value));
+      }
+   });
+   connect(texNode.data(), &TextureNode::nameUpdated, this, &NodeSettingsWidget::settingsUpdated);
 
    generatorNameLabel = new QLabel;
    generatorNameLabel->setObjectName("generatorBadge");
@@ -573,6 +592,7 @@ void NodeSettingsWidget::slotsUpdated() {
 
 void NodeSettingsWidget::settingsUpdated() {
    nodeNameLineEdit->setText(texNode->getName());
+   nodeIdLineEdit->setText(texNode->getIdentifier());
 
    QMapIterator<QString, QWidget*> settingElementIterator(settingElements);
    while (settingElementIterator.hasNext()) {

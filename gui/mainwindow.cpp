@@ -219,7 +219,7 @@ bool MainWindow::saveFile(bool newFileName) {
    }
    if (fileName.isNull()) {
       fileName =
-          QFileDialog::getSaveFileName(this, "Save File", QDir::homePath(), "Texture Set (*.txl)");
+          QFileDialog::getSaveFileName(this, "Save File", QDir::homePath(), "PTM graph (*.ptmg)");
    }
    if (fileName.isNull()) {
       return false;

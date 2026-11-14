@@ -11,7 +11,7 @@ Custom UI widgets are created for each node based on the texture generator's use
 settings, making it easy to try out new configurations and watch how changes affect the final
 output.
 
-The project files with texture graphs can be saved to and loaded from XML files, and images can be
+The project files with texture graphs can be saved to and loaded from JSON files, and images can be
 exported to PNG files.
 
 A number of texture generators written in C++ and Javascript are included with the project.
@@ -27,9 +27,9 @@ For more general information about procedural textures, see
 
 Three example textures have been added to the repository:
 
-- [Rose](examples/rose.txl)
-- [Wall](examples/wall.txl)
-- [Space](examples/space.txl)
+- [Rose](examples/rose.ptmg)
+- [Wall](examples/wall.ptmg)
+- [Space](examples/space.ptmg)
 
 ## Technical Details
 
@@ -136,20 +136,60 @@ To run the application:
 open build/release/ProceduralTextureMaker.app
 ```
 
+## Project files
+
+Projects use the `.ptmg` extension and contain a JSON array of nodes:
+
+```json
+[
+  {
+    "id": "background",
+    "name": "Blue background",
+    "position": { "x": 0, "y": 0 },
+    "generator": "Fill",
+    "settings": { "color": "#336699ff" },
+    "slots": {}
+  },
+  {
+    "id": "output",
+    "name": "Inverted image",
+    "position": { "x": 300, "y": 0 },
+    "generator": "Invert",
+    "settings": {
+      "invertRed": true,
+      "invertGreen": true,
+      "invertBlue": true,
+      "invertAlpha": false
+    },
+    "slots": { "Image": "background" }
+  }
+]
+```
+
+Each `id` is a nonempty, unique, case-sensitive string. Edit it in the node's **ID** field, which
+trims surrounding spaces. New nodes receive a generated ID. Display names can be shared by several
+nodes. Connections refer to IDs, and renaming an ID updates the references written when the project
+is saved. The CLI's `--node` option uses the same ID.
+
+Settings use JSON numbers, booleans, and strings. Colours are strings in `#RRGGBBAA` or `#RRGGBB`
+notation, and choice settings use their option text. The keys in `slots` are the generator's input
+names; unconnected inputs can be omitted. `position`, `settings`, and `slots` can be omitted when
+their defaults are sufficient.
+
 ## Command-line export
 
 `ProceduralTextureMaker --no-gui` loads a project and writes a PNG without opening an application
 window. When the project has one final sink node, it is selected automatically:
 
 ```sh
-ProceduralTextureMaker --no-gui --size 1024x1024 examples/rose.txl rose.png
+ProceduralTextureMaker --no-gui --size 1024x1024 examples/rose.ptmg rose.png
 ```
 
 Select an intermediate node by its persisted ID, or inspect available IDs first:
 
 ```sh
-ProceduralTextureMaker --no-gui --list-nodes examples/rose.txl
-ProceduralTextureMaker --no-gui --node 10 --size 512x512 examples/rose.txl exported.png
+ProceduralTextureMaker --no-gui --list-nodes examples/rose.ptmg
+ProceduralTextureMaker --no-gui --node 10 --size 512x512 examples/rose.ptmg exported.png
 ```
 
 Exports have no time limit by default; use `--timeout SECONDS` to set one explicitly.
@@ -167,7 +207,7 @@ Ctrl+C:
 ```cmd
 start /wait "" ProceduralTextureMaker.exe ^
     --no-gui --node 10 --size 512x512 ^
-    examples/rose.txl exported.png
+    examples/rose.ptmg exported.png
 ```
 
 In PowerShell, use `Start-Process`, `-Wait`, and `-NoNewWindow` to keep the export in the current
@@ -176,7 +216,7 @@ terminal, see progress, and cancel with Ctrl+C:
 ```powershell
 Start-Process -FilePath .\ProceduralTextureMaker.exe `
     -NoNewWindow -Wait `
-    -ArgumentList '--no-gui --node 10 --size 512x512 examples/rose.txl exported.png'
+    -ArgumentList '--no-gui --node 10 --size 512x512 examples/rose.ptmg exported.png'
 ```
 
 ## JavaScript generators
@@ -207,7 +247,7 @@ cmake --build --preset debug
 ctest --preset debug
 ```
 
-The suite covers the base graph model, XML compatibility, synchronous and background rendering,
+The suite covers the base graph model, JSON persistence, synchronous and background rendering,
 settings isolation, all built-in generators, JavaScript generators, PNG export, and command-line
 mode through separate application processes.
 
@@ -292,6 +332,6 @@ ProceduralTextureMaker is licensed under the [GNU General Public License v3.0](L
 
 ## Acknowledgements
 
-The [Rose example](examples/rose.txl) was created by [Emil Bardh](https://www.hardh.com/).
+The [Rose example](examples/rose.ptmg) was created by [Emil Bardh](https://www.hardh.com/).
 
 The application icon is from [Iconfinder](https://www.iconfinder.com/icons/28730/).

@@ -1,0 +1,15 @@
+[
+  {
+    "id": "1",
+    "name": "Portable solid",
+    "position": {
+      "x": 0.0,
+      "y": 0.0
+    },
+    "generator": "Fill",
+    "settings": {
+      "color": "#34567812"
+    },
+    "slots": {}
+  }
+]

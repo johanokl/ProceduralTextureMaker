@@ -54,6 +54,8 @@ class CliExportTest : public QObject {
    Q_OBJECT
 
 private slots:
+   /// @brief Verifies CLI selection and listing use editable string IDs.
+   void selectsNamedNode();
    /// @brief Checks an explicit timeout cancels stuck JavaScript and preserves the destination.
    void timesOutOnlyWhenRequested();
 
@@ -76,6 +78,35 @@ private slots:
    void returnsStableUsageAndOutputErrors();
 };
 
+void CliExportTest::selectsNamedNode() {
+   QTemporaryDir directory;
+   const QString path = directory.filePath("named.ptmg");
+   QFile input(path);
+   QVERIFY(input.open(QIODevice::WriteOnly));
+   input.write(R"([
+  {
+    "id": "blue-background",
+    "name": "Background",
+    "generator": "Fill",
+    "settings": {
+      "color": "#0000ffff"
+    }
+  }
+])");
+   input.close();
+   auto result = runExporter({"--list-nodes", path}, directory.path());
+   QCOMPARE(result.exitCode, 0);
+   QVERIFY(result.standardOutput.contains("blue-background\tBackground\tFill"));
+   const QString output = directory.filePath("blue.png");
+   result =
+       runExporter({"--node", "blue-background", "--size", "2x2", path, output}, directory.path());
+   QCOMPARE(result.exitCode, 0);
+   QCOMPARE(QImage(output).pixelColor(0, 0), QColor(Qt::blue));
+   QVERIFY(result.standardOutput.contains("Exported node blue-background"));
+   result = runExporter({"--node", "1", path, output}, directory.path());
+   QCOMPARE(result.exitCode, 5);
+}
+
 void CliExportTest::timesOutOnlyWhenRequested() {
    QTemporaryDir directory;
    QVERIFY(directory.isValid());
@@ -91,7 +122,7 @@ void CliExportTest::timesOutOnlyWhenRequested() {
    existing.write("old image");
    existing.close();
    const QString input =
-       QStringLiteral(PTM_SOURCE_DIR "/tests/fixtures/projects/javascript-solid.txl");
+       QStringLiteral(PTM_SOURCE_DIR "/tests/fixtures/projects/javascript-solid.ptmg");
    const auto result =
        runExporter({QStringLiteral("--js-dir"), directory.path(), QStringLiteral("--timeout"),
                     QStringLiteral("1"), QStringLiteral("--force"), input, output},
@@ -125,7 +156,7 @@ void CliExportTest::showsHelp() {
 void CliExportTest::exportsTrackedExampleByUniqueSink() {
    QTemporaryDir directory;
    QVERIFY(directory.isValid());
-   const QString input = QStringLiteral(PTM_SOURCE_DIR "/examples/wall.txl");
+   const QString input = QStringLiteral(PTM_SOURCE_DIR "/examples/wall.ptmg");
    const QString output = directory.filePath(QStringLiteral("wall output 測試.png"));
    const ProcessResult result = runExporter(
        {QStringLiteral("--size"), QStringLiteral("32x24"), input, output}, directory.path());
@@ -141,7 +172,7 @@ void CliExportTest::exportsTrackedExampleByUniqueSink() {
 void CliExportTest::listsNodesAndRequiresSelectionForMultipleSinks() {
    QTemporaryDir directory;
    QVERIFY(directory.isValid());
-   const QString input = QStringLiteral(PTM_SOURCE_DIR "/tests/fixtures/projects/multi-sink.txl");
+   const QString input = QStringLiteral(PTM_SOURCE_DIR "/tests/fixtures/projects/multi-sink.ptmg");
    ProcessResult result = runExporter({QStringLiteral("--list-nodes"), input}, directory.path());
    QCOMPARE(result.exitCode, 0);
    QVERIFY(result.standardOutput.contains("1\tFirst output\tFill\tsink"));
@@ -162,7 +193,7 @@ void CliExportTest::loadsJavaScriptGeneratorsExplicitly() {
    QTemporaryDir directory;
    QVERIFY(directory.isValid());
    const QString input =
-       QStringLiteral(PTM_SOURCE_DIR "/tests/fixtures/projects/javascript-solid.txl");
+       QStringLiteral(PTM_SOURCE_DIR "/tests/fixtures/projects/javascript-solid.ptmg");
    const QString scripts = QStringLiteral(PTM_SOURCE_DIR "/tests/fixtures/javascript");
    const QString output = directory.filePath(QStringLiteral("javascript.png"));
 
@@ -202,10 +233,10 @@ void CliExportTest::printsJavaScriptSources() {
 void CliExportTest::returnsStableUsageAndOutputErrors() {
    QTemporaryDir directory;
    QVERIFY(directory.isValid());
-   const QString input = QStringLiteral(PTM_SOURCE_DIR "/examples/rose.txl");
+   const QString input = QStringLiteral(PTM_SOURCE_DIR "/examples/rose.ptmg");
    const QString output = directory.filePath(QStringLiteral("image.png"));
    QCOMPARE(
-       runExporter({directory.filePath(QStringLiteral("missing.txl")), output}, directory.path())
+       runExporter({directory.filePath(QStringLiteral("missing.ptmg")), output}, directory.path())
            .exitCode,
        3);
    QCOMPARE(runExporter({QStringLiteral("--size"), QStringLiteral("bad"), input, output},

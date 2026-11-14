@@ -60,7 +60,7 @@ public slots:
    /// @return True when the project was saved successfully.
    bool saveAs();
 
-   /// @brief Saves the current project as an XML file.
+   /// @brief Saves the current project as a JSON file.
    /// @param newFileName Whether to prompt for a new destination instead of reusing the current
    /// one.
    /// @return True when the project was saved successfully.

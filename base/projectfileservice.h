@@ -6,7 +6,9 @@
 #ifndef PROJECTFILESERVICE_H
 #define PROJECTFILESERVICE_H
 
-#include <QDomDocument>
+#include <QJsonDocument>
+#include <QColor>
+#include <QJsonArray>
 #include <QString>
 
 class TextureProject;
@@ -17,8 +19,8 @@ enum class ProjectFileError {
    None,
    /// @brief The input file could not be opened.
    InputOpen,
-   /// @brief The input could not be parsed as XML.
-   XmlParse,
+   /// @brief The input could not be parsed as JSON.
+   JsonParse,
    /// @brief The parsed document does not describe a valid project graph.
    Validation,
    /// @brief A validated document could not be converted into a project.
@@ -48,13 +50,23 @@ struct ProjectFileResult {
 /// @brief Provides shared, non-GUI project loading and saving operations.
 class ProjectFileService final {
 public:
-   /// @brief Loads and validates a project from an XML file.
+   /// @brief Decodes a JSON colour in #RRGGBB or #RRGGBBAA notation.
+   /// @param text Hexadecimal colour, with optional alpha at the end.
+   /// @return The colour, or an invalid QColor for unsupported input.
+   static QColor parseColor(const QString& text);
+
+   /// @brief Formats nodes with identity, position, generator, settings, then slots.
+   /// @param nodes Node objects to serialize.
+   /// @return Indented UTF-8 JSON shared by project files and clipboard copies.
+   static QByteArray serializeNodes(const QJsonArray& nodes);
+
+   /// @brief Loads and validates a project from a JSON file.
    /// @param path Path of the project file to read.
    /// @param project Project that receives the loaded graph.
    /// @return The operation result, including an error message on failure.
    [[nodiscard]] static ProjectFileResult load(const QString& path, TextureProject& project);
 
-   /// @brief Saves a project atomically as an XML file.
+   /// @brief Saves a project atomically as a JSON file.
    /// @param path Destination path for the project file.
    /// @param project Project to serialize and mark as saved after a successful commit.
    /// @param overwrite Whether an existing destination may be replaced.
@@ -63,12 +75,12 @@ public:
                                                bool overwrite);
 
 private:
-   /// @brief Constructs a project from a parsed and validated XML document.
+   /// @brief Constructs a project from a parsed and validated JSON document.
    /// @param document Parsed project document.
    /// @param project Project that receives the loaded graph.
    /// @param path Path used to identify the project in validation errors.
    /// @return The operation result, including construction failures.
-   [[nodiscard]] static ProjectFileResult loadDocument(const QDomDocument& document,
+   [[nodiscard]] static ProjectFileResult loadDocument(const QJsonDocument& document,
                                                        TextureProject& project,
                                                        const QString& path);
 
@@ -77,7 +89,7 @@ private:
    /// @param project Project providing the available generator registry.
    /// @param path Path used to identify the project in validation errors.
    /// @return Success when the document is valid, otherwise a validation failure.
-   [[nodiscard]] static ProjectFileResult validate(const QDomDocument& document,
+   [[nodiscard]] static ProjectFileResult validate(const QJsonDocument& document,
                                                    const TextureProject& project,
                                                    const QString& path);
 };

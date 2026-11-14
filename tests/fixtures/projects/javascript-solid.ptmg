@@ -1,0 +1,13 @@
+[
+  {
+    "id": "1",
+    "name": "JavaScript output",
+    "position": {
+      "x": 0.0,
+      "y": 0.0
+    },
+    "generator": "SolidJS",
+    "settings": {},
+    "slots": {}
+  }
+]

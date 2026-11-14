@@ -16,28 +16,28 @@ const generator = {
   // Boolean settings appear as checkboxes in the node settings panel.
   settings: [
     {
-      id: "channelRed",
+      id: "invertRed",
       type: "boolean",
       name: "Invert red",
       description: "Selects whether the red channel is inverted.",
       default: true,
     },
     {
-      id: "channelGreen",
+      id: "invertGreen",
       type: "boolean",
       name: "Invert green",
       description: "Selects whether the green channel is inverted.",
       default: true,
     },
     {
-      id: "channelBlue",
+      id: "invertBlue",
       type: "boolean",
       name: "Invert blue",
       description: "Selects whether the blue channel is inverted.",
       default: true,
     },
     {
-      id: "channelAlpha",
+      id: "invertAlpha",
       type: "boolean",
       name: "Invert alpha",
       description: "Selects whether the alpha channel is inverted.",
@@ -60,10 +60,10 @@ const generator = {
     // Copy unchecked channels unchanged. For each checked channel, visit its
     // byte in every pixel and subtract it from the maximum byte value, 255.
     const invert = [
-      settings.channelRed,
-      settings.channelGreen,
-      settings.channelBlue,
-      settings.channelAlpha,
+      settings.invertRed,
+      settings.invertGreen,
+      settings.invertBlue,
+      settings.invertAlpha,
     ];
     for (let channel = 0; channel < 4; ++channel) {
       if (!invert[channel]) continue;
