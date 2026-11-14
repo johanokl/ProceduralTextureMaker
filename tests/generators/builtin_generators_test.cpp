@@ -71,6 +71,7 @@ void BuiltinGeneratorsTest::rendersEveryGenerator() {
    QCOMPARE(project.getGenerator(QStringLiteral("Shadow"))->getSourceSlots(),
             QStringList({QStringLiteral("Foreground")}));
    const QMap<QString, QString> migratedGenerators = {
+       {QStringLiteral("Adjust"), QStringLiteral("adjust.js")},
        {QStringLiteral("Blend"), QStringLiteral("blend.js")},
        {QStringLiteral("Bricks"), QStringLiteral("bricks.js")},
        {QStringLiteral("Checkboard"), QStringLiteral("checkboard.js")},
@@ -79,6 +80,7 @@ void BuiltinGeneratorsTest::rendersEveryGenerator() {
        {QStringLiteral("Fill"), QStringLiteral("fill.js")},
        {QStringLiteral("Fire"), QStringLiteral("fire.js")},
        {QStringLiteral("Glow"), QStringLiteral("glow.js")},
+       {QStringLiteral("Invert"), QStringLiteral("invert.js")},
        {QStringLiteral("Lines"), QStringLiteral("lines.js")},
        {QStringLiteral("Mask"), QStringLiteral("mask.js")},
        {QStringLiteral("Noise"), QStringLiteral("noise.js")},
@@ -112,7 +114,7 @@ void BuiltinGeneratorsTest::rendersEveryGenerator() {
             QStringList({QStringLiteral("Image"), QStringLiteral("Alpha")}));
    QCOMPARE(project.getGenerator(QStringLiteral("Set channels"))->getSourceSlots(),
             QStringList({QStringLiteral("First"), QStringLiteral("Second")}));
-   QCOMPARE(project.getGenerator(QStringLiteral("Merge"))->getSourceSlots().size(), 10);
+   QVERIFY(!project.getGenerators().contains(QStringLiteral("Merge")));
    const TextureGeneratorSettings& transformSettings =
        project.getGenerator(QStringLiteral("Transform"))->getSettings();
    QCOMPARE(transformSettings.at(0).id, QStringLiteral("xscale"));

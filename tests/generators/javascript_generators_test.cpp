@@ -126,6 +126,12 @@ private slots:
    /// @brief Verifies explicit reload, compatible node migration, and broken-edit fallback.
    void reloadsDefinitionsAtomically();
 
+   /// @brief Checks channel adjustment modes, rounding, clamping, and alpha selection.
+   void rendersAdjust();
+
+   /// @brief Checks default RGB inversion, selected channels, and missing Image.
+   void rendersInvert();
+
    /// @brief Checks channel routing, fixed values, and disconnected inputs.
    void rendersSetChannels();
 
@@ -545,6 +551,109 @@ const generator = {
    QCOMPARE(project.getGenerator(QStringLiteral("Reloaded")), secondGenerator);
 }
 
+void JavaScriptGeneratorsTest::rendersAdjust() {
+   TextureProject project(false);
+   registerBuiltInGenerators(project);
+   const auto generator = project.getGenerator(QStringLiteral("Adjust"));
+   QVERIFY(!generator.isNull());
+   QCOMPARE(generator->getSettings().at(4).defaultvalue.toStringList(),
+            QStringList(
+                {QStringLiteral("Multiply"), QStringLiteral("Add"), QStringLiteral("Subtract")}));
+   QCOMPARE(generator->getSettings().at(5).min.toDouble(), 0.0);
+   QCOMPARE(generator->getSettings().at(5).max.toDouble(), 255.0);
+   const QSize size(2, 1);
+   const auto image = TextureImage::create(size);
+   image->data()[0] = TexturePixel(101, 128, 250, 127);
+   image->data()[1] = TexturePixel(0, 1, 255, 0);
+   const QMap<QString, TextureImagePtr> sources{{QStringLiteral("Image"), image}};
+   const auto defaults = renderGenerator(generator, size, sources);
+   const auto half = renderGenerator(generator, size, sources, {{QStringLiteral("level"), 50.0}});
+   QCOMPARE(half->data()[0].toRGBA(), TexturePixel(51, 64, 125, 127).toRGBA());
+   QCOMPARE(half->data()[1].toRGBA(), TexturePixel(0, 1, 128, 0).toRGBA());
+   const auto brighter = renderGenerator(
+       generator, size, sources,
+       {{QStringLiteral("mode"), QStringLiteral("Add")}, {QStringLiteral("level"), 20.0}});
+   QCOMPARE(brighter->data()[0].toRGBA(), TexturePixel(121, 148, 255, 127).toRGBA());
+   QCOMPARE(brighter->data()[1].toRGBA(), TexturePixel(20, 21, 255, 0).toRGBA());
+   const auto darker = renderGenerator(
+       generator, size, sources,
+       {{QStringLiteral("mode"), QStringLiteral("Subtract")}, {QStringLiteral("level"), 150.0}});
+   QCOMPARE(darker->data()[0].toRGBA(), TexturePixel(0, 0, 100, 127).toRGBA());
+   QCOMPARE(darker->data()[1].toRGBA(), TexturePixel(0, 0, 105, 0).toRGBA());
+   const auto boosted =
+       renderGenerator(generator, size, sources, {{QStringLiteral("level"), 255.0}});
+   QCOMPARE(boosted->data()[0].toRGBA(), TexturePixel(255, 255, 255, 127).toRGBA());
+   QCOMPARE(boosted->data()[1].toRGBA(), TexturePixel(0, 3, 255, 0).toRGBA());
+   const auto aboveRange =
+       renderGenerator(generator, size, sources, {{QStringLiteral("level"), 500.0}});
+   const auto belowRange =
+       renderGenerator(generator, size, sources, {{QStringLiteral("level"), -100.0}});
+   for (int pixel = 0; pixel < size.width(); ++pixel) {
+      QCOMPARE(aboveRange->data()[pixel].toRGBA(), boosted->data()[pixel].toRGBA());
+      QCOMPARE(belowRange->data()[pixel].toRGBA(),
+               TexturePixel(0, 0, 0, image->data()[pixel].a).toRGBA());
+   }
+   const TextureNodeSettings alphaOnly{{QStringLiteral("channelRed"), false},
+                                       {QStringLiteral("channelGreen"), false},
+                                       {QStringLiteral("channelBlue"), false},
+                                       {QStringLiteral("channelAlpha"), true},
+                                       {QStringLiteral("level"), 50.0}};
+   const auto transparent = renderGenerator(generator, size, sources, alphaOnly);
+   QCOMPARE(transparent->data()[0].toRGBA(), TexturePixel(101, 128, 250, 64).toRGBA());
+   QCOMPARE(transparent->data()[1].toRGBA(), image->data()[1].toRGBA());
+   const auto unchecked = renderGenerator(generator, size, sources,
+                                          {{QStringLiteral("channelRed"), false},
+                                           {QStringLiteral("channelGreen"), false},
+                                           {QStringLiteral("channelBlue"), false},
+                                           {QStringLiteral("channelAlpha"), false},
+                                           {QStringLiteral("level"), 255.0}});
+   const auto missing = renderGenerator(generator, size, {},
+                                        {{QStringLiteral("mode"), QStringLiteral("Add")},
+                                         {QStringLiteral("level"), 255.0},
+                                         {QStringLiteral("channelAlpha"), true}});
+   for (int pixel = 0; pixel < size.width(); ++pixel) {
+      QCOMPARE(defaults->data()[pixel].toRGBA(), image->data()[pixel].toRGBA());
+      QCOMPARE(unchecked->data()[pixel].toRGBA(), image->data()[pixel].toRGBA());
+      QCOMPARE(missing->data()[pixel].toRGBA(), TexturePixel(0, 0, 0, 0).toRGBA());
+   }
+}
+
+void JavaScriptGeneratorsTest::rendersInvert() {
+   TextureProject project(false);
+   registerBuiltInGenerators(project);
+   const auto generator = project.getGenerator(QStringLiteral("Invert"));
+   QVERIFY(!generator.isNull());
+   const QSize size(3, 1);
+   const auto image = TextureImage::create(size);
+   image->data()[0] = TexturePixel(0, 128, 255, 64);
+   image->data()[1] = TexturePixel(10, 20, 30, 0);
+   image->data()[2] = TexturePixel(255, 0, 1, 255);
+   const QMap<QString, TextureImagePtr> sources{{QStringLiteral("Image"), image}};
+   const auto defaults = renderGenerator(generator, size, sources);
+   const QList<TexturePixel> expectedDefault{TexturePixel(255, 127, 0, 64),
+                                             TexturePixel(245, 235, 225, 0),
+                                             TexturePixel(0, 255, 254, 255)};
+   const TextureNodeSettings blueAndAlpha{{QStringLiteral("channelRed"), false},
+                                          {QStringLiteral("channelGreen"), false},
+                                          {QStringLiteral("channelBlue"), true},
+                                          {QStringLiteral("channelAlpha"), true}};
+   const auto selected = renderGenerator(generator, size, sources, blueAndAlpha);
+   const QList<TexturePixel> expectedSelected{
+       TexturePixel(0, 128, 0, 191), TexturePixel(10, 20, 225, 255), TexturePixel(255, 0, 254, 0)};
+   const auto unchanged = renderGenerator(generator, size, sources,
+                                          {{QStringLiteral("channelRed"), false},
+                                           {QStringLiteral("channelGreen"), false},
+                                           {QStringLiteral("channelBlue"), false},
+                                           {QStringLiteral("channelAlpha"), false}});
+   const auto missing = renderGenerator(generator, size, {}, blueAndAlpha);
+   for (int pixel = 0; pixel < size.width(); ++pixel) {
+      QCOMPARE(defaults->data()[pixel].toRGBA(), expectedDefault[pixel].toRGBA());
+      QCOMPARE(selected->data()[pixel].toRGBA(), expectedSelected[pixel].toRGBA());
+      QCOMPARE(unchanged->data()[pixel].toRGBA(), image->data()[pixel].toRGBA());
+      QCOMPARE(missing->data()[pixel].toRGBA(), TexturePixel(0, 0, 0, 0).toRGBA());
+   }
+}
+
 void JavaScriptGeneratorsTest::rendersSetChannels() {
    TextureProject project(false);
    registerBuiltInGenerators(project);
@@ -675,6 +784,10 @@ void JavaScriptGeneratorsTest::rendersBlend() {
    QCOMPARE(blend->getSettings().size(), 2);
    QCOMPARE(blend->getSettings().at(0).id, QStringLiteral("mode"));
    QCOMPARE(blend->getSettings().at(1).id, QStringLiteral("alpha"));
+   QCOMPARE(blend->getSettings().at(0).defaultvalue.toStringList(),
+            QStringList({QStringLiteral("Normal"), QStringLiteral("Add"),
+                         QStringLiteral("Multiply"), QStringLiteral("Screen"),
+                         QStringLiteral("Overlay"), QStringLiteral("Difference")}));
    const QSize size(1, 1);
    const auto background = sourceImage(QColor(10, 20, 30, 80));
    const auto foreground = sourceImage(QColor(200, 100, 50, 128));
@@ -707,6 +820,24 @@ void JavaScriptGeneratorsTest::rendersBlend() {
    const QMap<QString, TextureImagePtr> opaqueLayers{
        {QStringLiteral("Background"), sourceImage(QColor(64, 128, 192))},
        {QStringLiteral("Foreground"), sourceImage(QColor(128, 128, 64))}};
+   const TextureNodeSettings add{{QStringLiteral("mode"), QStringLiteral("Add")}};
+   QCOMPARE(renderGenerator(blend, size, opaqueLayers, add)->data()[0].toRGBA(),
+            TexturePixel(192, 255, 255, 255).toRGBA());
+   QCOMPARE(renderGenerator(
+                blend, size,
+                {{QStringLiteral("Background"), opaqueLayers.value(QStringLiteral("Background"))},
+                 {QStringLiteral("Foreground"), sourceImage(QColor(200, 200, 200, 0))}},
+                add)
+                ->data()[0]
+                .toRGBA(),
+            opaqueLayers.value(QStringLiteral("Background"))->data()[0].toRGBA());
+   QCOMPARE(renderGenerator(blend, size,
+                            {{QStringLiteral("Background"), transparentBackground},
+                             {QStringLiteral("Foreground"), sourceImage(QColor(200, 200, 200, 0))}},
+                            add)
+                ->data()[0]
+                .toRGBA(),
+            TexturePixel(0, 0, 0, 0).toRGBA());
    QCOMPARE(renderGenerator(blend, size, opaqueLayers,
                             {{QStringLiteral("mode"), QStringLiteral("Multiply")}})
                 ->data()[0]
@@ -717,6 +848,16 @@ void JavaScriptGeneratorsTest::rendersBlend() {
                 ->data()[0]
                 .toRGBA(),
             TexturePixel(159, 191, 207, 255).toRGBA());
+   QCOMPARE(renderGenerator(blend, size, opaqueLayers,
+                            {{QStringLiteral("mode"), QStringLiteral("Overlay")}})
+                ->data()[0]
+                .toRGBA(),
+            TexturePixel(64, 128, 160, 255).toRGBA());
+   QCOMPARE(renderGenerator(blend, size, opaqueLayers,
+                            {{QStringLiteral("mode"), QStringLiteral("Difference")}})
+                ->data()[0]
+                .toRGBA(),
+            TexturePixel(64, 0, 128, 255).toRGBA());
 }
 
 void JavaScriptGeneratorsTest::rendersCorrectedBundledGenerators() {

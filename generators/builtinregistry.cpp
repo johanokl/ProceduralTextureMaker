@@ -11,11 +11,8 @@
 #include "gaussianblur.h"
 #include "gradient.h"
 #include "greyscale.h"
-#include "invert.h"
 #include "lens.h"
-#include "merge.h"
 #include "mirror.h"
-#include "modifylevels.h"
 #include "normalmap.h"
 #include "pointillism.h"
 #include "sinetransform.h"
@@ -30,11 +27,8 @@ void registerBuiltInGenerators(TextureProject& project) {
    project.addGenerator(TextureGeneratorPtr(new GaussianBlurTextureGenerator()));
    project.addGenerator(TextureGeneratorPtr(new GradientTextureGenerator()));
    project.addGenerator(TextureGeneratorPtr(new GreyscaleTextureGenerator()));
-   project.addGenerator(TextureGeneratorPtr(new InvertTextureGenerator()));
    project.addGenerator(TextureGeneratorPtr(new LensTextureGenerator()));
-   project.addGenerator(TextureGeneratorPtr(new MergeTextureGenerator()));
    project.addGenerator(TextureGeneratorPtr(new MirrorTextureGenerator()));
-   project.addGenerator(TextureGeneratorPtr(new ModifyLevelsTextureGenerator()));
    project.addGenerator(TextureGeneratorPtr(new NormalMapTextureGenerator()));
    project.addGenerator(TextureGeneratorPtr(new PointillismTextureGenerator()));
    project.addGenerator(TextureGeneratorPtr(new SineTransformTextureGenerator()));

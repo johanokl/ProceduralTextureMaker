@@ -1,5 +1,6 @@
 <RCC>
     <qresource prefix="/generators">
+        <file alias="adjust.js">generators/adjust.js</file>
         <file alias="blend.js">generators/blend.js</file>
         <file alias="bricks.js">generators/bricks.js</file>
         <file alias="checkboard.js">generators/checkboard.js</file>
@@ -8,6 +9,7 @@
         <file alias="fill.js">generators/fill.js</file>
         <file alias="fire.js">generators/fire.js</file>
         <file alias="glow.js">generators/glow.js</file>
+        <file alias="invert.js">generators/invert.js</file>
         <file alias="lines.js">generators/lines.js</file>
         <file alias="mask.js">generators/mask.js</file>
         <file alias="noise.js">generators/noise.js</file>

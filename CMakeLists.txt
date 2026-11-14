@@ -141,16 +141,10 @@ set(PROCEDURAL_TEXTURE_MAKER_SOURCES
     generators/gradient.h
     generators/greyscale.cpp
     generators/greyscale.h
-    generators/invert.cpp
-    generators/invert.h
     generators/lens.cpp
     generators/lens.h
-    generators/merge.cpp
-    generators/merge.h
     generators/mirror.cpp
     generators/mirror.h
-    generators/modifylevels.cpp
-    generators/modifylevels.h
     generators/normalmap.cpp
     generators/normalmap.h
     generators/pointillism.cpp

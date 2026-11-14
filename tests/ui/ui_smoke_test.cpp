@@ -9,6 +9,7 @@
 #include "gui/iteminfopanel.h"
 #include "gui/mainwindow.h"
 #include "gui/nodesettingswidget.h"
+#include "gui/qdoubleslider.h"
 #include "gui/previewimagepanel.h"
 #include "gui/texturebackground.h"
 #include "sceneview/viewnodeline.h"
@@ -23,6 +24,8 @@
 #include <QGroupBox>
 #include <QLabel>
 #include <QComboBox>
+#include <QDoubleSpinBox>
+#include <QCheckBox>
 #include <QMimeData>
 #include <QPushButton>
 #include <QProgressDialog>
@@ -67,6 +70,10 @@ class UiSmokeTest : public QObject {
    Q_OBJECT
 
 private slots:
+   /// @brief Supplies filters with matching channel checkboxes.
+   void editsChannelFiltersWithCheckboxes_data();
+   /// @brief Checks boolean channel controls with RGB checked and alpha unchecked.
+   void editsChannelFiltersWithCheckboxes();
    /// @brief Checks that stuck exports can be cancelled while the window remains responsive.
    void cancelsImageExportAndClosesSafely();
    /// @brief Verifies failures, blocked inputs, stopped work, and recovery in graph and previews.
@@ -106,6 +113,61 @@ private:
    /// @brief Owns the isolated settings directory for the duration of the test.
    std::unique_ptr<QTemporaryDir> settingsDirectory;
 };
+
+void UiSmokeTest::editsChannelFiltersWithCheckboxes_data() {
+   QTest::addColumn<QString>("generatorName");
+   QTest::newRow("invert") << QStringLiteral("Invert");
+   QTest::newRow("adjust") << QStringLiteral("Adjust");
+}
+
+void UiSmokeTest::editsChannelFiltersWithCheckboxes() {
+   QFETCH(QString, generatorName);
+   auto* application = qobject_cast<TexGenApplication*>(QCoreApplication::instance());
+   MainWindow window(application);
+   auto* project = window.getTextureProject();
+   const auto node = project->newNode(1, project->getGenerator(generatorName));
+   auto* infoPanel = window.findChild<ItemInfoPanel*>();
+   QVERIFY(infoPanel != nullptr);
+   infoPanel->setActiveNode(1);
+   auto* inspector =
+       infoPanel->findChild<NodeSettingsWidget*>(QStringLiteral("nodeSettingsInspector"));
+   QVERIFY(inspector != nullptr);
+   const auto comboBoxes = inspector->findChildren<QComboBox*>();
+   QCOMPARE(comboBoxes.size(), generatorName == QStringLiteral("Invert") ? 0 : 1);
+   if (!comboBoxes.isEmpty()) {
+      QCOMPARE(comboBoxes.first()->currentText(), QStringLiteral("Multiply"));
+      QCOMPARE(comboBoxes.first()->count(), 3);
+      QCOMPARE(comboBoxes.first()->itemText(2), QStringLiteral("Subtract"));
+      auto* amount = inspector->findChild<QDoubleSpinBox*>();
+      QVERIFY(amount != nullptr);
+      QCOMPARE(amount->minimum(), 0.0);
+      QCOMPARE(amount->maximum(), 255.0);
+      auto* slider = inspector->findChild<QDoubleSlider*>();
+      QVERIFY(slider != nullptr);
+      QCOMPARE(slider->minimum(), 0);
+      // QDoubleSlider stores values in hundredths.
+      QCOMPARE(slider->maximum(), 25500);
+      comboBoxes.first()->setCurrentText(QStringLiteral("Subtract"));
+      amount->setValue(30.0);
+   }
+   const auto checkboxes = inspector->findChildren<QCheckBox*>();
+   QCOMPARE(checkboxes.size(), 4);
+   for (int index = 0; index < checkboxes.size(); ++index) {
+      QCOMPARE(checkboxes[index]->isChecked(), index < 3);
+   }
+   checkboxes[0]->setChecked(false);
+   checkboxes[3]->setChecked(true);
+   const auto settings = node->getSettings();
+   QCOMPARE(settings.value(QStringLiteral("channelRed")).typeId(), QMetaType::Bool);
+   QCOMPARE(settings.value(QStringLiteral("channelRed")).toBool(), false);
+   QCOMPARE(settings.value(QStringLiteral("channelGreen")).toBool(), true);
+   QCOMPARE(settings.value(QStringLiteral("channelBlue")).toBool(), true);
+   QCOMPARE(settings.value(QStringLiteral("channelAlpha")).toBool(), true);
+   if (generatorName == QStringLiteral("Adjust")) {
+      QCOMPARE(settings.value(QStringLiteral("mode")).toString(), QStringLiteral("Subtract"));
+      QCOMPARE(settings.value(QStringLiteral("level")).toDouble(), 30.0);
+   }
+}
 
 void UiSmokeTest::cancelsImageExportAndClosesSafely() {
    auto* application = qobject_cast<TexGenApplication*>(QCoreApplication::instance());

@@ -154,8 +154,7 @@ const generator = {
             combinedAlpha += sourcePixels[sourceOffset + 3];
           }
 
-          // The native Merge generator adds the copies and limits the result to
-          // the largest value that fits in one byte.
+          // Add the copies and clamp the result to 255, the largest byte value.
           glowAlpha[y * width + x] = Math.min(255, combinedAlpha);
         }
       }
