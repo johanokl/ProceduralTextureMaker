@@ -8,6 +8,7 @@
 #include "base/texturegenerator.h"
 #include "global.h"
 #include "gui/addnodepanel.h"
+#include "gui/hovertooltip.h"
 #include "gui/connectionwidget.h"
 #include "gui/nodesettingswidget.h"
 #include <QApplication>
@@ -191,6 +192,8 @@ void AddNodePanel::addGenerator(const TextureGeneratorPtr& generator) {
       }
    }
    auto* newButton = new AddNodeButton(this, generatorName);
+   newButton->setToolTip(generator->getDescription());
+   new HoverTooltip(newButton);
    newButton->setCheckable(true);
    buttonGroup->addButton(newButton);
    QObject::connect(newButton, &QPushButton::clicked, this,

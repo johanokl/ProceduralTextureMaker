@@ -18,8 +18,10 @@ class ConnectionWidget;
 class SceneInfoWidget;
 class GeneratorInfoWidget;
 class EditManager;
+class ImageLabel;
+class QPushButton;
 
-/// @brief Displays scene, node, or connection information for the current graph selection.
+/// @brief Displays scene, node, or connection information and a 2D preview of the selected node.
 class ItemInfoPanel : public QWidget {
    Q_OBJECT
 
@@ -71,6 +73,9 @@ public slots:
    void nodesDisconnected(int sourceNodeId, int receiverNodeId, QString slot);
 
 private:
+   /// @brief Refreshes the selected node's 2D preview and its visibility.
+   void updateNodePreview();
+
    /// @brief Project whose selection details are displayed.
    TextureProject* texproject{nullptr};
    /// @brief Edit manager for the displayed project.
@@ -85,6 +90,10 @@ private:
    SceneInfoWidget* sceneWidget{nullptr};
    /// @brief Widget displaying the selected generator definition.
    GeneratorInfoWidget* generatorWidget{nullptr};
+   /// @brief Button showing or hiding the preview below the node settings.
+   QPushButton* previewButton{nullptr};
+   /// @brief Two-dimensional preview of the selected node.
+   ImageLabel* nodePreview{nullptr};
    /// @brief Generator definition currently displayed by the panel.
    TextureGeneratorPtr currGenerator;
    /// @brief Identifier of the currently displayed node.

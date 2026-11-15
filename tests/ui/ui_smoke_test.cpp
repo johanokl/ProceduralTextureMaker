@@ -77,10 +77,15 @@ class StartupWindowObserver : public QObject {
 public:
    /// @brief Class names captured when top-level widgets are shown.
    QStringList shownWindows;
+   /// @brief Whether the main window has received its first paint.
+   bool mainWindowPainted{false};
 
 protected:
-   /// @brief Records show events without changing normal event handling.
+   /// @brief Records startup show and paint events without changing normal event handling.
    bool eventFilter(QObject* watched, QEvent* event) override {
+      if (event->type() == QEvent::Paint && qobject_cast<MainWindow*>(watched) != nullptr) {
+         mainWindowPainted = true;
+      }
       if (event->type() == QEvent::Show) {
          const auto* widget = qobject_cast<QWidget*>(watched);
          if (widget != nullptr && widget->isWindow()) {
@@ -96,6 +101,8 @@ class UiSmokeTest : public QObject {
    Q_OBJECT
 
 private slots:
+   /// @brief Checks the graph background still paints while nodes are hidden during loading.
+   void paintsBackgroundBeforeGraphIsReady();
    /// @brief Checks only selected lines give endpoint nodes the blue selection outline.
    void highlightsSelectedLineEndpoints();
    /// @brief Checks selected nodes and their immediate neighbours form separate layers.
@@ -144,13 +151,32 @@ private slots:
    void selectsGeneratorFromAddNodePanel();
    /// @brief Verifies generator and graph selections clear one another.
    void keepsGeneratorAndGraphSelectionsExclusive();
-   /// @brief Verifies preview ordering, node locking, and the optional 3D view.
+   /// @brief Checks the inspector preview follows selection and can be hidden.
+   void previewsSelectedNodeInInspector();
+   /// @brief Verifies preview ordering, node locking, and the optional 2D and 3D views.
    void arrangesPreviewPanelViews();
 
 private:
    /// @brief Owns the isolated settings directory for the duration of the test.
    std::unique_ptr<QTemporaryDir> settingsDirectory;
 };
+
+void UiSmokeTest::paintsBackgroundBeforeGraphIsReady() {
+   QGraphicsScene scene;
+   scene.setBackgroundBrush(Qt::green);
+   scene.addRect(QRectF(0, 0, 100, 100), QPen(Qt::NoPen), QBrush(Qt::red));
+   ViewNodeView view;
+   view.setNodeScene(&scene);
+   view.resize(300, 300);
+   view.show();
+   view.showAllNodes();
+   const QPoint centre = view.viewport()->rect().center();
+   QCOMPARE(view.viewport()->grab().toImage().pixelColor(centre), QColor(Qt::red));
+   view.setGraphVisible(false);
+   QCOMPARE(view.viewport()->grab().toImage().pixelColor(centre), QColor(Qt::green));
+   view.setGraphVisible(true);
+   QCOMPARE(view.viewport()->grab().toImage().pixelColor(centre), QColor(Qt::red));
+}
 
 void UiSmokeTest::explainsInvalidNodeIds() {
    auto* application = qobject_cast<TexGenApplication*>(QCoreApplication::instance());
@@ -231,6 +257,12 @@ void UiSmokeTest::showsOnlyMainWindowAtStartup() {
    MainWindow window(application);
    QVERIFY2(observer.shownWindows.isEmpty(), qPrintable(observer.shownWindows.join(", ")));
    window.show();
+   bool paintedBeforeLoading = false;
+   connect(window.getTextureProject(), &TextureProject::nodeAdded, &window,
+           [&](const TextureNodePtr&) { paintedBeforeLoading = observer.mainWindowPainted; });
+   window.openFile(QStringLiteral(PTM_SOURCE_DIR "/examples/wall.ptmg"));
+   QTRY_COMPARE(window.getTextureProject()->getNumNodes(), 11);
+   QVERIFY(paintedBeforeLoading);
    QCoreApplication::processEvents();
    QCOMPARE(observer.shownWindows, QStringList({QStringLiteral("MainWindow")}));
    auto* view = window.findChild<QGraphicsView*>();
@@ -375,6 +407,9 @@ void UiSmokeTest::displaysRenderFailuresAndStoppedWork() {
    window.show();
    panel->show();
    panel->setActiveNode(1);
+   auto* inspector = window.findChild<ItemInfoPanel*>();
+   inspector->setActiveNode(1);
+   auto* inspectorImage = inspector->findChild<ImageLabel*>("inspectorNodePreview");
    auto* lock = panel->findChild<QPushButton*>(QStringLiteral("lockNodeButton"));
    lock->click();
    QCOMPARE(selected->renderState(), TextureRenderState::Ready);
@@ -388,6 +423,8 @@ void UiSmokeTest::displaysRenderFailuresAndStoppedWork() {
    QCOMPARE(scene->getItem(3)->renderState(), TextureRenderState::Cancelled);
    QVERIFY(scene->getItem(2)->toolTip().contains(QStringLiteral("test failure")));
    QCOMPARE(selected->renderState(), TextureRenderState::Failed);
+   QCOMPARE(inspectorImage->renderState(), TextureRenderState::Failed);
+   QVERIFY(inspectorImage->toolTip().contains(QStringLiteral("test failure")));
    QCOMPARE(locked->renderState(), TextureRenderState::Failed);
    QVERIFY(selected->toolTip().contains(QStringLiteral("test failure")));
    const auto* image = selected->findChild<QLabel*>(QStringLiteral("previewImage"));
@@ -409,6 +446,7 @@ void UiSmokeTest::displaysRenderFailuresAndStoppedWork() {
    QCOMPARE(scene->getItem(1)->renderState(), TextureRenderState::Stopped);
    QCOMPARE(scene->getItem(2)->renderState(), TextureRenderState::Stopped);
    QCOMPARE(selected->renderState(), TextureRenderState::Stopped);
+   QCOMPARE(inspectorImage->renderState(), TextureRenderState::Stopped);
    QCOMPARE(locked->renderState(), TextureRenderState::Stopped);
    const auto stoppedOverlay = locked->pixmapWithStatusOverlay().toImage();
    QVERIFY(stoppedOverlay != failedOverlay);
@@ -420,6 +458,7 @@ void UiSmokeTest::displaysRenderFailuresAndStoppedWork() {
    project->restartRendering();
    QTRY_COMPARE(project->thumbnailRenderStatus(2).state, TextureRenderState::Ready);
    QCOMPARE(selected->renderState(), TextureRenderState::Ready);
+   QCOMPARE(inspectorImage->renderState(), TextureRenderState::Ready);
    QCOMPARE(locked->renderState(), TextureRenderState::Ready);
    QVERIFY(locked->toolTip().isEmpty());
    QVERIFY(!scene->getItem(1)->toolTip().contains(QStringLiteral("test failure")));
@@ -600,11 +639,12 @@ void UiSmokeTest::opensProjectWithoutDiscardingChanges() {
        reusableWindow, QStringLiteral(PTM_SOURCE_DIR "/examples/wall.ptmg"));
    QCOMPARE(reusedWindow, reusableWindow);
    QCOMPARE(application->mainwindows.size(), initialWindowCount + 1);
-   QCOMPARE(reusableWindow->getTextureProject()->getNumNodes(), 11);
+   QTRY_COMPARE(reusableWindow->getTextureProject()->getNumNodes(), 11);
    delete reusableWindow;
 
    MainWindow* savedWindow = application->addWindow();
    savedWindow->openFile(QStringLiteral(PTM_SOURCE_DIR "/examples/wall.ptmg"));
+   QTRY_COMPARE(savedWindow->getTextureProject()->getNumNodes(), 11);
    QVERIFY(!savedWindow->getTextureProject()->isModified());
    savedWindow->showMaximized();
    QTest::qWait(1);
@@ -614,7 +654,7 @@ void UiSmokeTest::opensProjectWithoutDiscardingChanges() {
    QVERIFY(savedProjectWindow != savedWindow);
    QCOMPARE(application->mainwindows.size(), initialWindowCount + 2);
    QCOMPARE(savedWindow->getTextureProject()->getNumNodes(), 11);
-   QCOMPARE(savedProjectWindow->getTextureProject()->getNumNodes(), 11);
+   QTRY_COMPARE(savedProjectWindow->getTextureProject()->getNumNodes(), 11);
    // The initial fit must match a fit after the restored window has settled.
    auto* view = dynamic_cast<ViewNodeView*>(savedProjectWindow->findChild<QGraphicsView*>());
    QVERIFY(view != nullptr);
@@ -640,7 +680,7 @@ void UiSmokeTest::opensProjectWithoutDiscardingChanges() {
    QCOMPARE(application->mainwindows.size(), initialWindowCount + 2);
    QCOMPARE(existingWindow->getTextureProject()->getNumNodes(), 0);
    QVERIFY(existingWindow->getTextureProject()->isModified());
-   QCOMPARE(openedWindow->getTextureProject()->getNumNodes(), 11);
+   QTRY_COMPARE(openedWindow->getTextureProject()->getNumNodes(), 11);
 
    delete openedWindow;
    delete existingWindow;
@@ -1107,6 +1147,12 @@ void UiSmokeTest::selectsGeneratorFromAddNodePanel() {
       }
    }
    QVERIFY(generatorButton != nullptr);
+   QCOMPARE(generatorButton->toolTip(), description);
+   auto* descriptionPopup = generatorButton->findChild<QLabel*>("hoverTooltip");
+   QVERIFY(descriptionPopup != nullptr);
+   QTest::mouseMove(generatorButton, generatorButton->rect().center());
+   QTRY_VERIFY(descriptionPopup->isVisible());
+   QCOMPARE(descriptionPopup->text(), description);
    QCOMPARE(project.getNumNodes(), 0);
    QTest::mouseClick(generatorButton, Qt::LeftButton);
    QApplication::processEvents();
@@ -1311,6 +1357,80 @@ void UiSmokeTest::keepsGeneratorAndGraphSelectionsExclusive() {
    QVERIFY(generatorInfo->isHidden());
 }
 
+void UiSmokeTest::previewsSelectedNodeInInspector() {
+   auto* application = qobject_cast<TexGenApplication*>(QCoreApplication::instance());
+   MainWindow window(application);
+   auto* project = window.getTextureProject();
+   auto* inspector = window.findChild<ItemInfoPanel*>();
+   auto* preview = inspector->findChild<ImageLabel*>("inspectorNodePreview");
+   auto* button = inspector->findChild<QPushButton*>("showNodePreviewButton");
+   QVERIFY(preview != nullptr);
+   QVERIFY(button != nullptr);
+   QVERIFY(preview->isHidden());
+   QVERIFY(button->isHidden());
+   QVERIFY(inspector->findChild<CubeWidget*>() == nullptr);
+
+   const auto node = project->newNode(1, project->getGenerator("Fill"));
+   inspector->setActiveNode(1);
+   QTRY_VERIFY(!node->cachedImage(project->getThumbnailSize()).isNull());
+   QVERIFY(!preview->isHidden());
+   QVERIFY(!button->isHidden());
+   QVERIFY(!preview->pixmapWithStatusOverlay().isNull());
+   QCOMPARE(preview->toolTip(), QString("Click to change size"));
+   auto* settings = inspector->findChild<NodeSettingsWidget*>();
+   QVERIFY(inspector->layout()->indexOf(settings) < inspector->layout()->indexOf(button));
+   QVERIFY(inspector->layout()->indexOf(button) < inspector->layout()->indexOf(preview));
+   window.show();
+   inspector->show();
+   QCoreApplication::processEvents();
+   QVERIFY(settings->geometry().bottom() < button->geometry().top());
+   QVERIFY(button->geometry().bottom() < preview->geometry().top());
+   auto* image = preview->findChild<QLabel*>("previewImage");
+   auto* popup = preview->findChild<QLabel*>("hoverTooltip");
+   QVERIFY(popup != nullptr);
+   QTest::mouseMove(image, image->rect().center());
+   QTRY_VERIFY(popup->isVisible());
+   QCOMPARE(popup->text(), QString("Click to change size"));
+   const QPoint popupPosition = popup->pos();
+   QTest::mouseMove(image, image->rect().center() + QPoint(12, 0));
+   QTRY_VERIFY(popup->pos() != popupPosition);
+   const QSize fullSize = image->size();
+   const int fullHeight = preview->height();
+   QTest::mouseClick(image, Qt::LeftButton);
+   QVERIFY(!popup->isVisible());
+   QTRY_VERIFY(qAbs(image->width() * 2 - fullSize.width()) <= 1);
+   QVERIFY(qAbs(image->height() * 2 - fullSize.height()) <= 1);
+   QVERIFY(qAbs(preview->height() * 2 - fullHeight) <= 1);
+   QVERIFY(qAbs(image->x() * 2 + image->width() - preview->width()) <= 1);
+   {
+      MainWindow nextWindow(application);
+      auto* nextPreview = nextWindow.findChild<ImageLabel*>("inspectorNodePreview");
+      nextPreview->setPixmap(QPixmap(100, 100));
+      QCOMPARE(nextPreview->heightForWidth(200), 100);
+   }
+   QTest::mouseClick(image, Qt::LeftButton);
+   QTRY_COMPARE(image->size(), fullSize);
+   project->getSettingsManager()->setTextureFiltering(SettingsManager::TextureFiltering::Nearest);
+   QVERIFY(!preview->hasSmoothFiltering());
+
+   button->click();
+   QVERIFY(preview->isHidden());
+   inspector->setActiveNode(0);
+   QVERIFY(preview->isHidden());
+   QVERIFY(button->isHidden());
+   inspector->setActiveNode(1);
+   QVERIFY(preview->isHidden());
+   button->click();
+   QVERIFY(!preview->isHidden());
+   inspector->setActiveGenerator(project->getGenerator("Fill"));
+   QVERIFY(preview->isHidden());
+   QVERIFY(button->isHidden());
+   inspector->setActiveNode(1);
+   project->removeNode(1);
+   QVERIFY(preview->isHidden());
+   QVERIFY(button->isHidden());
+}
+
 void UiSmokeTest::arrangesPreviewPanelViews() {
    TextureProject project(false);
    SettingsManager settingsManager;
@@ -1322,6 +1442,7 @@ void UiSmokeTest::arrangesPreviewPanelViews() {
    auto* previewList = panel.findChild<QWidget*>(QStringLiteral("previewList"));
    auto* lockButton = panel.findChild<QPushButton*>(QStringLiteral("lockNodeButton"));
    auto* tileCount = panel.findChild<QComboBox*>(QStringLiteral("previewTileCount"));
+   auto* twoDButton = panel.findChild<QPushButton*>(QStringLiteral("showTwoDButton"));
    auto* threeDButton = panel.findChild<QPushButton*>(QStringLiteral("showThreeDButton"));
    auto* lockedPreview = panel.findChild<QGroupBox*>(QStringLiteral("lockedNodePreview"));
    auto* selectedPreview = panel.findChild<QGroupBox*>(QStringLiteral("selectedNodePreview"));
@@ -1338,6 +1459,7 @@ void UiSmokeTest::arrangesPreviewPanelViews() {
    QVERIFY(previewList != nullptr);
    QVERIFY(lockButton != nullptr);
    QVERIFY(tileCount != nullptr);
+   QVERIFY(twoDButton != nullptr);
    QVERIFY(threeDButton != nullptr);
    QVERIFY(lockedPreview != nullptr);
    QVERIFY(selectedPreview != nullptr);
@@ -1443,6 +1565,14 @@ void UiSmokeTest::arrangesPreviewPanelViews() {
    threeDButton->click();
    QVERIFY(threeDButton->isChecked());
    QVERIFY(!threeDPreview->isHidden());
+   twoDButton->click();
+   QVERIFY(selectedPreview->isHidden());
+   QVERIFY(!threeDPreview->isHidden());
+   panel.hide();
+   panel.show();
+   QVERIFY(selectedPreview->isHidden());
+   twoDButton->click();
+   QVERIFY(!selectedPreview->isHidden());
 
    selectedImage->setPixmap(previewPixmap);
    selectedImage->show();

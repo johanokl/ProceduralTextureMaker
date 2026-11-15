@@ -48,8 +48,7 @@ NodeSettingsWidget::NodeSettingsWidget(ItemInfoPanel& widgetmanager, int id)
    layout->addWidget(scrollarea);
    scrollarea->setWidget(contents);
 
-   auto* nodeInfoWidget = new QGroupBox("Node");
-   nodeInfoWidget->setProperty("inspectorSection", true);
+   auto* nodeInfoWidget = new QWidget;
    auto* nodeInfoLayout = createGroupLayout();
    nodeInfoWidget->setLayout(nodeInfoLayout);
    nodeNameLineEdit = new QLineEdit;
@@ -319,6 +318,7 @@ void NodeSettingsWidget::generatorUpdated() {
    settingValues.clear();
 
    const TextureGeneratorSettings& settings = generator->getSettings();
+   settingsLayout->parentWidget()->setVisible(!settings.isEmpty());
    QListIterator<TextureGeneratorSetting> settingsIterator(settings);
 
    while (settingsIterator.hasNext()) {

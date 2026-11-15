@@ -114,6 +114,8 @@ private:
    QGroupBox* threeDPreview{nullptr};
    /// @brief Button that captures or releases the current node in the locked preview.
    QPushButton* lockNodeButton{nullptr};
+   /// @brief Button controlling whether the selected node's 2D preview is displayed.
+   QPushButton* showTwoDButton{nullptr};
    /// @brief Button controlling whether the three-dimensional preview is displayed.
    QPushButton* showThreeDButton{nullptr};
    /// @brief Identifier of the currently selected node.

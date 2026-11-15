@@ -61,6 +61,7 @@ set(PROCEDURAL_TEXTURE_MAKER_SOURCES
 
     gui/applicationtheme.cpp
     gui/applicationtheme.h
+    gui/hovertooltip.h
     gui/clipboardoperations.cpp
     gui/clipboardoperations.h
 

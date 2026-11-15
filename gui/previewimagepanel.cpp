@@ -265,6 +265,7 @@ void ImageLabel::resizeImage() {
    QSize pixSize = sourcePixmap.size();
    pixSize.scale(size(), Qt::KeepAspectRatio);
    label->setFixedSize(pixSize);
+   label->move((width() - pixSize.width()) / 2, 0);
    if (sourcePixmap.isNull() || pixSize.isEmpty()) {
       label->setPixmap(QPixmap());
    } else {
@@ -306,6 +307,12 @@ PreviewImagePanel::PreviewImagePanel(TextureProject& project) : project(project)
    tileCountComboBox->addItem(QStringLiteral("4x4"), 4);
    tileCountComboBox->setCurrentIndex(0);
    optionsLayout->addWidget(tileCountComboBox);
+
+   showTwoDButton = new QPushButton(QStringLiteral("2D"), optionsWidget);
+   showTwoDButton->setObjectName(QStringLiteral("showTwoDButton"));
+   showTwoDButton->setCheckable(true);
+   showTwoDButton->setChecked(true);
+   optionsLayout->addWidget(showTwoDButton);
 
    showThreeDButton = new QPushButton(QStringLiteral("3D"), optionsWidget);
    showThreeDButton->setObjectName(QStringLiteral("showThreeDButton"));
@@ -368,6 +375,10 @@ PreviewImagePanel::PreviewImagePanel(TextureProject& project) : project(project)
                        this->settingsUpdated();
                     });
    QObject::connect(lockNodeButton, &QPushButton::toggled, this, &PreviewImagePanel::setNodeLocked);
+   connect(showTwoDButton, &QPushButton::toggled, this, [this](bool visible) {
+      selectedNodePreview->setVisible(visible);
+      updatePreviewLayout();
+   });
    QObject::connect(showThreeDButton, &QPushButton::toggled, this,
                     &PreviewImagePanel::setThreeDPreviewVisible);
    QObject::connect(&project, &TextureProject::imageAvailable, this,
