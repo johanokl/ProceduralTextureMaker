@@ -585,6 +585,15 @@ void UiSmokeTest::opensProjectWithoutDiscardingChanges() {
    auto* application = qobject_cast<TexGenApplication*>(QCoreApplication::instance());
    QVERIFY(application != nullptr);
    const qsizetype initialWindowCount = application->mainwindows.size();
+   QSettings settings;
+   const auto previousGeometry = settings.value("mainWindowGeometry");
+   const auto restoreGeometry = qScopeGuard([&] {
+      if (previousGeometry.isValid()) {
+         settings.setValue("mainWindowGeometry", previousGeometry);
+      } else {
+         settings.remove("mainWindowGeometry");
+      }
+   });
 
    MainWindow* reusableWindow = application->addWindow();
    MainWindow* reusedWindow = application->openProject(
@@ -597,12 +606,24 @@ void UiSmokeTest::opensProjectWithoutDiscardingChanges() {
    MainWindow* savedWindow = application->addWindow();
    savedWindow->openFile(QStringLiteral(PTM_SOURCE_DIR "/examples/wall.ptmg"));
    QVERIFY(!savedWindow->getTextureProject()->isModified());
+   savedWindow->showMaximized();
+   QTest::qWait(1);
+   settings.setValue("mainWindowGeometry", savedWindow->saveGeometry());
    MainWindow* savedProjectWindow =
        application->openProject(savedWindow, QStringLiteral(PTM_SOURCE_DIR "/examples/wall.ptmg"));
    QVERIFY(savedProjectWindow != savedWindow);
    QCOMPARE(application->mainwindows.size(), initialWindowCount + 2);
    QCOMPARE(savedWindow->getTextureProject()->getNumNodes(), 11);
    QCOMPARE(savedProjectWindow->getTextureProject()->getNumNodes(), 11);
+   // The initial fit must match a fit after the restored window has settled.
+   auto* view = dynamic_cast<ViewNodeView*>(savedProjectWindow->findChild<QGraphicsView*>());
+   QVERIFY(view != nullptr);
+   QTest::qWait(50);
+   const auto fitted = view->transform();
+   const auto centre = view->mapToScene(view->viewport()->rect().center());
+   view->showAllNodes();
+   QVERIFY(qAbs(fitted.m11() - view->transform().m11()) < 0.000001);
+   QVERIFY((view->mapFromScene(centre) - view->viewport()->rect().center()).manhattanLength() <= 2);
    delete savedProjectWindow;
    delete savedWindow;
 

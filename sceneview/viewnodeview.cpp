@@ -61,6 +61,21 @@ ViewNodeView::ViewNodeView() : scrollZoomFactor(1.0), zoomStepFactor(1.45) {
    scale(defaultZoomFactor, defaultZoomFactor);
 }
 
+void ViewNodeView::setGraphVisible(bool visible) {
+   graphVisible = visible;
+   viewport()->update();
+}
+
+void ViewNodeView::paintEvent(QPaintEvent* event) {
+   if (graphVisible) {
+      QGraphicsView::paintEvent(event);
+      return;
+   }
+   QPainter painter(viewport());
+   painter.setWorldTransform(viewportTransform());
+   drawBackground(&painter, mapToScene(viewport()->rect()).boundingRect());
+}
+
 bool ViewNodeView::viewportEvent(QEvent* event) {
    if (event->type() == QEvent::ToolTip) {
       // Use our hover delay even when Qt requests an immediate tooltip after another one.

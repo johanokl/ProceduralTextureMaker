@@ -41,6 +41,7 @@
 #include <QStatusBar>
 #include <QTextEdit>
 #include <QVBoxLayout>
+#include <QWindow>
 
 MainWindow::MainWindow(TexGenApplication* parent) {
    parentapp = parent;
@@ -432,11 +433,20 @@ void MainWindow::openFile(const QString& fileName) {
    if (fileName.isNull()) {
       return;
    }
+   // A newly shown window must be exposed before repaint() can paint it.
+   if (isVisible() && !isMinimized() && !windowHandle()->isExposed()) {
+      QTimer::singleShot(0, this, [this, fileName] { openFile(fileName); });
+      return;
+   }
    if (!maybeSave()) {
       return;
    }
+   // Paint the window and empty canvas before loading blocks the GUI thread.
+   view->setGraphVisible(false);
+   repaint();
    const ProjectFileResult loadResult = ProjectFileService::load(fileName, *project);
    if (!loadResult) {
+      view->setGraphVisible(true);
       QMessageBox::warning(this, "Error", loadResult.message);
       return;
    }
@@ -447,7 +457,14 @@ void MainWindow::openFile(const QString& fileName) {
 #else
    setWindowTitle(QString("%1 - ProceduralTextureMaker").arg(QFileInfo(fileName).fileName()));
 #endif
-   showAllNodesAndResetSceneView();
+   reloadSceneView();
+   // Wait for the restored layout before fitting, then paint only the final zoom.
+   QTimer::singleShot(0, view, [this] {
+      QTimer::singleShot(0, view, [this] {
+         view->showAllNodes();
+         view->setGraphVisible(true);
+      });
+   });
 }
 
 void MainWindow::moveToFront() {

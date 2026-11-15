@@ -67,6 +67,7 @@ public slots:
    bool saveFile(bool newFileName = false);
 
    /// @brief Opens a project file after offering to save pending changes.
+   /// @details Defers loading until a newly shown window can paint.
    /// @param fileName Project file to load.
    void openFile(const QString& fileName);
 

@@ -28,6 +28,10 @@ public:
    /// @param scene Scene to display, or nullptr to detach the current scene.
    void setNodeScene(QGraphicsScene* scene);
 
+   /// @brief Shows the graph or only its background while the initial zoom is prepared.
+   /// @param visible Whether nodes and connections should be painted.
+   void setGraphVisible(bool visible);
+
    /// @brief Sets the zoom factor applied by one action or mouse-wheel step.
    /// @param factor Zoom factor in the supported range.
    void setZoomStepFactor(double factor);
@@ -46,6 +50,10 @@ public slots:
    void zoomOut();
 
 protected:
+   /// @brief Paints the graph background while loaded nodes are waiting for their initial zoom.
+   /// @param event Paint event.
+   void paintEvent(QPaintEvent* event) override;
+
    /// @brief Shows graph tooltips and hides them immediately when their item is left.
    /// @param event Event delivered to the graph viewport.
    /// @return True when the tooltip event was handled.
@@ -119,6 +127,8 @@ private:
    bool zoomAnimationUsesViewportAnchor;
    /// @brief Whether the scene rectangle is currently being updated.
    bool updatingSceneRect;
+   /// @brief Whether nodes and connections are ready to be painted.
+   bool graphVisible{true};
 };
 
 #endif  // VIEWNODEVIEW_H
