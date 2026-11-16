@@ -13,7 +13,8 @@
 #include "textureproject.h"
 #include <QColor>
 #include <QList>
-#include <QUuid>
+#include <QRandomGenerator>
+#include <QRegularExpression>
 #include <QMap>
 #include <QMapIterator>
 #include <QMetaType>
@@ -39,8 +40,43 @@ bool operator<(const QSize& lhs, const QSize& rhs) {
    return lhs.height() < rhs.height();
 }
 
+QString TextureNode::generateIdentifier() {
+   static const QStringList adjectives{
+       "dancing",  "flying",    "bouncing", "hopping",  "jumping",   "skipping", "leaping",
+       "floating", "gliding",   "soaring",  "sailing",  "surfing",   "skating",  "sliding",
+       "rolling",  "spinning",  "twirling", "swirling", "swinging",  "juggling", "waving",
+       "clapping", "winking",   "grinning", "smiling",  "laughing",  "beaming",  "singing",
+       "giggling", "chuckling", "cheering", "dazzling", "sparkling", "glittery", "shiny",
+       "bubbly",   "bouncy",    "wiggly",   "wobbly",   "jiggly",    "goofy",    "silly",
+       "cheeky",   "jolly",     "playful",  "merry",    "joyful",    "funky",    "jazzy",
+       "fizzy",    "fluffy",    "springy",  "zippy",    "zany",      "peppy",    "perky",
+       "swimming", "speedy",    "zooming",  "racing",   "tumbling",  "magical",  "enchanted",
+       "rainbow"};
+   static const QStringList nouns{
+       "yakitori",   "tortilla", "ramen",    "udon",      "soba",       "gyoza",       "tempura",
+       "onigiri",    "takoyaki", "sushi",    "sashimi",   "sukiyaki",   "teriyaki",    "tonkatsu",
+       "mochi",      "dango",    "taiyaki",  "dorayaki",  "daifuku",    "okonomiyaki", "bibimbap",
+       "bulgogi",    "kimchi",   "kimbap",   "mandu",     "tteokbokki", "wonton",      "shumai",
+       "baozi",      "jiaozi",   "congee",   "zongzi",    "hotpot",     "mooncake",    "tangyuan",
+       "pho",        "banhmi",   "laksa",    "satay",     "rendang",    "sambal",      "adobo",
+       "lumpia",     "sisig",    "pancit",   "samosa",    "pakora",     "dosa",        "idli",
+       "naan",       "roti",     "chapati",  "paratha",   "biryani",    "korma",       "tandoori",
+       "paneer",     "dal",      "kulfi",    "jalebi",    "laddu",      "falafel",     "hummus",
+       "shawarma",   "kebab",    "kofta",    "dolma",     "borek",      "pide",        "lahmacun",
+       "baklava",    "halva",    "kunafa",   "tabbouleh", "tagine",     "couscous",    "harira",
+       "injera",     "jollof",   "suya",     "fufu",      "ugali",      "arepa",       "empanada",
+       "pupusa",     "tamale",   "pozole",   "tostada",   "enchilada",  "quesadilla",  "churro",
+       "ceviche",    "feijoada", "cachapa",  "pierogi",   "pelmeni",    "borscht",     "blini",
+       "khachapuri", "khinkali", "moussaka", "souvlaki",  "paella",     "gazpacho",    "croqueta",
+       "arancini",   "focaccia", "cannoli",  "tiramisu",  "strudel",    "schnitzel",   "goulash",
+       "spaetzle",   "raclette", "fondue"};
+   auto* random = QRandomGenerator::global();
+   return adjectives.at(random->bounded(int(adjectives.size()))) + "-" +
+          nouns.at(random->bounded(int(nouns.size())));
+}
+
 TextureNode::TextureNode(TextureProject* project, const TextureGeneratorPtr& gen, int id) {
-   identifier = "node-" + QUuid::createUuid().toString(QUuid::WithoutBraces);
+   identifier = generateIdentifier();
    qRegisterMetaType<TextureNodePtr>("TextureNodePtr");
    name = QString("Node %1").arg(id);
    this->project = project;
@@ -137,9 +173,14 @@ QJsonObject TextureNode::saveAsJSON() const {
            {"slots", connections}};
 }
 
+bool TextureNode::isValidIdentifier(const QString& value) {
+   static const QRegularExpression pattern(QStringLiteral("\\A[A-Za-z0-9-]+\\z"));
+   return pattern.match(value).hasMatch();
+}
+
 bool TextureNode::setIdentifier(const QString& value) {
    const QString trimmed = value.trimmed();
-   if (trimmed.isEmpty()) {
+   if (!isValidIdentifier(trimmed)) {
       return false;
    }
    const auto existing = project->getNode(trimmed);

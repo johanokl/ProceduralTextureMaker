@@ -374,6 +374,11 @@ TextureNodePtr TextureProject::newNode(int id, TextureGeneratorPtr generator) {
          id = newIdCounter;
       }
       newNode = TextureNodePtr(new TextureNode(this, generator, id));
+      while (std::any_of(nodes.cbegin(), nodes.cend(), [&](const TextureNodePtr& node) {
+         return node->getIdentifier() == newNode->identifier;
+      })) {
+         newNode->identifier = TextureNode::generateIdentifier();
+      }
       nodes.insert(id, newNode);
    }
 

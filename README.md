@@ -166,10 +166,10 @@ Projects use the `.ptmg` extension and contain a JSON array of nodes:
 ]
 ```
 
-Each `id` is a nonempty, unique, case-sensitive string. Edit it in the node's **ID** field, which
-trims surrounding spaces. New nodes receive a generated ID. Display names can be shared by several
-nodes. Connections refer to IDs, and renaming an ID updates the references written when the project
-is saved. The CLI's `--node` option uses the same ID.
+Each `id` is a nonempty, unique, case-sensitive ASCII string. Edit it in the node's **ID** field.
+New nodes receive a random unique ID. Display names can be shared by several nodes. Connections
+refer to IDs, and renaming an ID updates the references written when the project is saved. The CLI's
+`--node` option uses the same ID.
 
 Settings use JSON numbers, booleans, and strings. Colours are strings in `#RRGGBBAA` or `#RRGGBB`
 notation, and choice settings use their option text. The keys in `slots` are the generator's input

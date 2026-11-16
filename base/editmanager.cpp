@@ -388,7 +388,7 @@ void EditManager::renameNode(const int nodeId, const QString& newName) {
 bool EditManager::changeNodeIdentifier(int nodeId, const QString& value) {
    const QString trimmed = value.trimmed();
    const auto node = project.getNode(nodeId);
-   if (!node || trimmed.isEmpty()) {
+   if (!node || !TextureNode::isValidIdentifier(trimmed)) {
       return false;
    }
    const auto existing = project.getNode(trimmed);

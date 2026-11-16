@@ -9,6 +9,7 @@
 #include "base/editmanager.h"
 #include <QTemporaryDir>
 #include <QTest>
+#include <QRegularExpression>
 
 namespace {
 
@@ -34,6 +35,8 @@ class ProjectFileServiceTest : public QObject {
    Q_OBJECT
 
 private slots:
+   /// @brief Checks generated word-pair IDs remain unique when pairs repeat.
+   void generatesReadableUniqueIds();
    /// @brief Checks RGBA colour storage and invalid colour rejection.
    void storesRgbaColours();
    /// @brief Checks saved field order and JSON escaping in files and clipboard copies.
@@ -70,6 +73,19 @@ private slots:
    /// @brief Verifies input parsing and output-writing error reporting.
    void reportsFileErrors();
 };
+
+void ProjectFileServiceTest::generatesReadableUniqueIds() {
+   TextureProject project(false);
+   QSet<QString> identifiers;
+   const QRegularExpression pattern("\\A[a-z]+-[a-z]+\\z");
+   // Generate enough nodes to exercise retries when random word pairs repeat.
+   for (int i = 0; i < 1100; ++i) {
+      const QString id = project.newNode()->getIdentifier();
+      QVERIFY(pattern.match(id).hasMatch());
+      QVERIFY(!identifiers.contains(id));
+      identifiers.insert(id);
+   }
+}
 
 void ProjectFileServiceTest::storesRgbaColours() {
    const QColor colour(12, 34, 56, 78);
@@ -139,6 +155,14 @@ void ProjectFileServiceTest::editsStringIdsAndPreservesReferences() {
    QVERIFY(!edits.changeNodeIdentifier(source->getId(), ""));
    QVERIFY(!edits.changeNodeIdentifier(source->getId(), "   "));
    QVERIFY(!edits.changeNodeIdentifier(source->getId(), " result "));
+   for (const QString& invalid :
+        {QString("two words"), QString("under_score"), QString("node.name"), QString("a/b"),
+         QString("[id]"), QString::fromUtf8("caf\xc3\xa9")}) {
+      QVERIFY(!source->setIdentifier(invalid));
+      QVERIFY(!edits.changeNodeIdentifier(source->getId(), invalid));
+      QCOMPARE(source->getIdentifier(), QString("base"));
+   }
+   QVERIFY(TextureNode::isValidIdentifier("Blue-penguin42"));
    QVERIFY(edits.changeNodeIdentifier(source->getId(), " base "));
    QVERIFY(edits.isClean());
    QVERIFY(edits.changeNodeIdentifier(source->getId(), " background "));
@@ -307,6 +331,10 @@ void ProjectFileServiceTest::rendersStableRawHashes() {
 void ProjectFileServiceTest::rejectsMalformedDocumentsTransactionally_data() {
    QTest::addColumn<QString>("json");
    QTest::newRow("wrong-root") << "{}";
+   QTest::newRow("id-with-space") << R"([{"id":"two words","name":"a","generator":"Fill"}])";
+   QTest::newRow("id-with-symbol") << R"([{"id":"a_b","name":"a","generator":"Fill"}])";
+   QTest::newRow("id-with-unicode")
+       << QString::fromUtf8("[{\"id\":\"caf\xc3\xa9\",\"name\":\"a\",\"generator\":\"Fill\"}]");
    QTest::newRow("duplicate-id") << R"([
   {
     "id": "1",

@@ -51,7 +51,11 @@ public:
    /// @brief Returns the editable ID used in project files and CLI commands.
    QString getIdentifier() const { return identifier; }
 
-   /// @brief Changes the ID if it is nonempty and unique within the project.
+   /// @brief Checks that an ID contains only ASCII letters, digits, and hyphens.
+   /// @param value ID to check; must not be empty.
+   static bool isValidIdentifier(const QString& value);
+
+   /// @brief Changes the ID if its characters are valid and it is unique within the project.
    /// @param value Unique ID; surrounding spaces are trimmed.
    /// @return True when the ID was accepted.
    bool setIdentifier(const QString& value);
@@ -184,6 +188,9 @@ signals:
    void nodesDisconnected(int sourceId, int receiverId, QString slot);
 
 private:
+   /// @brief Generates a short random ID combining a playful adjective and noun.
+   static QString generateIdentifier();
+
    /// @brief Constructs a node owned by a project.
    /// @param project The project that owns and resolves this node's connections.
    /// @param generator The initial shared generator instance.

@@ -189,7 +189,7 @@ void UiSmokeTest::explainsInvalidNodeIds() {
    panel->setActiveNode(node->getId());
    auto* editor = panel->findChild<QLineEdit*>("nodeIdentifier");
    QVERIFY(editor != nullptr);
-   for (const QString& value : {QString("   "), QString(" taken ")}) {
+   for (const QString& value : {QString("   "), QString(" taken "), QString("two words")}) {
       QString message;
       QTimer::singleShot(0, &window, [&message] {
          if (auto* dialog = qobject_cast<QMessageBox*>(QApplication::activeModalWidget())) {
@@ -199,9 +199,11 @@ void UiSmokeTest::explainsInvalidNodeIds() {
       });
       editor->setText(value);
       QVERIFY(QMetaObject::invokeMethod(editor, "editingFinished"));
-      QCOMPARE(message, value.trimmed().isEmpty()
-                            ? QString("The node ID cannot be empty.")
-                            : QString("Another node already uses the ID \"taken\"."));
+      QCOMPARE(message, value.trimmed().isEmpty() ? QString("The node ID cannot be empty.")
+                        : value.trimmed() == "taken"
+                            ? QString("Another node already uses the ID \"taken\".")
+                            : QString("The node ID may only contain ASCII letters "
+                                      "(A-Z, a-z), digits (0-9), and hyphens (-)."));
       QCOMPARE(editor->text(), node->getIdentifier());
    }
 }

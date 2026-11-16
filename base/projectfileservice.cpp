@@ -132,6 +132,12 @@ ProjectFileResult ProjectFileService::validate(const QJsonDocument& document,
          return failure(ProjectFileError::Validation,
                         "Every node needs a unique nonempty string id and a string name");
       }
+      if (!TextureNode::isValidIdentifier(id)) {
+         return failure(ProjectFileError::Validation,
+                        QString("Node ID \"%1\" may only contain ASCII letters (A-Z, a-z), "
+                                "digits (0-9), and hyphens (-).")
+                            .arg(id));
+      }
       const QString generatorName = object.value("generator").toString();
       const auto generator = project.getGenerators().value(generatorName);
       if (!generator) {

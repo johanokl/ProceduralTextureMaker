@@ -56,7 +56,9 @@ NodeSettingsWidget::NodeSettingsWidget(ItemInfoPanel& widgetmanager, int id)
 
    nodeIdLineEdit = new QLineEdit;
    nodeIdLineEdit->setObjectName("nodeIdentifier");
-   nodeIdLineEdit->setToolTip("Unique node ID used in project files and CLI commands.");
+   nodeIdLineEdit->setToolTip(
+       "Unique node ID used in project files and CLI commands. "
+       "Use ASCII letters (A-Z, a-z), digits (0-9), and hyphens (-).");
    nodeInfoLayout->addRow("ID:", nodeIdLineEdit);
    connect(nodeIdLineEdit, &QLineEdit::editingFinished, this, [this] {
       const QString value = nodeIdLineEdit->text().trimmed();
@@ -65,8 +67,10 @@ NodeSettingsWidget::NodeSettingsWidget(ItemInfoPanel& widgetmanager, int id)
       if (edits && !edits->changeNodeIdentifier(this->id, value)) {
          nodeIdLineEdit->setText(texNode->getIdentifier());
          QMessageBox::warning(this, "Invalid node ID",
-                              value.isEmpty()
-                                  ? QString("The node ID cannot be empty.")
+                              value.isEmpty() ? QString("The node ID cannot be empty.")
+                              : !TextureNode::isValidIdentifier(value)
+                                  ? QString("The node ID may only contain ASCII letters "
+                                            "(A-Z, a-z), digits (0-9), and hyphens (-).")
                                   : QString("Another node already uses the ID \"%1\".").arg(value));
       }
    });
