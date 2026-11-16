@@ -492,8 +492,6 @@ struct WorkerRuntime {
    unsigned int callsSincePrune = 0;
 };
 
-/// @brief JavaScript runtime lazily allocated for each render worker thread.
-thread_local std::unique_ptr<WorkerRuntime> workerRuntime;
 /// @brief Freezes a JavaScript bridge value when `Object.freeze` succeeds.
 /// @param freeze Callable equivalent of `Object.freeze`.
 /// @param value Value to freeze.
@@ -674,10 +672,7 @@ void JsTexGen::generateDescriptor(const QSize size, TexturePixel* destimage,
                                   ExecutionController& controller) const {
    static_assert(sizeof(TexturePixel) == 4, "The JavaScript RGBA8 ABI requires four-byte pixels");
    const std::size_t byteCount = checkedByteCount(size);
-   if (!workerRuntime) {
-      workerRuntime = std::make_unique<WorkerRuntime>();
-   }
-   WorkerRuntime& runtime = *workerRuntime;
+   static thread_local WorkerRuntime runtime;
    ExecutionController::Registration registration(controller, runtime.engine);
    if (++runtime.callsSincePrune >= 32) {
       runtime.prune();

@@ -45,7 +45,7 @@ as those can be loaded dynamically from external files.
 
 The build requires:
 
-- Qt 6 with the Qt Base and Qt Declarative modules
+- Qt 6.4 or newer with the Qt Base and Qt Declarative modules
 - CMake 3.21 or newer
 - Ninja
 - A C++17 compiler supported by the installed Qt version

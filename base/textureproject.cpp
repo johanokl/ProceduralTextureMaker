@@ -24,7 +24,6 @@
 #include <QString>
 #include <QVariant>
 #include <Qt>
-#include <QtLogging>
 #include <QtCore/qtmetamacros.h>
 #include <algorithm>
 #include <cstddef>

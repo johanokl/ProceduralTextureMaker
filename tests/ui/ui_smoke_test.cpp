@@ -1150,6 +1150,8 @@ void UiSmokeTest::selectsGeneratorFromAddNodePanel() {
    QCOMPARE(generatorButton->toolTip(), description);
    auto* descriptionPopup = generatorButton->findChild<QLabel*>("hoverTooltip");
    QVERIFY(descriptionPopup != nullptr);
+   // Keep the palette above the separate inspector window during the hover check.
+   addNodePanel.raise();
    QTest::mouseMove(generatorButton, generatorButton->rect().center());
    QTRY_VERIFY(descriptionPopup->isVisible());
    QCOMPARE(descriptionPopup->text(), description);

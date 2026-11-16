@@ -57,7 +57,7 @@ const generator = {
       description: "Selects a repeatable arrangement of gradient directions.",
       default: 500,
       min: 0,
-      max: 1_000_000,
+      max: 1000000,
     },
     {
       id: "offsetx",
@@ -241,12 +241,12 @@ const generator = {
 
                   // Integer multiplication and bit mixing form a compact hash.
                   // Converting the hash to an angle gives this corner a unit vector.
-                  let hash = Math.imul(gradientX, 374_761_393)
-                    + Math.imul(gradientY, 668_265_263)
-                    + Math.imul(seed, 1_442_695_041);
-                  hash = Math.imul(hash ^ (hash >>> 13), 1_274_126_177);
+                  let hash = Math.imul(gradientX, 374761393)
+                    + Math.imul(gradientY, 668265263)
+                    + Math.imul(seed, 1442695041);
+                  hash = Math.imul(hash ^ (hash >>> 13), 1274126177);
                   hash ^= hash >>> 16;
-                  const angle = (hash >>> 0) / 4_294_967_296 * 2 * Math.PI;
+                  const angle = (hash >>> 0) / 4294967296 * 2 * Math.PI;
                   const distanceX = fractionX - cornerX;
                   const distanceY = fractionY - cornerY;
                   const dot = Math.cos(angle) * distanceX + Math.sin(angle) * distanceY;

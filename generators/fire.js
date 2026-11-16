@@ -32,7 +32,7 @@ const generator = {
       description: "Selects the repeatable random pattern feeding the flames.",
       default: 5,
       min: 1,
-      max: 100_000,
+      max: 100000,
     },
     {
       id: "embercolor",
@@ -155,10 +155,10 @@ const generator = {
       // Feed the bottom of the fire with bright random heat. Occasional cooler
       // pockets break the source into separate, naturally flickering flame tongues.
       for (let x = 0; x < simulationWidth; ++x) {
-        randomState = (Math.imul(randomState, 1_664_525) + 1_013_904_223) >>> 0;
-        const brightness = randomState / 4_294_967_296;
-        randomState = (Math.imul(randomState, 1_664_525) + 1_013_904_223) >>> 0;
-        const coolerPocket = randomState / 4_294_967_296 < 0.12;
+        randomState = (Math.imul(randomState, 1664525) + 1013904223) >>> 0;
+        const brightness = randomState / 4294967296;
+        randomState = (Math.imul(randomState, 1664525) + 1013904223) >>> 0;
+        const coolerPocket = randomState / 4294967296 < 0.12;
         const sourceHeat = coolerPocket
           ? 45 + brightness * 80
           : 190 + brightness * 65;

@@ -6,6 +6,7 @@
 
 #include "viewnodeview.h"
 #include "viewnodeitem.h"
+#include <QApplication>
 #include <QEasingCurve>
 #include <QGraphicsScene>
 #include <QGraphicsItem>

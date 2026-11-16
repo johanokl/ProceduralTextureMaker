@@ -120,13 +120,13 @@ const generator = {
       // This linear congruential calculation advances to the next random value.
       // Dividing the unsigned 32-bit result gives a decimal from 0 up to, but not
       // including, 1. The same seed always creates the same sequence.
-      randomState = (Math.imul(1_664_525, randomState) + 1_013_904_223) >>> 0;
-      const placement = randomState / 4_294_967_296;
+      randomState = (Math.imul(1664525, randomState) + 1013904223) >>> 0;
+      const placement = randomState / 4294967296;
 
       if (settings.scatter && placement >= density) continue;
 
-      randomState = (Math.imul(1_664_525, randomState) + 1_013_904_223) >>> 0;
-      const opacity = randomState / 4_294_967_296;
+      randomState = (Math.imul(1664525, randomState) + 1013904223) >>> 0;
+      const opacity = randomState / 4294967296;
       noiseAlpha[sample] = minimumAlpha + Math.floor(opacity * alphaRange);
     }
 

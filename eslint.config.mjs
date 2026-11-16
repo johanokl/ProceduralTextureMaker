@@ -16,10 +16,12 @@ export default [
   {
     files: ["**/*.js"],
     languageOptions: {
-      ecmaVersion: "latest",
+      ecmaVersion: 2020,
       sourceType: "script",
     },
     rules: {
+      // Qt 6.4's JavaScript engine does not support numeric separators.
+      "unicorn/numeric-separators-style": "off",
       // QJSEngine reads this descriptor after evaluating each generator file.
       "no-unused-vars": [
         "error",
