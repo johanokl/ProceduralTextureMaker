@@ -1,14 +1,36 @@
 #include "base/texturenode.h"
 #include "base/textureproject.h"
 #include "base/editmanager.h"
+#include "base/jstexgen.h"
+#include "base/texturerendermanager.h"
 #include "support/testgenerators.h"
 #include <QColor>
 #include <QtTest>
+
+namespace {
+
+/// @brief Builds small real JavaScript schemas for history migration tests.
+TextureGeneratorPtr scriptGenerator(const QString& name, const QString& settings,
+                                    const QString& inputs = "[]") {
+   return TextureGeneratorPtr(new JsTexGen(
+       QString("const generator={apiVersion:1,name:'%1',type:'combiner',inputs:%3,settings:%2,"
+               "generate(size,settings,output){output.data.fill(88);}};")
+           .arg(name, settings, inputs),
+       name + ".js"));
+}
+
+}  // namespace
 
 class EditManagerTest : public QObject {
    Q_OBJECT
 
 private slots:
+   /// @brief Saves preserve both history branches and keep worker definitions immutable.
+   void keepsHistoryAcrossGeneratorChanges();
+   /// @brief Deleted nodes follow renamed generators without losing save warnings.
+   void restoresDeletedNodesWithCurrentGenerator();
+   /// @brief Live and restored values share migration rules; new inputs survive old swaps.
+   void migratesHistoricalSettingsAndConnections();
    void groupsMoveAndSettingChanges();
    void keepsColorChangesSeparate();
    void restoresConnectionsAndRemovedNode();
@@ -16,6 +38,127 @@ private slots:
    void clearsAndRestoresTheWholeGraph();
    void connectsAndSwapsNamedSources();
 };
+
+void EditManagerTest::keepsHistoryAcrossGeneratorChanges() {
+   TextureProject project(false);
+   EditManager edits(project);
+   TextureGeneratorPtr old(new RecordingGenerator("Original"));
+   project.addGenerator(old);
+   const int id = edits.addNode(old, {});
+   edits.changeSetting(id, "value", 29);
+   edits.setClean();
+   edits.stack().undo();
+   const auto render = project.createTextureGraphSnapshot(QSize(1, 1));
+   TextureGeneratorPtr replacement(new RecordingGenerator("Renamed", 0, 88));
+   QVERIFY(project.replaceGenerator(old, replacement));
+   QCOMPARE(edits.stack().count(), 2);
+   QCOMPARE(edits.stack().index(), 1);
+   QVERIFY(edits.stack().canRedo());
+   QCOMPARE(render.nodes.front().generator, old);
+   edits.stack().redo();
+   QCOMPARE(project.getNode(id)->getSettings().value("value").toInt(), 29);
+   QVERIFY(project.isModified());
+   edits.changeSetting(id, "value", 30);
+   QCOMPARE(edits.stack().count(), 3);  // Do not merge across a source save.
+   edits.stack().setIndex(0);
+   QVERIFY(project.getNode(id).isNull());
+   edits.stack().setIndex(3);
+   QCOMPARE(project.getNode(id)->getGenerator(), replacement);
+   QCOMPARE(project.getNode(id)->getSettings().value("value").toInt(), 30);
+   QVERIFY(project.isModified());
+}
+
+void EditManagerTest::restoresDeletedNodesWithCurrentGenerator() {
+   TextureProject project(false);
+   EditManager edits(project);
+   TextureGeneratorPtr old(new RecordingGenerator("Original"));
+   project.addGenerator(old);
+   const int id = edits.addNode(old, {});
+   QVERIFY(edits.removeNode(id));
+   edits.setClean();
+   TextureGeneratorPtr replacement(new RecordingGenerator("Renamed"));
+   QVERIFY(project.replaceGenerator(old, replacement));
+   QCOMPARE(edits.stack().count(), 2);
+   QVERIFY(project.isModified());
+   edits.stack().undo();
+   QCOMPARE(project.getNode(id)->getGenerator(), replacement);
+   QVERIFY(project.isModified());
+   edits.stack().redo();
+   QVERIFY(project.isModified());  // Even the old clean index is no longer a saved state.
+   project.removeGenerator(replacement);
+   QSignalSpy warnings(&project, &TextureProject::historyReplayAdjusted);
+   edits.stack().undo();
+   QVERIFY(project.getNode(id).isNull());
+   QVERIFY(!warnings.isEmpty());
+   project.addGenerator(replacement);
+   edits.stack().redo();
+   edits.stack().undo();
+   QCOMPARE(project.getNode(id)->getGenerator(), replacement);
+}
+
+void EditManagerTest::migratesHistoricalSettingsAndConnections() {
+   TextureProject project(false);
+   EditManager edits(project);
+   const QString schema =
+       "[{id:'value',type:'integer',default:17,max:100},"
+       "{id:'mode',type:'choice',default:'A',values:['A','B']},"
+       "{id:'old',type:'boolean',default:true},{id:'text',type:'string',default:'hello'}]";
+   const QString changedSchema =
+       "[{id:'value',type:'integer',default:3,min:0,max:40},"
+       "{id:'mode',type:'choice',default:'C',values:['C']},"
+       "{id:'text',type:'boolean',default:false},{id:'new',type:'boolean',default:true}]";
+   const auto old = scriptGenerator("Original", schema, "['A','B']");
+   const auto replacement = scriptGenerator("Renamed", changedSchema, "['A','C']");
+   QVERIFY(static_cast<JsTexGen*>(old.data())->isValid());
+   QVERIFY(static_cast<JsTexGen*>(replacement.data())->isValid());
+   project.addGenerator(old);
+   const TextureGeneratorPtr source(new RecordingGenerator);
+   project.newNode(1, source);
+   project.newNode(2, source);
+   const auto node = project.newNode(3, old);
+   QVERIFY(node->setSourceSlot("A", 1));
+   QVERIFY(node->setSourceSlot("B", 2));
+   edits.changeSetting(3, "value", 90);
+   edits.changeSetting(3, "mode", "B");
+   edits.changeSetting(3, "text", "changed");
+   edits.changeSetting(3, "old", false);
+   edits.swapSources(3);
+   const auto live = project.newNode(4, old);
+   live->setSettings(node->getSettings());
+   QVERIFY(edits.removeNode(3));
+   QVERIFY(project.replaceGenerator(old, replacement));
+   QSignalSpy warnings(&project, &TextureProject::historyReplayAdjusted);
+   edits.stack().undo();
+   const auto restored = project.getNode(3);
+   QCOMPARE(restored->getSettings(), live->getSettings());
+   QCOMPARE(restored->getSettings().value("value").toInt(), 40);
+   QCOMPARE(restored->getSettings().value("mode").toString(), QString("C"));
+   QCOMPARE(restored->getSettings().value("text"), QVariant(false));
+   QCOMPARE(restored->getSettings().value("new"), QVariant(true));
+   QVERIFY(!restored->getSettings().contains("old"));
+   QCOMPARE(restored->getSources().value("A"), 2);
+   QVERIFY(!restored->getSources().contains("B"));
+   QVERIFY(restored->setSourceSlot("C", 2));
+   edits.stack().undo();  // Old swap must leave the new C input alone.
+   QCOMPARE(restored->getSources().value("A"), 1);
+   QCOMPARE(restored->getSources().value("C"), 2);
+   edits.stack().setIndex(0);
+   QVERIFY(!restored->getSettings().contains("old"));
+   QCOMPARE(restored->getSettings().value("text"), QVariant(false));
+   QCOMPARE(restored->getSettings().value("value").toInt(), 17);
+   QVERIFY(!warnings.isEmpty());
+   const auto widened =
+       scriptGenerator("Renamed", QString(changedSchema).replace("max:40", "max:100"), "['A','C']");
+   QVERIFY(project.replaceGenerator(replacement, widened));
+   edits.stack().redo();
+   QCOMPARE(restored->getSettings().value("value").toInt(), 90);
+   const auto other = scriptGenerator("Another", "[{id:'value',type:'integer',default:3}]");
+   QVERIFY(restored->setGenerator(other));
+   edits.stack().undo();
+   QCOMPARE(restored->getSettings().value("value").toInt(), 17);
+   edits.stack().redo();
+   QCOMPARE(restored->getSettings().value("value").toInt(), 90);
+}
 
 void EditManagerTest::groupsMoveAndSettingChanges() {
    TextureProject project(false);
@@ -50,7 +193,9 @@ void EditManagerTest::groupsMoveAndSettingChanges() {
 
 void EditManagerTest::keepsColorChangesSeparate() {
    TextureProject project(false);
-   const TextureGeneratorPtr generator(new RecordingGenerator);
+   const auto generator =
+       scriptGenerator("Colour", "[{id:'color',type:'color',default:{r:0,g:0,b:0,a:255}}]");
+   QVERIFY(static_cast<JsTexGen*>(generator.data())->isValid());
    const TextureNodePtr node = project.newNode(1, generator);
    TextureNodeSettings settings = node->getSettings();
    settings[QStringLiteral("color")] = QColor(10, 20, 30, 40);

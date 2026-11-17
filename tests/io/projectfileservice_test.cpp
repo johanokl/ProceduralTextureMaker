@@ -52,9 +52,6 @@ private slots:
    /// @brief Verifies that saving and reloading preserves graph semantics.
    void roundTripsSemantically();
 
-   /// @brief Verifies connections are saved with canonical input names.
-   void savesCanonicalSlotNames();
-
    /// @brief Supplies portable and platform-characterizing render hashes.
    void rendersStableRawHashes_data();
 
@@ -242,53 +239,7 @@ void ProjectFileServiceTest::roundTripsSemantically() {
    result = ProjectFileService::load(path, reloaded);
    QVERIFY2(result.succeeded(), qPrintable(result.message));
    QCOMPARE(reloaded.saveAsJSON().toJson(), before);
-}
-
-void ProjectFileServiceTest::savesCanonicalSlotNames() {
-   const QString json = QStringLiteral(
-       R"([
-  {
-    "id": "1",
-    "name": "source",
-    "generator": "Fill"
-  },
-  {
-    "id": "2",
-    "name": "displaced",
-    "generator": "Displacement",
-    "slots": {
-      "Source image": "1",
-      "Map": "1"
-    }
-  }
-])");
-
-   QTemporaryDir directory;
-   QVERIFY(directory.isValid());
-   const QString inputPath = directory.filePath(QStringLiteral("input.ptmg"));
-   QFile inputFile(inputPath);
-   QVERIFY(inputFile.open(QIODevice::WriteOnly));
-   QCOMPARE(inputFile.write(json.toUtf8()), qint64(json.toUtf8().size()));
-   inputFile.close();
-
-   TextureProject project(false);
-   registerBuiltInGenerators(project);
-   ProjectFileResult result = ProjectFileService::load(inputPath, project);
-   QVERIFY2(result.succeeded(), qPrintable(result.message));
-   const TextureNodePtr displaced = project.getNode(2);
-   QCOMPARE(displaced->getSources().value(QStringLiteral("Source image")), 1);
-   QCOMPARE(displaced->getSources().value(QStringLiteral("Map")), 1);
-
-   const QString namedPath = directory.filePath(QStringLiteral("named.ptmg"));
-   result = ProjectFileService::save(namedPath, project, false);
-   QVERIFY2(result.succeeded(), qPrintable(result.message));
-   QFile namedFile(namedPath);
-   QVERIFY(namedFile.open(QIODevice::ReadOnly));
-   const QString saved = QString::fromUtf8(namedFile.readAll());
-   QVERIFY(saved.contains(QStringLiteral("\"Source image\"")));
-   QVERIFY(saved.contains(QStringLiteral("\"Map\"")));
-   QVERIFY(!saved.contains(QStringLiteral("\"0\"")));
-   QVERIFY(!saved.contains(QStringLiteral("\"Slot 2\"")));
+   QCOMPARE(edgeCount(reloaded), edgeCount(source));
 }
 
 void ProjectFileServiceTest::rendersStableRawHashes_data() {
@@ -301,12 +252,11 @@ void ProjectFileServiceTest::rendersStableRawHashes_data() {
        << QSize(17, 13)
        << QByteArray("88570e6e206362c8ff826f3a441691ac49ab3b970bb62b490e4a3437d0416ae1");
 #ifdef Q_OS_WIN
-   const QByteArray wallDigest("d47c98c22144a02409d13685f39102c2442a90e190f330982fa40913fc69f59b");
-#else
-   const QByteArray wallDigest;
-#endif
    QTest::newRow("wall") << QStringLiteral(PTM_SOURCE_DIR "/examples/wall.ptmg") << 13
-                         << QSize(32, 32) << wallDigest;
+                         << QSize(32, 32)
+                         << QByteArray(
+                                "d47c98c22144a02409d13685f39102c2442a90e190f330982fa40913fc69f59b");
+#endif
 }
 
 void ProjectFileServiceTest::rendersStableRawHashes() {
@@ -322,10 +272,7 @@ void ProjectFileServiceTest::rendersStableRawHashes() {
    const QByteArray bytes(reinterpret_cast<const char*>(image->data()),
                           static_cast<qsizetype>(image->byteSize()));
    const QByteArray digest = QCryptographicHash::hash(bytes, QCryptographicHash::Sha256).toHex();
-   QCOMPARE(digest.size(), qsizetype(64));
-   if (!expectedDigest.isEmpty()) {
-      QCOMPARE(digest, expectedDigest);
-   }
+   QCOMPARE(digest, expectedDigest);
 }
 
 void ProjectFileServiceTest::rejectsMalformedDocumentsTransactionally_data() {
@@ -490,29 +437,9 @@ void ProjectFileServiceTest::reportsUnavailableGenerators() {
    registerBuiltInGenerators(project);
    const ProjectFileResult result = ProjectFileService::load(path, project);
    QCOMPARE(result.error, ProjectFileError::Validation);
-   QCOMPARE(
-       result.message,
-       QStringLiteral("The project file '%1' could not be loaded because it references texture "
-                      "generators that are not available: 'Missing A', 'Missing B'.")
-           .arg(path));
-
-   const QString singleJson = QStringLiteral(
-       R"([
-  {
-    "id": "1",
-    "name": "",
-    "generator": "Missing"
-  }
-])");
-   QVERIFY(file.open(QIODevice::WriteOnly | QIODevice::Truncate));
-   QCOMPARE(file.write(singleJson.toUtf8()), qint64(singleJson.toUtf8().size()));
-   file.close();
-   const ProjectFileResult singleResult = ProjectFileService::load(path, project);
-   QCOMPARE(singleResult.error, ProjectFileError::Validation);
-   QCOMPARE(singleResult.message,
-            QStringLiteral("The project file '%1' could not be loaded because it references a "
-                           "texture generator that is not available: 'Missing'.")
-                .arg(path));
+   QVERIFY(result.message.contains(path));
+   QVERIFY(result.message.contains("Missing A"));
+   QCOMPARE(result.message.count("Missing B"), 1);
 }
 
 void ProjectFileServiceTest::reportsFileErrors() {

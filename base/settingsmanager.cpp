@@ -51,6 +51,7 @@ SettingsManager::SettingsManager(QObject* parent)
       nodeBackgroundBrush(static_cast<int>(Qt::CrossPattern)),
       backgroundBrush(static_cast<int>(Qt::NoBrush)),
       connectionLabelSize(12),
+      codeEditorFontSize(11),
       displaySourceNames(false),
       displayReceiverNames(false),
       textureFiltering(TextureFiltering::Smooth) {
@@ -196,6 +197,15 @@ void SettingsManager::setConnectionLabelSize(int size) {
    }
 }
 
+int SettingsManager::getCodeEditorFontSize() const { return codeEditorFontSize; }
+
+void SettingsManager::setCodeEditorFontSize(int size) {
+   if (size >= 8 && size <= 32 && size != codeEditorFontSize) {
+      codeEditorFontSize = size;
+      emit settingsUpdated();
+   }
+}
+
 bool SettingsManager::getDisplaySourceNames() const { return displaySourceNames; }
 
 void SettingsManager::setDisplaySourceNames(bool enabled) {
@@ -248,6 +258,7 @@ bool SettingsManager::saveSettings() const {
    settings.setValue("nodebackgroundbrushcolor", nodeBackgroundBrushColor.name());
    settings.setValue("nodebackgroundbrush", nodeBackgroundBrush);
    settings.setValue("connectionlabelsize", connectionLabelSize);
+   settings.setValue("codeeditorfontsize", codeEditorFontSize);
    settings.setValue("displaysourcenames", displaySourceNames);
    settings.setValue("displayreceivernames", displayReceiverNames);
    settings.setValue("texturefiltering", static_cast<int>(textureFiltering));
@@ -296,6 +307,10 @@ bool SettingsManager::readSettings() {
       newConnectionLabelSize = 12;
    }
    bool newDisplaySourceNames = settings.value("displaysourcenames", false).toBool();
+   int newCodeEditorFontSize = settings.value("codeeditorfontsize", 11).toInt();
+   if (newCodeEditorFontSize < 8 || newCodeEditorFontSize > 32) {
+      newCodeEditorFontSize = 11;
+   }
    bool newDisplayReceiverNames = settings.value("displayreceivernames", false).toBool();
    const TextureFiltering newTextureFiltering = validTextureFilteringOrDefault(
        settings.value("texturefiltering", static_cast<int>(TextureFiltering::Smooth)).toInt());
@@ -310,7 +325,7 @@ bool SettingsManager::readSettings() {
        nodeBackgroundBrushColor != newNodeBackgroundBrushColor ||
        nodeBackgroundBrush != newNodeBackgroundBrush ||
        connectionLabelSize != newConnectionLabelSize ||
-       displaySourceNames != newDisplaySourceNames ||
+       codeEditorFontSize != newCodeEditorFontSize || displaySourceNames != newDisplaySourceNames ||
        displayReceiverNames != newDisplayReceiverNames || textureFiltering != newTextureFiltering;
 
    previewSize = newPreviewSize;
@@ -325,6 +340,7 @@ bool SettingsManager::readSettings() {
    nodeBackgroundBrushColor = newNodeBackgroundBrushColor;
    nodeBackgroundBrush = newNodeBackgroundBrush;
    connectionLabelSize = newConnectionLabelSize;
+   codeEditorFontSize = newCodeEditorFontSize;
    displaySourceNames = newDisplaySourceNames;
    displayReceiverNames = newDisplayReceiverNames;
    textureFiltering = newTextureFiltering;

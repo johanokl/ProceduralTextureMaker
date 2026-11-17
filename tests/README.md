@@ -12,6 +12,16 @@ The tests use temporary directories and isolated settings. GUI-dependent renderi
 `QT_QPA_PLATFORM=offscreen` under CTest. No test may read or write the normal application settings,
 clipboard, or home-directory files.
 
+## Scope
+
+Test graph integrity, rendering, cancellation, persistence, and error handling at the layer that
+owns the behaviour. Keep a few GUI and CLI workflows to check that the application connects these
+parts correctly. Extend an existing workflow when it already covers the same path.
+
+GUI tests should check what the user can do and see. Avoid exact fonts, margins, spacer layouts,
+and repeated checks of calculations already covered by the engine tests. Keep visual assertions
+for specific rendering regressions, rather than reproducing the entire widget layout in tests.
+
 ## Rendering goldens
 
 The persistence test records SHA-256 digests of raw `TexturePixel` RGBA bytes. PNG file bytes are

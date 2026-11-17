@@ -11,6 +11,8 @@
 #include "gui/nodesettingswidget.h"
 #include "gui/qdoubleslider.h"
 #include <QCheckBox>
+#include <limits>
+#include <algorithm>
 #include <QColorDialog>
 #include <QComboBox>
 #include <QDoubleSpinBox>
@@ -397,7 +399,19 @@ void NodeSettingsWidget::generatorUpdated() {
       }
       newWidget->setProperty("inspectorEditor", true);
       QWidget* newSlider{nullptr};
-      if (!currSetting.max.isNull()) {
+      newWidget->blockSignals(true);
+      if (auto* spin = qobject_cast<QSpinBox*>(newWidget)) {
+         spin->setRange(
+             currSetting.min.isNull() ? std::numeric_limits<int>::min() : currSetting.min.toInt(),
+             currSetting.max.isNull() ? std::numeric_limits<int>::max() : currSetting.max.toInt());
+      } else if (auto* spin = qobject_cast<QDoubleSpinBox*>(newWidget)) {
+         spin->setRange(currSetting.min.isNull() ? -std::numeric_limits<double>::max()
+                                                 : currSetting.min.toDouble(),
+                        currSetting.max.isNull() ? std::numeric_limits<double>::max()
+                                                 : currSetting.max.toDouble());
+      }
+      newWidget->blockSignals(false);
+      if (!currSetting.min.isNull() && !currSetting.max.isNull()) {
          auto* doubleSpinBox = dynamic_cast<QDoubleSpinBox*>(newWidget);
          auto* spinBox = dynamic_cast<QSpinBox*>(newWidget);
          if (doubleSpinBox) {
@@ -451,6 +465,15 @@ void NodeSettingsWidget::generatorUpdated() {
           ((settingsIterator.hasNext() && settingsIterator.peekNext().group != currSetting.group) ||
            !settingsIterator.hasNext())) {
          auto* groupCheckbox = new QCheckBox;
+         const int type = currSetting.defaultvalue.typeId();
+         const bool compatible =
+             (type == QMetaType::Int || type == QMetaType::Double) &&
+             std::all_of(settings.cbegin(), settings.cend(), [&](const auto& item) {
+                return item.group != currSetting.group || item.defaultvalue.typeId() == type;
+             });
+         groupCheckbox->setEnabled(compatible);
+         if (!compatible)
+            groupCheckbox->setToolTip("Alignment requires numeric properties of the same type.");
          groupId = currSetting.group + "groupcheckbox";
          QLabel* newLabel = new QLabel(QString("Align ").append(currSetting.group).append(":"));
          settingLabels[groupId] = newLabel;
@@ -507,10 +530,10 @@ void NodeSettingsWidget::setGroupAlignment(const QString& group, bool aligned) {
             firstwidget->disconnect(this);
             if (aligned) {
                if (currSetting.defaultvalue.typeId() == QMetaType::Int) {
-                  QObject::connect(static_cast<QSpinBox*>(firstwidget),
+                  QObject::connect(qobject_cast<QSpinBox*>(firstwidget),
                                    static_cast<void (QSpinBox::*)(int)>(&QSpinBox::valueChanged),
-                                   static_cast<QSpinBox*>(currwidget), &QSpinBox::setValue);
-                  QObject::connect(static_cast<QSpinBox*>(firstwidget),
+                                   qobject_cast<QSpinBox*>(currwidget), &QSpinBox::setValue);
+                  QObject::connect(qobject_cast<QSpinBox*>(firstwidget),
                                    static_cast<void (QSpinBox::*)(int)>(&QSpinBox::valueChanged),
                                    [=](int i) {
                                       Q_UNUSED(i);
@@ -518,11 +541,11 @@ void NodeSettingsWidget::setGroupAlignment(const QString& group, bool aligned) {
                                    });
                } else if (currSetting.defaultvalue.typeId() == QMetaType::Double) {
                   QObject::connect(
-                      static_cast<QDoubleSpinBox*>(firstwidget),
+                      qobject_cast<QDoubleSpinBox*>(firstwidget),
                       static_cast<void (QDoubleSpinBox::*)(double)>(&QDoubleSpinBox::valueChanged),
-                      static_cast<QDoubleSpinBox*>(currwidget), &QDoubleSpinBox::setValue);
+                      qobject_cast<QDoubleSpinBox*>(currwidget), &QDoubleSpinBox::setValue);
                   QObject::connect(
-                      static_cast<QDoubleSpinBox*>(firstwidget),
+                      qobject_cast<QDoubleSpinBox*>(firstwidget),
                       static_cast<void (QDoubleSpinBox::*)(double)>(&QDoubleSpinBox::valueChanged),
                       [=](double i) {
                          Q_UNUSED(i);
@@ -543,12 +566,12 @@ void NodeSettingsWidget::setGroupAlignment(const QString& group, bool aligned) {
             firstslider->disconnect(currslider);
             if (aligned) {
                if (currSetting.defaultvalue.typeId() == QMetaType::Int) {
-                  QObject::connect(static_cast<QSlider*>(firstslider), &QSlider::valueChanged,
-                                   static_cast<QSlider*>(currslider), &QSlider::setValue);
+                  QObject::connect(qobject_cast<QSlider*>(firstslider), &QSlider::valueChanged,
+                                   qobject_cast<QSlider*>(currslider), &QSlider::setValue);
                } else if (currSetting.defaultvalue.typeId() == QMetaType::Double) {
                   QObject::connect(
-                      static_cast<QDoubleSlider*>(firstslider), &QDoubleSlider::doubleValueChanged,
-                      static_cast<QDoubleSlider*>(currslider), &QDoubleSlider::setDoubleValue);
+                      qobject_cast<QDoubleSlider*>(firstslider), &QDoubleSlider::doubleValueChanged,
+                      qobject_cast<QDoubleSlider*>(currslider), &QDoubleSlider::setDoubleValue);
                }
             }
             currslider->setEnabled(!aligned);

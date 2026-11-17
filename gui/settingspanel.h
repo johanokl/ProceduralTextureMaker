@@ -101,6 +101,8 @@ private:
    QSpinBox* exportImageWidthSpinbox{nullptr};
    /// @brief Editor for the exported image height.
    QSpinBox* exportImageHeightSpinbox{nullptr};
+   /// @brief Editor for the code font size in points.
+   QSpinBox* codeEditorFontSizeSpinbox{nullptr};
    /// @brief Slider controlling regular connection-line width.
    QSlider* lineWidthSlider{nullptr};
    /// @brief Slider controlling connection-arrow size.

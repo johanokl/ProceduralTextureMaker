@@ -264,6 +264,12 @@ MenuActions::MenuActions(MainWindow* parent) : QObject(nullptr), parentwindow(pa
    toggleAddNodeToolBar->addWidget(spacerWidget);
    toggleAddNodeToolBar->addAction(toggleAddNodePanelAct);
    toggleAddNodeToolBar->addAction(togglePreviewImagePanelAct);
+   auto* codeAction = new QAction("Code", this);
+   codeAction->setObjectName("toggleJsTexGenEditor");
+   codeAction->setToolTip("Show or hide the JavaScript generator editor");
+   connect(codeAction, &QAction::triggered, parent, &MainWindow::toggleJsTexGenEditor);
+   toggleAddNodeToolBar->addAction(codeAction);
+   viewMenu->addAction(codeAction);
    toggleAddNodeToolBar->addAction(toggleSettingsPanelAct);
 
    QObject::connect(parent->parent(), &TexGenApplication::windowsChanged, this,

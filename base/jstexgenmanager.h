@@ -39,6 +39,18 @@ public:
    /// @brief Stops the discovery worker and waits for its thread to finish.
    ~JsTexGenManager() override;
 
+   /// @brief Reports whether the initial or requested directory scan is still running.
+   bool isScanning() const { return enabled && scanInProgress; }
+
+   /// @brief Validates, saves, and registers an edited script, refreshing its nodes.
+   /// @param previous Definition to replace, or null for a new custom generator.
+   /// @param source Edited JavaScript source.
+   /// @param path Destination file.
+   /// @param error Receives a validation or file error.
+   /// @return The registered definition, or null when validation or writing failed.
+   TextureGeneratorPtr saveScript(const TextureGeneratorPtr& previous, const QString& source,
+                                  const QString& path, QString& error);
+
 public slots:
    /// @brief Sets the custom generator directory and optionally requests a scan.
    /// @param path Directory searched recursively for JavaScript definitions.

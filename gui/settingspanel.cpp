@@ -237,6 +237,16 @@ SettingsPanel::SettingsPanel(MainWindow* parent, SettingsManager* settingsmanage
    generatorsLayout->addWidget(generatorEnabledLabel, 2, 0);
    generatorsLayout->addWidget(jsGeneratorEnabledCheckbox, 2, 1);
 
+   auto* editorWidget = new QGroupBox("Code editor");
+   auto* editorLayout = new QGridLayout(editorWidget);
+   codeEditorFontSizeSpinbox = new QSpinBox(this);
+   codeEditorFontSizeSpinbox->setObjectName("codeEditorFontSize");
+   codeEditorFontSizeSpinbox->setRange(8, 32);
+   codeEditorFontSizeSpinbox->setSuffix(" pt");
+   editorLayout->addWidget(new QLabel("Font size:"), 0, 0);
+   editorLayout->addWidget(codeEditorFontSizeSpinbox, 0, 1);
+   contentsLayout->addWidget(editorWidget);
+
    QGroupBox* previewWidget = new QGroupBox("Preview");
    auto* previewLayout = new QGridLayout;
    previewWidget->setLayout(previewLayout);
@@ -271,6 +281,7 @@ SettingsPanel::SettingsPanel(MainWindow* parent, SettingsManager* settingsmanage
    QObject::connect(thumbnailHeightSpinbox, spinboxChanged, this, &SettingsPanel::applySettings);
    QObject::connect(exportImageWidthSpinbox, spinboxChanged, this, &SettingsPanel::applySettings);
    QObject::connect(exportImageHeightSpinbox, spinboxChanged, this, &SettingsPanel::applySettings);
+   QObject::connect(codeEditorFontSizeSpinbox, spinboxChanged, this, &SettingsPanel::applySettings);
    QObject::connect(lineWidthSlider, sliderChanged, this, &SettingsPanel::applySettings);
    QObject::connect(arrowSizeSlider, sliderChanged, this, &SettingsPanel::applySettings);
    QObject::connect(connectionLabelSizeSlider, sliderChanged, this, &SettingsPanel::applySettings);
@@ -366,6 +377,7 @@ void SettingsPanel::applySettings() {
    settingsmanager->setJSTextureGeneratorsPath(jsGeneratorPathEdit->text());
    settingsmanager->setJSTextureGeneratorsEnabled(jsGeneratorEnabledCheckbox->isChecked());
    settingsmanager->setConnectionLabelSize(connectionLabelSizeSlider->value());
+   settingsmanager->setCodeEditorFontSize(codeEditorFontSizeSpinbox->value());
    settingsmanager->setDisplaySourceNames(displaySourceNamesCheckbox->isChecked());
    settingsmanager->setDisplayReceiverNames(displayReceiverNamesCheckbox->isChecked());
 
@@ -491,6 +503,7 @@ void SettingsPanel::settingsUpdated() {
    lineWidthSlider->setValue(lineWidth);
    arrowSizeSlider->setValue(arrowSize / 2);
    connectionLabelSizeSlider->setValue(settingsmanager->getConnectionLabelSize());
+   codeEditorFontSizeSpinbox->setValue(settingsmanager->getCodeEditorFontSize());
    displaySourceNamesCheckbox->setChecked(settingsmanager->getDisplaySourceNames());
    displayReceiverNamesCheckbox->setChecked(settingsmanager->getDisplayReceiverNames());
    headerSizeSlider->setValue(headerSliderForSize(headerSize));
@@ -527,6 +540,7 @@ void SettingsPanel::resetSettings() {
    lineWidthSlider->setValue(3);
    arrowSizeSlider->setValue(6);
    connectionLabelSizeSlider->setValue(12);
+   codeEditorFontSizeSpinbox->setValue(11);
    displaySourceNamesCheckbox->setChecked(false);
    displayReceiverNamesCheckbox->setChecked(false);
    headerSizeSlider->setValue(3);
@@ -580,6 +594,7 @@ void SettingsPanel::saveSettings() {
    settingsmanager->setJSTextureGeneratorsPath(jsGeneratorPathEdit->text());
    settingsmanager->setJSTextureGeneratorsEnabled(jsGeneratorEnabledCheckbox->isChecked());
    settingsmanager->setConnectionLabelSize(connectionLabelSizeSlider->value());
+   settingsmanager->setCodeEditorFontSize(codeEditorFontSizeSpinbox->value());
    settingsmanager->setDisplaySourceNames(displaySourceNamesCheckbox->isChecked());
    settingsmanager->setDisplayReceiverNames(displayReceiverNamesCheckbox->isChecked());
    settingsmanager->setPreviewBackgroundColor(QColor(previewBackgroundColorButton->text()));

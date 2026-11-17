@@ -105,6 +105,9 @@ public:
    /// Returns the registered generators keyed by name.
    QMap<QString, TextureGeneratorPtr> getGenerators() const { return generators; }
 
+   /// @brief Returns the stable reference used to restore nodes with the latest definition.
+   TextureGeneratorReferencePtr generatorReference(const TextureGeneratorPtr& generator);
+
    /// @brief Gets the configured graph thumbnail dimensions.
    /// @return The thumbnail dimensions.
    QSize getThumbnailSize() const { return thumbnailSize; }
@@ -209,6 +212,12 @@ public slots:
                                                    bool useCachedImages = true) const;
 
 signals:
+   /// @brief Reports a definition change without discarding graph undo history.
+   void generatorReplaced(bool affectsNodes);
+
+   /// @brief Explains historical settings or connections that no longer fit a generator.
+   void historyReplayAdjusted(const QString& message);
+
    /// @brief Reports changes to the work available for Stop and Restart.
    void renderingStateChanged();
 
@@ -294,6 +303,9 @@ private:
    QMap<int, TextureNodePtr> nodes;
    /// @brief Registered texture generators stored by public name.
    QMap<QString, TextureGeneratorPtr> generators;
+
+   /// @brief Stable references shared with undo commands across definition replacements.
+   QList<TextureGeneratorReferencePtr> generatorReferences;
    /// @brief Protects the project node map.
    mutable std::shared_mutex nodesMutex;
    /// @brief Width and height of node thumbnail images.

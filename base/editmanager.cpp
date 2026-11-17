@@ -12,15 +12,18 @@
 
 namespace {
 
+/// @brief One historical link, restored only if it still fits the graph.
 struct ConnectionSnapshot {
    int sourceId{0};
    int receiverId{0};
    QString slot;
 };
 
+/// @brief Node values and schema without retaining an old compiled definition.
 struct NodeSnapshot {
    int id{0};
-   TextureGeneratorPtr generator;
+   TextureGeneratorReferencePtr generator;
+   TextureGeneratorSettings schema;
    QString name;
    QString identifier;
    QPointF position;
@@ -36,7 +39,8 @@ NodeSnapshot captureNode(TextureProject& project, const int nodeId) {
       return snapshot;
    }
    snapshot.id = nodeId;
-   snapshot.generator = node->getGenerator();
+   snapshot.generator = project.generatorReference(node->getGenerator());
+   snapshot.schema = node->getGenerator()->getSettings();
    snapshot.name = node->getName();
    snapshot.identifier = node->getIdentifier();
    snapshot.position = node->getPos();
@@ -60,15 +64,36 @@ NodeSnapshot captureNode(TextureProject& project, const int nodeId) {
    return snapshot;
 }
 
+/// @brief Explains a partial replay through the normal status surface.
+void reportAdjustedHistory(TextureProject& project) {
+   emit project.historyReplayAdjusted(QStringLiteral(
+       "Some historical settings or connections no longer fit the current generator."));
+}
+
+/// @brief Retains valid links and leaves the current link unchanged when replay is rejected.
+void restoreConnection(TextureProject& project, int receiverId, const QString& slot, int sourceId) {
+   const auto receiver = project.getNode(receiverId);
+   if (!receiver || !receiver->setSourceSlot(slot, sourceId)) reportAdjustedHistory(project);
+}
+
 void restoreNodeState(TextureProject& project, const NodeSnapshot& snapshot) {
    if (snapshot.id == 0 || !project.getNode(snapshot.id).isNull()) {
       return;
    }
-   const TextureNodePtr node = project.newNode(snapshot.id, snapshot.generator);
+   if (!snapshot.generator->available) {
+      emit project.historyReplayAdjusted(
+          QStringLiteral("Cannot restore a node: its generator is unavailable."));
+      return;
+   }
+   const auto generator = snapshot.generator->current;
+   const auto settings =
+       migrateTextureSettings(snapshot.schema, snapshot.settings, generator->getSettings());
+   const TextureNodePtr node = project.newNode(snapshot.id, generator);
    node->setName(snapshot.name);
    node->setIdentifier(snapshot.identifier);
    node->setPos(snapshot.position);
-   node->setSettings(snapshot.settings);
+   node->setSettings(settings);
+   if (settings != snapshot.settings) reportAdjustedHistory(project);
 }
 
 void restoreConnections(TextureProject& project, const NodeSnapshot& snapshot) {
@@ -78,14 +103,11 @@ void restoreConnections(TextureProject& project, const NodeSnapshot& snapshot) {
    }
    for (auto source = snapshot.sources.cbegin(); source != snapshot.sources.cend(); ++source) {
       if (source.value() != 0) {
-         node->setSourceSlot(source.key(), source.value());
+         restoreConnection(project, snapshot.id, source.key(), source.value());
       }
    }
    for (const ConnectionSnapshot& connection : snapshot.outgoing) {
-      const TextureNodePtr receiver = project.getNode(connection.receiverId);
-      if (!receiver.isNull()) {
-         receiver->setSourceSlot(connection.slot, connection.sourceId);
-      }
+      restoreConnection(project, connection.receiverId, connection.slot, connection.sourceId);
    }
 }
 
@@ -129,20 +151,26 @@ private:
 class ChangeSettingCommand final : public QUndoCommand {
 public:
    ChangeSettingCommand(TextureProject& project, const int nodeId, QString settingId,
-                        QVariant oldValue, QVariant newValue, const bool merge)
+                        QVariant oldValue, QVariant newValue, const bool merge, quint64 generation)
        : project(project),
          nodeId(nodeId),
          settingId(std::move(settingId)),
          oldValue(std::move(oldValue)),
          newValue(std::move(newValue)),
-         merge(merge) {
+         merge(merge),
+         generation(generation) {
+      const auto definition = project.getNode(nodeId)->getGenerator();
+      schema = *findTextureGeneratorSetting(definition->getSettings(), this->settingId);
       setText(QStringLiteral("Change %1").arg(this->settingId));
    }
    int id() const override { return merge ? 0x50544d01 : -1; }
    bool mergeWith(const QUndoCommand* other) override {
       const auto* command = dynamic_cast<const ChangeSettingCommand*>(other);
       if (!command || !merge || !command->merge || &project != &command->project ||
-          nodeId != command->nodeId || settingId != command->settingId) {
+          nodeId != command->nodeId || settingId != command->settingId ||
+          generation != command->generation ||
+          schema.defaultvalue.typeId() != command->schema.defaultvalue.typeId() ||
+          schema.multiline != command->schema.multiline) {
          return false;
       }
       newValue = command->newValue;
@@ -157,9 +185,19 @@ private:
       if (node.isNull()) {
          return;
       }
+      const auto definition = node->getGenerator();
+      const auto* current = findTextureGeneratorSetting(definition->getSettings(), settingId);
+      // Setting identity and type decide compatibility, even across generator definitions.
+      const QVariant migrated =
+          current ? migrateTextureSetting(schema, *current, value) : QVariant();
+      if (!migrated.isValid()) {
+         reportAdjustedHistory(project);
+         return;
+      }
       TextureNodeSettings settings = node->getSettings();
-      settings[settingId] = value;
+      settings[settingId] = migrated;
       node->setSettings(settings);
+      if (migrated != value) reportAdjustedHistory(project);
    }
    TextureProject& project;
    int nodeId;
@@ -167,6 +205,8 @@ private:
    QVariant oldValue;
    QVariant newValue;
    bool merge;
+   quint64 generation;
+   TextureGeneratorSetting schema;
 };
 
 class RenameNodeCommand final : public QUndoCommand {
@@ -217,12 +257,7 @@ public:
    void redo() override { apply(newSourceId); }
 
 private:
-   void apply(const int sourceId) {
-      const TextureNodePtr receiver = project.getNode(receiverId);
-      if (!receiver.isNull()) {
-         receiver->setSourceSlot(slot, sourceId);
-      }
-   }
+   void apply(const int sourceId) { restoreConnection(project, receiverId, slot, sourceId); }
    TextureProject& project;
    int receiverId;
    QString slot;
@@ -249,13 +284,9 @@ private:
       if (receiver.isNull()) {
          return;
       }
-      for (const QString& slot : receiver->getSourceSlots()) {
-         receiver->setSourceSlot(slot, 0);
-      }
+      // Touch only historical inputs; new inputs keep their current connections.
       for (auto source = sources.cbegin(); source != sources.cend(); ++source) {
-         if (source.value() != 0) {
-            receiver->setSourceSlot(source.key(), source.value());
-         }
+         restoreConnection(project, receiverId, source.key(), source.value());
       }
    }
    TextureProject& project;
@@ -267,7 +298,7 @@ private:
 class AddNodeCommand final : public QUndoCommand {
 public:
    AddNodeCommand(TextureProject& project, TextureGeneratorPtr generator, QPointF position)
-       : project(project), generator(std::move(generator)), position(position) {
+       : project(project), generator(project.generatorReference(generator)), position(position) {
       setText(QStringLiteral("Add node"));
    }
    int nodeId() const { return snapshot.id; }
@@ -277,7 +308,7 @@ public:
          restoreNode(project, snapshot);
          return;
       }
-      const TextureNodePtr node = project.newNode(0, generator);
+      const TextureNodePtr node = project.newNode(0, generator->current);
       node->setPos(position);
       snapshot = captureNode(project, node->getId());
       setText(QStringLiteral("Add %1").arg(node->getName()));
@@ -285,7 +316,7 @@ public:
 
 private:
    TextureProject& project;
-   TextureGeneratorPtr generator;
+   TextureGeneratorReferencePtr generator;
    QPointF position;
    NodeSnapshot snapshot;
 };
@@ -342,6 +373,13 @@ private:
 EditManager::EditManager(TextureProject& project) : project(project) {
    QObject::connect(&undoStack, &QUndoStack::cleanChanged, [this](bool) { syncModifiedState(); });
    QObject::connect(&undoStack, &QUndoStack::indexChanged, [this](int) { syncModifiedState(); });
+   QObject::connect(
+       &project, &TextureProject::generatorReplaced, &undoStack, [this](bool affectsNodes) {
+          ++mergeGeneration;
+          const bool dirty = this->project.isModified() || affectsNodes || undoStack.count() > 0;
+          if (dirty) undoStack.resetClean();
+          syncModifiedState();
+       });
    syncModifiedState();
 }
 
@@ -368,14 +406,16 @@ void EditManager::moveNode(const int nodeId, const QPointF& oldPosition,
 void EditManager::changeSetting(const int nodeId, const QString& settingId,
                                 const QVariant& newValue, const bool merge) {
    const TextureNodePtr node = project.getNode(nodeId);
-   if (node.isNull()) {
+   if (node.isNull() ||
+       !findTextureGeneratorSetting(node->getGenerator()->getSettings(), settingId)) {
       return;
    }
    const QVariant oldValue = node->getSettings().value(settingId);
    if (oldValue == newValue) {
       return;
    }
-   undoStack.push(new ChangeSettingCommand(project, nodeId, settingId, oldValue, newValue, merge));
+   undoStack.push(new ChangeSettingCommand(project, nodeId, settingId, oldValue, newValue, merge,
+                                           mergeGeneration));
 }
 
 void EditManager::renameNode(const int nodeId, const QString& newName) {

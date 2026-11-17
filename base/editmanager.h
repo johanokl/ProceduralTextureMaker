@@ -75,6 +75,8 @@ private:
 
    TextureProject& project;
    QUndoStack undoStack;
+   /// @brief Prevents property edits from merging across a generator save.
+   quint64 mergeGeneration = 0;
 };
 
 #endif  // EDITMANAGER_H

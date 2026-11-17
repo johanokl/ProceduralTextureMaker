@@ -42,6 +42,7 @@ void SettingsManagerTest::defaultsChangesAndPersistence() {
    QCOMPARE(settings.getNodeBackgroundBrushColor(), QColor(QStringLiteral("#dedede")));
    QCOMPARE(settings.getNodeBackgroundBrush(), static_cast<int>(Qt::CrossPattern));
    QCOMPARE(settings.getConnectionLabelSize(), 12);
+   QCOMPARE(settings.getCodeEditorFontSize(), 11);
    QVERIFY(!settings.getDisplaySourceNames());
    QVERIFY(!settings.getDisplayReceiverNames());
    QCOMPARE(settings.getTextureFiltering(), SettingsManager::TextureFiltering::Smooth);
@@ -52,6 +53,7 @@ void SettingsManagerTest::defaultsChangesAndPersistence() {
    settings.setThumbnailSize(QSize(96, 64));
    settings.setJSTextureGeneratorsEnabled(true);
    settings.setConnectionLabelSize(18);
+   settings.setCodeEditorFontSize(16);
    settings.setDisplaySourceNames(true);
    settings.setDisplaySourceNames(false);
    settings.setDisplayReceiverNames(true);
@@ -62,17 +64,18 @@ void SettingsManagerTest::defaultsChangesAndPersistence() {
    settings.setNodeBackgroundBrushColor(QColor(QStringLiteral("#654321")));
    settings.setNodeBackgroundBrush(static_cast<int>(Qt::DiagCrossPattern));
    settings.setTextureFiltering(SettingsManager::TextureFiltering::Nearest);
-   QCOMPARE(updates.count(), 14);
+   QCOMPARE(updates.count(), 15);
    settings.setPreviewSize(QSize());
    settings.setBackgroundColor(QColor());
    settings.setConnectionLabelSize(40);
+   settings.setCodeEditorFontSize(0);
    settings.setBackgroundBrushColor(QColor());
    settings.setNodeBackgroundColor(QColor());
    settings.setNodeBackgroundBrushColor(QColor());
    settings.setNodeBackgroundBrush(100);
    settings.setBackgroundBrush(static_cast<int>(Qt::LinearGradientPattern));
    settings.setNodeBackgroundBrush(static_cast<int>(Qt::TexturePattern));
-   QCOMPARE(updates.count(), 14);
+   QCOMPARE(updates.count(), 15);
    QVERIFY(settings.saveSettings());
 
    SettingsManager loaded;
@@ -80,6 +83,7 @@ void SettingsManagerTest::defaultsChangesAndPersistence() {
    QCOMPARE(loaded.getThumbnailSize(), QSize(96, 64));
    QVERIFY(loaded.getJSTextureGeneratorsEnabled());
    QCOMPARE(loaded.getConnectionLabelSize(), 18);
+   QCOMPARE(loaded.getCodeEditorFontSize(), 16);
    QVERIFY(!loaded.getDisplaySourceNames());
    QVERIFY(loaded.getDisplayReceiverNames());
    QCOMPARE(loaded.getBackgroundColor(), QColor(QStringLiteral("#abcdef")));
@@ -100,6 +104,7 @@ void SettingsManagerTest::defaultsChangesAndPersistence() {
    persisted.setValue(QStringLiteral("nodebackgroundbrushcolor"), QStringLiteral("invalid"));
    persisted.setValue(QStringLiteral("nodebackgroundbrush"), static_cast<int>(Qt::TexturePattern));
    persisted.setValue(QStringLiteral("connectionlabelsize"), 40);
+   persisted.setValue(QStringLiteral("codeeditorfontsize"), 100);
    persisted.setValue(QStringLiteral("texturefiltering"), 100);
    persisted.sync();
    SettingsManager recovered;
@@ -111,6 +116,7 @@ void SettingsManagerTest::defaultsChangesAndPersistence() {
    QCOMPARE(recovered.getNodeBackgroundBrushColor(), QColor(QStringLiteral("#dedede")));
    QCOMPARE(recovered.getNodeBackgroundBrush(), static_cast<int>(Qt::CrossPattern));
    QCOMPARE(recovered.getConnectionLabelSize(), 12);
+   QCOMPARE(recovered.getCodeEditorFontSize(), 11);
    QCOMPARE(recovered.getTextureFiltering(), SettingsManager::TextureFiltering::Smooth);
 }
 

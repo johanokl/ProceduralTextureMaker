@@ -18,6 +18,12 @@
 #include "gui/clipboardoperations.h"
 #include "gui/cubewidget.h"
 #include "gui/iteminfopanel.h"
+#include "gui/jstexgeneditor.h"
+#include "gui/generatorinfowidget.h"
+#include "base/jstexgen.h"
+#include <QStandardPaths>
+#include <QDir>
+#include <QRegularExpression>
 #include "gui/menuactions.h"
 #include "gui/previewimagepanel.h"
 #include "gui/settingspanel.h"
@@ -89,13 +95,35 @@ MainWindow::MainWindow(TexGenApplication* parent) {
    widget->addWidget(addnodewidget);
    widget->addWidget(previewimagewidget);
    widget->addWidget(settingspanel);
-   widget->setMinimumSize(1000, 450);
+   widget->setMinimumSize(1000, 200);
    widget->setChildrenCollapsible(false);
    widget->setCollapsible(0, false);
    widget->setCollapsible(1, false);
    widget->setStretchFactor(0, 0);
    widget->setStretchFactor(1, 100);
-   setCentralWidget(widget);
+   auto* vertical = new QSplitter(Qt::Vertical, this);
+   vertical->setMinimumSize(1000, 450);
+   vertical->addWidget(widget);
+   jsTexGenEditor = new JsTexGenEditor(*jstexgenManager, *settingsManager, vertical);
+   connect(addnodewidget, &AddNodePanel::createCustomVersion, this,
+           &MainWindow::createCustomVersion);
+   jsTexGenEditor->hide();
+   vertical->addWidget(jsTexGenEditor);
+   vertical->setStretchFactor(0, 1);
+   vertical->setStretchFactor(1, 1);
+   setCentralWidget(vertical);
+   auto* generatorInfo = iteminfopanel->findChild<GeneratorInfoWidget*>();
+   connect(jsTexGenEditor, &JsTexGenEditor::generatorSaved, addnodewidget,
+           &AddNodePanel::selectGenerator);
+   connect(jsTexGenEditor, &JsTexGenEditor::draftMetadataChanged, generatorInfo,
+           &GeneratorInfoWidget::setDraftMetadata);
+   connect(generatorInfo, &GeneratorInfoWidget::createCustomVersion, this,
+           &MainWindow::createCustomVersion);
+   connect(generatorInfo, &GeneratorInfoWidget::metadataEdited, this,
+           [this](const QString& property, const QString& value) {
+              jsTexGenEditor->setMetadata(property, value);
+              if (jsTexGenEditor->isHidden()) toggleJsTexGenEditor();
+           });
 
    setGeometry(100, 100, 1000, 600);
    menuactions->setAddNodePanel(addnodewidget);
@@ -146,6 +174,13 @@ MainWindow::MainWindow(TexGenApplication* parent) {
 
    setWindowTitle("ProceduralTextureMaker");
    statusBar()->hide();
+   connect(
+       project.get(), &TextureProject::historyReplayAdjusted, this,
+       [this](const QString& message) {
+          statusBar()->show();
+          statusBar()->showMessage(message, 8000);
+       },
+       Qt::QueuedConnection);
    connect(project.get(), &TextureProject::renderFailed, this,
            [this](int id, QSize, const QString& message) {
               statusBar()->show();
@@ -159,6 +194,7 @@ MainWindow::MainWindow(TexGenApplication* parent) {
    });
    setAttribute(Qt::WA_DeleteOnClose);
    restoreGeometry(QSettings().value("mainWindowGeometry").toByteArray());
+   if (QSettings().value("jsTexGenEditorVisible", false).toBool()) toggleJsTexGenEditor();
 
    if (QSettings().value("showhelpstartup", true).toBool()) {
       showHelp();
@@ -166,14 +202,19 @@ MainWindow::MainWindow(TexGenApplication* parent) {
 }
 
 void MainWindow::closeEvent(QCloseEvent* event) {
-   if (!maybeSave()) {
+   if (!jsTexGenEditor->canClose() || !maybeSave()) {
       event->ignore();
       return;
    }
    if (imageExporter) {
       imageExporter->cancel();
    }
-   QSettings().setValue("mainWindowGeometry", saveGeometry());
+   QSettings settings;
+   settings.setValue("mainWindowGeometry", saveGeometry());
+   settings.setValue("jsTexGenEditorVisible", !jsTexGenEditor->isHidden());
+   if (!jsTexGenEditor->isHidden())
+      settings.setValue("jsTexGenEditorSplitter",
+                        qobject_cast<QSplitter*>(centralWidget())->saveState());
    event->accept();
 }
 
@@ -196,6 +237,7 @@ void MainWindow::destroyGuiObservers() {
    settingspanel = nullptr;
    addnodewidget = nullptr;
    previewimagewidget = nullptr;
+   jsTexGenEditor = nullptr;
 }
 
 bool MainWindow::saveAs() { return saveFile(true); }
@@ -369,18 +411,26 @@ std::unique_ptr<ViewNodeScene> MainWindow::createScene(ViewNodeScene* source) {
    QObject::connect(newscene.get(), &ViewNodeScene::lineSelected, iteminfopanel,
                     &ItemInfoPanel::setActiveLine);
    QObject::connect(newscene.get(), &ViewNodeScene::nodeSelected, addnodewidget, [this](int id) {
+      if (jsTexGenEditor) jsTexGenEditor->setGenerator({});
       if (id >= 0) {
          addnodewidget->clearGeneratorSelection();
       }
    });
    QObject::connect(newscene.get(), &ViewNodeScene::lineSelected, addnodewidget,
                     &AddNodePanel::clearGeneratorSelection);
+   connect(newscene.get(), &ViewNodeScene::lineSelected, newscene.get(), [this] {
+      if (jsTexGenEditor) jsTexGenEditor->setGenerator({});
+   });
    QObject::connect(newscene.get(), &ViewNodeScene::sceneBackgroundSelected, addnodewidget,
                     &AddNodePanel::clearGeneratorSelection);
+   connect(newscene.get(), &ViewNodeScene::sceneBackgroundSelected, newscene.get(), [this] {
+      if (jsTexGenEditor) jsTexGenEditor->setGenerator({});
+   });
    QObject::connect(addnodewidget, &AddNodePanel::generatorSelected, newscene.get(),
                     [this, scene = newscene.get()](const TextureGeneratorPtr& generator) {
                        scene->clearGraphSelection();
                        iteminfopanel->setActiveGenerator(generator);
+                       jsTexGenEditor->setGenerator(generator);
                     });
    return newscene;
 }
@@ -431,6 +481,11 @@ void MainWindow::setZoomStepFactor(double factor) {
 
 void MainWindow::openFile(const QString& fileName) {
    if (fileName.isNull()) {
+      return;
+   }
+   // A project can reference custom generators discovered during startup.
+   if (jstexgenManager->isScanning()) {
+      QTimer::singleShot(10, this, [this, fileName] { openFile(fileName); });
       return;
    }
    // A newly shown window must be exposed before repaint() can paint it.
@@ -560,4 +615,59 @@ void MainWindow::clearScene() {
    if (maybeSave()) {
       editManager->clearProject();
    }
+}
+
+void MainWindow::toggleJsTexGenEditor() {
+   auto* splitter = qobject_cast<QSplitter*>(centralWidget());
+   if (!jsTexGenEditor->isHidden())
+      QSettings().setValue("jsTexGenEditorSplitter", splitter->saveState());
+   jsTexGenEditor->setVisible(jsTexGenEditor->isHidden());
+   if (!jsTexGenEditor->isHidden() &&
+       !splitter->restoreState(QSettings().value("jsTexGenEditorSplitter").toByteArray())) {
+      splitter->setSizes({splitter->height() / 2, splitter->height() / 2});
+   }
+}
+
+void MainWindow::createCustomVersion(const TextureGeneratorPtr& generator) {
+   auto* js = dynamic_cast<JsTexGen*>(generator.data());
+   if (!js) return;
+   const QString name = "Custom " + js->getName();
+   if (project->getGenerators().contains(name)) {
+      QMessageBox::warning(this, tr("Create custom version"),
+                           tr("A generator named %1 already exists.").arg(name));
+      return;
+   }
+   QString directory = settingsManager->getJSTextureGeneratorsPath();
+   if (directory.isEmpty())
+      directory = QStandardPaths::writableLocation(QStandardPaths::AppDataLocation) + "/generators";
+   if (!QDir().mkpath(directory)) {
+      QMessageBox::warning(this, tr("Create custom version"),
+                           tr("Could not create the generator directory."));
+      return;
+   }
+   QString filename = name.toLower();
+   filename.replace(QRegularExpression("[^a-z0-9]+"), "-");
+   const QString path = QDir(directory).filePath(filename + ".js");
+   if (QFileInfo::exists(path)) {
+      QMessageBox::warning(this, tr("Create custom version"),
+                           tr("The file already exists: %1").arg(path));
+      return;
+   }
+   QString source = JsTexGenEditor::withProperty(js->source(), "name", name);
+   source = JsTexGenEditor::withProperty(source, "filename", QFileInfo(path).fileName());
+   QString error;
+   const auto custom = jstexgenManager->saveScript({}, source, path, error);
+   if (!custom) {
+      QMessageBox::warning(this, tr("Create custom version"), error);
+      return;
+   }
+   settingsManager->setJSTextureGeneratorsPath(directory);
+   settingsManager->setJSTextureGeneratorsEnabled(true);
+   if (!settingsManager->saveSettings()) {
+      QMessageBox::warning(
+          this, tr("Generator settings"),
+          tr("The script was saved, but the generator folder setting could not be saved."));
+   }
+   addnodewidget->selectGenerator(custom);
+   if (jsTexGenEditor->isHidden()) toggleJsTexGenEditor();
 }

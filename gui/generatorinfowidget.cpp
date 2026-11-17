@@ -4,6 +4,10 @@
 // Johan Lindqvist (johan.lindqvist@gmail.com)
 
 #include "gui/generatorinfowidget.h"
+#include "base/jstexgen.h"
+#include <QPushButton>
+#include <QLineEdit>
+#include <QFileInfo>
 #include <QFormLayout>
 #include <QGroupBox>
 #include <QLabel>
@@ -185,6 +189,28 @@ GeneratorInfoWidget::GeneratorInfoWidget(QWidget* parent) : QWidget(parent) {
    settingsLayout = new QVBoxLayout(settings);
    settingsLayout->setSpacing(8);
    contentsLayout->addWidget(settings);
+   editFields = new QWidget(this);
+   auto* fields = new QFormLayout(editFields);
+   nameEdit = new QLineEdit(editFields);
+   filenameEdit = new QLineEdit(editFields);
+   nameEdit->setObjectName("customGeneratorName");
+   filenameEdit->setObjectName("customGeneratorFilename");
+   nameEdit->setToolTip(tr("Updates the draft. Use Save in the Code panel to apply changes."));
+   filenameEdit->setToolTip(nameEdit->toolTip());
+   fields->addRow(tr("Name:"), nameEdit);
+   fields->addRow(tr("Filename:"), filenameEdit);
+   editFields->hide();
+   contentsLayout->addWidget(editFields);
+   connect(nameEdit, &QLineEdit::editingFinished, this,
+           [this] { emit metadataEdited("name", nameEdit->text().trimmed()); });
+   connect(filenameEdit, &QLineEdit::editingFinished, this,
+           [this] { emit metadataEdited("filename", filenameEdit->text().trimmed()); });
+   customButton = new QPushButton(tr("Create custom version"), this);
+   customButton->setObjectName("createCustomGeneratorButton");
+   customButton->hide();
+   contentsLayout->addWidget(customButton);
+   connect(customButton, &QPushButton::clicked, this,
+           [this] { emit createCustomVersion(generator); });
    contentsLayout->addStretch();
 }
 
@@ -197,8 +223,20 @@ void GeneratorInfoWidget::clearLayout(QLayout* layout) {
    }
 }
 
+void GeneratorInfoWidget::setDraftMetadata(const QString& name, const QString& filename) {
+   nameEdit->setText(name);
+   filenameEdit->setText(filename);
+}
+
 void GeneratorInfoWidget::setGenerator(const TextureGeneratorPtr& newGenerator) {
    generator = newGenerator;
+   customButton->setVisible(dynamic_cast<JsTexGen*>(generator.data()) != nullptr);
+   editFields->setVisible(dynamic_cast<JsTexGen*>(generator.data()) &&
+                          generator->getOrigin() == TextureGenerator::Origin::Custom);
+   if (generator) {
+      nameEdit->setText(generator->getName());
+      filenameEdit->setText(QFileInfo(generator->getSourceIdentity()).fileName());
+   }
    clearLayout(inputsLayout);
    clearLayout(settingsLayout);
    updateTiming();

@@ -453,7 +453,7 @@ struct RuntimeEntry {
 /// @brief Owns one render thread's JavaScript engine, helpers, and descriptor cache.
 struct WorkerRuntime {
    /// @brief Creates the engine and installs immutable native helper functions.
-   WorkerRuntime() {
+   explicit WorkerRuntime(const QSharedPointer<int>& owner) : owner(owner) {
       const QJSValue helpersResult = engine.evaluate(
           QStringLiteral("var TexGen = Object.freeze({"
                          "offset: (x,y,stride) => y*stride+x*4,"
@@ -480,6 +480,8 @@ struct WorkerRuntime {
       }
    }
 
+   /// @brief Lifetime of the generator owning this isolated runtime.
+   QWeakPointer<int> owner;
    /// @brief JavaScript engine used exclusively by the current render thread.
    QJSEngine engine;
    /// @brief Cached `Object.freeze` wrapper used to make bridge objects immutable.
@@ -631,8 +633,10 @@ void JsTexGen::validate(ExecutionController& controller, std::chrono::millisecon
                  .arg(sourceIdentity);
          return;
       }
-      const bool parsed = parseDescriptor(descriptor, configurables, name, description, inputSlots,
-                                          type, diagnostic);
+      const bool parsed =
+          parseDescriptor(descriptor, configurables, name, description, inputSlots, type,
+                          diagnostic) &&
+          readOptionalString(descriptor, "filename", requestedFileName, diagnostic, "generator");
       if (controller.isCancelled() || registration.timedOut()) {
          diagnostic = QStringLiteral("%1: %2").arg(
              sourceIdentity, controller.isCancelled() ? QStringLiteral("validation cancelled")
@@ -672,7 +676,23 @@ void JsTexGen::generateDescriptor(const QSize size, TexturePixel* destimage,
                                   ExecutionController& controller) const {
    static_assert(sizeof(TexturePixel) == 4, "The JavaScript RGBA8 ABI requires four-byte pixels");
    const std::size_t byteCount = checkedByteCount(size);
-   static thread_local WorkerRuntime runtime;
+   // Construct the first engine before registering the cache's thread-local destructor.
+   static thread_local auto runtimes = [this] {
+      std::map<quint64, std::unique_ptr<WorkerRuntime>> cache;
+      cache.emplace(stableId, std::make_unique<WorkerRuntime>(lifetimeToken));
+      return cache;
+   }();
+   auto found = runtimes.find(stableId);
+   if (found == runtimes.end()) {
+      for (auto it = runtimes.begin(); it != runtimes.end();) {
+         if (it->second->owner.isNull())
+            it = runtimes.erase(it);
+         else
+            ++it;
+      }
+      found = runtimes.emplace(stableId, std::make_unique<WorkerRuntime>(lifetimeToken)).first;
+   }
+   WorkerRuntime& runtime = *found->second;
    ExecutionController::Registration registration(controller, runtime.engine);
    if (++runtime.callsSincePrune >= 32) {
       runtime.prune();

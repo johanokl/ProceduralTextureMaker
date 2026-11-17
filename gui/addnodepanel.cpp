@@ -9,6 +9,8 @@
 #include "global.h"
 #include "gui/addnodepanel.h"
 #include "gui/hovertooltip.h"
+#include "base/jstexgen.h"
+#include <QMenu>
 #include "gui/connectionwidget.h"
 #include "gui/nodesettingswidget.h"
 #include <QApplication>
@@ -180,6 +182,13 @@ void AddNodePanel::clearGeneratorSelection() {
    buttonGroup->setExclusive(true);
 }
 
+void AddNodePanel::selectGenerator(const TextureGeneratorPtr& generator) {
+   if (auto* button = qobject_cast<QPushButton*>(widgets.value(generator))) {
+      button->setChecked(true);
+      emit generatorSelected(generator);
+   }
+}
+
 void AddNodePanel::addGenerator(const TextureGeneratorPtr& generator) {
    if (widgets.contains(generator)) {
       return;
@@ -194,6 +203,16 @@ void AddNodePanel::addGenerator(const TextureGeneratorPtr& generator) {
    auto* newButton = new AddNodeButton(this, generatorName);
    newButton->setToolTip(generator->getDescription());
    new HoverTooltip(newButton);
+   if (dynamic_cast<JsTexGen*>(generator.data())) {
+      newButton->setContextMenuPolicy(Qt::CustomContextMenu);
+      connect(newButton, &QWidget::customContextMenuRequested, this,
+              [this, newButton, generator](const QPoint& position) {
+                 QMenu menu;
+                 auto* create = menu.addAction(tr("Create custom version"));
+                 if (menu.exec(newButton->mapToGlobal(position)) == create)
+                    emit createCustomVersion(generator);
+              });
+   }
    newButton->setCheckable(true);
    buttonGroup->addButton(newButton);
    QObject::connect(newButton, &QPushButton::clicked, this,

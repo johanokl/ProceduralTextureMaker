@@ -10,6 +10,7 @@
 #include <QMutexLocker>
 #include <QRegularExpression>
 #include <QSet>
+#include <cmath>
 
 const TextureGeneratorSetting* findTextureGeneratorSetting(const TextureGeneratorSettings& settings,
                                                            const QString& id) {
@@ -33,6 +34,54 @@ QString validateTextureGeneratorSettings(const TextureGeneratorSettings& setting
       ids.insert(setting.id);
    }
    return QString();
+}
+
+QVariant migrateTextureSetting(const TextureGeneratorSetting& previous,
+                               const TextureGeneratorSetting& current, const QVariant& value) {
+   const int type = current.defaultvalue.typeId();
+   if (previous.defaultvalue.typeId() != type || previous.multiline != current.multiline) {
+      return {};
+   }
+   if (type == QMetaType::QStringList) {
+      if (value.typeId() != QMetaType::QString) return {};
+      const auto choices = current.defaultvalue.toStringList();
+      return choices.contains(value.toString()) ? value
+                                                : QVariant(choices.value(current.defaultindex));
+   }
+   if (value.typeId() != type) return {};
+   if (type == QMetaType::Int) {
+      int result = value.toInt();
+      if (current.min.isValid()) result = qMax(result, current.min.toInt());
+      if (current.max.isValid()) result = qMin(result, current.max.toInt());
+      return result;
+   }
+   if (type == QMetaType::Double) {
+      double result = value.toDouble();
+      if (!std::isfinite(result)) return {};
+      if (current.min.isValid()) result = qMax(result, current.min.toDouble());
+      if (current.max.isValid()) result = qMin(result, current.max.toDouble());
+      return result;
+   }
+   return value;
+}
+
+TextureNodeSettings migrateTextureSettings(const TextureGeneratorSettings& previous,
+                                           const TextureNodeSettings& values,
+                                           const TextureGeneratorSettings& current) {
+   TextureNodeSettings result;
+   for (const TextureGeneratorSetting& setting : current) {
+      const auto* old = findTextureGeneratorSetting(previous, setting.id);
+      QVariant value =
+          old ? migrateTextureSetting(*old, setting, values.value(setting.id)) : QVariant();
+      if (!value.isValid()) {
+         value = setting.defaultvalue;
+         if (value.typeId() == QMetaType::QStringList) {
+            value = value.toStringList().value(setting.defaultindex);
+         }
+      }
+      result.insert(setting.id, value);
+   }
+   return result;
 }
 
 void TextureGenerator::generateWithTiming(

@@ -20,6 +20,7 @@
 #include <QObject>
 #include <QPointF>
 #include <QSet>
+#include <QScopedValueRollback>
 #include <QSize>
 #include <QString>
 #include <QVariant>
@@ -404,6 +405,18 @@ TextureNodePtr TextureProject::newNode(int id, TextureGeneratorPtr generator) {
    return newNode;
 }
 
+TextureGeneratorReferencePtr TextureProject::generatorReference(
+    const TextureGeneratorPtr& generator) {
+   const auto definition = generator ? generator : emptygenerator;
+   for (const auto& reference : std::as_const(generatorReferences)) {
+      if (reference->current == definition) return reference;
+   }
+   auto reference = TextureGeneratorReferencePtr::create();
+   reference->current = definition;
+   generatorReferences.append(reference);
+   return reference;
+}
+
 void TextureProject::addGenerator(const TextureGeneratorPtr& gen) {
    if (gen.isNull()) {
       return;
@@ -427,12 +440,27 @@ void TextureProject::addGenerator(const TextureGeneratorPtr& gen) {
       emit generatorNameCollision(generators.value(gen->getName()), gen);
       return;
    }
+   // Reconnect history when a removed external file is discovered again.
+   bool restored = false;
+   for (const auto& reference : std::as_const(generatorReferences)) {
+      if (!reference->available && !gen->getSourceIdentity().isEmpty() &&
+          reference->current->getSourceIdentity() == gen->getSourceIdentity()) {
+         reference->current = gen;
+         reference->available = true;
+         restored = true;
+      }
+   }
+   const auto reference = generatorReference(gen);
+   restored = restored || !reference->available;
+   reference->available = true;
    generators.insert(gen->getName(), gen);
    emit generatorAdded(gen);
+   if (restored) emit generatorReplaced(false);
 }
 
 void TextureProject::removeGenerator(const TextureGeneratorPtr& gen) {
    if (!gen.isNull() && generators.key(gen, "NULL") != "NULL") {
+      generatorReference(gen)->available = false;
       generators.remove(gen->getName());
       emit generatorRemoved(gen);
    }
@@ -468,44 +496,31 @@ bool TextureProject::replaceGenerator(const TextureGeneratorPtr& oldGenerator,
    for (const int nodeId : nodeIds) {
       const TextureNodePtr node = getNode(nodeId);
       if (!node.isNull() && node->getGenerator() == oldGenerator) {
-         affectedNodes.append(NodeState{node, node->getSettings(), node->getSources()});
+         QMap<QString, int> sources;
+         const auto previousSources = node->getSources();
+         for (const QString& slot : newGenerator->getSourceSlots()) {
+            sources.insert(slot, previousSources.value(slot));
+         }
+         affectedNodes.append(NodeState{
+             node, migrateTextureSettings(oldDefinitions, node->getSettings(), newDefinitions),
+             sources});
       }
    }
 
+   generatorReference(oldGenerator)->current = newGenerator;
    generators.remove(oldGenerator->getName());
    generators.insert(newGenerator->getName(), newGenerator);
+   {
+      // Publish render snapshots only after every affected node has its new state.
+      QScopedValueRollback<bool> pauseRendering(automaticThumbnailRendering, false);
+      for (const NodeState& state : std::as_const(affectedNodes)) {
+         state.node->replaceGeneratorDefinition(newGenerator, state.settings, state.sources);
+      }
+   }
    emit generatorRemoved(oldGenerator);
    emit generatorAdded(newGenerator);
-
-   for (const NodeState& state : std::as_const(affectedNodes)) {
-      TextureNodeSettings migratedSettings;
-      for (const TextureGeneratorSetting& newSetting : newDefinitions) {
-         QVariant value = newSetting.defaultvalue;
-         if (value.typeId() == QMetaType::QStringList) {
-            const QStringList choices = value.toStringList();
-            value = newSetting.defaultindex >= 0 && newSetting.defaultindex < choices.size()
-                        ? QVariant(choices.at(newSetting.defaultindex))
-                        : QVariant(QString());
-         }
-         const TextureGeneratorSetting* oldDefinition =
-             findTextureGeneratorSetting(oldDefinitions, newSetting.id);
-         if (oldDefinition != nullptr && state.settings.contains(newSetting.id) &&
-             oldDefinition->defaultvalue.typeId() == newSetting.defaultvalue.typeId() &&
-             oldDefinition->multiline == newSetting.multiline) {
-            const QVariant previous = state.settings.value(newSetting.id);
-            if (newSetting.defaultvalue.typeId() != QMetaType::QStringList ||
-                newSetting.defaultvalue.toStringList().contains(previous.toString())) {
-               value = previous;
-            }
-         }
-         migratedSettings.insert(newSetting.id, value);
-      }
-      QMap<QString, int> migratedSources;
-      for (const QString& slot : newGenerator->getSourceSlots()) {
-         migratedSources.insert(slot, state.sources.value(slot));
-      }
-      state.node->replaceGeneratorDefinition(newGenerator, migratedSettings, migratedSources);
-   }
+   emit generatorReplaced(!affectedNodes.isEmpty());
+   if (!affectedNodes.isEmpty()) scheduleThumbnailRender();
    return true;
 }
 

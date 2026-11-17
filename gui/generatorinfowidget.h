@@ -12,6 +12,8 @@
 class QLabel;
 class QLayout;
 class QVBoxLayout;
+class QPushButton;
+class QLineEdit;
 
 /// @brief Displays metadata for a generator selected in the add-node panel.
 class GeneratorInfoWidget : public QWidget {
@@ -30,7 +32,24 @@ public:
    /// @return Shared pointer to the displayed generator, or a null pointer when empty.
    TextureGeneratorPtr getGenerator() const { return generator; }
 
+   /// @brief Displays unsaved metadata retained by the source editor.
+   void setDraftMetadata(const QString& name, const QString& filename);
+
+signals:
+   /// @brief Updates a custom generator's name or filename in its editor draft.
+   void metadataEdited(QString property, QString value);
+   /// @brief Requests an editable copy of the displayed JavaScript generator.
+   void createCustomVersion(TextureGeneratorPtr generator);
+
 private:
+   /// @brief Custom-only metadata fields; changes are applied with the editor's Save button.
+   QWidget* editFields{nullptr};
+   /// @brief Public name in the selected custom draft.
+   QLineEdit* nameEdit{nullptr};
+   /// @brief Destination basename in the selected custom draft.
+   QLineEdit* filenameEdit{nullptr};
+   /// @brief Copies the displayed JavaScript definition into a custom version.
+   QPushButton* customButton{nullptr};
    /// @brief Deletes all widgets and layout items from a dynamic section.
    /// @param layout Layout whose child items are removed.
    void clearLayout(QLayout* layout);

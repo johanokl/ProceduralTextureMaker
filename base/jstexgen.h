@@ -88,6 +88,9 @@ public:
    /// @return The complete JavaScript source supplied to the constructor.
    QString source() const { return scriptContent; }
 
+   /// @brief Returns an optional filename requested by the script's descriptor.
+   QString fileName() const { return requestedFileName; }
+
    /// @brief Returns the number of descriptor runtime evaluations, for diagnostics and tests.
    /// @return The process-wide count of descriptor programs evaluated by render workers.
    static quint64 runtimeEvaluationCount() noexcept;
@@ -115,6 +118,8 @@ private:
    QString name;
    /// @brief User-facing generator description parsed from the definition.
    QString description;
+   /// @brief Optional destination basename used when saving an edited custom script.
+   QString requestedFileName;
    /// @brief Original JavaScript source retained for runtime evaluation and inspection.
    QString scriptContent;
    /// @brief Stable path, resource URL, or diagnostic label for the source.

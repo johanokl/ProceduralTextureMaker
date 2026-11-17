@@ -32,6 +32,9 @@ public:
    ~AddNodePanel() override = default;
 
 public slots:
+   /// @brief Selects an existing palette entry and publishes its generator.
+   void selectGenerator(const TextureGeneratorPtr& generator);
+
    /// @brief Adds a draggable button for a newly registered generator.
    /// @param generator Generator represented by the new button.
    void addGenerator(const TextureGeneratorPtr& generator);
@@ -44,6 +47,9 @@ public slots:
    void clearGeneratorSelection();
 
 signals:
+   /// @brief Requests a custom copy of a JavaScript generator from its palette menu.
+   void createCustomVersion(TextureGeneratorPtr generator);
+
    /// @brief Emitted when a generator button is clicked without being dragged.
    /// @param generator Generator represented by the selected button.
    void generatorSelected(TextureGeneratorPtr generator);

@@ -41,6 +41,32 @@ calculations don't affect the UI performance.
 It's easy to extend the application by adding new generators, especially ones written in Javascript
 as those can be loaded dynamically from external files.
 
+## Editing JavaScript generators
+
+Right-click a JavaScript generator in the Nodes panel and choose **Create custom version**,
+or use the same button in its information panel. This adds a generator named **Custom** followed
+by the original name. Existing nodes keep their original generator; add new nodes to use the copy.
+Copies are saved in the configured JavaScript generator folder, or an application-data folder if
+none is configured.
+
+The **Code** toolbar button opens an editor below the graph for the selected generator. Custom
+generators and external JavaScript files can be edited; bundled generators are read-only. Each
+generator's draft and undo history stay in memory when switching selections. **Save** validates
+and writes the code, then re-renders nodes using that generator. **Reload** reads the external file
+back into the editor. Unsaved drafts are not written automatically.
+
+Custom generator names and filenames can be changed in the information panel or in the source
+(`name` and optional `filename` properties). Use **Save** in the Code panel to apply these changes.
+The editor remembers each generator's cursor and scroll position while the window is open.
+Its panel size and visibility are restored in new windows.
+
+Saving generator code preserves graph undo and redo. Restored nodes use the latest saved code,
+including generator name and filename changes. Compatible settings and inputs are preserved;
+values are limited to the current bounds, and new or incompatible settings use current defaults.
+Individual setting edits remain undoable across definitions when the setting ID and type match.
+Historical edits that no longer fit are skipped or adjusted, with a message in the status bar.
+Graph undo does not undo source-file changes. Save the project to establish its new saved state.
+
 ## How to build
 
 The build requires:

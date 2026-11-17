@@ -1,6 +1,6 @@
 [
   {
-    "id": "1",
+    "id": "first-output",
     "name": "First output",
     "position": {
       "x": 0.0,
@@ -13,7 +13,7 @@
     "slots": {}
   },
   {
-    "id": "2",
+    "id": "second-output",
     "name": "Second output",
     "position": {
       "x": 10.0,

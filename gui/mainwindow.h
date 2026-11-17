@@ -26,6 +26,7 @@ class SettingsPanel;
 class SettingsManager;
 class JsTexGenManager;
 class EditManager;
+class JsTexGenEditor;
 
 /// @brief The application's main window, containing all the scenes and panels.
 ///
@@ -56,6 +57,12 @@ public:
    EditManager& getEditManager() { return *editManager; }
 
 public slots:
+   /// @brief Adds a custom palette entry and opens it without changing graph nodes.
+   void createCustomVersion(const TextureGeneratorPtr& generator);
+
+   /// @brief Shows or hides the generator editor below the graph.
+   void toggleJsTexGenEditor();
+
    /// @brief Prompts for a destination and saves the current project.
    /// @return True when the project was saved successfully.
    bool saveAs();
@@ -148,6 +155,8 @@ public slots:
                                const TextureGeneratorPtr& newGen);
 
 private:
+   /// @brief In-application source editor below the graph and panels.
+   JsTexGenEditor* jsTexGenEditor{nullptr};
    /// @brief Creates the node view and embeds it in the main window.
    void drawScene();
 

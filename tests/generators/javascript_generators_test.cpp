@@ -102,8 +102,9 @@ private slots:
    /// @brief Verifies validation time limits and cancellation on either side of registration.
    void boundsValidationAndCancelsBeforeRegistration();
 
-   /// @brief Verifies scan shutdown before work starts and while validation is stuck.
-   void cancelsScannerDuringValidationAndBeforeStart();
+   /// @brief Checks scanner shutdown is prompt; registration timing is tested at the controller
+   /// boundary.
+   void stopsScannerPromptly();
 
    /// @brief Verifies RGBA rendering, script errors, and rejection of the removed globals API.
    void rendersAndReportsErrors();
@@ -181,22 +182,17 @@ void JavaScriptGeneratorsTest::boundsValidationAndCancelsBeforeRegistration() {
    QVERIFY(!engine.isInterrupted());
 }
 
-void JavaScriptGeneratorsTest::cancelsScannerDuringValidationAndBeforeStart() {
+void JavaScriptGeneratorsTest::stopsScannerPromptly() {
    QTemporaryDir directory;
    QVERIFY(writeTextFile(directory.filePath("stuck.js"), "while(true){}"));
    TextureProject project(false);
-   for (bool startWorker : {false, true}) {
-      auto manager = std::make_unique<JsTexGenManager>(&project);
-      manager->setDirectory(directory.path());
-      manager->setEnabled(true);
-      if (startWorker) {
-         QTest::qWait(100);
-      }
-      QElapsedTimer timer;
-      timer.start();
-      manager.reset();
-      QVERIFY(timer.elapsed() < 2000);
-   }
+   auto manager = std::make_unique<JsTexGenManager>(&project);
+   manager->setDirectory(directory.path());
+   manager->setEnabled(true);
+   QElapsedTimer timer;
+   timer.start();
+   manager.reset();
+   QVERIFY(timer.elapsed() < 2000);
 }
 
 void JavaScriptGeneratorsTest::rendersAndReportsErrors() {
@@ -429,6 +425,13 @@ void JavaScriptGeneratorsTest::cachesConcurrentRuntimesAndInterrupts() {
    generator.generate(QSize(1, 1), &destination, {}, settings);
    generator.generate(QSize(1, 1), &destination, {}, settings);
    QCOMPARE(JsTexGen::runtimeEvaluationCount(), before + 1);
+
+   JsTexGen poison(
+       "const generator={apiVersion:1,name:'Poison',type:'generator',inputs:[],"
+       "generate(){Uint8Array.prototype.fill=function(){throw Error('poisoned');};}};");
+   poison.generate(QSize(1, 1), &destination, {}, settings);
+   generator.generate(QSize(1, 1), &destination, {}, settings);
+   QCOMPARE(destination.r, quint8(17));
 
    const quint64 concurrentBefore = JsTexGen::runtimeEvaluationCount();
    std::vector<std::thread> workers;

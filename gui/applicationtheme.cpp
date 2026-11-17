@@ -339,6 +339,10 @@ QSplitter::handle:vertical {
    height: 6px;
 }
 
+QWidget#jsTexGenEditor {
+   border-top: 2px solid %7;
+}
+
 QScrollBar:vertical,
 QScrollBar:horizontal {
    background: %1;

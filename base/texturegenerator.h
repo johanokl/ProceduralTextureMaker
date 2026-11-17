@@ -134,4 +134,23 @@ QString validateTextureGeneratorSettings(const TextureGeneratorSettings& setting
 /// @brief Shared ownership pointer used for registered texture generators.
 using TextureGeneratorPtr = QSharedPointer<TextureGenerator>;
 
+/// @brief Stable project-local reference followed by graph undo commands, never render workers.
+struct TextureGeneratorReference {
+   /// @brief Latest immutable definition, including name and path changes.
+   TextureGeneratorPtr current;
+   /// @brief False when the generator has been removed from the project registry.
+   bool available = true;
+};
+
+using TextureGeneratorReferencePtr = QSharedPointer<TextureGeneratorReference>;
+
+/// @brief Adapts a historical value to a compatible setting, or returns an invalid value.
+QVariant migrateTextureSetting(const TextureGeneratorSetting& previous,
+                               const TextureGeneratorSetting& current, const QVariant& value);
+
+/// @brief Preserves compatible values and fills new or incompatible settings with defaults.
+TextureNodeSettings migrateTextureSettings(const TextureGeneratorSettings& previous,
+                                           const TextureNodeSettings& values,
+                                           const TextureGeneratorSettings& current);
+
 #endif  // TEXTUREGENERATOR_H

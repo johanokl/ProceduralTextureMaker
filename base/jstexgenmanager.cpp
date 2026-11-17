@@ -11,6 +11,7 @@
 #include <QFile>
 #include <QFileInfo>
 #include <QThread>
+#include <QSaveFile>
 #include <algorithm>
 #include <memory>
 #include <utility>
@@ -71,6 +72,7 @@ std::unique_ptr<JsTexGen> readGenerator(
       return {};
    }
    const QString source = QString::fromUtf8(file.readAll());
+   file.close();
    if (controller && controller->isCancelled()) {
       return {};
    }
@@ -367,6 +369,84 @@ QString JsTexGenManager::collisionDiagnostic(const TextureGeneratorPtr& oldGener
                                              const TextureGeneratorPtr& newGenerator) const {
    return QStringLiteral("Duplicate generator '%1': %2 conflicts with %3")
        .arg(newGenerator->getName(), generatorSource(newGenerator), generatorSource(oldGenerator));
+}
+
+TextureGeneratorPtr JsTexGenManager::saveScript(const TextureGeneratorPtr& previous,
+                                                const QString& source, const QString& path,
+                                                QString& error) {
+   const QFileInfo destination(path);
+   if (!destination.dir().exists()) {
+      error = "The generator directory no longer exists.";
+      return {};
+   }
+   const QString canonical = destination.canonicalFilePath();
+   QString identity = canonical.isEmpty() ? destination.absoluteFilePath() : canonical;
+   auto replacement = QSharedPointer<JsTexGen>::create(source, identity);
+   if (!replacement->isValid()) {
+      error = replacement->validationError();
+      return {};
+   }
+   if (previous && previous->getOrigin() == TextureGenerator::Origin::BuiltIn) {
+      error = "Create a custom version before editing a built-in generator.";
+      return {};
+   }
+   if (!replacement->fileName().isEmpty()) {
+      const QString filename = replacement->fileName();
+      if (filename != QFileInfo(filename).fileName() || filename.contains('\\') ||
+          !filename.endsWith(".js", Qt::CaseInsensitive)) {
+         error = "The filename must be a basename ending in .js, without directory separators.";
+         return {};
+      }
+      const QString renamed = QFileInfo(identity).dir().filePath(filename);
+      if (renamed != identity) {
+         if (QFileInfo::exists(renamed)) {
+            error = "A file already exists at the requested filename.";
+            return {};
+         }
+         identity = renamed;
+         replacement = QSharedPointer<JsTexGen>::create(source, identity);
+         if (!replacement->isValid()) {
+            error = replacement->validationError();
+            return {};
+         }
+      }
+   }
+   const auto collision = project->getGenerators().value(replacement->getName());
+   if (collision && collision != previous) {
+      error =
+          QString("Another generator already uses the name \"%1\".").arg(replacement->getName());
+      return {};
+   }
+   if (previous && project->getGenerators().value(previous->getName()) != previous) {
+      error = "The generator was replaced externally. Select its current version before saving.";
+      return {};
+   }
+   QSaveFile file(identity);
+   const QByteArray bytes = source.toUtf8();
+   if (!file.open(QIODevice::WriteOnly) || file.write(bytes) != bytes.size() || !file.commit()) {
+      error = file.errorString();
+      return {};
+   }
+   if (previous && previous->getSourceIdentity() != identity) {
+      QFile oldFile(previous->getSourceIdentity());
+      if (oldFile.exists() && !oldFile.remove()) {
+         QFile::remove(identity);
+         error = oldFile.errorString();
+         return {};
+      }
+      activeGenerators.remove(previous->getSourceIdentity());
+   }
+   if (previous) {
+      project->replaceGenerator(previous, replacement);
+   } else {
+      project->addGenerator(replacement);
+   }
+   activeGenerators.insert(identity, replacement);
+   if (scanInProgress) {
+      rescanRequested = true;
+      scanController->cancel();
+   }
+   return replacement;
 }
 
 #include "jstexgenmanager.moc"

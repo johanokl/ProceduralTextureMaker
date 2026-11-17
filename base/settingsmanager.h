@@ -77,6 +77,9 @@ public:
    /// @return Endpoint label font size in pixels.
    int getConnectionLabelSize() const;
 
+   /// @brief Gets the code editor font size in points.
+   int getCodeEditorFontSize() const;
+
    /// @brief Checks whether source node names are shown at receiving edges.
    bool getDisplaySourceNames() const;
 
@@ -141,6 +144,9 @@ public slots:
    /// @brief Sets the font size used for connection endpoint labels.
    void setConnectionLabelSize(int size);
 
+   /// @brief Sets the code editor font size in points, from 8 to 32.
+   void setCodeEditorFontSize(int size);
+
    /// @brief Sets whether source node names are shown at receiving edges.
    void setDisplaySourceNames(bool enabled);
 
@@ -179,6 +185,8 @@ private:
    int backgroundBrush;
    /// @brief Font size used for connection endpoint labels.
    int connectionLabelSize;
+   /// @brief Font size used by the code editor and its line numbers, in points.
+   int codeEditorFontSize;
    /// @brief Whether receiving-edge labels include source node names.
    bool displaySourceNames;
    /// @brief Whether source-edge labels include receiver node names.

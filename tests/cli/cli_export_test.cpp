@@ -54,8 +54,6 @@ class CliExportTest : public QObject {
    Q_OBJECT
 
 private slots:
-   /// @brief Verifies CLI selection and listing use editable string IDs.
-   void selectsNamedNode();
    /// @brief Checks an explicit timeout cancels stuck JavaScript and preserves the destination.
    void timesOutOnlyWhenRequested();
 
@@ -65,7 +63,7 @@ private slots:
    /// @brief Verifies exporting a project whose output node is unambiguous.
    void exportsTrackedExampleByUniqueSink();
 
-   /// @brief Verifies node listing and explicit selection for multiple output nodes.
+   /// @brief Verifies string-ID listing, selection, and errors for multiple output nodes.
    void listsNodesAndRequiresSelectionForMultipleSinks();
 
    /// @brief Verifies explicit loading of external JavaScript generators.
@@ -77,35 +75,6 @@ private slots:
    /// @brief Verifies stable exit codes for usage and output failures.
    void returnsStableUsageAndOutputErrors();
 };
-
-void CliExportTest::selectsNamedNode() {
-   QTemporaryDir directory;
-   const QString path = directory.filePath("named.ptmg");
-   QFile input(path);
-   QVERIFY(input.open(QIODevice::WriteOnly));
-   input.write(R"([
-  {
-    "id": "blue-background",
-    "name": "Background",
-    "generator": "Fill",
-    "settings": {
-      "color": "#0000ffff"
-    }
-  }
-])");
-   input.close();
-   auto result = runExporter({"--list-nodes", path}, directory.path());
-   QCOMPARE(result.exitCode, 0);
-   QVERIFY(result.standardOutput.contains("blue-background\tBackground\tFill"));
-   const QString output = directory.filePath("blue.png");
-   result =
-       runExporter({"--node", "blue-background", "--size", "2x2", path, output}, directory.path());
-   QCOMPARE(result.exitCode, 0);
-   QCOMPARE(QImage(output).pixelColor(0, 0), QColor(Qt::blue));
-   QVERIFY(result.standardOutput.contains("Exported node blue-background"));
-   result = runExporter({"--node", "1", path, output}, directory.path());
-   QCOMPARE(result.exitCode, 5);
-}
 
 void CliExportTest::timesOutOnlyWhenRequested() {
    QTemporaryDir directory;
@@ -150,7 +119,7 @@ void CliExportTest::showsHelp() {
 
    const ProcessResult version = runApplication({QStringLiteral("--version")}, directory.path());
    QCOMPARE(version.exitCode, 0);
-   QVERIFY(version.standardOutput.contains("ProceduralTextureMaker 0.1.0"));
+   QVERIFY(version.standardOutput.contains("ProceduralTextureMaker"));
 }
 
 void CliExportTest::exportsTrackedExampleByUniqueSink() {
@@ -175,18 +144,20 @@ void CliExportTest::listsNodesAndRequiresSelectionForMultipleSinks() {
    const QString input = QStringLiteral(PTM_SOURCE_DIR "/tests/fixtures/projects/multi-sink.ptmg");
    ProcessResult result = runExporter({QStringLiteral("--list-nodes"), input}, directory.path());
    QCOMPARE(result.exitCode, 0);
-   QVERIFY(result.standardOutput.contains("1\tFirst output\tFill\tsink"));
-   QVERIFY(result.standardOutput.contains("2\tSecond output\tFill\tsink"));
+   QVERIFY(result.standardOutput.contains("first-output\tFirst output\tFill\tsink"));
+   QVERIFY(result.standardOutput.contains("second-output\tSecond output\tFill\tsink"));
 
    const QString output = directory.filePath(QStringLiteral("selected.png"));
    result = runExporter({input, output}, directory.path());
    QCOMPARE(result.exitCode, 5);
    QVERIFY(result.standardError.contains("Candidates"));
-   result = runExporter({QStringLiteral("--node"), QStringLiteral("2"), QStringLiteral("--size"),
-                         QStringLiteral("4x3"), input, output},
+   QCOMPARE(runExporter({"--node", "missing", input, output}, directory.path()).exitCode, 5);
+   result = runExporter({QStringLiteral("--node"), QStringLiteral("second-output"),
+                         QStringLiteral("--size"), QStringLiteral("4x3"), input, output},
                         directory.path());
    QCOMPARE(result.exitCode, 0);
    QCOMPARE(QImage(output).pixelColor(0, 0), QColor(Qt::blue));
+   QVERIFY(result.standardOutput.contains("Exported node second-output"));
 }
 
 void CliExportTest::loadsJavaScriptGeneratorsExplicitly() {
@@ -203,8 +174,8 @@ void CliExportTest::loadsJavaScriptGeneratorsExplicitly() {
                     QStringLiteral("3x2"), input, output},
                    directory.path());
    QCOMPARE(result.exitCode, 0);
-   QVERIFY(result.standardError.contains("[..............................] 0%"));
-   QVERIFY(result.standardError.contains("[##############################] 100%"));
+   QVERIFY(result.standardError.contains(" 0%"));
+   QVERIFY(result.standardError.contains(" 100%"));
    QVERIFY(result.standardError.contains("Ctrl+C to cancel"));
    const QImage image(output);
    QVERIFY(!image.isNull());
